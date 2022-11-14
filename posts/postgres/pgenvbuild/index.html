@@ -1,0 +1,956 @@
+<!doctype html><html lang=en>
+<head>
+<title>
+Postgres 系列数据库搭建 ::
+Esoye — My note blog
+</title>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="环境搭建 #  使用VScode，选择在容器中打开项目，选择open in container，然后这里选择Ubuntu22，其他的都不选
+ 安装必须的依赖  # 换源升级 sudo sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list sudo sed -i s@/security.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list 或者 sudo sed -i &amp;#34;s@http://.*mirrors.aliyun.com@https://mirrors.tuna.tsinghua.edu.cn@g&amp;#34; /etc/apt/sources.list sudo sed -i &amp;#34;s@http://.*security.ubuntu.com@https://mirrors.tuna.tsinghua.edu.cn@g&amp;#34; /etc/apt/sources.list sudo apt-get update sudo apt-get upgrade sudo apt-get install flex bison g++ gcc gdb make \  libzstd-dev libxml2-dev libcurl4-openssl-dev vim \  libbz2-dev libperl-dev software-properties-common \  pkg-config libreadline-dev python3-dev libldap-dev \  zlib1g-dev openssh-server iputils-ping libxslt-dev \  libpam-dev libssl-dev libreadline6-dev libssh2-1-dev # 设置vscode 用户密码 sudo passwd vscode # 退出容器，重新启动下  使用docker的优点是资源隔离，完全不需要担心一个机器上多个相似开发环境的困扰">
+<meta name=keywords content="数据库">
+<meta name=robots content="noodp">
+<link rel=canonical href=https://Esoye.github.io/posts/postgres/pgenvbuild/>
+<link rel=stylesheet href=https://Esoye.github.io/assets/style.css>
+<link rel=stylesheet href=https://Esoye.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://Esoye.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://Esoye.github.io/img/favicon.png>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Postgres 系列数据库搭建">
+<meta name=twitter:description content="PG系数据库统一安装环境，使用Docker && VSCode on Ubuntu22搭建，这里总结整理，后续PG系得数据库安装方法统一在这里总结">
+<meta property="og:title" content="Postgres 系列数据库搭建">
+<meta property="og:description" content="PG系数据库统一安装环境，使用Docker && VSCode on Ubuntu22搭建，这里总结整理，后续PG系得数据库安装方法统一在这里总结">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://Esoye.github.io/posts/postgres/pgenvbuild/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2022-07-29T14:00:48+08:00">
+<meta property="article:modified_time" content="2022-07-29T14:00:48+08:00"><meta property="og:site_name" content="Esoye">
+</head>
+<body class=light-theme>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archive>Archive</a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archive>Archive</a></li>
+</ul>
+</nav>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class=post>
+<h1 class=post-title>Postgres 系列数据库搭建</h1>
+<div class=post-meta>
+<span class=post-date>
+2022-07-29
+</span>
+</div>
+<span class=post-tags>
+<a href=https://Esoye.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
+<a href=https://Esoye.github.io/tags/postgres/>#Postgres</a>&nbsp;
+<a href=https://Esoye.github.io/tags/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/>#环境搭建</a>&nbsp;
+</span>
+<div class=post-content>
+<h2>Table of Contents</h2>
+<aside class=table-of-contents><nav id=TableOfContents>
+<ul>
+<li><a href=#环境搭建>环境搭建</a></li>
+<li><a href=#源码编译pg>源码编译PG</a></li>
+<li><a href=#安装antdb>安装AntDB</a>
+<ul>
+<li><a href=#初始化集群>初始化集群</a></li>
+</ul>
+</li>
+<li><a href=#安装postgres-xc>安装postgres-xc</a>
+<ul>
+<li><a href=#补丁>补丁</a></li>
+<li><a href=#编译>编译</a></li>
+</ul>
+</li>
+<li><a href=#greenplum>GreenPlum</a>
+<ul>
+<li><a href=#多版本软件安装-ppahttpswwwsysgeekcnubuntu-ppa>多版本软件安装-<a href=https://www.sysgeek.cn/ubuntu-ppa/>PPA</a></a></li>
+<li><a href=#火焰图>火焰图</a></li>
+</ul>
+</li>
+<li><a href=#end>end</a></li>
+</ul>
+</nav></aside>
+<h2 id=环境搭建>
+环境搭建
+<a href=#%e7%8e%af%e5%a2%83%e6%90%ad%e5%bb%ba class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>使用VScode，选择在容器中打开项目，选择open in container，然后这里选择Ubuntu22，其他的都不选</p>
+<ol>
+<li>安装必须的依赖</li>
+</ol>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=color:#75715e># 换源升级</span>
+sudo sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list
+sudo sed -i s@/security.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list
+
+或者
+
+sudo sed -i <span style=color:#e6db74>&#34;s@http://.*mirrors.aliyun.com@https://mirrors.tuna.tsinghua.edu.cn@g&#34;</span> /etc/apt/sources.list
+sudo sed -i <span style=color:#e6db74>&#34;s@http://.*security.ubuntu.com@https://mirrors.tuna.tsinghua.edu.cn@g&#34;</span> /etc/apt/sources.list
+
+sudo apt-get update
+sudo apt-get upgrade
+
+sudo apt-get install flex bison g++ gcc gdb make    <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span> libzstd-dev libxml2-dev libcurl4-openssl-dev vim   <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span> libbz2-dev libperl-dev software-properties-common  <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span> pkg-config libreadline-dev python3-dev libldap-dev <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span> zlib1g-dev openssh-server iputils-ping libxslt-dev <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span> libpam-dev libssl-dev libreadline6-dev libssh2-1-dev
+
+<span style=color:#75715e># 设置vscode 用户密码</span>
+sudo passwd vscode
+
+<span style=color:#75715e># 退出容器，重新启动下</span>
+</code></pre></div><blockquote>
+<p>使用docker的优点是资源隔离，完全不需要担心一个机器上多个相似开发环境的困扰</p>
+</blockquote>
+<h2 id=源码编译pg>
+源码编译PG
+<a href=#%e6%ba%90%e7%a0%81%e7%bc%96%e8%af%91pg class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>完场上述得环境准备阶段，下载源码</p>
+<p>配置如下<code>tasks.json</code>，直接run task，选择build，即可编译源码，之后有源码修改，可以选择fast build task</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json>{
+  <span style=color:#75715e>// See https://go.microsoft.com/fwlink/?LinkId=733558
+</span><span style=color:#75715e></span>  <span style=color:#75715e>// for the documentation about the tasks.json format
+</span><span style=color:#75715e></span>  <span style=color:#f92672>&#34;version&#34;</span>: <span style=color:#e6db74>&#34;2.0.0&#34;</span>,
+  <span style=color:#f92672>&#34;tasks&#34;</span>: [
+    {
+      <span style=color:#f92672>&#34;label&#34;</span>: <span style=color:#e6db74>&#34;build env&#34;</span>,
+      <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;shell&#34;</span>,
+      <span style=color:#f92672>&#34;command&#34;</span>:[
+        <span style=color:#e6db74>&#34;mkdir -p /home/vscode/build/making &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;cd /home/vscode/build/making &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;/workspaces/postgres/configure  --prefix=/home/vscode/build &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;make -j8&amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;make install&#34;</span>
+      ]
+    },
+    {
+      <span style=color:#f92672>&#34;label&#34;</span>: <span style=color:#e6db74>&#34;fast build&#34;</span>,
+      <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;shell&#34;</span>,
+      <span style=color:#f92672>&#34;command&#34;</span>:[
+        <span style=color:#e6db74>&#34;cd /home/vscode/build/making &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;make &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;make install&#34;</span>
+      ]
+    },
+    {
+      <span style=color:#f92672>&#34;label&#34;</span>: <span style=color:#e6db74>&#34;init db&#34;</span>,
+      <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;shell&#34;</span>,
+      <span style=color:#f92672>&#34;command&#34;</span>:[
+        <span style=color:#e6db74>&#34;/home/vscode/build/bin/initdb -D /home/wen/postgres/data &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;/home/vscode/build/bin/createdb vscode&#34;</span>
+      ]
+    },
+    {
+      <span style=color:#f92672>&#34;label&#34;</span>: <span style=color:#e6db74>&#34;pg_start&#34;</span>,
+      <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;shell&#34;</span>,
+      <span style=color:#f92672>&#34;command&#34;</span>: <span style=color:#e6db74>&#34;/home/vscode/build/bin/pg_ctl -D /home/vscode/data  start&#34;</span>,
+    },
+    {
+      <span style=color:#f92672>&#34;label&#34;</span>: <span style=color:#e6db74>&#34;pg_stop&#34;</span>,
+      <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;shell&#34;</span>,
+      <span style=color:#f92672>&#34;command&#34;</span>: <span style=color:#e6db74>&#34;/home/vscode/build/bin/pg_ctl -D /home/vscode/data  stop&#34;</span>,
+    }
+  ]
+}
+</code></pre></div><p>编译完成之后先使用<code>init db</code> task初始化，再使用<code>pg_start</code>和<code>pg_stop</code>打开或者关闭数据库，配置<code>alias psql="/home/vscode/build/bin/psql"</code>到<code>.bashrc</code>中，使用psql正常使用数据库</p>
+<p>路径是统一的，完全自动，不需要自己额外操作</p>
+<h2 id=安装antdb>
+安装AntDB
+<a href=#%e5%ae%89%e8%a3%85antdb class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>完场上述得环境准备阶段，下载源码</p>
+<p>配置如下<code>tasks.json</code>，直接run task，选择build，即可编译源码，之后有源码修改，可以选择fast build task</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json>{
+  <span style=color:#75715e>// See https://go.microsoft.com/fwlink/?LinkId=733558
+</span><span style=color:#75715e></span>  <span style=color:#75715e>// for the documentation about the tasks.json format
+</span><span style=color:#75715e></span>  <span style=color:#f92672>&#34;version&#34;</span>: <span style=color:#e6db74>&#34;2.0.0&#34;</span>,
+  <span style=color:#f92672>&#34;tasks&#34;</span>: [
+    {
+      <span style=color:#f92672>&#34;label&#34;</span>: <span style=color:#e6db74>&#34;build env&#34;</span>,
+      <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;shell&#34;</span>,
+      <span style=color:#f92672>&#34;command&#34;</span>: [
+        <span style=color:#e6db74>&#34;mkdir -p /home/vscode/build/making &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;cd /home/vscode/build/making &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;/workspaces/antdb/configure  --prefix=/home/vscode/build --with-segsize=4 --with-wal-blocksize=64 --enable-grammar-oracle --with-perl --with-python --with-pam --with-ldap --with-libxml --with-libxslt --enable-thread-safety --disable-debug --disable-cassert --enable-depend CFLAGS=&#39;-g&#39; &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;make -j 8 &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;make install &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;cd contrib &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;make -j 8 &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;make install&#34;</span>
+      ]
+    },
+    {
+      <span style=color:#f92672>&#34;label&#34;</span>: <span style=color:#e6db74>&#34;fast build&#34;</span>,
+      <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;shell&#34;</span>,
+      <span style=color:#f92672>&#34;command&#34;</span>: [
+        <span style=color:#e6db74>&#34;cd /home/vscode/build/making &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;make &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;make install&#34;</span>
+      ]
+    },
+    {
+      <span style=color:#f92672>&#34;label&#34;</span>: <span style=color:#e6db74>&#34;start_cluster&#34;</span>,
+      <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;shell&#34;</span>,
+      <span style=color:#f92672>&#34;command&#34;</span>: [
+        <span style=color:#e6db74>&#34;/home/vscode/build/bin/mgr_ctl start -D /home/vscode/data/mgr &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;/home/vscode/build/bin/psql -p 65000 -d postgres -c &#39;start agent all password &#39;vscode&#39;;&#39; &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;/home/vscode/build/bin/psql -p 65000 -d postgres -c &#39;start all;&#39; &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;/home/vscode/build/bin/psql -p 65000 -d postgres -c &#39;monitor all;&#39;&#34;</span>
+      ],
+    },
+    {
+      <span style=color:#f92672>&#34;label&#34;</span>: <span style=color:#e6db74>&#34;stop_cluster&#34;</span>,
+      <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;shell&#34;</span>,
+      <span style=color:#f92672>&#34;command&#34;</span>: [
+        <span style=color:#e6db74>&#34;/home/vscode/build/bin/psql -p 65000 -d postgres -c &#39;stop all;&#39; &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;/home/vscode/build/bin/psql -p 65000 -d postgres -c &#39;stop agent all;&#39; &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;/home/vscode/build/bin/mgr_ctl stop -D /home/vscode/data/mgr -m fast&#34;</span>
+      ],
+    }
+  ]
+}
+
+</code></pre></div><p>上面的任务中，暂时没有配置初始化，编译完成之后，使用下面的初始化步骤进行初始化，其他的跳过，最后使用<code>start_cluster</code>和<code>stop_cluster</code>开启和关闭集群，使用初始化时候的port链接到指定的节点<br>
+再或者可以使用下面的方法手动配置</p>
+<hr>
+<ol>
+<li>
+<p><del><code>mkdir build && cd build</code>然后执行<code>../configure --prefix=/home/wen/postgres/build --with-segsize=4 --with-wal-blocksize=64 --enable-grammar-oracle --with-perl --with-python --with-pam --with-ldap --with-libxml --with-libxslt --enable-thread-safety --disable-debug --disable-cassert --enable-depend CFLAGS='-O2'</code>
+中间有任何出错的地方，需要自行尝试解决，需要自行指定安装路径，建议列表几下需要安装的节点，路径IP以及PORT</del>，直接在下面的配置文件中设置相关的命令，直接执行命令<code>mk</code>即可</p>
+</li>
+<li>
+<p>配置环境变量</p>
+</li>
+</ol>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=color:#75715e># env.sh</span>
+export ADBHOME<span style=color:#f92672>=</span>/home/vscode/.build
+export PATH<span style=color:#f92672>=</span>$ADBHOME/bin:$PATH
+export LD_LIBRARY_PATH<span style=color:#f92672>=</span>$ADBHOME/lib:$LD_LIBRARY_PATH
+export PGDATABASE<span style=color:#f92672>=</span>postgres
+
+export mgrdata<span style=color:#f92672>=</span>/home/vscode/.data
+alias adbmgr<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;psql -p 65000 -d postgres &#39;</span>
+alias mgr_stop<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;mgr_ctl stop -D $mgrdata/mgr -m fast&#39;</span>
+alias mgr_start<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;mgr_ctl start -D $mgrdata/mgr&#39;</span>
+alias cdd<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;cd </span>$mgrdata<span style=color:#e6db74>&#34;</span>
+alias pcn1<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;psql -d postgres -p 65022&#34;</span>
+alias pcn2<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;psql -d postgres -p 65023&#34;</span>
+alias pdn1<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;psql -d postgres -p 65013&#34;</span>
+alias pdn2<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;psql -d postgres -p 65014&#34;</span>
+alias pgtm<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;psql -d postgres -p 65011&#34;</span>
+
+alias start_cluster<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;cda &amp;&amp; \
+</span><span style=color:#e6db74>mgr_start &amp;&amp; \
+</span><span style=color:#e6db74>sleep 1 &amp;&amp; \
+</span><span style=color:#e6db74>adbmgr -c &#39;start agent all password &#39;wen&#39;;&#39; &amp;&amp; \
+</span><span style=color:#e6db74>sleep 1 &amp;&amp; \
+</span><span style=color:#e6db74>adbmgr -c &#39;start all;&#39; &amp;&amp; \
+</span><span style=color:#e6db74>sleep 1 &amp;&amp; \
+</span><span style=color:#e6db74>adbmgr -c &#39;monitor all;&#39;
+</span><span style=color:#e6db74>&#34;</span>
+
+alias stop_cluster<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;cda &amp;&amp; \
+</span><span style=color:#e6db74>adbmgr -c &#39;stop all;&#39; &amp;&amp; \
+</span><span style=color:#e6db74>sleep 1 &amp;&amp; \
+</span><span style=color:#e6db74>adbmgr -c &#39;monitor all;&#39;
+</span><span style=color:#e6db74>sleep 1 &amp;&amp; \
+</span><span style=color:#e6db74>adbmgr -c &#39;stop agent all;&#39; &amp;&amp; \
+</span><span style=color:#e6db74>sleep 1 &amp;&amp; \
+</span><span style=color:#e6db74>mgr_stop
+</span><span style=color:#e6db74>&#34;</span>
+
+alias mkenv<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;mkdir -p /home/vscode/.build/making &amp;&amp; cd /home/vscode/.build/making &amp;&amp;  \
+</span><span style=color:#e6db74>/workspaces/antdb/configure --prefix=</span>$ADBHOME<span style=color:#e6db74> \
+</span><span style=color:#e6db74>--with-segsize=4 \
+</span><span style=color:#e6db74>--with-wal-blocksize=64 \
+</span><span style=color:#e6db74>--enable-grammar-oracle \
+</span><span style=color:#e6db74>--with-perl \
+</span><span style=color:#e6db74>--with-python \
+</span><span style=color:#e6db74>--with-pam \
+</span><span style=color:#e6db74>--with-ldap \
+</span><span style=color:#e6db74>--with-libxml \
+</span><span style=color:#e6db74>--with-libxslt \
+</span><span style=color:#e6db74>--enable-thread-safety \
+</span><span style=color:#e6db74>--disable-debug \
+</span><span style=color:#e6db74>--disable-cassert \
+</span><span style=color:#e6db74>--enable-depend CFLAGS=&#39;-g&#39; &amp;&amp; \
+</span><span style=color:#e6db74>make -j16 &amp;&amp; make install &amp;&amp; cd contrib &amp;&amp;  make -j16 &amp;&amp; make install
+</span><span style=color:#e6db74>&#34;</span>
+
+alias fbuild<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;cd /home/vscode/.build/making &amp;&amp; make -j 8 &amp;&amp;  make install&#34;</span>
+
+<span style=color:#75715e># .bashrn</span>
+alias cda<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;cd /workspaces/antdb &amp;&amp; source env.sh&#34;</span>
+</code></pre></div><h3 id=初始化集群>
+初始化集群
+<a href=#%e5%88%9d%e5%a7%8b%e5%8c%96%e9%9b%86%e7%be%a4 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<ol start=5>
+<li>
+<p>初始化adbmgr<code>initmgr -D $mgrdata/mgr</code></p>
+</li>
+<li>
+<p>配置adbmgr</p>
+</li>
+</ol>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell>cat  &gt;&gt; <span style=color:#e6db74>${</span>mgrdata<span style=color:#e6db74>}</span>/mgr/postgresql.conf <span style=color:#e6db74>&lt;&lt; EOF
+</span><span style=color:#e6db74>port = 65000
+</span><span style=color:#e6db74>listen_addresses = &#39;*&#39;
+</span><span style=color:#e6db74>log_directory = &#39;pg_log&#39;
+</span><span style=color:#e6db74>log_destination =&#39;csvlog&#39;
+</span><span style=color:#e6db74>logging_collector = on
+</span><span style=color:#e6db74>log_min_messages = error
+</span><span style=color:#e6db74>max_wal_senders = 3
+</span><span style=color:#e6db74>hot_standby = on
+</span><span style=color:#e6db74>wal_level = replica
+</span><span style=color:#e6db74>EOF</span>
+
+cat  &gt;&gt; <span style=color:#e6db74>${</span>mgrdata<span style=color:#e6db74>}</span>/mgr/pg_hba.conf <span style=color:#e6db74>&lt;&lt; EOF
+</span><span style=color:#e6db74>host    replication     all          10.0.0.0/8                 trust
+</span><span style=color:#e6db74>host    all             all          10.0.0.0/8                 trust
+</span><span style=color:#e6db74>EOF</span>
+</code></pre></div><ol start=7>
+<li>
+<p>使用前面配置中的命令<code>mgr_start</code>启动 <code>adbmgr</code></p>
+</li>
+<li>
+<p>添加主机</p>
+</li>
+</ol>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=color:#75715e>-- 这里的adbhome指定前面编译的路径，这样再单机上，就不需要每次编译之后移动文件了，他的host的意思是配置路径，然后把编译之后的所有文件移动到host的指定路径下，然后在host上搭建环境，这里单机，不需要这个操作
+</span><span style=color:#75715e></span><span style=color:#66d9ef>add</span> <span style=color:#66d9ef>host</span> adb(port<span style=color:#f92672>=</span><span style=color:#ae81ff>22</span>,protocol<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;ssh&#39;</span>,adbhome<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;/home/vscode/.build&#39;</span>,address<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;172.17.0.2&#34;</span>,agentport<span style=color:#f92672>=</span><span style=color:#ae81ff>65001</span>,<span style=color:#66d9ef>user</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#39;vscode&#39;</span>);
+deploy <span style=color:#66d9ef>all</span> password <span style=color:#e6db74>&#39;vscode&#39;</span>;
+<span style=color:#66d9ef>start</span> agent <span style=color:#66d9ef>all</span> password <span style=color:#e6db74>&#39;vscode&#39;</span>;
+
+<span style=color:#75715e>-- 相关的操作的语句
+</span><span style=color:#75715e></span><span style=color:#66d9ef>drop</span> <span style=color:#66d9ef>host</span> adb;
+stop agent <span style=color:#66d9ef>all</span>;
+
+</code></pre></div><ol start=9>
+<li>添加节点</li>
+</ol>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=color:#75715e>-- 这里是一个完整的集群的配置的，但是单机的时候实际上不需要这么多，所有的slave可以去掉，coordinator只需要一个就可以了，
+</span><span style=color:#75715e>-- 下面的注释的角色按需求添加
+</span><span style=color:#75715e></span><span style=color:#66d9ef>add</span> gtmcoord master gtmcoord(path<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;/home/vscode/.data/gtmcoord&#39;</span>, <span style=color:#66d9ef>host</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#39;adb&#39;</span>, port<span style=color:#f92672>=</span><span style=color:#ae81ff>65011</span>);
+<span style=color:#75715e>-- add gtmcoord slave  sgtmcoord for gtmcoord (path=&#39;/home/wen/data/gtmcoords&#39;, host=&#39;adb&#39;, port=65012); 
+</span><span style=color:#75715e></span>
+<span style=color:#66d9ef>add</span> coordinator master cn1(path<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;/home/vscode/.data/cn1&#39;</span>, <span style=color:#66d9ef>host</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#39;adb&#39;</span>, port<span style=color:#f92672>=</span><span style=color:#ae81ff>65022</span>);
+<span style=color:#75715e>-- add coordinator master cn2(path=&#39;/home/vscode/data/cn2&#39;, host=&#39;adb&#39;, port=65032);
+</span><span style=color:#75715e></span>
+
+<span style=color:#66d9ef>add</span> datanode master dn1(path<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;/home/vscode/.data/dn1&#39;</span>, <span style=color:#66d9ef>host</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#39;adb&#39;</span>, port<span style=color:#f92672>=</span><span style=color:#ae81ff>65013</span>);
+<span style=color:#66d9ef>add</span> datanode master dn2(path<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;/home/vscode/.data/dn2&#39;</span>, <span style=color:#66d9ef>host</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#39;adb&#39;</span>, port<span style=color:#f92672>=</span><span style=color:#ae81ff>65014</span>);
+<span style=color:#66d9ef>add</span> datanode master dn3(path<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;/home/vscode/.data/dn3&#39;</span>, <span style=color:#66d9ef>host</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#39;adb&#39;</span>, port<span style=color:#f92672>=</span><span style=color:#ae81ff>65015</span>);
+<span style=color:#75715e>-- add datanode slave ds1 for dn1 (path=&#39;/home/vscode/data/ds1&#39;, host=&#39;adb&#39;, port=65015);
+</span><span style=color:#75715e>-- add datanode slave ds2 for dn2 (path=&#39;/home/vscode/data/ds2&#39;, host=&#39;adb&#39;, port=65016);
+</span><span style=color:#75715e></span>
+<span style=color:#75715e>-- 相关的操作的语句
+</span><span style=color:#75715e></span><span style=color:#66d9ef>DROP</span> GTMCOORD <span style=color:#960050;background-color:#1e0010>{</span> MASTER <span style=color:#f92672>|</span> SLAVE <span style=color:#960050;background-color:#1e0010>}</span> node_name
+<span style=color:#66d9ef>DROP</span> COORDINATOR MASTER node_name [, ...]
+<span style=color:#66d9ef>DROP</span> DATANODE <span style=color:#960050;background-color:#1e0010>{</span> MASTER <span style=color:#f92672>|</span> SLAVE <span style=color:#960050;background-color:#1e0010>}</span> node_name [, ...]
+
+<span style=color:#75715e>-- 显示节点
+</span><span style=color:#75715e></span>list node;
+
+</code></pre></div><ol start=10>
+<li>初始化节点</li>
+</ol>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>init <span style=color:#66d9ef>all</span>;
+<span style=color:#66d9ef>start</span> <span style=color:#66d9ef>all</span>;
+
+monitor <span style=color:#66d9ef>all</span>;
+
+
+ nodename  <span style=color:#f92672>|</span>      nodetype      <span style=color:#f92672>|</span> status <span style=color:#f92672>|</span> description <span style=color:#f92672>|</span>      <span style=color:#66d9ef>host</span>       <span style=color:#f92672>|</span> port  <span style=color:#f92672>|</span> recovery <span style=color:#f92672>|</span>           boot time           <span style=color:#f92672>|</span> nodezone 
+<span style=color:#75715e>-----------+--------------------+--------+-------------+-----------------+-------+----------+-------------------------------+----------
+</span><span style=color:#75715e></span> gtmcoord  <span style=color:#f92672>|</span> gtmcoord master    <span style=color:#f92672>|</span> t      <span style=color:#f92672>|</span> running     <span style=color:#f92672>|</span> <span style=color:#ae81ff>172</span>.<span style=color:#ae81ff>17</span>.<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>65011</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>false</span>    <span style=color:#f92672>|</span> <span style=color:#ae81ff>2022</span><span style=color:#f92672>-</span><span style=color:#ae81ff>07</span><span style=color:#f92672>-</span><span style=color:#ae81ff>29</span> <span style=color:#ae81ff>12</span>:<span style=color:#ae81ff>58</span>:<span style=color:#ae81ff>11</span>.<span style=color:#ae81ff>839091</span><span style=color:#f92672>+</span><span style=color:#ae81ff>08</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>local</span>
+ sgtmcoord <span style=color:#f92672>|</span> gtmcoord slave     <span style=color:#f92672>|</span> t      <span style=color:#f92672>|</span> running     <span style=color:#f92672>|</span> <span style=color:#ae81ff>172</span>.<span style=color:#ae81ff>17</span>.<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>65012</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>true</span>     <span style=color:#f92672>|</span> <span style=color:#ae81ff>2022</span><span style=color:#f92672>-</span><span style=color:#ae81ff>07</span><span style=color:#f92672>-</span><span style=color:#ae81ff>29</span> <span style=color:#ae81ff>12</span>:<span style=color:#ae81ff>58</span>:<span style=color:#ae81ff>13</span>.<span style=color:#ae81ff>437948</span><span style=color:#f92672>+</span><span style=color:#ae81ff>08</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>local</span>
+ cn1       <span style=color:#f92672>|</span> coordinator master <span style=color:#f92672>|</span> t      <span style=color:#f92672>|</span> running     <span style=color:#f92672>|</span> <span style=color:#ae81ff>172</span>.<span style=color:#ae81ff>17</span>.<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>65022</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>false</span>    <span style=color:#f92672>|</span> <span style=color:#ae81ff>2022</span><span style=color:#f92672>-</span><span style=color:#ae81ff>07</span><span style=color:#f92672>-</span><span style=color:#ae81ff>29</span> <span style=color:#ae81ff>12</span>:<span style=color:#ae81ff>58</span>:<span style=color:#ae81ff>15</span>.<span style=color:#ae81ff>327357</span><span style=color:#f92672>+</span><span style=color:#ae81ff>08</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>local</span>
+ cn2       <span style=color:#f92672>|</span> coordinator master <span style=color:#f92672>|</span> t      <span style=color:#f92672>|</span> running     <span style=color:#f92672>|</span> <span style=color:#ae81ff>172</span>.<span style=color:#ae81ff>17</span>.<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>65032</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>false</span>    <span style=color:#f92672>|</span> <span style=color:#ae81ff>2022</span><span style=color:#f92672>-</span><span style=color:#ae81ff>07</span><span style=color:#f92672>-</span><span style=color:#ae81ff>29</span> <span style=color:#ae81ff>12</span>:<span style=color:#ae81ff>58</span>:<span style=color:#ae81ff>15</span>.<span style=color:#ae81ff>346259</span><span style=color:#f92672>+</span><span style=color:#ae81ff>08</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>local</span>
+ dn1       <span style=color:#f92672>|</span> datanode master    <span style=color:#f92672>|</span> t      <span style=color:#f92672>|</span> running     <span style=color:#f92672>|</span> <span style=color:#ae81ff>172</span>.<span style=color:#ae81ff>17</span>.<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>65013</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>false</span>    <span style=color:#f92672>|</span> <span style=color:#ae81ff>2022</span><span style=color:#f92672>-</span><span style=color:#ae81ff>07</span><span style=color:#f92672>-</span><span style=color:#ae81ff>29</span> <span style=color:#ae81ff>12</span>:<span style=color:#ae81ff>58</span>:<span style=color:#ae81ff>18</span>.<span style=color:#ae81ff>087381</span><span style=color:#f92672>+</span><span style=color:#ae81ff>08</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>local</span>
+ dn2       <span style=color:#f92672>|</span> datanode master    <span style=color:#f92672>|</span> t      <span style=color:#f92672>|</span> running     <span style=color:#f92672>|</span> <span style=color:#ae81ff>172</span>.<span style=color:#ae81ff>17</span>.<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>65014</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>false</span>    <span style=color:#f92672>|</span> <span style=color:#ae81ff>2022</span><span style=color:#f92672>-</span><span style=color:#ae81ff>07</span><span style=color:#f92672>-</span><span style=color:#ae81ff>29</span> <span style=color:#ae81ff>12</span>:<span style=color:#ae81ff>58</span>:<span style=color:#ae81ff>18</span>.<span style=color:#ae81ff>104376</span><span style=color:#f92672>+</span><span style=color:#ae81ff>08</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>local</span>
+ ds1       <span style=color:#f92672>|</span> datanode slave     <span style=color:#f92672>|</span> t      <span style=color:#f92672>|</span> running     <span style=color:#f92672>|</span> <span style=color:#ae81ff>172</span>.<span style=color:#ae81ff>17</span>.<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>65015</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>true</span>     <span style=color:#f92672>|</span> <span style=color:#ae81ff>2022</span><span style=color:#f92672>-</span><span style=color:#ae81ff>07</span><span style=color:#f92672>-</span><span style=color:#ae81ff>29</span> <span style=color:#ae81ff>12</span>:<span style=color:#ae81ff>58</span>:<span style=color:#ae81ff>19</span>.<span style=color:#ae81ff>502512</span><span style=color:#f92672>+</span><span style=color:#ae81ff>08</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>local</span>
+ ds2       <span style=color:#f92672>|</span> datanode slave     <span style=color:#f92672>|</span> t      <span style=color:#f92672>|</span> running     <span style=color:#f92672>|</span> <span style=color:#ae81ff>172</span>.<span style=color:#ae81ff>17</span>.<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>65016</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>true</span>     <span style=color:#f92672>|</span> <span style=color:#ae81ff>2022</span><span style=color:#f92672>-</span><span style=color:#ae81ff>07</span><span style=color:#f92672>-</span><span style=color:#ae81ff>29</span> <span style=color:#ae81ff>12</span>:<span style=color:#ae81ff>58</span>:<span style=color:#ae81ff>20</span>.<span style=color:#ae81ff>014611</span><span style=color:#f92672>+</span><span style=color:#ae81ff>08</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>local</span>
+
+</code></pre></div><blockquote>
+<p>添加host的时候主要是同步二进制文件，所以在修改代码编译之后，需要注意修改host对应文件夹下的文件，否则编译不起效，host上的所有的节点都是使用host目录下的二进制文件</p>
+</blockquote>
+<h2 id=安装postgres-xc>
+安装postgres-xc
+<a href=#%e5%ae%89%e8%a3%85postgres-xc class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>也是需要搭建一个集群环境，不过暂时在单机上没有成功搭建，网络上的教程也是以失败告终，最终使用docker-compose 搭建成功，这里有两种环境选择，一是在centos上搭建，这是在gayhub上找到的用来搭建xl集群的，修改了下也可以用在xc上，优点是基本不用修改什么，一键up即可使用，缺点是docker为了安全，所以一般的docker环境无法正常调试，即使把一些限制打开，调试也有莫名奇妙的问题。第二种是使用vscode+Ubuntu+docker-compose搭建，我在wsl环境下搭建成功，且完美调试。</p>
+<h3 id=补丁>
+补丁
+<a href=#%e8%a1%a5%e4%b8%81 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>从<a href="https://master.dl.sourceforge.net/project/postgres-xc/Version_1.2/pgxc-v1.2.1.tar.gz?viasf=1">这里</a>下载最新源码，然后使用下面的patch，源码有些问题是无法编译成功的，有的问题根本查无可查，不过最终还是一一对比编译错误和postgres的最新的源码，慢慢的解决了问题</p>
+<pre tabindex=0><code class=language-git data-lang=git>diff --git a/configure b/configure
+index 64fccd7..4199c1d 100755
+--- a/configure
++++ b/configure
+@@ -3702,13 +3702,13 @@ if test &quot;$ac_test_CFLAGS&quot; = set; then
+   CFLAGS=$ac_save_CFLAGS
+ elif test $ac_cv_prog_cc_g = yes; then
+   if test &quot;$GCC&quot; = yes; then
+-    CFLAGS=&quot;-g -O2&quot;
++    CFLAGS=&quot;-g&quot;
+   else
+     CFLAGS=&quot;-g&quot;
+   fi
+ else
+   if test &quot;$GCC&quot; = yes; then
+-    CFLAGS=&quot;-O2&quot;
++    CFLAGS=&quot;-g&quot;
+   else
+     CFLAGS=
+   fi
+@@ -3945,8 +3945,8 @@ unset CFLAGS
+ # If the user specifies something in the environment, that is used.
+ # else:  If the template file set something, that is used.
+ # else:  If coverage was enabled, don't set anything.
+-# else:  If the compiler is GCC, then we use -O2.
+-# else:  If the compiler is something else, then we use -O, unless debugging.
++# else:  If the compiler is GCC, then we use -g.
++# else:  If the compiler is something else, then we use -g, unless debugging.
+ 
+ if test &quot;$ac_env_CFLAGS_set&quot; = set; then
+   CFLAGS=$ac_env_CFLAGS_value
+@@ -3955,11 +3955,11 @@ elif test &quot;${CFLAGS+set}&quot; = set; then
+ elif test &quot;$enable_coverage&quot; = yes; then
+   : # no optimization by default
+ elif test &quot;$GCC&quot; = yes; then
+-  CFLAGS=&quot;-O2&quot;
++  CFLAGS=&quot;-g&quot;
+ else
+-  # if the user selected debug mode, don't use -O
++  # if the user selected debug mode, don't use -g
+   if test &quot;$enable_debug&quot; != yes; then
+-    CFLAGS=&quot;-O&quot;
++    CFLAGS=&quot;-g&quot;
+   fi
+ fi
+ 
+@@ -7335,7 +7335,7 @@ else
+         echo '%%'  &gt; conftest.l
+         if $pgac_candidate -t conftest.l 2&gt;/dev/null | grep FLEX_SCANNER &gt;/dev/null 2&gt;&amp;1; then
+           pgac_flex_version=`$pgac_candidate --version 2&gt;/dev/null`
+-          if echo &quot;$pgac_flex_version&quot; | sed 's/[.a-z]/ /g' | $AWK '{ if ($1 = 2 &amp;&amp; $2 = 5 &amp;&amp; $3 &gt;= 31) exit 0; else exit 1;}'
++          if echo &quot;$pgac_flex_version&quot; | sed 's/[.a-z]/ /g' | $AWK '{ if ($1 == 2 &amp;&amp; ($2 &gt; 5 || ($2 == 5 &amp;&amp; $3 &gt;= 31))) exit 0; else exit 1;}'
+           then
+             pgac_cv_path_flex=$pgac_candidate
+             break 2
+@@ -7433,7 +7433,7 @@ if test &quot;$PERL&quot;; then
+   { $as_echo &quot;$as_me:$LINENO: using perl $pgac_perl_version&quot; &gt;&amp;5
+ $as_echo &quot;$as_me: using perl $pgac_perl_version&quot; &gt;&amp;6;}
+   if echo &quot;$pgac_perl_version&quot; | sed 's/[.a-z_]/ /g' | \
+-    $AWK '{ if ($1 = 5 &amp;&amp; $2 &gt;= 8) exit 1; else exit 0;}'
++    $AWK '{ if ($1 == 5 &amp;&amp; $2 &gt;= 8) exit 1; else exit 0;}'
+   then
+     { $as_echo &quot;$as_me:$LINENO: WARNING:
+ *** The installed version of Perl, $PERL, is too old to use with PostgreSQL.
+diff --git a/contrib/pgxc_ctl/variables.c b/contrib/pgxc_ctl/variables.c
+index 1bfaf79..74ceecf 100644
+--- a/contrib/pgxc_ctl/variables.c
++++ b/contrib/pgxc_ctl/variables.c
+@@ -17,6 +17,7 @@
+ 
+ pgxc_ctl_var *var_head = NULL;
+ pgxc_ctl_var *var_tail = NULL;
++pgxc_var_hash var_hash[NUM_HASH_BUCKET];
+ 
+ static void clear_var(pgxc_ctl_var *var);
+ /*
+@@ -35,7 +35,7 @@ typedef struct pgxc_var_hash {
+ } pgxc_var_hash;
+ 
+ 
+-pgxc_var_hash var_hash[NUM_HASH_BUCKET];
++
+ 
+ void init_var_hash(void);
+ void add_var_hash(pgxc_ctl_var *var);
+diff --git a/src/backend/parser/Makefile b/src/backend/parser/Makefile
+index 0395bd5..9cc8946 100644
+--- a/src/backend/parser/Makefile
++++ b/src/backend/parser/Makefile
+@@ -12,7 +12,7 @@ include $(top_builddir)/src/Makefile.global
+ 
+ override CPPFLAGS := -I. -I$(srcdir) $(CPPFLAGS)
+ 
+-OBJS= analyze.o gram.o keywords.o kwlookup.o parser.o \
++OBJS= analyze.o gram.o scan.o keywords.o kwlookup.o parser.o \
+       parse_agg.o parse_clause.o parse_coerce.o parse_collate.o parse_cte.o \
+       parse_expr.o parse_func.o parse_node.o parse_oper.o parse_param.o \
+       parse_relation.o parse_target.o parse_type.o parse_utilcmd.o scansup.o
+@@ -20,12 +20,9 @@ OBJS= analyze.o gram.o keywords.o kwlookup.o parser.o \
+ include $(top_srcdir)/src/backend/common.mk
+ 
+ 
+-# scan is compiled as part of gram
+-gram.o: scan.c
+-
+ # Latest flex causes warnings in this file.
+ ifeq ($(GCC),yes)
+-gram.o: CFLAGS += -Wno-error
++scan.o: CFLAGS += -Wno-error
+ endif
+ 
+ 
+@@ -47,7 +44,7 @@ scan.c: FLEX_NO_BACKUP=yes
+ 
+ 
+ # Force these dependencies to be known even without dependency info built:
+-gram.o keywords.o parser.o: gram.h
++gram.o scan.o keywords.o parser.o: gram.h
+ 
+ 
+ # gram.c, gram.h, and scan.c are in the distribution tarball, so they
+diff --git a/src/backend/parser/gram.y b/src/backend/parser/gram.y
+index 173c078..cce9386 100644
+--- a/src/backend/parser/gram.y
++++ b/src/backend/parser/gram.y
+@@ -14254,13 +14254,3 @@ parser_init(base_yy_extra_type *yyext)
+ {
+ 	yyext-&gt;parsetree = NIL;		/* in case grammar forgets to set it */
+ }
+-
+-/*
+- * Must undefine this stuff before including scan.c, since it has different
+- * definitions for these macros.
+- */
+-#undef yyerror
+-#undef yylval
+-#undef yylloc
+-
+-#include &quot;scan.c&quot;
+diff --git a/src/backend/parser/scan.l b/src/backend/parser/scan.l
+index 92f38a2..911a0ed 100644
+--- a/src/backend/parser/scan.l
++++ b/src/backend/parser/scan.l
+@@ -1,4 +1,4 @@
+-%{
++%top{
+ /*-------------------------------------------------------------------------
+  *
+  * scan.l
+@@ -6,7 +6,7 @@
+  *
+  * NOTE NOTE NOTE:
+  *
+- * The rules in this file must be kept in sync with psql's lexer!!!
++ * The rules in this file must be kept in sync with psql's psqlscan.l!
+  *
+  * The rules are designed so that the scanner never has to backtrack,
+  * in the sense that there is always a rule that can match the input
+@@ -34,12 +34,13 @@
+ #include &lt;ctype.h&gt;
+ #include &lt;unistd.h&gt;
+ 
++#include &quot;parser/gramparse.h&quot;
+ #include &quot;parser/parser.h&quot;				/* only needed for GUC variables */
+-#include &quot;parser/scanner.h&quot;
+ #include &quot;parser/scansup.h&quot;
+ #include &quot;mb/pg_wchar.h&quot;
++}
+ 
+-
++%{
+ /* Avoid exit() on fatal scanner errors (a bit ugly -- see yy_fatal_error) */
+ #undef fprintf
+ #define fprintf(file, fmt, msg)  fprintf_to_ereport(fmt, msg)
+diff --git a/src/gtm/proxy/proxy_main.c b/src/gtm/proxy/proxy_main.c
+index 3224525..52d186f 100644
+--- a/src/gtm/proxy/proxy_main.c
++++ b/src/gtm/proxy/proxy_main.c
+@@ -69,7 +69,7 @@ int			GTMProxyPortNumber;
+ int			GTMProxyWorkerThreads;
+ char		*GTMProxyDataDir;
+ char		*GTMProxyConfigFileName;
+-char		*GTMConfigFileName;
++extern char		*GTMConfigFileName;
+ 
+ char		*GTMServerHost;
+ int			GTMServerPortNumber;
+diff --git a/src/interfaces/ecpg/preproc/Makefile b/src/interfaces/ecpg/preproc/Makefile
+index 715be28..8651f30 100644
+--- a/src/interfaces/ecpg/preproc/Makefile
++++ b/src/interfaces/ecpg/preproc/Makefile
+@@ -26,7 +26,7 @@ override CPPFLAGS := -I../include -I$(top_srcdir)/src/interfaces/ecpg/include \
+ 
+ override CFLAGS += $(PTHREAD_CFLAGS) -DECPG_COMPILE
+ 
+-OBJS=	preproc.o type.o ecpg.o output.o parser.o \
++OBJS=	preproc.o pgc.o type.o ecpg.o output.o parser.o \
+ 	keywords.o c_keywords.o ecpg_keywords.o kwlookup.o ../ecpglib/typename.o descriptor.o variable.o \
+ 	$(WIN32RES)
+ 
+@@ -44,9 +44,6 @@ ecpg: $(OBJS) | submake-libpgport
+ ../ecpglib/typename.o: ../ecpglib/typename.c
+ 	$(MAKE) -C $(dir $@) $(notdir $@)
+ 
+-# pgc is compiled as part of preproc
+-preproc.o: pgc.c
+-
+ preproc.h: preproc.c ;
+ preproc.c: BISONFLAGS += -d
+ 
+@@ -54,7 +51,7 @@ preproc.y: ../../../backend/parser/gram.y parse.pl ecpg.addons ecpg.header ecpg.
+ 	$(PERL) $(srcdir)/parse.pl $(srcdir) &lt; $&lt; &gt; $@
+ 	$(PERL) $(srcdir)/check_rules.pl $(srcdir) $&lt;
+ 
+-ecpg_keywords.o c_keywords.o keywords.o preproc.o parser.o: preproc.h
++ecpg_keywords.o c_keywords.o keywords.o preproc.o pgc.o parser.o: preproc.h
+ 
+ kwlookup.c: % : $(top_srcdir)/src/backend/parser/%
+ 	rm -f $@ &amp;&amp; $(LN_S) $&lt; .
+diff --git a/src/interfaces/ecpg/preproc/ecpg.trailer b/src/interfaces/ecpg/preproc/ecpg.trailer
+index 70dc690..fb8e03a 100644
+--- a/src/interfaces/ecpg/preproc/ecpg.trailer
++++ b/src/interfaces/ecpg/preproc/ecpg.trailer
+@@ -1912,11 +1912,3 @@ void parser_init(void)
+ {
+  /* This function is empty. It only exists for compatibility with the backend parser right now. */
+ }
+-
+-/*
+- * Must undefine base_yylex before including pgc.c, since we want it
+- * to create the function base_yylex not filtered_base_yylex.
+- */
+-#undef base_yylex
+-
+-#include &quot;pgc.c&quot;
+diff --git a/src/interfaces/ecpg/preproc/pgc.l b/src/interfaces/ecpg/preproc/pgc.l
+index 5abb74f..2e363c2 100644
+--- a/src/interfaces/ecpg/preproc/pgc.l
++++ b/src/interfaces/ecpg/preproc/pgc.l
+@@ -1,4 +1,4 @@
+-%{
++%top{
+ /*-------------------------------------------------------------------------
+  *
+  * pgc.l
+@@ -23,7 +23,19 @@
+ #include &lt;limits.h&gt;
+ 
+ #include &quot;extern.h&quot;
++#include &quot;preproc.h&quot;
++
++/*
++ * Change symbol names as expected by preproc.l.  It'd be better to do this
++ * with %option prefix=&quot;base_yy&quot;, but that affects some other names that
++ * various files expect *not* to be prefixed with &quot;base_&quot;.  Cleaning it up
++ * is not worth the trouble right now.
++ */
++#define yylex           base_yylex
++#define yylval          base_yylval
++}
+ 
++%{
+ extern YYSTYPE yylval;
+ 
+ static int		xcdepth = 0;	/* depth of nesting in slash-star comments */
+
+</code></pre><h3 id=编译>
+编译
+<a href=#%e7%bc%96%e8%af%91 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<ol>
+<li>
+<p>下载<a href=https://github.com/Esoye/postgres-docker.git>https://github.com/Esoye/postgres-docker.git</a>，把源码放到lib目录下，或者自行修改文件里面的路径，直接<code>docker-compose up</code>然后坐等即可，可以vscode 安装docker 插件，然后直接attach到一个容器里面调试</p>
+</li>
+<li>
+<p>如果不成功，可以自行尝试解决问题</p>
+</li>
+<li>
+<p>再或者revert掉我的提交，使用原作之前的centos的那个版本，配置路径直接<code>docker-compose up</code>然后坐等即可，那个我没有失败过</p>
+</li>
+</ol>
+<p>这里只写这一点，因为所有的坑已经在<a href=https://Esoye.github.io/trash/postgres_xc_build/>这里</a> 踩过了，如果在上述的过程中遇到问题，可以再<a href=https://Esoye.github.io/trash/postgres_xc_build/>这里面</a> 找答案</p>
+<h2 id=greenplum>
+GreenPlum
+<a href=#greenplum class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>使用Ubuntu22 in DOcker编译源码，一个master，两个segment。</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-js data-lang=js><span style=color:#75715e>// 镜像加速
+</span><span style=color:#75715e></span><span style=color:#a6e22e>git</span><span style=color:#960050;background-color:#1e0010>@</span><span style=color:#a6e22e>git</span>.<span style=color:#a6e22e>zhlh6</span>.<span style=color:#a6e22e>cn</span><span style=color:#f92672>:</span><span style=color:#a6e22e>akashkroy</span><span style=color:#f92672>/</span><span style=color:#a6e22e>greenplum</span><span style=color:#f92672>-</span><span style=color:#a6e22e>docker</span><span style=color:#f92672>-</span><span style=color:#a6e22e>compose</span>.<span style=color:#a6e22e>git</span>
+<span style=color:#a6e22e>git</span><span style=color:#960050;background-color:#1e0010>@</span><span style=color:#a6e22e>git</span>.<span style=color:#a6e22e>zhlh6</span>.<span style=color:#a6e22e>cn</span><span style=color:#f92672>:</span><span style=color:#a6e22e>greenplum</span><span style=color:#f92672>-</span><span style=color:#a6e22e>db</span><span style=color:#f92672>/</span><span style=color:#a6e22e>gpdb</span>.<span style=color:#a6e22e>git</span>
+</code></pre></div><p>使用VScode，选择在容器中打开项目，选择open in container，然后这里选择Ubuntu22，其他的都不选，这里编译的是6X_STABLE分支，下面的命令依次执行，后面会整理为脚本或者dockerfile文件</p>
+<p>参考这个 <a href=https://cn.greenplum.org/greenplum-compile-install/>https://cn.greenplum.org/greenplum-compile-install/</a></p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=color:#75715e># 换源升级，安装依赖</span>
+sudo sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list
+sudo apt-get update
+sudo apt-get upgrade
+
+sudo apt-get install flex bison g++ gcc gdb make    <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span> libzstd-dev libxml2-dev libcurl4-openssl-dev vim   <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span> libbz2-dev libperl-dev software-properties-common  <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span> python2-dev pkg-config libreadline-dev python3-dev <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span> zlib1g-dev openssh-server iputils-ping  
+
+
+
+<span style=color:#75715e># 配置python2.7优先</span>
+sudo update-alternatives --install /usr/bin/python python /usr/bin/python2.7 <span style=color:#ae81ff>4</span>
+sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.10 <span style=color:#ae81ff>3</span>
+
+<span style=color:#75715e># 安装pip，安装一些依赖</span>
+wget https://bootstrap.pypa.io/pip/2.7/get-pip.py
+python get-pip.py -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install psutil lockfile pg paramiko setuptools epydoc -i https://pypi.tuna.tsinghua.edu.cn/simple 
+
+
+sudo echo -e <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span><span style=color:#e6db74>&#34;kernel.shmmax = 500000000
+</span><span style=color:#e6db74>kernel.shmmni = 4096
+</span><span style=color:#e6db74>kernel.shmall = 4000000000
+</span><span style=color:#e6db74>kernel.sem = 250 512000 100 2048
+</span><span style=color:#e6db74>kernel.sysrq = 1
+</span><span style=color:#e6db74>kernel.core_uses_pid = 1
+</span><span style=color:#e6db74>kernel.msgmnb = 65536
+</span><span style=color:#e6db74>kernel.msgmax = 65536
+</span><span style=color:#e6db74>kernel.msgmni = 2048
+</span><span style=color:#e6db74>net.ipv4.tcp_syncookies = 1
+</span><span style=color:#e6db74>net.ipv4.conf.default.accept_source_route = 0
+</span><span style=color:#e6db74>net.ipv4.tcp_tw_recycle = 1
+</span><span style=color:#e6db74>net.ipv4.tcp_max_syn_backlog = 4096
+</span><span style=color:#e6db74>net.ipv4.conf.all.arp_filter = 1
+</span><span style=color:#e6db74>net.ipv4.ip_local_port_range = 10000 65535
+</span><span style=color:#e6db74>net.core.netdev_max_backlog = 10000
+</span><span style=color:#e6db74>net.core.rmem_max = 2097152
+</span><span style=color:#e6db74>net.core.wmem_max = 2097152
+</span><span style=color:#e6db74>vm.overcommit_memory = 2&#34;</span> &gt; /etc/sysctl.conf
+
+sudo echo -e <span style=color:#ae81ff>\ </span>
+<span style=color:#e6db74>&#34;* soft nofile 65536
+</span><span style=color:#e6db74>* hard nofile 65536
+</span><span style=color:#e6db74>* soft nproc 131072
+</span><span style=color:#e6db74>* hard nproc 131072&#34;</span> &gt; /etc/security/limits.conf
+
+<span style=color:#75715e># 重启一下，不重启可能不成功</span>
+reboot
+
+<span style=color:#75715e># 启动ssh，可以设置为开机自启</span>
+sudo service ssh start
+
+mkdir -p /home/vscode/.confgp <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span>         /home/vscode/build <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span>         /home/vscode/data/master/seg_master <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span>         /home/vscode/data/seg1 <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span>         /home/vscode/data/seg2
+
+cd /home/vscode/.confgp
+
+<span style=color:#75715e># 配置下面几个文件，按需求自改</span>
+echo -e <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span><span style=color:#e6db74>&#34;source </span>$HOME<span style=color:#e6db74>/build/greenplum_path.sh
+</span><span style=color:#e6db74>export PGPORT=5432
+</span><span style=color:#e6db74>export MASTER_DATA_DIRECTORY=/home/vscode/data/master/seg_master&#34;</span> &gt; env.sh
+
+<span style=color:#75715e># 这里是histname，这里容器启动没有改，可以使用-h指定</span>
+echo -e <span style=color:#e6db74>&#34;a7aafc1f8630&#34;</span> &gt; hostfile 
+
+echo -e <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span><span style=color:#e6db74>&#34;ARRAY_NAME=\&#34;Open Source Greenplum\&#34;
+</span><span style=color:#e6db74>SEG_PREFIX=gpseg
+</span><span style=color:#e6db74>PORT_BASE=40000
+</span><span style=color:#e6db74># 配置几个路径，就有几个segment
+</span><span style=color:#e6db74>declare -a DATA_DIRECTORY=(/home/vscode/data/seg1 /home/vscode/data/seg2)
+</span><span style=color:#e6db74>MASTER_HOSTNAME=a7aafc1f8630
+</span><span style=color:#e6db74>MASTER_DIRECTORY=/home/vscode/data/master/seg_master
+</span><span style=color:#e6db74>MASTER_PORT=5432
+</span><span style=color:#e6db74>TRUSTED_SHELL=ssh
+</span><span style=color:#e6db74>CHECK_POINT_SEGMENTS=8
+</span><span style=color:#e6db74>ENCODING=UNICODE
+</span><span style=color:#e6db74>MACHINE_LIST_FILE=hostfile&#34;</span> &gt; gpinitsystem_config
+
+
+cd /workspaces/gpdb
+
+<span style=color:#75715e># 前面都配置完成了，现在编译，configure的时候如果出问题了，自行解决</span>
+CFLAGS<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;-g&#34;</span> <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span>  ./configure --with-perl --with-python --with-libxml --enable-debug --enable-cassert <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span> --disable-gpcloud --disable-gpfdist --disable-orca <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span>--prefix<span style=color:#f92672>=</span>/home/vscode/build
+
+make -j8
+make install
+
+<span style=color:#75715e># source 一下文件</span>
+source /home/vscode/.confgp/env.sh
+
+<span style=color:#75715e># 在搭建集群之前，下面的语句一定需要成功，否则搭建集群一定失败，</span>
+<span style=color:#75715e># 这里可能遇到的问题主要是python的一些依赖没有安装，</span>
+<span style=color:#75715e># 或者就是python某模块文件执行错误，再或者是glfw lib的问题，</span>
+<span style=color:#75715e># 总之几乎全是python的问题，我自己实验按上面的步骤可以成功，但是如果</span>
+<span style=color:#75715e># 出问题了，自己需要尝试解决</span>
+gpssh-exkeys -h <span style=color:#e6db74>`</span>hostname<span style=color:#e6db74>`</span>
+
+<span style=color:#75715e># 使用配置文件搭建集群</span>
+gpinitsystem -c gpinitsystem_config -a
+
+
+</code></pre></div><blockquote>
+<p>gp依赖python2，但是在configure的时候有报错说依赖python3，再然后又需要python.h。
+更气的是python3的高版本和低版本之间又有一些坑，不能随便乱装，比如async关键字这个坑，
+再比如pip的安装的文件的位置，脚本使用的python版本等，就真坑！！
+在解决python的问题的时候耗费了最多的时间，就不能统一一下吗，就不能想其他开源一样，搞个脚本吗，
+很难吗</p>
+</blockquote>
+<p>成功之后可以正常使用psql链接数据库，可以使用vscode正常调试</p>
+<ul>
+<li><code>gpstart -d /home/vscode/data/master/seg_master/gpseg-1/</code> 启动集群</li>
+<li><code>gpstop -d /home/vscode/data/master/seg_master/gpseg-1/</code> 停止集群</li>
+</ul>
+<h3 id=多版本软件安装-ppahttpswwwsysgeekcnubuntu-ppa>
+多版本软件安装-<a href=https://www.sysgeek.cn/ubuntu-ppa/>PPA</a>
+<a href=#%e5%a4%9a%e7%89%88%e6%9c%ac%e8%bd%af%e4%bb%b6%e5%ae%89%e8%a3%85-ppahttpswwwsysgeekcnubuntu-ppa class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>和本次源码安装无关，只是在踩坑的时候进行的一次尝试，这里进行记录<br>
+这里用来安装python，如果不是必要的情况，不建议使用，因为使用不同版本的pip安装的依赖无法正常使用，但是这个方法也可以用来安装其他的一些软件，例如gcc</p>
+<ol>
+<li>添加ppa源<code>sudo add-apt-repository ppa:deadsnakes/ppa</code></li>
+<li><code>sudo apt update</code></li>
+<li><code>sudo apt install python3.6 python3.6-dev -y</code></li>
+<li>设置优先级<code>sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.7 4</code>，最后的数字越高，优先级越高</li>
+</ol>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=color:#75715e># 查看优先级</span>
+sudo update-alternatives --config python
+<span style=color:#75715e># 设定优先级</span>
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 <span style=color:#ae81ff>100</span>
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 <span style=color:#ae81ff>200</span>
+<span style=color:#75715e># 上面的例子是，设定python3.10的优先级是100，设定python3.7的优先级是200， 优先级越高，数字越大的在终端输入python时会先被执行</span>
+</code></pre></div><p>其他package自行查找，几乎一样的方法，如果<a href=https://www.zhihu.com/question/382334154>安装的时候慢</a>，可以在<code>/etc/apt/sources.list.d/</code>中的文件中修改源</p>
+<pre tabindex=0><code>sudo sed -i s@/ppa.launchpad.net/@/launchpad.proxy.ustclug.org/@g /etc/apt/sources.list.d/*
+</code></pre><p>且文件中的http 修改为https</p>
+<p>gcc 11
+add-apt-repository ppa:ubuntu-toolchain-r/test</p>
+<p>sudo apt install gcc-11 g++-11</p>
+<p>g++ -v
+sudo update-alternatives &ndash;install /usr/bin/gcc gcc /usr/bin/gcc-9 9
+sudo update-alternatives &ndash;install /usr/bin/gcc gcc /usr/bin/gcc-11 11
+gcc -v
+sudo update-alternatives &ndash;install /usr/bin/g++ g++ /usr/bin/g++-11 11
+sudo update-alternatives &ndash;install /usr/bin/g++ g++ /usr/bin/g++-9 9</p>
+<h3 id=火焰图>
+火焰图
+<a href=#%e7%81%ab%e7%84%b0%e5%9b%be class=h-anchor aria-hidden=true>#</a>
+</h3>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell>
+sudo apt-get install linux-tools-common linux-tools-generic linux-tools-<span style=color:#e6db74>`</span>uname -r<span style=color:#e6db74>`</span>
+
+WSL下需要自行安装linux-tools
+1. git clone --depth<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> https://github.com/microsoft/WSL2-Linux-Kernel.git
+git@git.zhlh6.cn:microsoft/WSL2-Linux-Kernel.git
+2. cd WSL2-Linux-Kernel/tools/perf
+3. make
+4. sudo cp perf /usr/bin
+
+git clone https://github.com/brendangregg/FlameGraph.git
+
+可能出现的问题
+https://blog.eastonman.com/blog/2021/02/use-perf/
+https://zh-blog.logan.tw/2019/10/06/intro-to-perf-events-and-call-graph/
+
+sudo sh -c <span style=color:#e6db74>&#34;echo -1 &gt; /proc/sys/kernel/perf_event_paranoid&#34;</span>
+sudo sysctl -w kernel.perf_event_paranoid<span style=color:#f92672>=</span>-1
+
+
+sudo perf record -F <span style=color:#ae81ff>99</span> -p <span style=color:#ae81ff>233610</span> -g -- sleep <span style=color:#ae81ff>10</span>
+
+sudo perf report -n --stdio
+
+sudo perf script &gt; out.nodestacks01
+
+./stackcollapse-perf.pl &lt; ../out.nodestacks01 | ./flamegraph.pl &gt; ../out.nodestacks01.svg
+
+./stackcollapse-perf.pl &lt; sudo perf script | ./flamegraph.pl &gt; ../out.nodestacks01.svg
+</code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell>
+wsl_update_x64
+WSL内核更新
+https://www.catalog.update.microsoft.com/Search.aspx?q<span style=color:#f92672>=</span>wsl
+下载内核文件，然后解压出wsl_update_x64
+
+使用wsl --shutdown 关闭wsl，运行文件升级
+打开wsl
+uname -a 
+
+</code></pre></div><hr>
+<h2 id=end>
+end
+<a href=#end class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>上面是最近开发需要接触的数据库，因为都是源自postgres，所以写在这里，不能确保按照步骤走一定成功，这只是我得备忘录而已</p>
+</div>
+<div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>Read other posts</span>
+<hr>
+</div>
+<div class=pagination__buttons>
+<span class="button previous">
+<a href=https://Esoye.github.io/posts/postgres/greenplum/>
+<span class=button__icon>←</span>
+<span class=button__text>Greenplum</span>
+</a>
+</span>
+<span class="button next">
+<a href=https://Esoye.github.io/posts/postgres/opt/>
+<span class=button__text>Postgres Optimizer</span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<div class=copyright>
+<span>© 2022 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
+</div>
+</div>
+</footer>
+<script src=https://Esoye.github.io/assets/main.js></script>
+<script src=https://Esoye.github.io/assets/prism.js></script>
+</div>
+</body>
+</html>

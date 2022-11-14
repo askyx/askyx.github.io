@@ -1,0 +1,112 @@
+<!doctype html><html lang=en>
+<head>
+<title>
+Mapreduce ::
+Esoye — My note blog
+</title>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content>
+<meta name=keywords content="数据库">
+<meta name=robots content="noodp">
+<link rel=canonical href=https://Esoye.github.io/tags/mapreduce/>
+<link rel=stylesheet href=https://Esoye.github.io/assets/style.css>
+<link rel=stylesheet href=https://Esoye.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://Esoye.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://Esoye.github.io/img/favicon.png>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Mapreduce">
+<meta name=twitter:description content>
+<meta property="og:title" content="Mapreduce">
+<meta property="og:description" content>
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://Esoye.github.io/tags/mapreduce/"><meta property="og:site_name" content="Esoye">
+<link rel=alternate type=application/rss+xml href=/tags/mapreduce/index.xml title=Esoye>
+</head>
+<body class=light-theme>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archive>Archive</a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archive>Archive</a></li>
+</ul>
+</nav>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class=post>
+<div class="post on-list">
+<h1 class=post-title><a href=https://Esoye.github.io/posts/course/6.824/mapreduce/>Mapreduce</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-05-29
+</span>
+</div>
+<span class=post-tags>
+<a href=https://Esoye.github.io/tags/%E8%AE%BA%E6%96%87/>#论文</a>&nbsp;
+<a href=https://Esoye.github.io/tags/mapreduce/>#Mapreduce</a>&nbsp;
+<a href=https://Esoye.github.io/tags/6.824/>#6.824</a>&nbsp;
+</span>
+<div class=post-content>
+利用普通机器组成的大规模计算集群进行并行的,高容错,高性能的数据处理函数框架
+原始论文点这里,论文翻译点这里，有时间的话，自行对比翻译和原文
+最终实现的目标是&ndash;实现一个分布式系统，对程序员隐藏底层分布式细节，程序员只需要定义map和reduce 函数即可。
+map reduce实现为简单的kv输出，其中map接受源数据，生成kv的中间结果，中间结果保存在worker节点上。 reduce负责处理map产生的中间结果的kv数据，只是简单的数据处理过程.
+他最先是受到lisp中map和reduce原语的启发，再加上当时Google现实的处理大量数据的需求，从他们现有的系统抽象而来的。
+在论文中，使用了一个单词统计的案例，此时实现map函数用来分割文本，切分出最基本的单词。然后再使用reduce进行聚合操作，
+// 输出单词以及出现的次数，map端输出1 map(String key,String value): // key: 文档名 // value: 文档内容 for each word w in value: EmitIntermediate(w,"1"); // 针对相同的key，次数+1 reduce(String key, Iterator values): // key: 一个单词 // value: 计数值列表 int result = 0; for each v in values: result += ParseInt(v); Emit(AsString(result)); 执行过程 文件划分 主节点划分任务 按照划分的任务启动worker，执行map任务 worker节点的数据生成为中间结果，保存在本节点 所有map任务执行完成之后，reduce得到对应中间节点的文件路径，通过rpc读取文件，进行reduce任务 reduce任务完成之后，最终结果写入目标文件 一个mr任务完成之后，回得到n(reduce)个结果文件，可以按照需求处理文件，可以直接使用，或者继续作为其他mr的输入，mr任务是可以嵌套的。
+主节点
+</div>
+<div>
+<a class="read-more button" href=/posts/course/6.824/mapreduce/>Read more →</a>
+</div>
+</div>
+<div class=pagination>
+<div class=pagination__buttons>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<div class=copyright>
+<span>© 2022 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
+</div>
+</div>
+</footer>
+<script src=https://Esoye.github.io/assets/main.js></script>
+<script src=https://Esoye.github.io/assets/prism.js></script>
+</div>
+</body>
+</html>

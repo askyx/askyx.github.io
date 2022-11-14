@@ -1,0 +1,554 @@
+<!doctype html><html lang=en>
+<head>
+<title>
+Postgres源码编译及调试 ::
+Esoye — My note blog
+</title>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="源码编译 #  环境准备，这里使用Ubuntu22，执行命令sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list替换源，更新系统
+ 源码下载 直接下载最新源码，github上的源码每一个提交都保证是可编译运行的  git clone git@github.com:postgres/postgres.git 依赖安装  sudo apt-get -y install flex \ bison \ libreadline-dev \ libssl-dev \ libpam-dev \ libxml2 \ libxml2-dev \ libxslt-dev \ libldap-dev \ libperl-dev \ python3-dev\ zlib1g-dev \ libssh2-1-dev \ gdb \ c++ \ gcc \ make 编译  为了能使用gdb调试，需要使用debug模式调试，我自己之前编译的时候发现即使指定-enable-debug在编译的时候发现也使用了-O2，所以这里建议直接修改configure中的-O和-O2为-g，pg的数据指定-D的 位置，所以在一个环境中，一个编译出来的数据库可以有多个运行环境，或者可以有多个编译环境，多个运行环境，所以需要自己按需配置
+./configure --enable-depend --enable-cassert --enable-debug --prefix=/home/vscode/build make sudo make install 启动  /home/vscode/build/bin/initdb -D /home/vscode/data /home/vscode/build/bin/pg_ctl -D /home/vscode/data start /home/vscode/build/bin/pg_ctl -D /home/vscode/data stop /home/vscode/build/bin/psql -p 5432  使用TASK执行 #  可以直接配置上面的语句为VSCode的task，下载源码安装依赖之后直接run task即可直接编译运行">
+<meta name=keywords content="数据库">
+<meta name=robots content="noodp">
+<link rel=canonical href=https://Esoye.github.io/posts/postgres/env/>
+<link rel=stylesheet href=https://Esoye.github.io/assets/style.css>
+<link rel=stylesheet href=https://Esoye.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://Esoye.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://Esoye.github.io/img/favicon.png>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Postgres源码编译及调试">
+<meta name=twitter:description content="Postges 源码环境搭建，Ubuntu22，VSCode，docker">
+<meta property="og:title" content="Postgres源码编译及调试">
+<meta property="og:description" content="Postges 源码环境搭建，Ubuntu22，VSCode，docker">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://Esoye.github.io/posts/postgres/env/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2022-07-20T17:54:05+08:00">
+<meta property="article:modified_time" content="2022-07-20T17:54:05+08:00"><meta property="og:site_name" content="Esoye">
+</head>
+<body class=light-theme>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archive>Archive</a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archive>Archive</a></li>
+</ul>
+</nav>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class=post>
+<h1 class=post-title>Postgres源码编译及调试</h1>
+<div class=post-meta>
+<span class=post-date>
+2022-07-20
+</span>
+</div>
+<div class=post-content>
+<h2>Table of Contents</h2>
+<aside class=table-of-contents><nav id=TableOfContents>
+<ul>
+<li><a href=#源码编译>源码编译</a></li>
+<li><a href=#使用task执行>使用TASK执行</a></li>
+<li><a href=#使用vscode调试>使用VSCode调试</a></li>
+<li><a href=#使用docker>使用Docker</a></li>
+<li><a href=#分布式pg>分布式PG</a>
+<ul>
+<li><a href=#benchmark>benchmark</a></li>
+</ul>
+</li>
+</ul>
+</nav></aside>
+<h2 id=源码编译>
+源码编译
+<a href=#%e6%ba%90%e7%a0%81%e7%bc%96%e8%af%91 class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>环境准备，这里使用Ubuntu22，执行命令<code>sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list</code>替换源，更新系统</p>
+<ol>
+<li>源码下载
+直接下载最新源码，github上的源码每一个提交都保证是可编译运行的</li>
+</ol>
+<pre tabindex=0><code>git clone git@github.com:postgres/postgres.git
+</code></pre><ol start=2>
+<li>依赖安装</li>
+</ol>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>sudo apt<span style=color:#f92672>-</span>get <span style=color:#f92672>-</span>y install flex \
+   bison \
+   libreadline<span style=color:#f92672>-</span>dev \
+   libssl<span style=color:#f92672>-</span>dev \
+   libpam<span style=color:#f92672>-</span>dev \
+   libxml2 \
+   libxml2<span style=color:#f92672>-</span>dev \
+   libxslt<span style=color:#f92672>-</span>dev \
+   libldap<span style=color:#f92672>-</span>dev \
+   libperl<span style=color:#f92672>-</span>dev \
+   python3<span style=color:#f92672>-</span>dev\
+   zlib1g<span style=color:#f92672>-</span>dev \
+   libssh2<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#f92672>-</span>dev \
+   gdb \
+   c<span style=color:#f92672>++</span> \
+   gcc \
+   make
+</code></pre></div><ol start=3>
+<li>编译</li>
+</ol>
+<p>为了能使用gdb调试，需要使用debug模式调试，我自己之前编译的时候发现即使指定<code>-enable-debug</code>在编译的时候发现也使用了<code>-O2</code>，所以这里建议直接修改<code>configure</code>中的<code>-O</code>和<code>-O2</code>为<code>-g</code>，pg的数据指定-D的
+位置，所以在一个环境中，一个编译出来的数据库可以有多个运行环境，或者可以有多个编译环境，多个运行环境，所以需要自己按需配置</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell>./configure --enable-depend --enable-cassert --enable-debug --prefix<span style=color:#f92672>=</span>/home/vscode/build
+
+make
+
+sudo make install
+</code></pre></div><ol start=4>
+<li>启动</li>
+</ol>
+<pre tabindex=0><code>/home/vscode/build/bin/initdb -D /home/vscode/data 
+/home/vscode/build/bin/pg_ctl -D /home/vscode/data  start
+/home/vscode/build/bin/pg_ctl -D /home/vscode/data  stop
+/home/vscode/build/bin/psql -p 5432
+</code></pre><hr>
+<h2 id=使用task执行>
+使用TASK执行
+<a href=#%e4%bd%bf%e7%94%a8task%e6%89%a7%e8%a1%8c class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>可以直接配置上面的语句为VSCode的task，下载源码安装依赖之后直接<code>run task</code>即可直接编译运行</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=color:#75715e>// 替换自己的路径
+</span><span style=color:#75715e></span>{
+  <span style=color:#75715e>// See https://go.microsoft.com/fwlink/?LinkId=733558
+</span><span style=color:#75715e></span>  <span style=color:#75715e>// for the documentation about the tasks.json format
+</span><span style=color:#75715e></span>  <span style=color:#f92672>&#34;version&#34;</span>: <span style=color:#e6db74>&#34;2.0.0&#34;</span>,
+  <span style=color:#f92672>&#34;tasks&#34;</span>: [
+    {
+      <span style=color:#f92672>&#34;label&#34;</span>: <span style=color:#e6db74>&#34;build env&#34;</span>,
+      <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;shell&#34;</span>,
+      <span style=color:#f92672>&#34;command&#34;</span>:[
+        <span style=color:#e6db74>&#34;mkdir -p /home/vscode/build/making &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;cd /home/vscode/build/making &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;/workspaces/postgres/configure  --prefix=/home/vscode/build &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;make &amp;&amp; &#34;</span>,
+        <span style=color:#e6db74>&#34;make install&#34;</span>
+      ]
+    },
+    {
+      <span style=color:#f92672>&#34;label&#34;</span>: <span style=color:#e6db74>&#34;pg_start&#34;</span>,
+      <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;shell&#34;</span>,
+      <span style=color:#f92672>&#34;command&#34;</span>: <span style=color:#e6db74>&#34;/home/vscode/build/bin/pg_ctl -D /home/vscode/data  start&#34;</span>,
+    },
+    {
+      <span style=color:#f92672>&#34;label&#34;</span>: <span style=color:#e6db74>&#34;pg_stop&#34;</span>,
+      <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;shell&#34;</span>,
+      <span style=color:#f92672>&#34;command&#34;</span>: <span style=color:#e6db74>&#34;/home/vscode/build/bin/pg_ctl -D /home/vscode/data  stop&#34;</span>,
+    }
+  ]
+}
+</code></pre></div><p>编译完成之后如果执行psql报错没有vscode&mldr;可以执行<code>createdb vscode</code>即可，之后可以正常使用</p>
+<h2 id=使用vscode调试>
+使用VSCode调试
+<a href=#%e4%bd%bf%e7%94%a8vscode%e8%b0%83%e8%af%95 class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>可以使用VSCode进行调试，只需要配置<code>launch.json</code>即可。然后使用<code>psql</code>执行语句，使用<code>select pg_backend_pid();</code>查询backend的pid，直接attach即可<br>
+文件如下，program的路径为<code>postgres</code>的路径，如果想要调试其他进程，则需要配置多个任务，</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json>{
+  <span style=color:#75715e>// 使用 IntelliSense 了解相关属性。 
+</span><span style=color:#75715e></span>  <span style=color:#75715e>// 悬停以查看现有属性的描述。
+</span><span style=color:#75715e></span>  <span style=color:#75715e>// 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+</span><span style=color:#75715e></span>  <span style=color:#f92672>&#34;version&#34;</span>: <span style=color:#e6db74>&#34;0.2.0&#34;</span>,
+  <span style=color:#f92672>&#34;configurations&#34;</span>: [
+    {
+      <span style=color:#f92672>&#34;name&#34;</span>: <span style=color:#e6db74>&#34;(gdb) 附加&#34;</span>,
+      <span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#e6db74>&#34;cppdbg&#34;</span>,
+      <span style=color:#f92672>&#34;request&#34;</span>: <span style=color:#e6db74>&#34;attach&#34;</span>,
+      <span style=color:#f92672>&#34;program&#34;</span>: <span style=color:#e6db74>&#34;/usr/local/pgsql/bin/postgres&#34;</span>,
+      <span style=color:#f92672>&#34;processId&#34;</span>: <span style=color:#e6db74>&#34;${command:pickProcess}&#34;</span>,
+      <span style=color:#f92672>&#34;MIMode&#34;</span>: <span style=color:#e6db74>&#34;gdb&#34;</span>,
+      <span style=color:#f92672>&#34;setupCommands&#34;</span>: [
+          {
+              <span style=color:#f92672>&#34;description&#34;</span>: <span style=color:#e6db74>&#34;为 gdb 启用整齐打印&#34;</span>,
+              <span style=color:#f92672>&#34;text&#34;</span>: <span style=color:#e6db74>&#34;-enable-pretty-printing&#34;</span>,
+              <span style=color:#f92672>&#34;ignoreFailures&#34;</span>: <span style=color:#66d9ef>true</span>
+          },
+          {
+              <span style=color:#f92672>&#34;description&#34;</span>:  <span style=color:#e6db74>&#34;将反汇编风格设置为 Intel&#34;</span>,
+              <span style=color:#f92672>&#34;text&#34;</span>: <span style=color:#e6db74>&#34;-gdb-set disassembly-flavor intel&#34;</span>,
+              <span style=color:#f92672>&#34;ignoreFailures&#34;</span>: <span style=color:#66d9ef>true</span>
+          }
+      ]
+    }
+  ]
+}
+</code></pre></div><h2 id=使用docker>
+使用Docker
+<a href=#%e4%bd%bf%e7%94%a8docker class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>vscode 安装<code>Remote - Containers</code>插件之后，可以方便的在docker中进行开发，postgres也可以运行在docker中，下载源码之后，vscode打开项目，<code>shift-p</code>输入<code>Open Workspace in Containe</code>，然后选择系统即可，我选择的是Ubuntu22，如果没有特殊配置，上面的例子直接抄，然后看看我有啥没写的，自己摸索执行下就可以了，也估计不差啥了。</p>
+<hr>
+<h2 id=分布式pg>
+分布式PG
+<a href=#%e5%88%86%e5%b8%83%e5%bc%8fpg class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>分布式PG版本 postgres-xc和postgres-xl，源码内部使用宏控制，编译分布式的时候。需要使用分布式环境运行，官网上有个指导步骤可以运行一个极简集群，且是在单机上，但是我是用Ubuntu一直无法搭建成功</p>
+<p>最后使用docker搭建成功，具体的文件在<a href=git@github.com:Esoye/postgres-docker.git>这里</a>，下载仓库之后，可以使用postges-xl，也可以使用postgres-xc，两者之间在编译方式上无太大区别</p>
+<p>具体参考README</p>
+<p>直接配置好对应的文件位置，直接<code>docker-compose up</code>然后就可以咬着手指甲等就可以了。</p>
+<ul>
+<li>关于调试，docker为了安全考虑，禁止了容器中的大部分功能，需要在运行的时候手动放开，否则GDB无法正常调试，可以参考下面的材料</li>
+</ul>
+<pre tabindex=0><code>https://docs.docker.com/compose/compose-file/compose-file-v2/#cap_add-cap_drop
+https://www.cnblogs.com/davis12/p/14453690.html
+https://zhoubofsy.github.io/2019/09/24/linux/gdb-in-docker/
+
+cap_add:
+  - ALL
+</code></pre><ul>
+<li>為了調試，是否可以吧一部份節點建在物理機上，調試的時候直接使用物理機進行調試，這樣保留了集群的功能，又可以擁有豐富調試的手段 ？</li>
+</ul>
+<blockquote>
+<p>理论上可行，我也进行了尝试，但是添加节点失败，最终没有成功，后来想起来，VSCode中的docker可以正常调试，看来是他做了一些特殊的配置，所以我最终用他的默认使用的容器，然后成功拉起集群，也可以正常使用vscode attach上去，但是在我的另一个虚拟机中失败了，唯一的差别是我成功的机器使用的是WSL2，失败的现象是集群之间无法正确识别node，但是网络是通顺的，这里没有继续进行探究，因为我已经有可以使用的节点了</p>
+</blockquote>
+<p>如果可以成功，那皆大欢喜，如果不行，可以回退最新一个提交，之前的一个提交基本一定成功，这里最好注意清除之前的docker的残留，使用下面的语句查询，然后直接remove就可以</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell>docker images 
+docker ps 
+docker network
+docker volume
+</code></pre></div><hr>
+<hr>
+<h3 id=benchmark>
+benchmark
+<a href=#benchmark class=h-anchor aria-hidden=true>#</a>
+</h3>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-markdown data-lang=markdown>
+Instructions for running BenchmarkSQL on PostgreSQL
+---------------------------------------------------
+
+<span style=color:#66d9ef>0.</span> Requirements
+
+    Use of JDK7 is required.
+
+<span style=color:#66d9ef>1.</span> Create the benchmarksql user and a database
+
+    As Unix user postgres use the psql shell to connect to the postgres
+    database and issue the CREATE USER and CREATE DATABASE commands.
+
+    [postgres#localhost ~] $ psql postgres
+    psql (9.5.2)
+    Type &#34;help&#34; for help.
+
+    postgres=# CREATE USER benchmarksql WITH ENCRYPTED PASSWORD &#39;changeme&#39;;
+    postgres=# CREATE DATABASE benchmarksql OWNER benchmarksql;
+    postgres=# \q
+    [postgres#localhost ~] $
+
+<span style=color:#66d9ef>2.</span> Compile the BenchmarkSQL source code
+
+    As your own UNIX user change into the toplevel directory of the
+    benchmarksql git repository checkout or the directory that was
+    created by unpacking the release tarball/zipfile. Use the ant
+    command to compile the code.
+
+    [wieck@localhost ~] $ cd benchmarksql
+    [wieck@localhost benchmarksql] $ ant
+    Buildfile: /nas1/home/wieck/benchmarksql.git/build.xml
+
+    init:
+        [mkdir] Created dir: /home/wieck/benchmarksql/build
+
+    compile:
+	[javac] Compiling 11 source files to /home/wieck/benchmarksql/build
+
+    dist:
+	[mkdir] Created dir: /home/wieck/benchmarksql/dist
+	  [jar] Building jar: /home/wieck/benchmarksql/dist/BenchmarkSQL-5.0.jar
+    BUILD SUCCESSFUL
+    Total time: 1 second
+    [wieck@localhost benchmarksql] $
+
+<span style=color:#66d9ef>3.</span> Create the benchmark configuration file
+
+    Change the the run directory, copy the props.pg file and edit
+    the copy to match your system setup and desired scaling.
+
+    [wieck@localhost benchmarksql] $ cd run
+    [wieck@localhost run] $ cp props.pg my_postgres.properties
+    [wieck@localhost run] $ vi my_postgres.properties
+    [wieck@localhost run] $
+
+    Note that the provided example configuration is meant to test
+    the functionality of your setupr. That benchmarksql can connect
+    to the database and execute transactions. That configuration
+    is NOT a benchmark run. To make it into one you need to have a
+    configuration that matches your database server size and
+    workload. Leave the sizing for now and perform a first functional
+    test.
+
+    The BenchmarkSQL database has an initial size of approximately
+    100-100MB per configured warehouse. A typical setup would be
+    a database of 2-5 times the physical RAM of the server.
+
+    Likewise the number of concurrent database connections (config
+    parameter terminals) should be something about 2-6 times the
+    number of CPU threads.
+
+    Last but not least benchmark runs are normally done for hours,
+    if not days. This is because on the database sizes above it
+    will take that long to reach a steady state and make sure that
+    all performance relevant functionality of the database, like
+    checkpointing and vacuuming, is included in the measurement.
+
+    So you can see that with a modern server, that has 32-256 CPU
+    threads and 64-512GBi, of RAM we are talking about thousands of
+    warehouses and hundreds of concurrent database connections.
+
+<span style=color:#66d9ef>4.</span> Build the schema and initial database load
+
+    Execute the runDatabaseBuild.sh script with your configuration file.
+
+    [wieck@localhost run]$ ./runDatabaseBuild.sh my_postgres.properties
+    # ------------------------------------------------------------
+    # Loading SQL file ./sql.common/tableCreates.sql
+    # ------------------------------------------------------------
+    create table bmsql_config (
+    cfg_name    varchar(30) primary key,
+    cfg_value   varchar(50)
+    );
+    create table bmsql_warehouse (
+    w_id        integer   not null,
+    w_ytd       decimal(12,2),
+    [...]
+    Starting BenchmarkSQL LoadData
+
+    driver=org.postgresql.Driver
+    conn=jdbc:postgresql://localhost:5432/benchmarksql
+    user=benchmarksql
+    password=***********
+    warehouses=30
+    loadWorkers=10
+    fileLocation (not defined)
+    csvNullValue (not defined - using default &#39;NULL&#39;)
+
+    Worker 000: Loading ITEM
+    Worker 001: Loading Warehouse      1
+    Worker 002: Loading Warehouse      2
+    Worker 003: Loading Warehouse      3
+    [...]
+    Worker 000: Loading Warehouse     30 done
+    Worker 008: Loading Warehouse     29 done
+    # ------------------------------------------------------------
+    # Loading SQL file ./sql.common/indexCreates.sql
+    # ------------------------------------------------------------
+    alter table bmsql_warehouse add constraint bmsql_warehouse_pkey
+    primary key (w_id);
+    alter table bmsql_district add constraint bmsql_district_pkey
+    primary key (d_w_id, d_id);
+    [...]
+    vacuum analyze;
+    [wieck@localhost run]$
+
+<span style=color:#66d9ef>5.</span> Run the configured benchmark
+
+    [wieck@localhost run]$ ./runBenchmark.sh my_postgres.properties
+
+    The benchmark should run for the number of configured concurrent
+    connections (terminals) and the duration or number of transactions.
+
+    The end result of the benchmark will be reported like this:
+
+    01:58:09,081 [Thread-1] INFO   jTPCC : Term-00,
+    01:58:09,082 [Thread-1] INFO   jTPCC : Term-00, Measured tpmC (NewOrders) = 179.55
+    01:58:09,082 [Thread-1] INFO   jTPCC : Term-00, Measured tpmTOTAL = 329.17
+    01:58:09,082 [Thread-1] INFO   jTPCC : Term-00, Session Start     = 2016-05-25 01:58:07
+    01:58:09,082 [Thread-1] INFO   jTPCC : Term-00, Session End       = 2016-05-25 01:58:09
+    01:58:09,082 [Thread-1] INFO   jTPCC : Term-00, Transaction Count = 10
+
+    At this point you have a working setup.
+
+<span style=color:#66d9ef>6.</span> Scale the benchmark configuration.
+
+    Change the my_postgres.properties file to the correct scaling
+    (number of warehouses and concurrent connections/terminals). Switch
+    from using a transaction count to time based:
+
+        runTxnsPerTerminal=0
+	runMins=180
+
+    Rebuild the database (if needed) by running
+
+    [wieck@localhost run]$ ./runDatabaseDestroy.sh my_postgres.properties
+    [wieck@localhost run]$ ./runDatabaseBuild.sh my_postgres.properties
+
+    Then run the benchmark again.
+
+    Rinse and repeat.
+
+<span style=color:#66d9ef>7.</span> Result report
+
+    BenchmarkSQL collects detailed performance statistics and (if
+    configured) OS performance data. The example configuration file
+    defaults to a directory starting with my_result_.
+
+    Use the generateReport.sh DIRECTORY script to create an HTML file
+    with graphs. This requires R to be installed, which is beyond the
+    scope of this HOW-TO.
+
+
+</code></pre></div><p>按照说明文档直接顺序执行即可，但是需要注意pg运行的时候配置文件中conn指定的database，需要和前面要求执行的语句的database一样，</p>
+<p>benchmark如果需要有效测试，需要注意根据测试环境设置对应的参数，</p>
+<ol>
+<li>warehouse
+BenchmarkSQL数据库每个warehouse大小大概是100MB，如果该参数设置为10，那整个数据库的大小大概在1000MB。建议将数据库的大小设置为服务器物理内存的2-5倍，如果服务器内存为16GB，那么warehouse设置建议在328～819之间。</li>
+<li>terminals
+terminals指的是并发连接数，建议设置为服务器CPU总线程数的2-6倍。如果服务器为双核16线程（单核8线程），那么建议配置在32～96之间</li>
+<li>runTxnsPerTerminal
+每个终端（terminal）运行的固定事务数量，例如：如果该值设置为10，意味着每个terminal运行10个事务，如果有32个终端，那整体运行320个事务后，测试结束。该参数配置为非0值时，下面的runMins参数必须设置为0</li>
+<li>runMins
+要测试的整体时间，单位为分钟，如果runMins设置为60，那么测试持续1小时候结束。该值设置为非0值时，runTxnsPerTerminal参数必须设置为0。这两个参数不能同时设置为正整数，如果设置其中一个，另一个必须为0，主要区别是runMins定义时间长度来控制测试时间；runTxnsPerTerminal定义事务总数来控制时间</li>
+<li>limitTxnsPerMin
+每分钟事务总数限制，该参数主要控制每分钟处理的事务数，事务数受terminals参数的影响，如果terminals数量大于limitTxnsPerMin值，意味着并发数大于每分钟事务总数，该参数会失效，想想也是如此，如果有1000个并发同时发起，那每分钟事务数设置为300就没意义了，上来就是1000个并发，所以要让该参数有效，可以设置数量大于并发数，或者让其失效，测试过程中目前采用的是默认300</li>
+</ol>
+<p>测试过程中的整体逻辑通过一个例子来说明：假如limitTxnsPerMin参数使用默认300，termnals终端数量设置为150并发，实际会计算一个值A=limitTxnsPerMin/terminals=2（此处需要注意，A为int类型，如果terminals的值大于limitTxnsPerMin，得到的A值必然为0，为0时该参数失效），此处记住A=2；接下来，在整个测试运行过程中，软件会记录一个事务的开始时间和结束时间，假设为B=2000毫秒；然后用60000（毫秒，代表1分钟）除以A得到一个值C=60000/2=30000，假如事务运行时间B&lt;C，那么该事务执行完后，sleep C-B秒再开启下一个事务；假如B>C，意味着事务超过了预期时间，那么马上进行下一个事务。在本例子中，每分钟300个事务，设置了150个并发，每分钟执行2个并发，每个并发执行2秒钟完成，每个并发sleep 28秒，这样可以保证一分钟有两个并发，反推回来整体并发数为300/分钟</p>
+<p>以上内容来自网络，自己测试的时候可以仔细阅读</p>
+<pre tabindex=0><code class=language-log data-lang=log>00:58:41,849 [main] INFO   jTPCC : Term-00,
+00:58:41,851 [main] INFO   jTPCC : Term-00, +-------------------------------------------------------------+
+00:58:41,851 [main] INFO   jTPCC : Term-00,      BenchmarkSQL v5.0
+00:58:41,851 [main] INFO   jTPCC : Term-00, +-------------------------------------------------------------+
+00:58:41,851 [main] INFO   jTPCC : Term-00,  (c) 2003, Raul Barbosa
+00:58:41,851 [main] INFO   jTPCC : Term-00,  (c) 2004-2016, Denis Lussier
+00:58:41,852 [main] INFO   jTPCC : Term-00,  (c) 2016, Jan Wieck
+00:58:41,852 [main] INFO   jTPCC : Term-00, +-------------------------------------------------------------+
+00:58:41,852 [main] INFO   jTPCC : Term-00,
+00:58:41,859 [main] INFO   jTPCC : Term-00, db=postgres
+00:58:41,859 [main] INFO   jTPCC : Term-00, driver=org.postgresql.Driver
+00:58:41,859 [main] INFO   jTPCC : Term-00, conn=jdbc:postgresql://127.0.0.1:65022/benchmarksql
+00:58:41,859 [main] INFO   jTPCC : Term-00, user=benchmarksql
+00:58:41,859 [main] INFO   jTPCC : Term-00,
+00:58:41,859 [main] INFO   jTPCC : Term-00, warehouses=5
+00:58:41,860 [main] INFO   jTPCC : Term-00, terminals=1
+00:58:41,863 [main] INFO   jTPCC : Term-00, runMins=10
+00:58:41,863 [main] INFO   jTPCC : Term-00, limitTxnsPerMin=0
+00:58:41,864 [main] INFO   jTPCC : Term-00, terminalWarehouseFixed=true
+00:58:41,864 [main] INFO   jTPCC : Term-00,
+00:58:41,864 [main] INFO   jTPCC : Term-00, newOrderWeight=45
+00:58:41,864 [main] INFO   jTPCC : Term-00, paymentWeight=43
+00:58:41,864 [main] INFO   jTPCC : Term-00, orderStatusWeight=4
+00:58:41,864 [main] INFO   jTPCC : Term-00, deliveryWeight=4
+00:58:41,864 [main] INFO   jTPCC : Term-00, stockLevelWeight=4
+00:58:41,864 [main] INFO   jTPCC : Term-00,
+00:58:41,864 [main] INFO   jTPCC : Term-00, resultDirectory=my_result_%tY-%tm-%td_%tH%tM%tS
+00:58:41,864 [main] INFO   jTPCC : Term-00, osCollectorScript=./misc/os_collector_linux.py
+00:58:41,864 [main] INFO   jTPCC : Term-00,
+00:58:41,875 [main] INFO   jTPCC : Term-00, copied my_postgres.properties to my_result_2022-09-16_005841/run.properties
+00:58:41,879 [main] INFO   jTPCC : Term-00, created my_result_2022-09-16_005841/data/runInfo.csv for runID 77
+00:58:41,880 [main] INFO   jTPCC : Term-00, writing per transaction results to my_result_2022-09-16_005841/data/result.csv
+00:58:41,881 [main] INFO   jTPCC : Term-00, osCollectorScript=./misc/os_collector_linux.py
+00:58:41,881 [main] INFO   jTPCC : Term-00, osCollectorInterval=1
+00:58:41,881 [main] INFO   jTPCC : Term-00, osCollectorSSHAddr=null
+00:58:41,881 [main] INFO   jTPCC : Term-00, osCollectorDevices=net_eth0 blk_sda
+00:58:41,892 [main] INFO   jTPCC : Term-00,
+00:58:41,954 [main] INFO   jTPCC : Term-00, C value for C_LAST during load: 129
+00:58:41,955 [main] INFO   jTPCC : Term-00, C value for C_LAST this run:    20
+00:58:41,955 [main] INFO   jTPCC : Term-00,
+Term-00, Running Average tpmTOTAL: 2650.07    Current tpmTOTAL: 172836    Memory Usage: 120MB / 396MB
+01:08:41,999 [Thread-1] INFO   jTPCC : Term-00,
+01:08:42,001 [Thread-1] INFO   jTPCC : Term-00,
+01:08:42,002 [Thread-1] INFO   jTPCC : Term-00, Measured tpmC (NewOrders) = 1211.77
+01:08:42,002 [Thread-1] INFO   jTPCC : Term-00, Measured tpmTOTAL = 2650.05
+01:08:42,003 [Thread-1] INFO   jTPCC : Term-00, Session Start     = 2022-09-16 00:58:41
+01:08:42,003 [Thread-1] INFO   jTPCC : Term-00, Session End       = 2022-09-16 01:08:41
+01:08:42,003 [Thread-1] INFO   jTPCC : Term-00, Transaction Count = 26500
+commit 482a0dad010fdbf124a1e92762c77177a59a44e0 (HEAD -&gt; ADB6_2_STABLE_HZ_TEST_FORMAL)
+Author: shenduo &lt;734194486@qq.com&gt;
+Date:   Thu Jun 2 09:46:45 2022 +0800
+    由于初始化问题，暂时去掉部分sql
+没有FQS优化提交，没有特殊配置
+-----------------------------------------------------------------
+
+10:22:00,812 [Thread-1] INFO   jTPCC : Term-00, Measured tpmC (NewOrders) = 1688.86
+10:22:00,813 [Thread-1] INFO   jTPCC : Term-00, Measured tpmTOTAL = 3732.81
+10:22:00,813 [Thread-1] INFO   jTPCC : Term-00, Session Start     = 2022-09-15 10:12:00
+10:22:00,813 [Thread-1] INFO   jTPCC : Term-00, Session End       = 2022-09-15 10:22:00
+10:22:00,813 [Thread-1] INFO   jTPCC : Term-00, Transaction Count = 37328
+commit 317f80e466d7e443c4e1a551d4ab03018e64359d (HEAD -&gt; ADB6_2_STABLE_HZ_TEST_FORMAL, origin/ADB6_2_STABLE_HZ_TEST_FORMAL)
+Author: maoxp &lt;maoxp@asiainfo.com&gt;
+Date:   Fri Sep 9 16:05:31 2022 +0800
+    把FQS加的中文注释乱码修改成英文
+FQS优化之后，没有prepare的优化，所有配置和上面一样
+--------------------------------------------------------------
+
+09:55:47,136 [Thread-1] INFO   jTPCC : Term-00, Measured tpmC (NewOrders) = 1775.56
+09:55:47,136 [Thread-1] INFO   jTPCC : Term-00, Measured tpmTOTAL = 3966.71
+09:55:47,136 [Thread-1] INFO   jTPCC : Term-00, Session Start     = 2022-09-15 09:45:47
+09:55:47,136 [Thread-1] INFO   jTPCC : Term-00, Session End       = 2022-09-15 09:55:47
+09:55:47,137 [Thread-1] INFO   jTPCC : Term-00, Transaction Count = 39667
+
+03:50:41,027 [Thread-1] INFO   jTPCC : Term-00, Measured tpmC (NewOrders) = 1942.16
+03:50:41,027 [Thread-1] INFO   jTPCC : Term-00, Measured tpmTOTAL = 4334.52
+03:50:41,027 [Thread-1] INFO   jTPCC : Term-00, Session Start     = 2022-09-16 03:40:41
+03:50:41,027 [Thread-1] INFO   jTPCC : Term-00, Session End       = 2022-09-16 03:50:41
+03:50:41,028 [Thread-1] INFO   jTPCC : Term-00, Transaction Count = 43345
+prepare优化，在FQS的基础上的结果
+</code></pre>
+</div>
+<div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>Read other posts</span>
+<hr>
+</div>
+<div class=pagination__buttons>
+<span class="button previous">
+<a href=https://Esoye.github.io/posts/postgres/storage/>
+<span class=button__icon>←</span>
+<span class=button__text>Postgres Storage</span>
+</a>
+</span>
+<span class="button next">
+<a href=https://Esoye.github.io/posts/static/note/>
+<span class=button__text>数据库文章资源汇总</span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<div class=copyright>
+<span>© 2022 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
+</div>
+</div>
+</footer>
+<script src=https://Esoye.github.io/assets/main.js></script>
+<script src=https://Esoye.github.io/assets/prism.js></script>
+</div>
+</body>
+</html>

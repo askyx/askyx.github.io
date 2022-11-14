@@ -1,0 +1,145 @@
+<!doctype html><html lang=en>
+<head>
+<meta name=generator content="Hugo 0.92.1">
+<title>
+Esoye —
+My note blog
+</title>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="My note blog">
+<meta name=keywords content="数据库">
+<meta name=robots content="noodp">
+<link rel=canonical href=https://Esoye.github.io/>
+<link rel=stylesheet href=https://Esoye.github.io/assets/style.css>
+<link rel=stylesheet href=https://Esoye.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://Esoye.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://Esoye.github.io/img/favicon.png>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Esoye">
+<meta name=twitter:description content>
+<meta property="og:title" content="Esoye">
+<meta property="og:description" content>
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://Esoye.github.io/"><meta property="og:site_name" content="Esoye">
+<link rel=alternate type=application/rss+xml href=/index.xml title=Esoye>
+</head>
+<body class=light-theme>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archive>Archive</a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archive>Archive</a></li>
+</ul>
+</nav>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class=post>
+<div class="post on-list">
+<h1 class=post-title><a href=https://Esoye.github.io/posts/others/%E9%9D%99%E6%80%81%E8%AF%AD%E5%8F%A5/></a></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+explain verbose select no_o_id from bmsql_new_order where no_w_id = 4 and no_d_id = 1 order by no_o_id asc;
+benchmarksql=# explain verbose select no_o_id from bmsql_new_order where no_w_id = 4 and no_d_id = 1 order by no_o_id asc; QUERY PLAN # Data Node Scan on &ldquo;REMOTE_FQS_QUERY&rdquo; (cost=0.00..0.00 rows=0 width=0) Output: bmsql_new_order.no_o_id Node/s: dn2 Remote query: SELECT no_o_id FROM public.bmsql_new_order bmsql_new_order WHERE ((no_w_id = 4) AND (no_d_id = 1)) ORDER BY no_o_id (4 rows)
+</div>
+<div><a class="read-more button" href=/posts/others/%E9%9D%99%E6%80%81%E8%AF%AD%E5%8F%A5/>Read more →</a></div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://Esoye.github.io/posts/postgres/cost/></a></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+Cost Estimation in Single-Table Query
+FQS pgxc_FQS_create_remote_plan 没有计算代价，cost为0 Data Node Scan on &ldquo;REMOTE_FQS_QUERY&rdquo; (cost=0.00..0.00 rows=0 width=0) Primary node/s: dn1 Node/s: dn1, dn2 (3 rows)
+remote create path benchmarksql=# explain verbose select * from t1 ; QUERY PLAN # Data Node Scan on t1 &ldquo;REMOTE_TABLE_QUERY&rdquo; (cost=0.00..82037.50 rows=90005 width=12) Output: t1.c1, t1.c2, t1.c3 Primary node/s: dn1 Node/s: dn1, dn2 Remote query: SELECT c1, c2, c3 FROM ONLY public.
+</div>
+<div><a class="read-more button" href=/posts/postgres/cost/>Read more →</a></div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://Esoye.github.io/posts/postgres/postgres-xc/></a></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+exec_simple_query
+antdb parse_query_auto_gram 语法支持 SetForceObtainXidFromAGTM pg_analyze_and_rewrite_for_gram
+pg_plan_queries pgxc_try_planner pgxc SetForceXidFromGTM
+pg_plan_queries pgxc_planner pgxc_planner | pgxc_try_planner
+语句可以发送到 Datanode，而且只需要协调器作为代理-在这种情况下，它创建单个节点计划。 语句可以在协调器上完全计算-因此不涉及查询传送，并且调用 standard _ planner ()来计划语句 https://www.cnblogs.com/yyvv/p/4188980.html
+代码的整体质量不错，大部分的改动都有注释，注释可读性也很好，个别注释时效性有问题，但不影响理解代码。所有在pg代码中的改动都用idef做了有效隔离。理论上跟上PG的升级问题不大 postgresql xc修改了一些postgresql的代码，postgresql xl又把他们改了过来，然后又加了好多代码。注意区分#idef和#ifndef Postgresql-xc的原则是能下推到dataNode的就下推到dataNode，实在推不下去的就把所有的数据集中在在聚集节点做。而xl做了MPP。
+语句分析
+简单SQL没有执行RemoteQuery prepare s3(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc; explain verbose execute s3(1, 1); prepare s7(int, int, char(32)) as select c_id from bmsql_customer where c_w_id = $1 and c_d_id = $2 and c_last = $3 order by c_first; explain verbose execute s7(1, 1, 'OUGHTBARPRES'); prepare s19(int, int, int) as select ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_delivery_d from bmsql_order_line where ol_w_id = $1 and ol_d_id = $2 and ol_o_id = $3 order by ol_w_id, ol_d_id, ol_o_id, ol_number; explain verbose execute s19(1, 1, 1); 对比正常的简单SQL执行RemoteQuery ： prepare s1(int, int) as select d_tax, d_next_o_id from bmsql_district where d_w_id = $1 and d_id = $2 for update; explain verbose execute s1(1, 1); QUERY PLAN -------------------------------------------------------------------------------------------------------------------- Aggregate (cost=0.
+</div>
+<div><a class="read-more button" href=/posts/postgres/postgres-xc/>Read more →</a></div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://Esoye.github.io/posts/postgres/xx/></a></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+2022-08-12 02:47:03.470194 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,"[local]",seg-1,,,,,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Message type Q received by from libpq, len = 45&rdquo;,,,,,,,0,,&ldquo;postgres.c&rdquo;,5305, 2022-08-12 02:47:03.470253 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,"[local]",seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;statement: explain (verbose, analyze) execute s36(4,1);&rdquo;,,,,,,&ldquo;explain (verbose, analyze) execute s36(4,1);",0,,&ldquo;postgres.c&rdquo;,1665, 2022-08-12 02:47:03.471695 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,"[local]",seg-1,,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Query plan size to dispatch: 2KB&rdquo;,,,,,,,0,,&ldquo;cdbdisp_query.c&rdquo;,618, 2022-08-12 02:47:04.744839 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th446375488,"[local]",seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 0&rdquo;,,,,,,,0,,,, 2022-08-12 02:47:04.811827 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th446375488,"[local]",seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 1&rdquo;,,,,,,,0,,,, 2022-08-12 02:47:04.812848 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,"[local]",seg-1,,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Interconnect State: isSender 0 isReceiver 1 snd_queue_depth 2 recv_queue_depth 4 Gp_max_packet_size 8192 UNACK_QUEUE_RING_SLOTS_NUM 2000 TIMER_SPAN 5000 DEFAULT_RTT 20000 hasErrors 0, ic_instance_id 5 ic_id_last_teardown 0 snd_buffer_pool.
+</div>
+<div><a class="read-more button" href=/posts/postgres/xx/>Read more →</a></div>
+</div>
+<div class=pagination>
+<div class=pagination__buttons>
+<span class="button previous">
+<a href=/page/8/>
+<span class=button__icon>←</span>
+<span class=button__text>Newer posts</span>
+</a>
+</span>
+<span class="button next">
+<a href=/page/10/>
+<span class=button__text>Older posts</span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<div class=copyright>
+<span>© 2022 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
+</div>
+</div>
+</footer>
+<script src=https://Esoye.github.io/assets/main.js></script>
+<script src=https://Esoye.github.io/assets/prism.js></script>
+</div>
+</body>
+</html>

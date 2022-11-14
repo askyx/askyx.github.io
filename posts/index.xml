@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Esoye</title><link>https://Esoye.github.io/posts/</link><description>Recent content in Posts on Esoye</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><lastBuildDate>Tue, 08 Nov 2022 14:35:50 +0800</lastBuildDate><atom:link href="https://Esoye.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Libpqxx</title><link>https://Esoye.github.io/posts/readcode/libpqxx/</link><pubDate>Tue, 08 Nov 2022 14:35:50 +0800</pubDate><guid>https://Esoye.github.io/posts/readcode/libpqxx/</guid><description>
+libpqxx分析</description></item><item><title>OptimizerTIPS</title><link>https://Esoye.github.io/posts/optimizertips/</link><pubDate>Tue, 08 Nov 2022 11:17:18 +0800</pubDate><guid>https://Esoye.github.io/posts/optimizertips/</guid><description>
+文章要点简记</description></item><item><title>内存管理</title><link>https://Esoye.github.io/posts/postgres/memctx/</link><pubDate>Tue, 01 Nov 2022 12:01:31 +0800</pubDate><guid>https://Esoye.github.io/posts/postgres/memctx/</guid><description>
+内存上下文 # https://smartkeyerror.com/PostgreSQL-MemoryContext 源码主要在mctx.c中，主要是目的是设置工作空间，避免重复的在系统上申请资源，且为了避免异常情况下的内存泄露问题，所以实现了内存上下文
+目前有三种底层的实现 AllocSet(常规的内存分配机制，先分配block，之后再从block上分配chunk，分配得内存一般不会释放，而是使用空闲链表管理) Generation(新加，内存生命周期相近的时候使用，目前只在gist 和 replication 模块使用) Slab(分配大小等大的chunk，目前只在replication 模块使用) 更多的是因为频繁的malloc会导致内存碎片，且由于malloc需要额外的空间记录head和foot的位置，所以还存在的问题就是空间的浪费，另外最大的问题是内存泄漏问题，使用指针在方法间传递不容易管理 大概类似c++的内存管理方法，把 #</description></item><item><title>RocksDB源码分析</title><link>https://Esoye.github.io/posts/readcode/rocksdb/</link><pubDate>Fri, 21 Oct 2022 16:38:26 +0800</pubDate><guid>https://Esoye.github.io/posts/readcode/rocksdb/</guid><description>
+RocksDB 源码总结分析</description></item><item><title>postgres Parser</title><link>https://Esoye.github.io/posts/postgres/parser/</link><pubDate>Mon, 10 Oct 2022 12:03:18 +0800</pubDate><guid>https://Esoye.github.io/posts/postgres/parser/</guid><description>
+Postgres parser 模块解析，目的是为了学习parser实现机制。编译原理以及bison和flex的使用</description></item><item><title>Locks</title><link>https://Esoye.github.io/posts/postgres/locks/</link><pubDate>Wed, 28 Sep 2022 15:42:18 +0800</pubDate><guid>https://Esoye.github.io/posts/postgres/locks/</guid><description>
+PG 中锁的分析</description></item><item><title>vacuum 和 analyze 过程分析</title><link>https://Esoye.github.io/posts/postgres/vacuum/</link><pubDate>Mon, 26 Sep 2022 16:37:37 +0800</pubDate><guid>https://Esoye.github.io/posts/postgres/vacuum/</guid><description>
+AntDB VACUUM 流程</description></item><item><title>Postgres RemoteQuery 扩展</title><link>https://Esoye.github.io/posts/postgres/remotequery/</link><pubDate>Fri, 26 Aug 2022 16:38:06 +0800</pubDate><guid>https://Esoye.github.io/posts/postgres/remotequery/</guid><description>
+如何把单机postgres实现为mpp数据库</description></item><item><title>Motion 移植实验</title><link>https://Esoye.github.io/posts/postgres/motion/</link><pubDate>Wed, 17 Aug 2022 09:38:28 +0800</pubDate><guid>https://Esoye.github.io/posts/postgres/motion/</guid><description>
+AntDB的cluster和GP的motion原理上类似，但是实现上略有区别，这里尝试移植motion到AntDB上</description></item><item><title>Greenplum</title><link>https://Esoye.github.io/posts/postgres/greenplum/</link><pubDate>Wed, 10 Aug 2022 20:22:49 +0800</pubDate><guid>https://Esoye.github.io/posts/postgres/greenplum/</guid><description>
+GreenPlum优化器和执行器的源码调研</description></item><item><title>Postgres 系列数据库搭建</title><link>https://Esoye.github.io/posts/postgres/pgenvbuild/</link><pubDate>Fri, 29 Jul 2022 14:00:48 +0800</pubDate><guid>https://Esoye.github.io/posts/postgres/pgenvbuild/</guid><description>
+PG系数据库统一安装环境，使用Docker &amp;&amp; VSCode on Ubuntu22搭建，这里总结整理，后续PG系得数据库安装方法统一在这里总结</description></item><item><title>Postgres Optimizer</title><link>https://Esoye.github.io/posts/postgres/opt/</link><pubDate>Fri, 22 Jul 2022 09:24:24 +0800</pubDate><guid>https://Esoye.github.io/posts/postgres/opt/</guid><description>
+本文从源码级别进行优化器的分析，对Postgres优化器代码调研，具体包括他的数据结构，以及具体的代码架构实现以及核心算法等</description></item><item><title>Postgres Storage</title><link>https://Esoye.github.io/posts/postgres/storage/</link><pubDate>Thu, 21 Jul 2022 09:15:05 +0800</pubDate><guid>https://Esoye.github.io/posts/postgres/storage/</guid><description>
+存储 # 内存 # 共享内存
+本地内存
+缓存
+内存上下文
+缓存空间管理
+数据块的缓存，减少磁盘IO，有共享缓存和进程缓存
+Cache
+数据块之外的缓存，例如系统表
+系统表缓存不会缓存整个表，是以block为单位缓存？ 虚拟文件描述符
+系统中文件有打开的上限，使用VFD可以突破这种限制，本质上是一个LRU缓存
+空闲空间定位
+快速定位磁盘中的空闲空间以插入数据
+进程间通信 使用共享内存或者信号量通信
+读取过程 # 从系统表中读取表的元数据信息构造元组信息 尝试从缓存读取数据 使用SMGR从磁盘读取数据到缓存中，SMGR是一个抽象层，用于实现不同存储介质的管理 SMGR和存储介质之间使用VFD来管理文件描述符，以突破系统的FD限制 标记删除，vacuum清理数据 FSM记录空闲空间 磁盘 # 表文件
+SMGR
+VFD
+FSM</description></item><item><title>Postgres源码编译及调试</title><link>https://Esoye.github.io/posts/postgres/env/</link><pubDate>Wed, 20 Jul 2022 17:54:05 +0800</pubDate><guid>https://Esoye.github.io/posts/postgres/env/</guid><description>
+Postges 源码环境搭建，Ubuntu22，VSCode，docker</description></item><item><title>数据库文章资源汇总</title><link>https://Esoye.github.io/posts/static/note/</link><pubDate>Wed, 20 Jul 2022 17:44:29 +0800</pubDate><guid>https://Esoye.github.io/posts/static/note/</guid><description>
+爬虫 # import requests from bs4 import BeautifulSoup prefix = &amp;#39;http://mysql.taobao.org&amp;#39; # 获取文章名和url（文章名,url） def query_name_url(url: str): resp = requests.get(url) soup = BeautifulSoup(resp.content.decode(&amp;#39;utf-8&amp;#39;), &amp;#34;html.parser&amp;#34;) tags = soup.findAll(&amp;#39;a&amp;#39;, {&amp;#39;target&amp;#39;: {&amp;#39;_blank&amp;#39;}}) urls = [v for v in tags if v[&amp;#39;href&amp;#39;].find(&amp;#39;/monthly/&amp;#39;) != -1] return [(str(v.string).strip(), prefix + v[&amp;#39;href&amp;#39;]) for v in urls] # 获取所有月报链接（月报名,url） def query_monthly_url(): resp = requests.get(&amp;#39;http://mysql.taobao.org/monthly/&amp;#39;) soup = BeautifulSoup(resp.content.decode(&amp;#39;utf-8&amp;#39;), &amp;#34;html.parser&amp;#34;) tags = soup.findAll(&amp;#39;a&amp;#39;, {&amp;#39;class&amp;#39;: {&amp;#39;main&amp;#39;}}) urls = [v for v in tags if v[&amp;#39;href&amp;#39;].</description></item><item><title>Postgres Executor</title><link>https://Esoye.github.io/posts/postgres/postgres_executor/</link><pubDate>Wed, 20 Jul 2022 09:26:50 +0800</pubDate><guid>https://Esoye.github.io/posts/postgres/postgres_executor/</guid><description>
+执行器 # exec_simple_query
+pg_parse_query
+pg_analyze_and_rewrite_fixedparams
+pg_plan_queries
+CreatePortal
+PortalDefineQuery
+PortalStart ChoosePortalStrategy PORTAL_ONE_SELECT CreateQueryDesc ExecutorStart standard_ExecutorStart PORTAL_ONE_MOD_WITH PORTAL_ONE_RETURNING ExecCleanTypeFromTL PORTAL_UTIL_SELECT UtilityTupleDescriptor
+PortalRun case PORTAL_ONE_SELECT: case PORTAL_ONE_RETURNING: case PORTAL_ONE_MOD_WITH: case PORTAL_UTIL_SELECT: FillPortalStore PortalRunSelect ExecutorRun standard_ExecutorRun &amp;ndash; hook，可以使用其他执行器 ExecutePlan ExecProcNode &amp;ndash; 递归执行ExecProcNode case PORTAL_MULTI_QUERY: PortalRunMulti ProcessQuery CreateQueryDesc ExecutorStart ExecutorRun ExecutorFinish ExecutorEnd FreeQueryDesc PortalRunUtility ProcessUtility standard_ProcessUtility &amp;ndash; 预留钩子
+PortalDrop PortalCleanup ExecutorFinish ExecutorEnd ExecEndNode FreeQueryDesc
+We have several execution strategies for Portals, depending on what query or queries are to be executed.</description></item><item><title>15445课程笔记</title><link>https://Esoye.github.io/posts/course/15445/note/</link><pubDate>Fri, 10 Jun 2022 11:07:10 +0800</pubDate><guid>https://Esoye.github.io/posts/course/15445/note/</guid><description>
+https://15445.courses.cs.cmu.edu/fall2021/notes/02-advancedsql.pdf
+output control 控制输出结果，例如order，limit等 窗口函数 CTE Common Table Expressions，把一个语句的输出视为一张临时表参与下面的语句的运算 WITH cte1 (col1) AS (SELECT 1), cte2 (col2) AS (SELECT 2) SELECT * FROM cte1, cte2; Database Storage # 数据库的存储介质当前还是磁盘，IO慢 数据库存储要点之一是使用缓存维护数据在磁盘和内存之间的数据交换，以实现数据的快速读写 顺序读写和随机读写 顺序读写的意思是需要定位到读写的位置才能操作，例如链表。 随机读写的意思是可以直接定位到读写的位置，例如数组。 由于磁盘上随机读写速度不如顺序读写，所以当前数据库还是需要想办法使用顺序读写，例如LSM，GFS等架构都是因为这个原因导致的 磁盘和内存中数据的组织格式 # 数据全部在磁盘上，按page组织数据，内存中使用buffer pool维护缓存，磁盘中有一个page专门维护page的位置信息，使用的时候先读取此page到内存，然后 然后读取其他page到buffer pool，使用buffer pool维护page的置换情况，例如LRU，或者其他算法
+可以参考lab1和slide，还是比较明显的
+buffer pool中的page可以用于上层的数据运算
+使用mmap可以完成类似的操作，但是实际上在使用中，如果在发生缺页中断的时候，mmap需要进行置换操作，所以会阻碍程序进程。且mmap是通用的组件，所以没有对数据库 的使用场景进行一些优化，
+You never want to use mmap in your DBMS if you need to write.</description></item><item><title>Raft</title><link>https://Esoye.github.io/posts/course/6.824/raft/</link><pubDate>Mon, 30 May 2022 18:51:02 +0800</pubDate><guid>https://Esoye.github.io/posts/course/6.824/raft/</guid><description>
+译文 原文 有用的飞书文档 和其他的算法相比 Strong leader
+日志只能从领导者发送到其他节点 Leader election
+随机计时器选举领导，在心跳机制上加上一些额外的工作 Membership changes
+角色变换 Replicated state machines # 复制状态机一般基于日志实现，通俗的理解只要所有的机器按照相同的顺序执行指令，那么每个节点的状态都是确定的，所以需要把指令日志复制到其他节点上去，这就是一致性算法的工作
+如果只是要求最终所有的节点都执行一样顺序的指令，而不要求实时性，则可以限定
+只有一个节点可以进行写操作，因为只有写操作才可以改变系统的状态 写节点同步指令到其他节点，最终所有节点指令顺序一致 一致性算法的共有特性
+安全性
+不会返回一个错误结果，只要是在非拜占庭错误情况下，包括网络延迟，乱序，丢包，分区，冗余等都可以保障正确性 可用性
+集群只要大多数机器可以正常通信，就可以确保可用，失败节点可以忽略或者后续恢复状态，大多数指的是半数以上 不依赖时序保证一致性
+时钟错误或者消息延迟只有在极端情况下才会导致可用性 慢节点不会影响消息的反馈，消息可以快速的响应 拜占庭将军问题
+Paxos # 难以理解 没有公认的可以实现的基础架构，大部分系统从Paxos开始，在遇到问题的时候自行想办法解决，导致最后的系统实现只能是类似Paxos的算法 Raft # 管理复制状态机的一种算法，他会在集群中选举一个leader，之后会复制所有的日志到其他节点实现一致性
+他可以分解为三个问题
+领导选举 一个新的领导人需要被选举出来，当先存的领导人宕机的时候 日志复制
+领导人必须从客户端接收日志然后复制到集群中的其他节点，并且强制要求其他节点的日志保持和自己相同 安全性
+在 Raft 中安全性的关键是在图 3 中展示的状态机安全：如果有任何的服务器节点已经应用了一个确定的日志条目到它的状态机中，那么其他服务器节点不能在同一个日志索引位置应用一个不同的指令 可以在这个网站查看实例</description></item><item><title>GFS</title><link>https://Esoye.github.io/posts/course/6.824/gfs/</link><pubDate>Mon, 30 May 2022 16:36:40 +0800</pubDate><guid>https://Esoye.github.io/posts/course/6.824/gfs/</guid><description>
+GFS是一个大规模可扩展的可容错的分布式文件系统。Google三大篇论文之一
+翻译文章在这里
+论文在这里
+6.824 Q&amp;amp;A
+GFS的特点 运行在廉价的机器上，节约成本 灵活性强，可随意扩展，容错性强 文件尾部追加数据，不会有太多的数据变动 架构 # 一个单独的master节点和多个datachunk节点，maste管理元数据信息，包括chunkhandle信息，文件和chunk的映射信息，以及chunkserver的变动信息等。master使用心跳定时和chunkserver同步关键信息。使用单个master的目的是为了简化设计，同时为了避免单点故障，master节点每次操作都和backup master同步数据，master存储的3种关键元数据为
+文件和Chunk的命名空间 文件和Chunk的对应关系 每个Chunk副本的存放地点
+存放在master上，在chunkserver变动的时候难以维护，每个server自己维护自己的信息，然后让master自行同步的方式会简单许多。 这些信息保存在内存中，且1和2的数据变动会保存在日志文件中，每次mater故障恢复的时候，只需要使用此日志就可以恢复到原来的状态，至于3，则保存在chunkserver中，master会使用心跳定时从chunkserver更新此信息到内存中，master的内存承载能力一般是可以维护这些数据，一条master中的信息可以维护一个chunk，一般一条信息可以在64内保存下来，且由于数据的在小范围变化不大，使用一定的压缩方法可以大大的节约空间。 日志记录上面1和2的数据变动信息，用于故障恢复，为了避免日志信息过于庞大，加入检查点机制，恢复时只要回放检查点之后的日志即可。
+chunkserver保存chunk数据，同时维护server上的chunk信息，GFS把大文件切分为64M的chunk文件，64M的原因是
+Google实际存储的数据较大其大部分时候使用顺序读写文件，所以大文件的读写时间可以在接受范围内 大文加可以减少master中的元数据信息，读写的时候，可以对一个大文件进行多次读写，避免了小文件需要多次向master查询位置信息 大文件可以避免小文件反复从server读取，使server变成热点 chunk一般是3个数据副本
+读取操作 # C sends filename and offset to coordinator (CO) (if not cached) CO finds chunk handle for that offset CO replies with list of chunkhandles + chunkservers only those with latest version C caches handle + chunkserver list C sends request to nearest chunkserver chunk handle, offset chunk server reads from chunk file on disk, returns to client 一致性问题 # 弱一致性。易实现， 随机写会有offset重复的问题，但是master限定操作顺序，理论上最终的数据是一致的，但是在client看来，数据是不确定的，因为副本不是要求立刻同步的， append only限定append的offset，所以每个offset上数据是一致的</description></item><item><title>Mapreduce</title><link>https://Esoye.github.io/posts/course/6.824/mapreduce/</link><pubDate>Sun, 29 May 2022 21:05:46 +0800</pubDate><guid>https://Esoye.github.io/posts/course/6.824/mapreduce/</guid><description>
+利用普通机器组成的大规模计算集群进行并行的,高容错,高性能的数据处理函数框架
+原始论文点这里,论文翻译点这里，有时间的话，自行对比翻译和原文
+最终实现的目标是&amp;ndash;实现一个分布式系统，对程序员隐藏底层分布式细节，程序员只需要定义map和reduce 函数即可。
+map reduce实现为简单的kv输出，其中map接受源数据，生成kv的中间结果，中间结果保存在worker节点上。 reduce负责处理map产生的中间结果的kv数据，只是简单的数据处理过程.
+他最先是受到lisp中map和reduce原语的启发，再加上当时Google现实的处理大量数据的需求，从他们现有的系统抽象而来的。
+在论文中，使用了一个单词统计的案例，此时实现map函数用来分割文本，切分出最基本的单词。然后再使用reduce进行聚合操作，
+// 输出单词以及出现的次数，map端输出1 map(String key,String value): // key: 文档名 // value: 文档内容 for each word w in value: EmitIntermediate(w,&amp;#34;1&amp;#34;); // 针对相同的key，次数+1 reduce(String key, Iterator values): // key: 一个单词 // value: 计数值列表 int result = 0; for each v in values: result += ParseInt(v); Emit(AsString(result)); 执行过程 文件划分 主节点划分任务 按照划分的任务启动worker，执行map任务 worker节点的数据生成为中间结果，保存在本节点 所有map任务执行完成之后，reduce得到对应中间节点的文件路径，通过rpc读取文件，进行reduce任务 reduce任务完成之后，最终结果写入目标文件 一个mr任务完成之后，回得到n(reduce)个结果文件，可以按照需求处理文件，可以直接使用，或者继续作为其他mr的输入，mr任务是可以嵌套的。
+主节点</description></item><item><title>A Tour of Go速通</title><link>https://Esoye.github.io/posts/languange/go_1/</link><pubDate>Tue, 17 May 2022 22:34:11 +0800</pubDate><guid>https://Esoye.github.io/posts/languange/go_1/</guid><description>
+2022-05-17 基础语法 2022-05-24 复合类型，goroutine，channel 基础语法 # Packages # go使用Packages维护模块，使用import导入模块，import最后一个元素才是需要导入的模块
+import ( &amp;#34;fmt&amp;#34; &amp;#34;math/rand&amp;#34; ) import 可以单独一个导入一个模块，也可以批量导入， 与之对应的是export，go不显示声明export，首字母大写的变量或方法自动export，外部只能使用导出的变量或者方法，类似c++中类的私有和共有的概念。
+Functions # 与c++或者Java或者其他语言不同的是，go的函数签名格式为func func_name(parm1 [type], parm2 [type]....) retype {}，先声明名字，再声明变量的类型，参数列表中有多个参数且类型一致的时候，前面的参数类型可以省略，只需要保留之后一个
+func add(x, y int) int { return x + y } 且go可以很轻易的实现多返回值的功能，如下
+func swap(x, y string) (string, string) { return y, x } func main() { a, b := swap(&amp;#34;hello&amp;#34;, &amp;#34;world&amp;#34;) fmt.Println(a, b) } 上面的功能在c++中需要使用结构体或者tuple或者Paris才能实现。
+go的return还可以使用不带参数的 &amp;ldquo;naked&amp;rdquo; return，此时要求函数签名中的return参数必须有名字，且在函数体中必须为参数赋值，此时使用return直接返回，参数可以直接传递到外部，但是需要注意的时候，如果函数体过于庞大且有多个出口，不建议使用，难于阅读
+func split(sum int) (x, y int) { x = sum * 4 / 9 y = sum - x return } 变量 # 使用var声明变量，声明多个变量的时候可以类似参数列表中的参数，前面参数不需要声明类型。初始化的时候按顺序初始化，且初始化的参数个数必须前后一致</description></item><item><title>Coursenote</title><link>https://Esoye.github.io/posts/course/6.824/coursenote/</link><pubDate>Tue, 17 May 2022 13:17:04 +0800</pubDate><guid>https://Esoye.github.io/posts/course/6.824/coursenote/</guid><description>
+随堂笔记 # Why do people build distributed systems? to increase capacity via parallel processing to tolerate faults via replication to match distribution of physical devices e.g. sensors to achieve security via isolation
+分布式的困难点：
+大量的并发操作 具有容错性 难于实现 Lab 1: distributed big-data framework (like MapReduce) Lab 2: fault tolerance library using replication (Raft) Lab 3: a simple fault-tolerant database Lab 4: scalable database performance via sharding
+A big goal: hide the complexity of distribution from applications.</description></item><item><title>LevelDB源码阅读</title><link>https://Esoye.github.io/posts/readbooks/leveldb/</link><pubDate>Sun, 15 May 2022 21:59:53 +0800</pubDate><guid>https://Esoye.github.io/posts/readbooks/leveldb/</guid><description>
+leveldb 源码总结分析</description></item><item><title>VolcanoOptimizer</title><link>https://Esoye.github.io/posts/readbooks/volcanooptimizer/</link><pubDate>Mon, 04 Apr 2022 22:10:50 +0800</pubDate><guid>https://Esoye.github.io/posts/readbooks/volcanooptimizer/</guid><description>
+NOTE # 论文阅读笔记The Volcano Optimizer Generator: Extensibility and Efficient Search
+可扩展
+面向对象
+自顶向下
+剪枝
+原型是EXODUS， Volcano是对他的改进
+可以单独使用的优化器 优化搜索时间和搜索空间 可扩展 可以使用启发式算法和有效的代价模型来扩展和减少搜索空间，【剪枝】 灵活的成本计算模型 一个框架，优化器生成器，可以由“optimizer implementor”自行实现关键函数，整个优化器框架的输入是AST，输出是一个执行计划，算子的集合
+SQL是基于关系代数，Volcano把关系表达式分为逻辑表达式和物理表达式，逻辑表达式之间使用transformation进行转换，物理表达式使用基于代价的implementation和逻辑表达式映射的，关系不一定是意义对应的，例如scan可以同时一起实现projection
+在表达式进行转换的时候可以使用condition进行模式判断，满足条件的时候可以进行变换
+表达式使用特征描述输出，
+enforcers会强制添加某属性，用于指导优化器进行优化，例如指定表的scan方式
+Logical Operator
+Operator set，也就是可以描述在目标data model上可以执行的代数运算合
+Transformation rules + Condition，对每条等价变换规则，在满足condition时才可以应用
+Logical properties : 逻辑属性，用来描述代数运算的输出所具有的一些特征，这些特征与运算的具体执行方式无关，是逻辑的，例如输出的行数，结果集的schema等
+Physical Operator
+Algorithm + Enforcer set，即可应用的物理实现算法 + 可添加的Enforcer集合</description></item><item><title>Columbia Optimizer</title><link>https://Esoye.github.io/posts/readbooks/columbia-optimizer/</link><pubDate>Sat, 02 Apr 2022 16:55:12 +0800</pubDate><guid>https://Esoye.github.io/posts/readbooks/columbia-optimizer/</guid><description>
+start # EFFICIENCY IN THE COLUMBIA DATABASE QUERY OPTIMIZER
+优化器发展版本 # 第一代
+模块化的，分层的，可扩展的，基于规则的优化器 扩展的复杂性，搜索性能 第二代
+类似Volcano，更加优秀的优化规则，且使用物理属性参与优化，使用新的搜索方式 更加灵活，但是还是难与扩展 第三代
+使用面对象的思想实现的优化器，易于扩展，更灵活 可以按照搜索策略分为两类 1. 自底向上 2. 自顶向下 Cascades Optimizer Framework 对关键操作定义为抽象类，通过实现抽象类来添加规则或者进行表达式变换来扩展优化器， * 使用hash来消除重复的表达式 * 再group中把逻辑表达式和物理表达式分开 * 剪枝 先计算上层group的cost 阈值，在计算下层节点的时候，直接判断是否还需要继续进行优化 预先对执行计划设置阈值，当执行计划的代价和阈值足够接近的时候，则判定已完成搜索
+术语 #</description></item><item><title>现代C++白皮书</title><link>https://Esoye.github.io/posts/readbooks/%E7%8E%B0%E4%BB%A3c++%E7%99%BD%E7%9A%AE%E4%B9%A6/</link><pubDate>Sun, 06 Mar 2022 20:46:08 +0800</pubDate><guid>https://Esoye.github.io/posts/readbooks/%E7%8E%B0%E4%BB%A3c++%E7%99%BD%E7%9A%AE%E4%B9%A6/</guid><description>
+读者序 # 之前没有好好的阅读过一本任何技术书籍，一般都是打开前几张，然后慢慢的失去耐心，所有造成的问题是一些书籍上的知识，只会对前面的章节有记忆，而大多数的书籍前面的章节也只是他书籍的入门介绍而已，所以我是个半吊子程序员，工作两年半之后，这个问题越来越困扰着我，有时候看见别人的面帖，感觉那些问题其实都因该是知道答案的，但是当我想要在脑海中把答案整理出来的时候却无从说起，简单的来说就是有的东西我是知道的，但是无法表示出来，不成体系，这给我一个错觉就是我感觉我能力可以，但是落到实地的时候却啥也做不了，脱离了谷歌百度或者其他我之前的资料，我啥都不行。
+我个人觉得问题的解决方式是学会输出，把自己的知识整理输出，通过自己让别人知道一项新技能，新知识，那就代表自己其实已经有了闹靠的基础，知识的输出需要一个载体，我不是老师，公司也没有这个渠道，因为公司的知识交流与工作内容是密切相关的，所以这也是我搭建这个博客的原因，但愿我可以长期的坚持下去，说实话，之前已经有了还几次类似的经历，但是都半途而废了，我希望这是最后一次
+前言 # 书籍是Bjarne Stroustup为HOPL所撰写的论文，目的是介绍c++在过去到现在的发展历程，以及其中一些大的功能点的演化。促发展上来划分C++可以分为两个阶段，一是C++98之前的类C版C++，二是之后的C++11之后的现代C++，在进40年的时间里C++还没有被取代，还可以在如此多的编程语言中占据一些之地，引用Bjarne Stroustup大佬的话说就是因为他填补了编程语言中一个重要的生态位。C++的核心是直接映射硬件和林开销抽象，
+ISO 编程语言可以分为三种，一是有公司主导的编程语言，例如Google的go，C#以及苹果的swift等，二是由社区主导如php，python等，这两种在除了显而易见的好处之外的，都有各自的问题，公司主导的语言的，可能哎公司强势的时候还可以得到发展，但是公司没落之后，语言没有支持可能就无了，还有那家公司主导，那语言就是那家公司的产品，技术上的map由公司指定，小公司没有能力可以影响到语言的后续发展，对于社区，则可能会由于没有一个核心的个人或者组织来引导方向，导致语言偏离最初顶下的发展道路。Bjarne Stroustup就是基于以上的原因，提出组建一个标准委员会来引导C++ 的发展，
+语言特性 具体的定义的语言的规则，有对应的具体的实现
+1. 起源 # C++核心特性
+语言到设备之间的直接映射 零开销抽象 不使用的东西就不需要付出任何代价 使用到的东西就是可以实现的最好的 抽象具体为类，函数，模板，概念和别名 simula 最早的面向对象的语言，之后几乎所有的面向对象的语言都是直接或者间接的受奥他的印象。
+C++最初是在1979年推出的，那时候是真正的带类的C。 Bjarne Stroustup的目的是想要一个可以直接映射硬件，同时又有类似于simula的具有抽象能力的语言，那是一个实验性质的语言的，实现就是把编码从C++逐行翻译到C，之后的1982年，随着人数的增加，他重写了前端，实现了一个功能完整的编译器，但是实际上在代码生成的是时候，还是生成的是C，
+之后就是平稳的发展到推出98版本的C++，不考虑最近的一些新特性的话，我们大部分人的C++ 知识就到这里了。此时C++实现了
+类 多态 运算符重载 类型安全连接 抽象类 模板 更好的泛型编程。大佬最初的时候使用宏实现的泛型编程 异常 RAII *_cast bool STL标准库 上述就是最初的98的C++实现的功能点，实际上也是大多是C++的开发人员知道的最详细的C++知识。之后就是漫长过渡期，直到11版本的推出，使C++进入新时代， 06年单核处理器新能几乎不再提升，所以大部分应用开始寻找可以提升性能的编程语言， C++11 新时代 # 许多新的特性的引入，使得C++类似一个新语言 特性如下</description></item><item><title>Envs</title><link>https://Esoye.github.io/posts/others/envs/</link><pubDate>Mon, 21 Feb 2022 19:00:25 +0800</pubDate><guid>https://Esoye.github.io/posts/others/envs/</guid><description>
+hugo # wget https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb https://github.91chi.fun/https://github.com//gohugoio/hugo/releases/download/v0.92.2/hugo_extended_0.92.2_Linux-64bit.deb sudo dpkg -i hugo*.deb
+140.82.113.3
+aria2c -s 5 https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb
+https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb
+可以使用aria2下载，ubuntu使用apt install aria2直接安装工具，使用-s开启多路下载 aria2c -s 5 https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb
+manager用户
+https://www.jianshu.com/p/a76a93e8c662
+Unix # 分区问题，集群上多块磁盘分区挂载到指定目录
+fdisk disk 可以对一个磁盘进行分区的添加和删除等操作 p d w h 添加磁盘挂载
+lsblk -f 查看磁盘 mkfs.xfs -f -n ftype=1 /dev/sdb1 格式化磁盘 mount /dev/sdb1 /var/lib/docker 挂载 xfs_info /dev/sdb1 | grep ftype=1 blkid /dev/sdb1 查看UUID UUID=&amp;lt;UUID&amp;gt; /var/lib/docker xfs defaults 0 0 写进/etc/fstab 问题Couldn't find device with uuid 4mhUbb-Ls1h-jp0d-JuJK-C38V-T3tX-f7s2IN</description></item><item><title>Docker</title><link>https://Esoye.github.io/posts/others/docker/</link><pubDate>Sun, 20 Feb 2022 21:17:58 +0800</pubDate><guid>https://Esoye.github.io/posts/others/docker/</guid><description>
+Docker # 新公司的产品的每一个模块是单独运行在容器中的，且由于是使用Java开发的，所以需要有频繁替换包的过程，之前只是简单的了解了docker，但是并没有深入的学习，这里记录docker的使用细节，以便于更好的工作，
+基础概念 # Docker使用go开发的一种沙箱工具，他使得应用可以单独运行在沙箱中，通过端口映射或者volumes与外界进行交互。这可以让一个机器上可以运行多种不同环境的应用且互不干扰，例如一个比较大型的引用，使用的此方式单独维护一个模块，使得系统的可靠性大大增强
+容器
+镜像运行的实例，一个镜像可以运行多个实例。 镜像
+一个完整的可运行的资源集合 仓库
+保存镜像 使用 # 这里记录高频次使用的功能，其他的后续记录
+镜像的管理
+pull push commit
+修改一个容器之后，使用commit在此基础上构建自己的容器 build
+创建一个镜像，使用docker build语句创建，需要自己编写Dockerfile，具体的编写规则可以参考nosipage rmi 容器的管理
+run
+创建新的容器，且会使用run指定启动规则，例如端口的映射，volumes文件的指定，以及其他重要参数等，这个命令可以说重要，因为同一个镜像，使用不同参数启动之后，效果是不一样的，对于开发来时，更多的是参与后期的开发，如果不是前期的项目设计，这里了解即可，但是最好的是知道他的只要参数的意义，因为和其他命令有的是通用的，例如-i -t -p等 start stop restart exec
+使用此命令可以进入运行中的容器中区，exec -it xxx command attach rm logs cp
+在本地和容器中传输文件 export ps 其他命令基本在遇到的时候，再去查看</description></item><item><title>C++ Primer Plus</title><link>https://Esoye.github.io/posts/languange/cpp/</link><pubDate>Sun, 20 Feb 2022 20:54:01 +0800</pubDate><guid>https://Esoye.github.io/posts/languange/cpp/</guid><description>
+编译器 # 把高级语言编译成可执行语言工具，分为前端后后端，前端值得是高级语言的解析，后端是指翻译解析之后的结果为机器语言
+多文件 ** 连接 多文件编译可以有两种方式，一是直接编译为一个可以执行文件，二是按模块或者按文件编译为库，然后连接到执行文件
+连接方式有两种， 一是静态连接，把所有的库文件打包到最后的生成文件中，优点是不需要额外的依赖外部环境，独立性强，缺点是文件体积大 二是动态链接，为了解决静态链接的缺点，执行文件在执行到库相关的代码的时候才加载库，有一点需要注意的是，程序运行的时候，在使用到动态库的时候才映射动态库到内存空间中。原理是编译待援在编译的时候，会更具声明生成函数的调用逻辑，但是只是一个地址跳转语句，所以，只要不调用，就不会有问题，当调用到了。才会加载库然后映射库的地址，这个完整的过程称为重定向。 动态连接 C语言编程透视 声明 声明是为了在编译的时候编译器能进行完整的上下文编译。他需要更具声明来确定编译信息，否则编译器无法确定编译中的语句信息，声明可以辅助完成这个情况， 所以理论上编译的时候是可以不需要实现的，可以在其他编译单元中实现声明的函数，其声明的文件可以不引用头文件，即两个编译单元完全可以无任何联系，除了声明之外，在连接的时候，连接器会根据编译出来的信息去确定函数调用情况，这里有一个问题，按上述的描述，是一个声明对应一个实现，如果有一个声明对应多个实现呢 == ： 会有覆盖问题，如果多个动态链接库都有同一个声明的实现，则连接的时候连接第一个，后面的则忽略，这也提醒我们，在大型项目中，避免同名全局函数或者变量，使用namespace或者static限制作用域，
+g++ -o tt ../main.cpp -ldl ./libhellolib.so ./libhellolib1.so LD_LIBRARY_PATH=$PWD ./tt 头文件，避免公用代码的重复，预处理时展开头文件，需要使用#pragma once避免重复引用，头文件只是简单的文件替换，理论上的可以替换任何文本。 cmake * 子模块，使用add_subdirectory引入 * 第三方库 * 只是头文件，直接指定头文件目录编译即可 * 使用子模块 * 使用为连接库 * 使用git模块
+STL
+重点为容器和算法 lambda表达式，实质上是仿函数，是一个结构体实现()运算的重载，捕获的时候按照声明的新式捕获参数，建议使用的时候明确使用的参数，使用哪个就捕获哪一个，否则他实际上会占据一定的大小的，配合std::function使用
+CTAD &amp;mdash; complie-time argument deduction，编译器参数推断，C++17引入的，可以在编译器按照上下文推断类型，具体表现在lambda参数可以使用auto，容器可以不适用&amp;lt;&amp;gt;
+ranges https://zhuanlan.</description></item><item><title/><link>https://Esoye.github.io/posts/others/log/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://Esoye.github.io/posts/others/log/</guid><description>
+语句
+prepare s3(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc; QUERY PLAN --------------------------------------------------------------------------------------------------- Cluster Gather (cost=291.52..430.37 rows=459 width=4) Remote node: 16386 -&amp;gt; Sort (cost=291.52..292.67 rows=459 width=4) Output: no_o_id Sort Key: bmsql_new_order.no_o_id -&amp;gt; Bitmap Heap Scan on public.bmsql_new_order (cost=13.46..271.23 rows=459 width=4) Output: no_o_id Recheck Cond: ((bmsql_new_order.no_w_id = 1) AND (bmsql_new_order.no_d_id = 1)) -&amp;gt; Bitmap Index Scan on bmsql_new_order_pkey (cost=0.00..13.34 rows=918 width=0) Index Cond: ((bmsql_new_order.</description></item><item><title/><link>https://Esoye.github.io/posts/others/%E5%87%BD%E6%95%B0%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://Esoye.github.io/posts/others/%E5%87%BD%E6%95%B0%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91/</guid><description>
+predicate_refuted_by 和 make_new_qual_list的运行逻辑以及PARAM 无法选出一个节点的原因
+make_new_qual_list需要使用表达式和分区信息构造新的表达式，但是PARAM不是常量，所以无法构造， 所以predicate_refuted_by判定变大时和约束的时候无法正确的选择节点，动态语句只要使用到分区键都不行
+node_count = 2 Table &amp;#34;public.bmsql_new_order&amp;#34; Column | Type | Nullable | Storage | ---------+---------+----------+---------+ no_w_id | integer | not null | plain | no_d_id | integer | not null | plain | no_o_id | integer | not null | plain | Indexes: &amp;#34;bmsql_new_order_pkey&amp;#34; PRIMARY KEY, btree (no_w_id, no_d_id, no_o_id) Foreign-key constraints: &amp;#34;no_order_fkey&amp;#34; FOREIGN KEY (no_w_id, no_d_id, no_o_id) REFERENCES bmsql_oorder(o_w_id, o_d_id, o_id) DISTRIBUTE BY HASH(no_w_id) TO NODE(dn1, dn2) Access method: heap 数据分布 benchmarksql=# execute direct on (dn1) &amp;#39;select distinct no_w_id from public.</description></item><item><title/><link>https://Esoye.github.io/posts/others/%E5%8A%A8%E6%80%81%E8%AF%AD%E5%8F%A5/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://Esoye.github.io/posts/others/%E5%8A%A8%E6%80%81%E8%AF%AD%E5%8F%A5/</guid><description>
+prepare s34(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc; explain verbose execute s34(4,1); prepare s35(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc for update; explain verbose execute s35(4,1);
+prepare s35(int, int) as select a.no_o_id from bmsql_new_order a join bmsql_new_order b on a.no_w_id = b.no_w_id and a.no_w_id = 4 order by no_o_id asc;</description></item><item><title/><link>https://Esoye.github.io/posts/others/%E9%9D%99%E6%80%81%E8%AF%AD%E5%8F%A5/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://Esoye.github.io/posts/others/%E9%9D%99%E6%80%81%E8%AF%AD%E5%8F%A5/</guid><description>
+explain verbose select no_o_id from bmsql_new_order where no_w_id = 4 and no_d_id = 1 order by no_o_id asc;
+benchmarksql=# explain verbose select no_o_id from bmsql_new_order where no_w_id = 4 and no_d_id = 1 order by no_o_id asc; QUERY PLAN # Data Node Scan on &amp;ldquo;REMOTE_FQS_QUERY&amp;rdquo; (cost=0.00..0.00 rows=0 width=0) Output: bmsql_new_order.no_o_id Node/s: dn2 Remote query: SELECT no_o_id FROM public.bmsql_new_order bmsql_new_order WHERE ((no_w_id = 4) AND (no_d_id = 1)) ORDER BY no_o_id (4 rows)</description></item><item><title/><link>https://Esoye.github.io/posts/postgres/cost/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://Esoye.github.io/posts/postgres/cost/</guid><description>
+Cost Estimation in Single-Table Query
+FQS pgxc_FQS_create_remote_plan 没有计算代价，cost为0 Data Node Scan on &amp;ldquo;REMOTE_FQS_QUERY&amp;rdquo; (cost=0.00..0.00 rows=0 width=0) Primary node/s: dn1 Node/s: dn1, dn2 (3 rows)
+remote create path benchmarksql=# explain verbose select * from t1 ; QUERY PLAN # Data Node Scan on t1 &amp;ldquo;REMOTE_TABLE_QUERY&amp;rdquo; (cost=0.00..82037.50 rows=90005 width=12) Output: t1.c1, t1.c2, t1.c3 Primary node/s: dn1 Node/s: dn1, dn2 Remote query: SELECT c1, c2, c3 FROM ONLY public.</description></item><item><title/><link>https://Esoye.github.io/posts/postgres/postgres-xc/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://Esoye.github.io/posts/postgres/postgres-xc/</guid><description>
+exec_simple_query
+antdb parse_query_auto_gram 语法支持 SetForceObtainXidFromAGTM pg_analyze_and_rewrite_for_gram
+pg_plan_queries pgxc_try_planner pgxc SetForceXidFromGTM
+pg_plan_queries pgxc_planner pgxc_planner | pgxc_try_planner
+语句可以发送到 Datanode，而且只需要协调器作为代理-在这种情况下，它创建单个节点计划。 语句可以在协调器上完全计算-因此不涉及查询传送，并且调用 standard _ planner ()来计划语句 https://www.cnblogs.com/yyvv/p/4188980.html
+代码的整体质量不错，大部分的改动都有注释，注释可读性也很好，个别注释时效性有问题，但不影响理解代码。所有在pg代码中的改动都用idef做了有效隔离。理论上跟上PG的升级问题不大 postgresql xc修改了一些postgresql的代码，postgresql xl又把他们改了过来，然后又加了好多代码。注意区分#idef和#ifndef Postgresql-xc的原则是能下推到dataNode的就下推到dataNode，实在推不下去的就把所有的数据集中在在聚集节点做。而xl做了MPP。
+语句分析
+简单SQL没有执行RemoteQuery prepare s3(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc; explain verbose execute s3(1, 1); prepare s7(int, int, char(32)) as select c_id from bmsql_customer where c_w_id = $1 and c_d_id = $2 and c_last = $3 order by c_first; explain verbose execute s7(1, 1, &amp;#39;OUGHTBARPRES&amp;#39;); prepare s19(int, int, int) as select ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_delivery_d from bmsql_order_line where ol_w_id = $1 and ol_d_id = $2 and ol_o_id = $3 order by ol_w_id, ol_d_id, ol_o_id, ol_number; explain verbose execute s19(1, 1, 1); 对比正常的简单SQL执行RemoteQuery ： prepare s1(int, int) as select d_tax, d_next_o_id from bmsql_district where d_w_id = $1 and d_id = $2 for update; explain verbose execute s1(1, 1); QUERY PLAN -------------------------------------------------------------------------------------------------------------------- Aggregate (cost=0.</description></item><item><title/><link>https://Esoye.github.io/posts/postgres/xx/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://Esoye.github.io/posts/postgres/xx/</guid><description>
+2022-08-12 02:47:03.470194 UTC,&amp;ldquo;vscode&amp;rdquo;,&amp;ldquo;benchmarksql&amp;rdquo;,p34893,th685154368,&amp;quot;[local]&amp;quot;,seg-1,,,,,&amp;ldquo;DEBUG1&amp;rdquo;,&amp;ldquo;00000&amp;rdquo;,&amp;ldquo;Message type Q received by from libpq, len = 45&amp;rdquo;,,,,,,,0,,&amp;ldquo;postgres.c&amp;rdquo;,5305, 2022-08-12 02:47:03.470253 UTC,&amp;ldquo;vscode&amp;rdquo;,&amp;ldquo;benchmarksql&amp;rdquo;,p34893,th685154368,&amp;quot;[local]&amp;quot;,seg-1,,,,sx1,&amp;ldquo;LOG&amp;rdquo;,&amp;ldquo;00000&amp;rdquo;,&amp;ldquo;statement: explain (verbose, analyze) execute s36(4,1);&amp;rdquo;,,,,,,&amp;ldquo;explain (verbose, analyze) execute s36(4,1);&amp;quot;,0,,&amp;ldquo;postgres.c&amp;rdquo;,1665, 2022-08-12 02:47:03.471695 UTC,&amp;ldquo;vscode&amp;rdquo;,&amp;ldquo;benchmarksql&amp;rdquo;,p34893,th685154368,&amp;quot;[local]&amp;quot;,seg-1,,,,sx1,&amp;ldquo;DEBUG1&amp;rdquo;,&amp;ldquo;00000&amp;rdquo;,&amp;ldquo;Query plan size to dispatch: 2KB&amp;rdquo;,,,,,,,0,,&amp;ldquo;cdbdisp_query.c&amp;rdquo;,618, 2022-08-12 02:47:04.744839 UTC,&amp;ldquo;vscode&amp;rdquo;,&amp;ldquo;benchmarksql&amp;rdquo;,p34893,th446375488,&amp;quot;[local]&amp;quot;,seg-1,,,,sx1,&amp;ldquo;LOG&amp;rdquo;,&amp;ldquo;00000&amp;rdquo;,&amp;ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 0&amp;rdquo;,,,,,,,0,,,, 2022-08-12 02:47:04.811827 UTC,&amp;ldquo;vscode&amp;rdquo;,&amp;ldquo;benchmarksql&amp;rdquo;,p34893,th446375488,&amp;quot;[local]&amp;quot;,seg-1,,,,sx1,&amp;ldquo;LOG&amp;rdquo;,&amp;ldquo;00000&amp;rdquo;,&amp;ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 1&amp;rdquo;,,,,,,,0,,,, 2022-08-12 02:47:04.812848 UTC,&amp;ldquo;vscode&amp;rdquo;,&amp;ldquo;benchmarksql&amp;rdquo;,p34893,th685154368,&amp;quot;[local]&amp;quot;,seg-1,,,,sx1,&amp;ldquo;DEBUG1&amp;rdquo;,&amp;ldquo;00000&amp;rdquo;,&amp;ldquo;Interconnect State: isSender 0 isReceiver 1 snd_queue_depth 2 recv_queue_depth 4 Gp_max_packet_size 8192 UNACK_QUEUE_RING_SLOTS_NUM 2000 TIMER_SPAN 5000 DEFAULT_RTT 20000 hasErrors 0, ic_instance_id 5 ic_id_last_teardown 0 snd_buffer_pool.</description></item><item><title/><link>https://Esoye.github.io/posts/postgres/%E5%85%83%E6%95%B0%E6%8D%AE/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://Esoye.github.io/posts/postgres/%E5%85%83%E6%95%B0%E6%8D%AE/</guid><description>
+oid | 12179 rulename | pg_settings_n ev_class | 12175 ev_type | 2 ev_enabled | O is_instead | t ev_qual | &amp;lt;&amp;gt; ev_action | ( {QUERY : commandType 6 : querySource 0 : canSetTag false : utilityStmt &amp;lt;&amp;gt; : resultRelation 0 : hasAggs false : hasWindowFuncs false : hasTargetSRFs false : hasSubLinks false : hasDistinctOn false : hasRecursive false : hasModifyingCTE false : hasForUpdate false : hasRowSecurity false : cteList &amp;lt;&amp;gt; : rtable ( {RTE : alias {ALIAS : aliasname old : colnames &amp;lt;&amp;gt; } : eref {ALIAS : aliasname old : colnames (&amp;ldquo;name&amp;rdquo; &amp;ldquo;setting&amp;rdquo; &amp;ldquo;unit&amp;rdquo; &amp;ldquo;category&amp;rdquo; &amp;ldquo;short_d &amp;ldquo;extra_desc&amp;rdquo; &amp;ldquo;context&amp;rdquo; &amp;ldquo;vartype&amp;rdquo; &amp;ldquo;source&amp;rdquo; &amp;ldquo;min_val&amp;rdquo; &amp;ldquo;max_ &amp;ldquo;enumvals&amp;rdquo; &amp;ldquo;boot_val&amp;rdquo; &amp;ldquo;reset_val&amp;rdquo; &amp;ldquo;sourcefile&amp;rdquo; &amp;ldquo;sourcel &amp;ldquo;pending_restart&amp;rdquo;) } : rtekind 0 : relname pg_settings : relid 12175 : relkind v : rellockmode 1 : tablesample &amp;lt;&amp;gt; : lateral false : inh false : inFromCl false : requiredPerms 0 : checkAsUser 0 : selectedCols (b) : insertedCols (b) : updatedCols (b) : extraUpdatedCols (b) : securityQuals &amp;lt;&amp;gt; } {RTE : alias {ALIAS : aliasname new : colnames &amp;lt;&amp;gt; } : eref {ALIAS : aliasname new : colnames (&amp;ldquo;name&amp;rdquo; &amp;ldquo;setting&amp;rdquo; &amp;ldquo;unit&amp;rdquo; &amp;ldquo;category&amp;rdquo; &amp;ldquo;short_desc&amp;rdquo; &amp;ldquo;extra_desc&amp;rdquo; &amp;ldquo;context&amp;rdquo; &amp;ldquo;vartype&amp;rdquo; &amp;ldquo;source&amp;rdquo; &amp;ldquo;min_val&amp;rdquo; &amp;ldquo;max_val&amp;rdquo; &amp;ldquo;enumvals&amp;rdquo; &amp;ldquo;boot_val&amp;rdquo; &amp;ldquo;reset_val&amp;rdquo; &amp;ldquo;sourcefile&amp;rdquo; &amp;ldquo;sourceline&amp;rdquo; &amp;ldquo;pending_restart&amp;rdquo;) } : rtekind 0 : relname pg_settings : relid 12175 : relkind v : rellockmode 1 : tablesample &amp;lt;&amp;gt; : lateral false : inh false : inFromCl false : requiredPerms 0 : checkAsUser 0 : selectedCols (b) : insertedCols (b) : updatedCols (b) : extraUpdatedCols (b) : securityQuals &amp;lt;&amp;gt; } ) : jointree {FROMEXPR : fromlist &amp;lt;&amp;gt; : quals &amp;lt;&amp;gt; } : targetList &amp;lt;&amp;gt; : override 0 : onConflict &amp;lt;&amp;gt; : returningList &amp;lt;&amp;gt; : groupClause &amp;lt;&amp;gt; : groupingSets &amp;lt;&amp;gt; : havingQual &amp;lt;&amp;gt; : windowClause &amp;lt;&amp;gt; : distinctClause &amp;lt;&amp;gt; : sortClause &amp;lt;&amp;gt; : limitOffset &amp;lt;&amp;gt; : limitCount &amp;lt;&amp;gt; : limitOption 0 : rowMarks &amp;lt;&amp;gt; : setOperations &amp;lt;&amp;gt; : constraintDeps &amp;lt;&amp;gt; : withCheckOptions &amp;lt;&amp;gt; : stmt_location 0 : stmt_len 0 : connect_by &amp;lt;&amp;gt; } )</description></item><item><title/><link>https://Esoye.github.io/posts/postgres/%E9%85%8D%E7%BD%AE/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://Esoye.github.io/posts/postgres/%E9%85%8D%E7%BD%AE/</guid><description>
+配置文件guc.c
+http://www.postgres.cn/docs/12/view-pg-settings.html
+Column | Type | Collation | Nullable | Default | Storage | Description &amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;ndash;+&amp;mdash;&amp;mdash;&amp;mdash;+&amp;mdash;&amp;mdash;&amp;mdash;&amp;ndash;+&amp;mdash;&amp;mdash;&amp;mdash;-+&amp;mdash;&amp;mdash;&amp;mdash;+&amp;mdash;&amp;mdash;&amp;mdash;-+&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;- name | text | | | | extended | 名称 setting | text | | | | extended | 配置 unit | text | | | | extended | 单位 category | text | | | | extended | 分类 short_desc | text | | | | extended | 描述 extra_desc | text | | | | extended | 附加描述 context | text | | | | extended | 上下文 vartype | text | | | | extended | 参数类型 source | text | | | | extended | 来源 min_val | text | | | | extended | 最小值 max_val | text | | | | extended | 最大值 enumvals | text[] | | | | extended | 枚举的允许值 boot_val | text | | | | extended | 默认值 reset_val | text | | | | extended | 当前session中reset 之后会设置的值 sourcefile | text | | | | extended | 设置文件 sourceline | integer | | | | plain | 文件行号 pending_restart | boolean | | | | plain | 修改文件是否需要重启生效 select name, setting, boot_val, reset_val, sourcefile, sourceline, pending_restart from pg_settings ; View definition: SELECT a.</description></item><item><title/><link>https://Esoye.github.io/posts/static/mysql/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://Esoye.github.io/posts/static/mysql/</guid><description>
+[2018/08]
+AliSQL # AliSQL · 内核新特性 · 2020技术总结 [2020/12]
+AliSQL · 内核特性 · 快速 DDL [2020/07]
+AliSQL · 内核特性 · Binlog In Redo [2020/06]
+AliSQL · 引擎特性 · Fast Query Cache 介绍 [2020/05]
+AliSQL · 最佳实践 · Performance Agent [2020/03]
+AliSQL · 引擎特性 · Statement Queue [2019/09]
+AliSQL · 引擎特性 · Returning [2019/09]
+AliSQL · 引擎特性 · Recycle Bin [2019/08]
+AliSQL · 特性介绍 · 支持 Invisible Indexes [2017/07]</description></item></channel></rss>

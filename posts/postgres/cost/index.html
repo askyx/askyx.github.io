@@ -1,0 +1,219 @@
+<!doctype html><html lang=en>
+<head>
+<title>
+::
+Esoye — My note blog
+</title>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="Cost Estimation in Single-Table Query
+ FQS pgxc_FQS_create_remote_plan 没有计算代价，cost为0   Data Node Scan on &amp;ldquo;REMOTE_FQS_QUERY&amp;rdquo; (cost=0.00..0.00 rows=0 width=0) Primary node/s: dn1 Node/s: dn1, dn2 (3 rows)
+remote create path  benchmarksql=# explain verbose select * from t1 ; QUERY PLAN #  Data Node Scan on t1 &amp;ldquo;REMOTE_TABLE_QUERY&amp;rdquo; (cost=0.00..82037.50 rows=90005 width=12) Output: t1.c1, t1.c2, t1.c3 Primary node/s: dn1 Node/s: dn1, dn2 Remote query: SELECT c1, c2, c3 FROM ONLY public.">
+<meta name=keywords content="数据库">
+<meta name=robots content="noodp">
+<link rel=canonical href=https://Esoye.github.io/posts/postgres/cost/>
+<link rel=stylesheet href=https://Esoye.github.io/assets/style.css>
+<link rel=stylesheet href=https://Esoye.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://Esoye.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://Esoye.github.io/img/favicon.png>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content>
+<meta name=twitter:description content="Cost Estimation in Single-Table Query
+ FQS pgxc_FQS_create_remote_plan 没有计算代价，cost为0   Data Node Scan on &ldquo;REMOTE_FQS_QUERY&rdquo; (cost=0.00..0.00 rows=0 width=0) Primary node/s: dn1 Node/s: dn1, dn2 (3 rows)
+remote create path  benchmarksql=# explain verbose select * from t1 ; QUERY PLAN #  Data Node Scan on t1 &ldquo;REMOTE_TABLE_QUERY&rdquo; (cost=0.00..82037.50 rows=90005 width=12) Output: t1.c1, t1.c2, t1.c3 Primary node/s: dn1 Node/s: dn1, dn2 Remote query: SELECT c1, c2, c3 FROM ONLY public.">
+<meta property="og:title" content>
+<meta property="og:description" content="Cost Estimation in Single-Table Query
+ FQS pgxc_FQS_create_remote_plan 没有计算代价，cost为0   Data Node Scan on &ldquo;REMOTE_FQS_QUERY&rdquo; (cost=0.00..0.00 rows=0 width=0) Primary node/s: dn1 Node/s: dn1, dn2 (3 rows)
+remote create path  benchmarksql=# explain verbose select * from t1 ; QUERY PLAN #  Data Node Scan on t1 &ldquo;REMOTE_TABLE_QUERY&rdquo; (cost=0.00..82037.50 rows=90005 width=12) Output: t1.c1, t1.c2, t1.c3 Primary node/s: dn1 Node/s: dn1, dn2 Remote query: SELECT c1, c2, c3 FROM ONLY public.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://Esoye.github.io/posts/postgres/cost/"><meta property="article:section" content="posts">
+<meta property="og:site_name" content="Esoye">
+</head>
+<body class=light-theme>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archive>Archive</a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archive>Archive</a></li>
+</ul>
+</nav>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class=post>
+<h1 class=post-title></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+<p>Cost Estimation in Single-Table Query</p>
+<ol>
+<li>FQS pgxc_FQS_create_remote_plan
+没有计算代价，cost为0</li>
+</ol>
+<hr>
+<p>Data Node Scan on &ldquo;<strong>REMOTE_FQS_QUERY</strong>&rdquo; (cost=0.00..0.00 rows=0 width=0)
+Primary node/s: dn1
+Node/s: dn1, dn2
+(3 rows)</p>
+<ol start=2>
+<li>remote create path</li>
+</ol>
+<h2 id=query-plan>
+benchmarksql=# explain verbose select * from t1 ;
+QUERY PLAN
+<a href=#query-plan class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>Data Node Scan on t1 &ldquo;<em>REMOTE_TABLE_QUERY</em>&rdquo; (cost=0.00..82037.50 rows=90005 width=12)
+Output: t1.c1, t1.c2, t1.c3
+Primary node/s: dn1
+Node/s: dn1, dn2
+Remote query: SELECT c1, c2, c3 FROM ONLY public.t1 t1 WHERE true
+(5 rows)</p>
+<pre tabindex=0><code>使用seq scan 的代价计算方法，只是tuple_cost 为0.9，cluster这里还是使用的seq 的数据计算代价，最后再判断添加什么算子
+run cost = cpu run cost + disk run cost
+         = (cpu_tuple_cost + cpu_operator_cost) × Ntuple + seq_page_cost × Npage
+         = 0.9 * 90005 + (1 * 1033)
+         = 82037.50
+</code></pre><ol start=2>
+<li>cluster cost_cluster_gather
+单表执行计划为gather
+rows = allrows / count(dn)
+startup_cost = subpath->startup_cost
+run_cost = subpath->run_cost + (remote_tuple_cost * rows)
+total_cost = (startup_cost + run_cost)</li>
+</ol>
+<hr>
+<p>Cluster Gather (cost=0.00..28934.25 rows=90004 width=12)
+-> Seq Scan on t1 (cost=0.00..1933.05 rows=45002 width=12)
+(2 rows)</p>
+<pre><code>startup_cost = 0
+run_cost = 1933.05 + (0.3 * 90004) = 28934.25
+total_cost = (0 + 28934.25) = 28934.25
+</code></pre>
+<p>2.1 单表的scan</p>
+<pre tabindex=0><code>数据的读取，tuple的cpu代价，targetlist 的 eval 代价
+
+run cost = cpu run cost + disk run cost
+         = (cpu_tuple_cost + cpu_operator_cost) × Ntuple + seq_page_cost × Npage
+         = 0.01 * 90005 + (1 * 1033)
+         = 1933.05
+``
+
+
+join
+reduce ？ 广播
+
+reduce_conn_cost 1 
+reduce_page_cost 3
+reduce_setup_cost 1000
+
+COALESCE(hash_combin_mod(2, hashint4(t2.c2)), 0)
+
+startup_cost = reduce_conn_cost + sort_startup_cost;
+
+path-&gt;path.startup_cost = subpath-&gt;startup_cost + startup_cost;
+path-&gt;path.total_cost = subpath-&gt;total_cost + startup_cost + reduce_run_cost + sort_run_cost;
+
+
+	reduce_run_cost = remote_tuple_cost * reduce_max_rows	/* rows cost */
+					/* plus page cost */
+					+ page_size(reduce_max_rows,  subpath-&gt;pathtarget-&gt;width) * reduce_page_cost
+					/* here should plus reduce expr cost */
+					;
+
+benchmarksql=# explain verbose  select * from t1 join t2 on t1.c1 = t2.c2;
+                                                  QUERY PLAN
+--------------------------------------------------------------------------------------------------------------
+ Cluster Gather  (cost=1562.62..10639.74 rows=22501 width=24)
+   Remote node: 16386,16387
+   -&gt;  Hash Join  (cost=562.62..2889.44 rows=11250 width=24)
+         Output: t1.c1, t1.c2, t1.c3, t2.c1, t2.c2, t2.c3
+         Hash Cond: (t1.c1 = t2.c2)
+         -&gt;  Seq Scan on public.t1  (cost=0.00..1933.05 rows=45002 width=12)
+               Output: t1.c1, t1.c2, t1.c3
+               Remote node: 16386,16387
+         -&gt;  Hash  (cost=562.00..562.00 rows=50 width=12)
+               Output: t2.c1, t2.c2, t2.c3
+               -&gt;  Cluster Reduce  (cost=1.00..562.00 rows=50 width=12)
+                     Reduce: ('[0:1]={16386,16387}'::oid[])[COALESCE(hash_combin_mod(2, hashint4(t2.c2)), 0)]
+                     -&gt;  Seq Scan on public.t2  (cost=0.00..543.00 rows=50 width=12)
+                           Output: t2.c1, t2.c2, t2.c3
+                           Remote node: 16386,16387
+
+join - remote 
+rqpath-&gt;path.startup_cost = parallel_setup_cost * 2;
+rqpath-&gt;path.total_cost = rqpath-&gt;path.startup_cost + rel-&gt;rows * pgxc_remote_tuple_cost;
+唯一有关系的只是行数
+
+
+
+大表
+10000  10
+
+100</code></pre>
+</div>
+<div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>Read other posts</span>
+<hr>
+</div>
+<div class=pagination__buttons>
+<span class="button previous">
+<a href=https://Esoye.github.io/posts/others/%E9%9D%99%E6%80%81%E8%AF%AD%E5%8F%A5/>
+<span class=button__icon>←</span>
+<span class=button__text></span>
+</a>
+</span>
+<span class="button next">
+<a href=https://Esoye.github.io/posts/postgres/postgres-xc/>
+<span class=button__text></span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<div class=copyright>
+<span>© 2022 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
+</div>
+</div>
+</footer>
+<script src=https://Esoye.github.io/assets/main.js></script>
+<script src=https://Esoye.github.io/assets/prism.js></script>
+</div>
+</body>
+</html>

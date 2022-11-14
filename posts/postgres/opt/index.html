@@ -1,0 +1,2073 @@
+<!doctype html><html lang=en>
+<head>
+<title>
+Postgres Optimizer ::
+Esoye — My note blog
+</title>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="pg 优化器 #  但是从今天的视角，PostgreSQL 优化器不是一个好的实现
+ 它用C语言实现，所以扩展性不好 它不是 Volcano 优化模型的，所以灵活性不好 它的很多优化复杂度很高（例如Join重排是System R风格的动态规划算法），所以性能不好  源代码文件主要是在optimizer目录下，总共分为四个主要模块，文档中注释为
+These directories take the Query structure returned by the parser, and generate a plan used by the executor. The /plan directory generates the actual output plan, the /path code generates all possible ways to join the tables, and /prep handles various preprocessing steps for special cases. /util is utility stuff. /geqo is the separate &amp;ldquo;genetic optimization&amp;rdquo; planner &amp;mdash; it does a semi-random search through the join tree space, rather than exhaustively considering all possible join trees.">
+<meta name=keywords content="数据库">
+<meta name=robots content="noodp">
+<link rel=canonical href=https://Esoye.github.io/posts/postgres/opt/>
+<link rel=stylesheet href=https://Esoye.github.io/assets/style.css>
+<link rel=stylesheet href=https://Esoye.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://Esoye.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://Esoye.github.io/img/favicon.png>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Postgres Optimizer">
+<meta name=twitter:description content="本文从源码级别进行优化器的分析，对Postgres优化器代码调研，具体包括他的数据结构，以及具体的代码架构实现以及核心算法等">
+<meta property="og:title" content="Postgres Optimizer">
+<meta property="og:description" content="本文从源码级别进行优化器的分析，对Postgres优化器代码调研，具体包括他的数据结构，以及具体的代码架构实现以及核心算法等">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://Esoye.github.io/posts/postgres/opt/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2022-07-22T09:24:24+08:00">
+<meta property="article:modified_time" content="2022-07-22T09:24:24+08:00"><meta property="og:site_name" content="Esoye">
+</head>
+<body class=light-theme>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archive>Archive</a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archive>Archive</a></li>
+</ul>
+</nav>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class=post>
+<h1 class=post-title>Postgres Optimizer</h1>
+<div class=post-meta>
+<span class=post-date>
+2022-07-22
+</span>
+</div>
+<span class=post-tags>
+<a href=https://Esoye.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
+<a href=https://Esoye.github.io/tags/postgres/>#Postgres</a>&nbsp;
+<a href=https://Esoye.github.io/tags/%E4%BC%98%E5%8C%96%E5%99%A8/>#优化器</a>&nbsp;
+</span>
+<div class=post-content>
+<h2 id=pg-优化器>
+pg 优化器
+<a href=#pg-%e4%bc%98%e5%8c%96%e5%99%a8 class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>但是从今天的视角，PostgreSQL 优化器不是一个好的实现</p>
+<ol>
+<li>它用C语言实现，所以扩展性不好</li>
+<li>它不是 Volcano 优化模型的，所以灵活性不好</li>
+<li>它的很多优化复杂度很高（例如Join重排是System R风格的动态规划算法），所以性能不好</li>
+</ol>
+<p>源代码文件主要是在<code>optimizer</code>目录下，总共分为四个主要模块，文档中注释为<br>
+These directories take the Query structure returned by the parser, and generate a plan used by the executor.
+The /plan directory generates the actual output plan,
+the /path code generates all possible ways to join the tables,
+and /prep handles various preprocessing steps for special cases.
+/util is utility stuff.
+/geqo is the separate &ldquo;genetic optimization&rdquo; planner &mdash; it does a semi-random search through the join tree space, rather than
+exhaustively considering all possible join trees. (But each join considered
+by /geqo is given to /path to create paths for, so we consider all possible
+implementation paths for each specific join pair even in GEQO mode.)</p>
+<p>当前看下来，他的主要流程是先使用prep中的方法对query先进行预处理，执行常规的基于规则的优化，之后使用path中的方法，对处理之后的语法树进行处理，找到代价最小的path。
+对于path的，如果没有join，则直接查找table的path即可，如果有多表join的场景，则需要进行path的组合，使用一定的搜索策略来进行路径搜索，
+当前有三种主流的优化方法</p>
+<ol>
+<li>system-R</li>
+<li>cascades</li>
+<li>gen
+pg使用自底向上的动态规划算法和基因算法，默认表数量大于12的时候，使用基因算法，所以这里我只关注system-R算法</li>
+</ol>
+<h3 id=优化器代码细节>
+优化器代码细节
+<a href=#%e4%bc%98%e5%8c%96%e5%99%a8%e4%bb%a3%e7%a0%81%e7%bb%86%e8%8a%82 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>具体的代码入口在exec_simple_query中，接受语句使用pg_parse_query编译，输出是一个list，具体的例子可以查看下面的语句，gdb中使用 <code>p pprint(parsetree_list)</code>可以打印list，对于具体的内部的数据结构，例如List,Node等，可以gdb调试pprint，可以查看他们之间的结构关系</p>
+<p>parser出来是list，在打印的时候，使用pprint，在内部判断list类型，取出实际的数据，然后按照NodeTag进行转换，NodeTag在几乎所有的数据结构中都在第一位，目的是为了便捷eider进行转换，以select为例<br>
+在语法文件中，selectstmt是一个结构体，具体生成如下，</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>simple_select:
+      SELECT opt_all_clause opt_target_list
+      into_clause from_clause where_clause
+      group_clause having_clause window_clause
+        {
+          SelectStmt <span style=color:#f92672>*</span>n <span style=color:#f92672>=</span> makeNode(SelectStmt);
+
+          n<span style=color:#f92672>-&gt;</span>targetList <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>3</span>;
+          n<span style=color:#f92672>-&gt;</span>intoClause <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>4</span>;
+          n<span style=color:#f92672>-&gt;</span>fromClause <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>5</span>;
+          n<span style=color:#f92672>-&gt;</span>whereClause <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>6</span>;
+          n<span style=color:#f92672>-&gt;</span>groupClause <span style=color:#f92672>=</span> (<span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>7</span>)<span style=color:#f92672>-&gt;</span>list;
+          n<span style=color:#f92672>-&gt;</span>groupDistinct <span style=color:#f92672>=</span> (<span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>7</span>)<span style=color:#f92672>-&gt;</span>distinct;
+          n<span style=color:#f92672>-&gt;</span>havingClause <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>8</span>;
+          n<span style=color:#f92672>-&gt;</span>windowClause <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>9</span>;
+          <span style=color:#960050;background-color:#1e0010>$$</span> <span style=color:#f92672>=</span> (Node <span style=color:#f92672>*</span>) n;
+        }
+
+<span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>SelectStmt</span>
+{
+  NodeTag    type;
+
+  <span style=color:#75715e>/*
+</span><span style=color:#75715e>   * These fields are used only in &#34;leaf&#34; SelectStmts.
+</span><span style=color:#75715e>   */</span>
+  List     <span style=color:#f92672>*</span>distinctClause; <span style=color:#75715e>/* NULL, list of DISTINCT ON exprs, or
+</span><span style=color:#75715e>                 * lcons(NIL,NIL) for all (SELECT DISTINCT) */</span>
+  IntoClause <span style=color:#f92672>*</span>intoClause;    <span style=color:#75715e>/* target for SELECT INTO */</span>
+  List     <span style=color:#f92672>*</span>targetList;    <span style=color:#75715e>/* the target list (of ResTarget) */</span>
+  List     <span style=color:#f92672>*</span>fromClause;    <span style=color:#75715e>/* the FROM clause */</span>
+  Node     <span style=color:#f92672>*</span>whereClause;  <span style=color:#75715e>/* WHERE qualification */</span>
+  List     <span style=color:#f92672>*</span>groupClause;  <span style=color:#75715e>/* GROUP BY clauses */</span>
+  <span style=color:#66d9ef>bool</span>    groupDistinct;  <span style=color:#75715e>/* Is this GROUP BY DISTINCT? */</span>
+  Node     <span style=color:#f92672>*</span>havingClause;  <span style=color:#75715e>/* HAVING conditional-expression */</span>
+  List     <span style=color:#f92672>*</span>windowClause;  <span style=color:#75715e>/* WINDOW window_name AS (...), ... */</span>
+
+  <span style=color:#75715e>/*
+</span><span style=color:#75715e>   * In a &#34;leaf&#34; node representing a VALUES list, the above fields are all
+</span><span style=color:#75715e>   * null, and instead this field is set.  Note that the elements of the
+</span><span style=color:#75715e>   * sublists are just expressions, without ResTarget decoration. Also note
+</span><span style=color:#75715e>   * that a list element can be DEFAULT (represented as a SetToDefault
+</span><span style=color:#75715e>   * node), regardless of the context of the VALUES list. It&#39;s up to parse
+</span><span style=color:#75715e>   * analysis to reject that where not valid.
+</span><span style=color:#75715e>   */</span>
+  List     <span style=color:#f92672>*</span>valuesLists;  <span style=color:#75715e>/* untransformed list of expression lists */</span>
+
+  <span style=color:#75715e>/*
+</span><span style=color:#75715e>   * These fields are used in both &#34;leaf&#34; SelectStmts and upper-level
+</span><span style=color:#75715e>   * SelectStmts.
+</span><span style=color:#75715e>   */</span>
+  List     <span style=color:#f92672>*</span>sortClause;    <span style=color:#75715e>/* sort clause (a list of SortBy&#39;s) */</span>
+  Node     <span style=color:#f92672>*</span>limitOffset;  <span style=color:#75715e>/* # of result tuples to skip */</span>
+  Node     <span style=color:#f92672>*</span>limitCount;    <span style=color:#75715e>/* # of result tuples to return */</span>
+  LimitOption limitOption;  <span style=color:#75715e>/* limit type */</span>
+  List     <span style=color:#f92672>*</span>lockingClause;  <span style=color:#75715e>/* FOR UPDATE (list of LockingClause&#39;s) */</span>
+  WithClause <span style=color:#f92672>*</span>withClause;    <span style=color:#75715e>/* WITH clause */</span>
+
+  <span style=color:#75715e>/*
+</span><span style=color:#75715e>   * These fields are used only in upper-level SelectStmts.
+</span><span style=color:#75715e>   */</span>
+  SetOperation op;      <span style=color:#75715e>/* type of set op */</span>
+  <span style=color:#66d9ef>bool</span>    all;      <span style=color:#75715e>/* ALL specified? */</span>
+  <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>SelectStmt</span> <span style=color:#f92672>*</span>larg;  <span style=color:#75715e>/* left child */</span>
+  <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>SelectStmt</span> <span style=color:#f92672>*</span>rarg;  <span style=color:#75715e>/* right child */</span>
+  <span style=color:#75715e>/* Eventually add fields for CORRESPONDING spec here */</span>
+} SelectStmt;
+
+</code></pre></div><p>之后进行传递的时候使用的是list或者node类型，在print的时候，使用<code>switch (nodeTag(obj))</code>判断类型，最后选择<code>case T_SelectStmt:</code>分支，执行<code>_outSelectStmt</code>方法，具体方法如下，最终解析各个clause</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#66d9ef>static</span> <span style=color:#66d9ef>void</span>
+<span style=color:#a6e22e>_outSelectStmt</span>(StringInfo str, <span style=color:#66d9ef>const</span> SelectStmt <span style=color:#f92672>*</span>node)
+{
+  WRITE_NODE_TYPE(<span style=color:#e6db74>&#34;SELECTSTMT&#34;</span>);
+
+  WRITE_NODE_FIELD(distinctClause);
+  WRITE_NODE_FIELD(intoClause);
+  WRITE_NODE_FIELD(targetList);
+  WRITE_NODE_FIELD(fromClause);
+  WRITE_NODE_FIELD(whereClause);
+  WRITE_NODE_FIELD(groupClause);
+  WRITE_BOOL_FIELD(groupDistinct);
+  WRITE_NODE_FIELD(havingClause);
+  WRITE_NODE_FIELD(windowClause);
+  WRITE_NODE_FIELD(valuesLists);
+  WRITE_NODE_FIELD(sortClause);
+  WRITE_NODE_FIELD(limitOffset);
+  WRITE_NODE_FIELD(limitCount);
+  WRITE_ENUM_FIELD(limitOption, LimitOption);
+  WRITE_NODE_FIELD(lockingClause);
+  WRITE_NODE_FIELD(withClause);
+  WRITE_ENUM_FIELD(op, SetOperation);
+  WRITE_BOOL_FIELD(all);
+  WRITE_NODE_FIELD(larg);
+  WRITE_NODE_FIELD(rarg);
+}
+
+</code></pre></div><blockquote>
+<p>以前阅读过oceanbase以及tidb的代码，现在想来也是似曾相识，他们的做法都是类似的，在parser阶段，语法按照stmt组织结构，现在只是暂时接触pg，尚不清楚优点是什么，后续有深入的了解之后再详细探究</p>
+</blockquote>
+<p>stmt是特定的数据结构，后续的处理需要统一的数据结构query，所以需要进行转换，入口为<code>parse_analyze_fixedparams</code></p>
+<ol>
+<li>先处理select into ，转换为create table as ,处理函数再transformOptionalSelectInto，主要是建立CreateTableAsStmt，然后把into上拉到CreateTableAsStmt中</li>
+<li>之后使用transformStmt处理stmt，<code>switch (nodeTag(parseTree))</code>选择合适的分支，这里以select为例子</li>
+<li>进入transformSelectStmt分支</li>
+<li>先转换transformWithClause</li>
+<li>转换transformFromClause
+&mldr;</li>
+</ol>
+<p>最终得到一个query，一个完整的结构体，包含语句的所有信息，后续进行rewrite，
+对于rewrite。貌似是和之前了解的不太一杨，之前的理解是进行基于规则的重写，但是这里好像是使用自定义的rule重写，类似于触发器，其他数据库中，只有sql server有类似的实现，但是已经声明在之后的版本中会移除这个东西，所以在代码中占据相当一部分分量的功能是否是必要的，</p>
+<p>TODO: 后续我自身会进行调研，如果确定是上述的东西，或许可以尝试移除这个功能</p>
+<p>之后结构为query，会参与到pg_plan_queries中</p>
+<h3 id=优化>
+优化
+<a href=#%e4%bc%98%e5%8c%96 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>对于utility语句，直接跳过，他只是代码函数的集合，对于DML，进行pg_plan_query优化，分为几个步骤</p>
+<ol>
+<li>基于规则的优化</li>
+<li>join 路径优化</li>
+</ol>
+<p>standard_planner
+subquery_planner
+SS_process_ctes
+transform_MERGE_to_join
+replace_empty_jointree
+pull_up_sublinks
+preprocess_function_rtes
+pull_up_subqueries
+flatten_simple_union_all
+preprocess_rowmarks
+preprocess_expression
+preprocess_qual_conditions
+remove_useless_groupby_columns
+reduce_outer_joins
+remove_useless_result_rtes
+grouping_planner
+query_planner
+SS_identify_outer_params
+fetch_upper_rel
+get_cheapest_fractional_path
+create_plan</p>
+<ul>
+<li>
+<p>subquery_planner<br>
+使用一些规则对树进行变换，调整为规则上更优的执行计划，这里处理的数据结构主要是Query，使用PlannerInfo包装Query，保存一些上下文信息，所以他的处理还是过程式的，按照具体的语句场景进行处理，对于不是太熟悉的他数据结构的人来说，需要大量的记忆时间，个人看来，这种优化方式不是太友好，如果想要进行一些扩展，对人员的要求很高</p>
+</li>
+<li>
+<p>path <br>
+make_one_rel <br>
+set_base_rel_pathlists
+make_rel_from_joinlist
+standard_join_search
+自底向上的动态规划，先生成基础表的path，path是当前局部最优的，会考虑启动最优，总代价最优，最好的排序结果，其他代价较大的path直接丢弃，这类似动态规划的第一层，然后进行组合，生成join的path，使用后的是make_rel_from_joinlist，</p>
+</li>
+<li>
+<p>get_cheapest_fractional_path<br>
+使用选择率tuple_fraction，对RelOptInfo->cheapest_total_path进行二次调整</p>
+</li>
+<li>
+<p>create_plan<br>
+按照Path，使用PlannerInfo生成plan，plan的结构是二叉树的形式，执行的时候按照节点依次执行</p>
+</li>
+</ul>
+<blockquote>
+<p>planner_hook使用cascade实现的可行性分析</p>
+</blockquote>
+<hr>
+<ul>
+<li>输入
+<ul>
+<li>Query</li>
+<li>const char *</li>
+<li>int</li>
+<li>ParamListInfo</li>
+</ul>
+</li>
+<li>输出
+<ul>
+<li>PlannedStmt</li>
+</ul>
+</li>
+<li>功能点
+<ul>
+<li>实现SQL优化，输入为query类型的数据结构，输出为树形结构的plan，</li>
+</ul>
+</li>
+<li>数据结构</li>
+</ul>
+<p>cascade
+group
+expression
+node
+cost
+mem</p>
+<hr>
+<h3 id=case>
+case
+<a href=#case class=h-anchor aria-hidden=true>#</a>
+</h3>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> sales          (product_id int , b int , <span style=color:#66d9ef>c</span> int);
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> product        (product_id int , b int , <span style=color:#66d9ef>c</span> int);
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> product_class  (product_id int , b int , <span style=color:#66d9ef>c</span> int);
+
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> sales <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>1</span>),(<span style=color:#ae81ff>2</span>,<span style=color:#ae81ff>2</span>,<span style=color:#ae81ff>2</span>),(<span style=color:#ae81ff>3</span>,<span style=color:#ae81ff>3</span>,<span style=color:#ae81ff>3</span>),(<span style=color:#ae81ff>4</span>,<span style=color:#ae81ff>4</span>,<span style=color:#ae81ff>4</span>),(<span style=color:#ae81ff>5</span>,<span style=color:#ae81ff>5</span>,<span style=color:#ae81ff>5</span>),(<span style=color:#ae81ff>6</span>,<span style=color:#ae81ff>6</span>,<span style=color:#ae81ff>6</span>),(<span style=color:#ae81ff>7</span>,<span style=color:#ae81ff>7</span>,<span style=color:#ae81ff>7</span>),(<span style=color:#ae81ff>8</span>,<span style=color:#ae81ff>8</span>,<span style=color:#ae81ff>8</span>),(<span style=color:#ae81ff>9</span>,<span style=color:#ae81ff>9</span>,<span style=color:#ae81ff>9</span>),(<span style=color:#ae81ff>10</span>,<span style=color:#ae81ff>10</span>,<span style=color:#ae81ff>10</span>),(<span style=color:#ae81ff>11</span>,<span style=color:#ae81ff>11</span>,<span style=color:#ae81ff>11</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> product <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>1</span>),(<span style=color:#ae81ff>2</span>,<span style=color:#ae81ff>2</span>,<span style=color:#ae81ff>2</span>),(<span style=color:#ae81ff>3</span>,<span style=color:#ae81ff>3</span>,<span style=color:#ae81ff>3</span>),(<span style=color:#ae81ff>4</span>,<span style=color:#ae81ff>4</span>,<span style=color:#ae81ff>4</span>),(<span style=color:#ae81ff>5</span>,<span style=color:#ae81ff>5</span>,<span style=color:#ae81ff>5</span>),(<span style=color:#ae81ff>6</span>,<span style=color:#ae81ff>6</span>,<span style=color:#ae81ff>6</span>),(<span style=color:#ae81ff>7</span>,<span style=color:#ae81ff>7</span>,<span style=color:#ae81ff>7</span>),(<span style=color:#ae81ff>8</span>,<span style=color:#ae81ff>8</span>,<span style=color:#ae81ff>8</span>),(<span style=color:#ae81ff>9</span>,<span style=color:#ae81ff>9</span>,<span style=color:#ae81ff>9</span>),(<span style=color:#ae81ff>10</span>,<span style=color:#ae81ff>10</span>,<span style=color:#ae81ff>10</span>),(<span style=color:#ae81ff>11</span>,<span style=color:#ae81ff>11</span>,<span style=color:#ae81ff>11</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> product_class <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>1</span>),(<span style=color:#ae81ff>2</span>,<span style=color:#ae81ff>2</span>,<span style=color:#ae81ff>2</span>),(<span style=color:#ae81ff>3</span>,<span style=color:#ae81ff>3</span>,<span style=color:#ae81ff>3</span>),(<span style=color:#ae81ff>4</span>,<span style=color:#ae81ff>4</span>,<span style=color:#ae81ff>4</span>),(<span style=color:#ae81ff>5</span>,<span style=color:#ae81ff>5</span>,<span style=color:#ae81ff>5</span>),(<span style=color:#ae81ff>6</span>,<span style=color:#ae81ff>6</span>,<span style=color:#ae81ff>6</span>),(<span style=color:#ae81ff>7</span>,<span style=color:#ae81ff>7</span>,<span style=color:#ae81ff>7</span>),(<span style=color:#ae81ff>8</span>,<span style=color:#ae81ff>8</span>,<span style=color:#ae81ff>8</span>),(<span style=color:#ae81ff>9</span>,<span style=color:#ae81ff>9</span>,<span style=color:#ae81ff>9</span>),(<span style=color:#ae81ff>10</span>,<span style=color:#ae81ff>10</span>,<span style=color:#ae81ff>10</span>),(<span style=color:#ae81ff>11</span>,<span style=color:#ae81ff>11</span>,<span style=color:#ae81ff>11</span>);
+
+<span style=color:#66d9ef>select</span> s.product_id, pc.product_id <span style=color:#66d9ef>from</span> sales <span style=color:#66d9ef>as</span> s 
+<span style=color:#75715e>-- left join product as p 
+</span><span style=color:#75715e>--   on s.product_id = p.product_id 
+</span><span style=color:#75715e></span><span style=color:#66d9ef>left</span> <span style=color:#66d9ef>join</span> product_class pc 
+  <span style=color:#66d9ef>on</span> s.product_id <span style=color:#f92672>=</span> pc.product_id;
+
+<span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>option</span> <span style=color:#e6db74>&#39;f&#39;</span>
+<span style=color:#66d9ef>select</span> s.product_id, pc.product_id <span style=color:#66d9ef>from</span> sales <span style=color:#66d9ef>as</span> s 
+<span style=color:#66d9ef>left</span> <span style=color:#66d9ef>join</span> product <span style=color:#66d9ef>as</span> p 
+  <span style=color:#66d9ef>on</span> s.product_id <span style=color:#f92672>=</span> p.product_id 
+<span style=color:#66d9ef>left</span> <span style=color:#66d9ef>join</span> product_class pc 
+  <span style=color:#66d9ef>on</span> s.product_id <span style=color:#f92672>=</span> pc.product_id;
+
+                                   QUERY PLAN                                   
+<span style=color:#75715e>--------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>41</span>.<span style=color:#ae81ff>82</span>..<span style=color:#ae81ff>114</span>.<span style=color:#ae81ff>24</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1142</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
+   Hash Cond: (pc.product_id <span style=color:#f92672>=</span> s.product_id)
+   <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> product_class pc  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>30</span>.<span style=color:#ae81ff>40</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>2040</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+   <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>40</span>.<span style=color:#ae81ff>42</span>..<span style=color:#ae81ff>40</span>.<span style=color:#ae81ff>42</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>112</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
+         <span style=color:#f92672>-&gt;</span>  Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>25</span>..<span style=color:#ae81ff>40</span>.<span style=color:#ae81ff>42</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>112</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
+               Hash Cond: (p.product_id <span style=color:#f92672>=</span> s.product_id)
+               <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> product p  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>30</span>.<span style=color:#ae81ff>40</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>2040</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+               <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>11</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>11</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>11</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+                     <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> sales s  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>11</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>11</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+
+
+                                   QUERY PLAN                                   
+<span style=color:#75715e>--------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> Hash <span style=color:#66d9ef>Right</span> <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>41</span>.<span style=color:#ae81ff>82</span>..<span style=color:#ae81ff>114</span>.<span style=color:#ae81ff>24</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1142</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
+   Hash Cond: (pc.product_id <span style=color:#f92672>=</span> s.product_id)
+   <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> product_class pc  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>30</span>.<span style=color:#ae81ff>40</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>2040</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+   <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>40</span>.<span style=color:#ae81ff>42</span>..<span style=color:#ae81ff>40</span>.<span style=color:#ae81ff>42</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>112</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+         <span style=color:#f92672>-&gt;</span>  Hash <span style=color:#66d9ef>Right</span> <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>25</span>..<span style=color:#ae81ff>40</span>.<span style=color:#ae81ff>42</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>112</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+               Hash Cond: (p.product_id <span style=color:#f92672>=</span> s.product_id)
+               <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> product p  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>30</span>.<span style=color:#ae81ff>40</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>2040</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+               <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>11</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>11</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>11</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+                     <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> sales s  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>11</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>11</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+
+parsetree_list
+<span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>type</span> <span style=color:#f92672>=</span> T_List, <span style=color:#66d9ef>length</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>, max_length <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>, elements <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>x561614a8c810, initial_elements <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>x561614a8c810<span style=color:#960050;background-color:#1e0010>}</span>
+
+(
+   <span style=color:#960050;background-color:#1e0010>{</span>RAWSTMT 
+   :stmt 
+      <span style=color:#960050;background-color:#1e0010>{</span>SELECTSTMT 
+      :distinctClause <span style=color:#f92672>&lt;&gt;</span> 
+      :intoClause <span style=color:#f92672>&lt;&gt;</span> 
+      :targetList (
+         <span style=color:#960050;background-color:#1e0010>{</span>RESTARGET 
+         :name <span style=color:#f92672>&lt;&gt;</span> 
+         :indirection <span style=color:#f92672>&lt;&gt;</span> 
+         :val <span style=color:#960050;background-color:#1e0010>{</span>COLUMNREF :fields (<span style=color:#e6db74>&#34;s&#34;</span> <span style=color:#e6db74>&#34;product_id&#34;</span>) :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>7</span> <span style=color:#960050;background-color:#1e0010>}</span>
+         :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>7</span>
+         <span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>RESTARGET 
+         :name <span style=color:#f92672>&lt;&gt;</span> 
+         :indirection <span style=color:#f92672>&lt;&gt;</span> 
+         :val <span style=color:#960050;background-color:#1e0010>{</span>COLUMNREF :fields (<span style=color:#e6db74>&#34;pc&#34;</span> <span style=color:#e6db74>&#34;product_id&#34;</span>) :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>21</span> <span style=color:#960050;background-color:#1e0010>}</span>
+         :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>21</span>
+         <span style=color:#960050;background-color:#1e0010>}</span>
+      )
+      :fromClause (
+         <span style=color:#960050;background-color:#1e0010>{</span>JOINEXPR 
+         :jointype <span style=color:#ae81ff>0</span> 
+         :isNatural <span style=color:#66d9ef>false</span> 
+         :larg 
+            <span style=color:#960050;background-color:#1e0010>{</span>JOINEXPR 
+            :jointype <span style=color:#ae81ff>0</span> 
+            :isNatural <span style=color:#66d9ef>false</span> 
+            :larg 
+               <span style=color:#960050;background-color:#1e0010>{</span>RANGEVAR 
+               :schemaname <span style=color:#f92672>&lt;&gt;</span> 
+               :relname sales 
+               :inh <span style=color:#66d9ef>true</span> 
+               :relpersistence p
+               :<span style=color:#66d9ef>alias</span> <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname s :colnames <span style=color:#f92672>&lt;&gt;</span><span style=color:#960050;background-color:#1e0010>}</span>
+               :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>40</span>
+               <span style=color:#960050;background-color:#1e0010>}</span>
+            :rarg 
+               <span style=color:#960050;background-color:#1e0010>{</span>RANGEVAR 
+               :schemaname <span style=color:#f92672>&lt;&gt;</span> 
+               :relname product 
+               :inh <span style=color:#66d9ef>true</span> 
+               :relpersistence p
+               :<span style=color:#66d9ef>alias</span> <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname p :colnames <span style=color:#f92672>&lt;&gt;</span><span style=color:#960050;background-color:#1e0010>}</span>
+               :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>58</span>
+               <span style=color:#960050;background-color:#1e0010>}</span>
+            :usingClause <span style=color:#f92672>&lt;&gt;</span> 
+            :join_using_alias <span style=color:#f92672>&lt;&gt;</span> 
+            :quals 
+               <span style=color:#960050;background-color:#1e0010>{</span>A_EXPR  
+               :name (<span style=color:#e6db74>&#34;=&#34;</span>)
+               :lexpr 
+                  <span style=color:#960050;background-color:#1e0010>{</span>COLUMNREF 
+                  :fields (<span style=color:#e6db74>&#34;s&#34;</span> <span style=color:#e6db74>&#34;product_id&#34;</span>)
+                  :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>77</span>
+                  <span style=color:#960050;background-color:#1e0010>}</span>
+               :rexpr 
+                  <span style=color:#960050;background-color:#1e0010>{</span>COLUMNREF 
+                  :fields (<span style=color:#e6db74>&#34;p&#34;</span> <span style=color:#e6db74>&#34;product_id&#34;</span>)
+                  :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>92</span>
+                  <span style=color:#960050;background-color:#1e0010>}</span>
+               :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>90</span>
+               <span style=color:#960050;background-color:#1e0010>}</span>
+            :<span style=color:#66d9ef>alias</span> <span style=color:#f92672>&lt;&gt;</span> 
+            :rtindex <span style=color:#ae81ff>0</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+         :rarg 
+            <span style=color:#960050;background-color:#1e0010>{</span>RANGEVAR 
+            :schemaname <span style=color:#f92672>&lt;&gt;</span> 
+            :relname product_class 
+            :inh <span style=color:#66d9ef>true</span> 
+            :relpersistence p 
+            :<span style=color:#66d9ef>alias</span> 
+               <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> 
+               :aliasname pc 
+               :colnames <span style=color:#f92672>&lt;&gt;</span>
+               <span style=color:#960050;background-color:#1e0010>}</span>
+            :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>112</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+         :usingClause <span style=color:#f92672>&lt;&gt;</span> 
+         :join_using_alias <span style=color:#f92672>&lt;&gt;</span> 
+         :quals 
+            <span style=color:#960050;background-color:#1e0010>{</span>A_EXPR  
+            :name (<span style=color:#e6db74>&#34;=&#34;</span>)
+            :lexpr 
+               <span style=color:#960050;background-color:#1e0010>{</span>COLUMNREF 
+               :fields (<span style=color:#e6db74>&#34;s&#34;</span> <span style=color:#e6db74>&#34;product_id&#34;</span>)
+               :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>135</span>
+               <span style=color:#960050;background-color:#1e0010>}</span>
+            :rexpr 
+               <span style=color:#960050;background-color:#1e0010>{</span>COLUMNREF 
+               :fields (<span style=color:#e6db74>&#34;pc&#34;</span> <span style=color:#e6db74>&#34;product_id&#34;</span>)
+               :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>150</span>
+               <span style=color:#960050;background-color:#1e0010>}</span>
+            :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>148</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+         :<span style=color:#66d9ef>alias</span> <span style=color:#f92672>&lt;&gt;</span> 
+         :rtindex <span style=color:#ae81ff>0</span>
+         <span style=color:#960050;background-color:#1e0010>}</span>
+      )
+      :whereClause <span style=color:#f92672>&lt;&gt;</span> 
+      :groupClause <span style=color:#f92672>&lt;&gt;</span> 
+      :groupDistinct <span style=color:#66d9ef>false</span> 
+      :havingClause <span style=color:#f92672>&lt;&gt;</span> 
+      :windowClause <span style=color:#f92672>&lt;&gt;</span> 
+      :valuesLists <span style=color:#f92672>&lt;&gt;</span> 
+      :sortClause <span style=color:#f92672>&lt;&gt;</span> 
+      :limitOffset <span style=color:#f92672>&lt;&gt;</span> 
+      :limitCount <span style=color:#f92672>&lt;&gt;</span> 
+      :limitOption <span style=color:#ae81ff>0</span> 
+      :lockingClause <span style=color:#f92672>&lt;&gt;</span> 
+      :withClause <span style=color:#f92672>&lt;&gt;</span> 
+      :op <span style=color:#ae81ff>0</span> 
+      :<span style=color:#66d9ef>all</span> <span style=color:#66d9ef>false</span> 
+      :larg <span style=color:#f92672>&lt;&gt;</span> 
+      :rarg <span style=color:#f92672>&lt;&gt;</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+   :stmt_location <span style=color:#ae81ff>0</span> 
+   :stmt_len <span style=color:#ae81ff>163</span>
+   <span style=color:#960050;background-color:#1e0010>}</span>
+)
+
+pg_analyze_and_rewrite_fixedparams
+(
+   <span style=color:#960050;background-color:#1e0010>{</span>QUERY 
+   :commandType <span style=color:#ae81ff>1</span> 
+   :querySource <span style=color:#ae81ff>0</span> 
+   :canSetTag <span style=color:#66d9ef>true</span> 
+   :utilityStmt <span style=color:#f92672>&lt;&gt;</span> 
+   :resultRelation <span style=color:#ae81ff>0</span> 
+   :hasAggs <span style=color:#66d9ef>false</span> 
+   :hasWindowFuncs <span style=color:#66d9ef>false</span> 
+   :hasTargetSRFs <span style=color:#66d9ef>false</span> 
+   :hasSubLinks <span style=color:#66d9ef>false</span> 
+   :hasDistinctOn <span style=color:#66d9ef>false</span> 
+   :hasRecursive <span style=color:#66d9ef>false</span> 
+   :hasModifyingCTE <span style=color:#66d9ef>false</span> 
+   :hasForUpdate <span style=color:#66d9ef>false</span> 
+   :hasRowSecurity <span style=color:#66d9ef>false</span> 
+   :isReturn <span style=color:#66d9ef>false</span> 
+   :cteList <span style=color:#f92672>&lt;&gt;</span> 
+   :rtable (
+      <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLENTRY 
+      :<span style=color:#66d9ef>alias</span> 
+         <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname s :colnames <span style=color:#f92672>&lt;&gt;</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :eref 
+         <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname s :colnames (<span style=color:#e6db74>&#34;product_id&#34;</span> <span style=color:#e6db74>&#34;b&#34;</span> <span style=color:#e6db74>&#34;c&#34;</span>)<span style=color:#960050;background-color:#1e0010>}</span>
+      :rtekind <span style=color:#ae81ff>0</span> 
+      :relid <span style=color:#ae81ff>83295</span> 
+      :relkind r 
+      :rellockmode <span style=color:#ae81ff>1</span> 
+      :tablesample <span style=color:#f92672>&lt;&gt;</span> 
+      :<span style=color:#66d9ef>lateral</span> <span style=color:#66d9ef>false</span> 
+      :inh <span style=color:#66d9ef>true</span> 
+      :inFromCl <span style=color:#66d9ef>true</span> 
+      :requiredPerms <span style=color:#ae81ff>2</span> 
+      :checkAsUser <span style=color:#ae81ff>0</span> 
+      :selectedCols (b <span style=color:#ae81ff>8</span>)
+      :insertedCols (b)
+      :updatedCols (b)
+      :extraUpdatedCols (b)
+      :securityQuals <span style=color:#f92672>&lt;&gt;</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLENTRY 
+      :<span style=color:#66d9ef>alias</span> 
+         <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname p :colnames <span style=color:#f92672>&lt;&gt;</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :eref 
+         <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname p :colnames (<span style=color:#e6db74>&#34;product_id&#34;</span> <span style=color:#e6db74>&#34;b&#34;</span> <span style=color:#e6db74>&#34;c&#34;</span>)<span style=color:#960050;background-color:#1e0010>}</span>
+      :rtekind <span style=color:#ae81ff>0</span> 
+      :relid <span style=color:#ae81ff>83298</span> 
+      :relkind r 
+      :rellockmode <span style=color:#ae81ff>1</span> 
+      :tablesample <span style=color:#f92672>&lt;&gt;</span> 
+      :<span style=color:#66d9ef>lateral</span> <span style=color:#66d9ef>false</span> 
+      :inh <span style=color:#66d9ef>true</span> 
+      :inFromCl <span style=color:#66d9ef>true</span> 
+      :requiredPerms <span style=color:#ae81ff>2</span> 
+      :checkAsUser <span style=color:#ae81ff>0</span> 
+      :selectedCols (b <span style=color:#ae81ff>8</span>)
+      :insertedCols (b)
+      :updatedCols (b)
+      :extraUpdatedCols (b)
+      :securityQuals <span style=color:#f92672>&lt;&gt;</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLENTRY 
+      :<span style=color:#66d9ef>alias</span> <span style=color:#f92672>&lt;&gt;</span> 
+      :eref 
+         <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname unnamed_join :colnames (<span style=color:#e6db74>&#34;product_id&#34;</span> <span style=color:#e6db74>&#34;b&#34;</span> <span style=color:#e6db74>&#34;c&#34;</span> <span style=color:#e6db74>&#34;product_id&#34;</span> <span style=color:#e6db74>&#34;b&#34;</span> <span style=color:#e6db74>&#34;c&#34;</span>)<span style=color:#960050;background-color:#1e0010>}</span>
+      :rtekind <span style=color:#ae81ff>2</span> 
+      :jointype <span style=color:#ae81ff>0</span> 
+      :joinmergedcols <span style=color:#ae81ff>0</span> 
+      :joinaliasvars (
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>2</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>2</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>3</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>3</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>2</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>2</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>3</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>3</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+      )
+      :joinleftcols (i <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>2</span> <span style=color:#ae81ff>3</span>)
+      :joinrightcols (i <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>2</span> <span style=color:#ae81ff>3</span>)
+      :join_using_alias <span style=color:#f92672>&lt;&gt;</span> 
+      :<span style=color:#66d9ef>lateral</span> <span style=color:#66d9ef>false</span> 
+      :inh <span style=color:#66d9ef>false</span> 
+      :inFromCl <span style=color:#66d9ef>true</span> 
+      :requiredPerms <span style=color:#ae81ff>0</span> 
+      :checkAsUser <span style=color:#ae81ff>0</span> 
+      :selectedCols (b)
+      :insertedCols (b)
+      :updatedCols (b)
+      :extraUpdatedCols (b)
+      :securityQuals <span style=color:#f92672>&lt;&gt;</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLENTRY 
+      :<span style=color:#66d9ef>alias</span> 
+         <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname pc :colnames <span style=color:#f92672>&lt;&gt;</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :eref 
+         <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname pc :colnames (<span style=color:#e6db74>&#34;product_id&#34;</span> <span style=color:#e6db74>&#34;b&#34;</span> <span style=color:#e6db74>&#34;c&#34;</span>)<span style=color:#960050;background-color:#1e0010>}</span>
+      :rtekind <span style=color:#ae81ff>0</span> 
+      :relid <span style=color:#ae81ff>83301</span> 
+      :relkind r 
+      :rellockmode <span style=color:#ae81ff>1</span> 
+      :tablesample <span style=color:#f92672>&lt;&gt;</span> 
+      :<span style=color:#66d9ef>lateral</span> <span style=color:#66d9ef>false</span> 
+      :inh <span style=color:#66d9ef>true</span> 
+      :inFromCl <span style=color:#66d9ef>true</span> 
+      :requiredPerms <span style=color:#ae81ff>2</span> 
+      :checkAsUser <span style=color:#ae81ff>0</span> 
+      :selectedCols (b <span style=color:#ae81ff>8</span>)
+      :insertedCols (b)
+      :updatedCols (b)
+      :extraUpdatedCols (b)
+      :securityQuals <span style=color:#f92672>&lt;&gt;</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLENTRY 
+      :<span style=color:#66d9ef>alias</span> <span style=color:#f92672>&lt;&gt;</span> 
+      :eref 
+         <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname unnamed_join :colnames (<span style=color:#e6db74>&#34;product_id&#34;</span> <span style=color:#e6db74>&#34;b&#34;</span> <span style=color:#e6db74>&#34;c&#34;</span> <span style=color:#e6db74>&#34;product_id&#34;</span> <span style=color:#e6db74>&#34;b&#34;</span> <span style=color:#e6db74>&#34;c&#34;</span> <span style=color:#e6db74>&#34;product_id&#34;</span> <span style=color:#e6db74>&#34;b&#34;</span> <span style=color:#e6db74>&#34;c&#34;</span>) <span style=color:#960050;background-color:#1e0010>}</span>
+      :rtekind <span style=color:#ae81ff>2</span> 
+      :jointype <span style=color:#ae81ff>0</span> 
+      :joinmergedcols <span style=color:#ae81ff>0</span> 
+      :joinaliasvars (
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>2</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>2</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>3</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>3</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>2</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>2</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>3</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>3</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>4</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>4</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>4</span> :varattno <span style=color:#ae81ff>2</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>4</span> :varattnosyn <span style=color:#ae81ff>2</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>4</span> :varattno <span style=color:#ae81ff>3</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>4</span> :varattnosyn <span style=color:#ae81ff>3</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+      )
+      :joinleftcols (i <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>2</span> <span style=color:#ae81ff>3</span> <span style=color:#ae81ff>4</span> <span style=color:#ae81ff>5</span> <span style=color:#ae81ff>6</span>)
+      :joinrightcols (i <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>2</span> <span style=color:#ae81ff>3</span>)
+      :join_using_alias <span style=color:#f92672>&lt;&gt;</span> 
+      :<span style=color:#66d9ef>lateral</span> <span style=color:#66d9ef>false</span> 
+      :inh <span style=color:#66d9ef>false</span> 
+      :inFromCl <span style=color:#66d9ef>true</span> 
+      :requiredPerms <span style=color:#ae81ff>0</span> 
+      :checkAsUser <span style=color:#ae81ff>0</span> 
+      :selectedCols (b)
+      :insertedCols (b)
+      :updatedCols (b)
+      :extraUpdatedCols (b)
+      :securityQuals <span style=color:#f92672>&lt;&gt;</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+   )
+   :jointree 
+      <span style=color:#960050;background-color:#1e0010>{</span>FROMEXPR 
+      :fromlist (
+         <span style=color:#960050;background-color:#1e0010>{</span>JOINEXPR 
+         :jointype <span style=color:#ae81ff>0</span> 
+         :isNatural <span style=color:#66d9ef>false</span> 
+         :larg 
+            <span style=color:#960050;background-color:#1e0010>{</span>JOINEXPR 
+            :jointype <span style=color:#ae81ff>0</span> 
+            :isNatural <span style=color:#66d9ef>false</span> 
+            :larg 
+               <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLREF :rtindex <span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+            :rarg 
+               <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLREF :rtindex <span style=color:#ae81ff>2</span><span style=color:#960050;background-color:#1e0010>}</span>
+            :usingClause <span style=color:#f92672>&lt;&gt;</span> 
+            :join_using_alias <span style=color:#f92672>&lt;&gt;</span> 
+            :quals 
+               <span style=color:#960050;background-color:#1e0010>{</span>OPEXPR 
+               :opno <span style=color:#ae81ff>96</span> 
+               :opfuncid <span style=color:#ae81ff>65</span> 
+               :opresulttype <span style=color:#ae81ff>16</span> 
+               :opretset <span style=color:#66d9ef>false</span> 
+               :opcollid <span style=color:#ae81ff>0</span> 
+               :inputcollid <span style=color:#ae81ff>0</span> 
+               :args (
+                  <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>77</span><span style=color:#960050;background-color:#1e0010>}</span>
+                  <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>92</span><span style=color:#960050;background-color:#1e0010>}</span>
+               )
+               :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>90</span>
+               <span style=color:#960050;background-color:#1e0010>}</span>
+            :<span style=color:#66d9ef>alias</span> <span style=color:#f92672>&lt;&gt;</span> 
+            :rtindex <span style=color:#ae81ff>3</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+         :rarg 
+            <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLREF 
+            :rtindex <span style=color:#ae81ff>4</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+         :usingClause <span style=color:#f92672>&lt;&gt;</span> 
+         :join_using_alias <span style=color:#f92672>&lt;&gt;</span> 
+         :quals 
+            <span style=color:#960050;background-color:#1e0010>{</span>OPEXPR 
+            :opno <span style=color:#ae81ff>96</span> 
+            :opfuncid <span style=color:#ae81ff>65</span> 
+            :opresulttype <span style=color:#ae81ff>16</span> 
+            :opretset <span style=color:#66d9ef>false</span> 
+            :opcollid <span style=color:#ae81ff>0</span> 
+            :inputcollid <span style=color:#ae81ff>0</span> 
+            :args (
+               <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>135</span><span style=color:#960050;background-color:#1e0010>}</span>
+               <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>4</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>4</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>150</span><span style=color:#960050;background-color:#1e0010>}</span>
+            )
+            :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>148</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+         :<span style=color:#66d9ef>alias</span> <span style=color:#f92672>&lt;&gt;</span> 
+         :rtindex <span style=color:#ae81ff>5</span>
+         <span style=color:#960050;background-color:#1e0010>}</span>
+      )
+      :quals <span style=color:#f92672>&lt;&gt;</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+   :mergeActionList <span style=color:#f92672>&lt;&gt;</span> 
+   :mergeUseOuterJoin <span style=color:#66d9ef>false</span> 
+   :targetList (
+      <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+      :expr 
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>7</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :resno <span style=color:#ae81ff>1</span> 
+      :resname product_id 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      :resorigtbl <span style=color:#ae81ff>83295</span> 
+      :resorigcol <span style=color:#ae81ff>1</span> 
+      :resjunk <span style=color:#66d9ef>false</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+      :expr 
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>4</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>4</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>21</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :resno <span style=color:#ae81ff>2</span> 
+      :resname product_id 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      :resorigtbl <span style=color:#ae81ff>83301</span> 
+      :resorigcol <span style=color:#ae81ff>1</span> 
+      :resjunk <span style=color:#66d9ef>false</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+   )
+   :override <span style=color:#ae81ff>0</span> 
+   :onConflict <span style=color:#f92672>&lt;&gt;</span> 
+   :returningList <span style=color:#f92672>&lt;&gt;</span> 
+   :groupClause <span style=color:#f92672>&lt;&gt;</span> 
+   :groupDistinct <span style=color:#66d9ef>false</span> 
+   :groupingSets <span style=color:#f92672>&lt;&gt;</span> 
+   :havingQual <span style=color:#f92672>&lt;&gt;</span> 
+   :windowClause <span style=color:#f92672>&lt;&gt;</span> 
+   :distinctClause <span style=color:#f92672>&lt;&gt;</span> 
+   :sortClause <span style=color:#f92672>&lt;&gt;</span> 
+   :limitOffset <span style=color:#f92672>&lt;&gt;</span> 
+   :limitCount <span style=color:#f92672>&lt;&gt;</span> 
+   :limitOption <span style=color:#ae81ff>0</span> 
+   :rowMarks <span style=color:#f92672>&lt;&gt;</span> 
+   :setOperations <span style=color:#f92672>&lt;&gt;</span> 
+   :constraintDeps <span style=color:#f92672>&lt;&gt;</span> 
+   :withCheckOptions <span style=color:#f92672>&lt;&gt;</span> 
+   :stmt_location <span style=color:#ae81ff>0</span> 
+   :stmt_len <span style=color:#ae81ff>163</span>
+   <span style=color:#960050;background-color:#1e0010>}</span>
+)
+
+
+p pprint (best_path) <span style=color:#66d9ef>at</span> get_cheapest_fractional_path
+   <span style=color:#960050;background-color:#1e0010>{</span>HASHPATH 
+   :jpath.path.pathtype <span style=color:#ae81ff>349</span> 
+   :parent_relids (b <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>2</span> <span style=color:#ae81ff>4</span>)
+   :jpath.path.pathtarget 
+      <span style=color:#960050;background-color:#1e0010>{</span>PATHTARGET 
+      :exprs (
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>7</span><span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>4</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>4</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>21</span><span style=color:#960050;background-color:#1e0010>}</span>
+      )
+      :sortgrouprefs  <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> 
+      :cost.startup <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> 
+      :cost.per_tuple <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> 
+      :width <span style=color:#ae81ff>8</span> 
+      :has_volatile_expr <span style=color:#ae81ff>0</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+   :required_outer (b)
+   :jpath.path.parallel_aware <span style=color:#66d9ef>false</span> 
+   :jpath.path.parallel_safe <span style=color:#66d9ef>true</span> 
+   :jpath.path.parallel_workers <span style=color:#ae81ff>0</span> 
+   :jpath.path.<span style=color:#66d9ef>rows</span> <span style=color:#ae81ff>1142</span> 
+   :jpath.path.startup_cost <span style=color:#ae81ff>41</span>.<span style=color:#ae81ff>82</span> 
+   :jpath.path.total_cost <span style=color:#ae81ff>114</span>.<span style=color:#ae81ff>24</span> 
+   :jpath.path.pathkeys <span style=color:#f92672>&lt;&gt;</span> 
+   :jpath.jointype <span style=color:#ae81ff>3</span> 
+   :jpath.inner_unique <span style=color:#66d9ef>false</span> 
+   :jpath.outerjoinpath 
+      <span style=color:#960050;background-color:#1e0010>{</span>PATH 
+      :pathtype <span style=color:#ae81ff>329</span> 
+      :parent_relids (b <span style=color:#ae81ff>4</span>)
+      :required_outer (b)
+      :parallel_aware <span style=color:#66d9ef>false</span> 
+      :parallel_safe <span style=color:#66d9ef>true</span> 
+      :parallel_workers <span style=color:#ae81ff>0</span> 
+      :<span style=color:#66d9ef>rows</span> <span style=color:#ae81ff>2040</span> 
+      :startup_cost <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> 
+      :total_cost <span style=color:#ae81ff>30</span>.<span style=color:#ae81ff>40</span> 
+      :pathkeys <span style=color:#f92672>&lt;&gt;</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+   :jpath.innerjoinpath 
+      <span style=color:#960050;background-color:#1e0010>{</span>HASHPATH 
+      :jpath.path.pathtype <span style=color:#ae81ff>349</span> 
+      :parent_relids (b <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>2</span>)
+      :required_outer (b)
+      :jpath.path.parallel_aware <span style=color:#66d9ef>false</span> 
+      :jpath.path.parallel_safe <span style=color:#66d9ef>true</span> 
+      :jpath.path.parallel_workers <span style=color:#ae81ff>0</span> 
+      :jpath.path.<span style=color:#66d9ef>rows</span> <span style=color:#ae81ff>112</span> 
+      :jpath.path.startup_cost <span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>25</span> 
+      :jpath.path.total_cost <span style=color:#ae81ff>40</span>.<span style=color:#ae81ff>42</span> 
+      :jpath.path.pathkeys <span style=color:#f92672>&lt;&gt;</span> 
+      :jpath.jointype <span style=color:#ae81ff>3</span> 
+      :jpath.inner_unique <span style=color:#66d9ef>false</span> 
+      :jpath.outerjoinpath 
+         <span style=color:#960050;background-color:#1e0010>{</span>PATH 
+         :pathtype <span style=color:#ae81ff>329</span> 
+         :parent_relids (b <span style=color:#ae81ff>2</span>)
+         :required_outer (b)
+         :parallel_aware <span style=color:#66d9ef>false</span> 
+         :parallel_safe <span style=color:#66d9ef>true</span> 
+         :parallel_workers <span style=color:#ae81ff>0</span> 
+         :<span style=color:#66d9ef>rows</span> <span style=color:#ae81ff>2040</span> 
+         :startup_cost <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> 
+         :total_cost <span style=color:#ae81ff>30</span>.<span style=color:#ae81ff>40</span> 
+         :pathkeys <span style=color:#f92672>&lt;&gt;</span>
+         <span style=color:#960050;background-color:#1e0010>}</span>
+      :jpath.innerjoinpath 
+         <span style=color:#960050;background-color:#1e0010>{</span>PATH 
+         :pathtype <span style=color:#ae81ff>329</span> 
+         :parent_relids (b <span style=color:#ae81ff>1</span>)
+         :required_outer (b)
+         :parallel_aware <span style=color:#66d9ef>false</span> 
+         :parallel_safe <span style=color:#66d9ef>true</span> 
+         :parallel_workers <span style=color:#ae81ff>0</span> 
+         :<span style=color:#66d9ef>rows</span> <span style=color:#ae81ff>11</span> 
+         :startup_cost <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> 
+         :total_cost <span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>11</span> 
+         :pathkeys <span style=color:#f92672>&lt;&gt;</span>
+         <span style=color:#960050;background-color:#1e0010>}</span>
+      :jpath.joinrestrictinfo (
+         <span style=color:#960050;background-color:#1e0010>{</span>RESTRICTINFO 
+         :clause 
+            <span style=color:#960050;background-color:#1e0010>{</span>OPEXPR 
+            :opno <span style=color:#ae81ff>96</span> 
+            :opfuncid <span style=color:#ae81ff>65</span> 
+            :opresulttype <span style=color:#ae81ff>16</span> 
+            :opretset <span style=color:#66d9ef>false</span> 
+            :opcollid <span style=color:#ae81ff>0</span> 
+            :inputcollid <span style=color:#ae81ff>0</span> 
+            :args (
+               <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>81</span><span style=color:#960050;background-color:#1e0010>}</span>
+               <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>96</span><span style=color:#960050;background-color:#1e0010>}</span>
+            )
+            :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>94</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+         :is_pushed_down <span style=color:#66d9ef>false</span> 
+         :outerjoin_delayed <span style=color:#66d9ef>false</span> 
+         :can_join <span style=color:#66d9ef>true</span> 
+         :pseudoconstant <span style=color:#66d9ef>false</span> 
+         :leakproof <span style=color:#66d9ef>false</span> 
+         :has_volatile <span style=color:#ae81ff>2</span> 
+         :security_level <span style=color:#ae81ff>0</span> 
+         :clause_relids (b <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>2</span>)
+         :required_relids (b <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>2</span>)
+         :outer_relids (b <span style=color:#ae81ff>1</span>)
+         :nullable_relids (b)
+         :left_relids (b <span style=color:#ae81ff>1</span>)
+         :right_relids (b <span style=color:#ae81ff>2</span>)
+         :orclause <span style=color:#f92672>&lt;&gt;</span> 
+         :eval_cost.startup <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> 
+         :eval_cost.per_tuple <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> 
+         :norm_selec <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0050</span> 
+         :outer_selec <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0050</span> 
+         :mergeopfamilies (o <span style=color:#ae81ff>1976</span>)
+         :left_em <span style=color:#f92672>&lt;&gt;</span> 
+         :right_em <span style=color:#f92672>&lt;&gt;</span> 
+         :outer_is_left <span style=color:#66d9ef>false</span> 
+         :hashjoinoperator <span style=color:#ae81ff>96</span> 
+         :left_bucketsize <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0909</span> 
+         :right_bucketsize <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>1000</span> 
+         :left_mcvfreq <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0000</span> 
+         :right_mcvfreq <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0000</span> 
+         :left_hasheqoperator <span style=color:#ae81ff>96</span> 
+         :right_hasheqoperator <span style=color:#ae81ff>96</span>
+         <span style=color:#960050;background-color:#1e0010>}</span>
+      )
+      :path_hashclauses (
+         <span style=color:#960050;background-color:#1e0010>{</span>RESTRICTINFO 
+         :clause 
+            <span style=color:#960050;background-color:#1e0010>{</span>OPEXPR 
+            :opno <span style=color:#ae81ff>96</span> 
+            :opfuncid <span style=color:#ae81ff>65</span> 
+            :opresulttype <span style=color:#ae81ff>16</span> 
+            :opretset <span style=color:#66d9ef>false</span> 
+            :opcollid <span style=color:#ae81ff>0</span> 
+            :inputcollid <span style=color:#ae81ff>0</span> 
+            :args (
+               <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>81</span><span style=color:#960050;background-color:#1e0010>}</span>
+               <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>96</span><span style=color:#960050;background-color:#1e0010>}</span>
+            )
+            :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>94</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+         :is_pushed_down <span style=color:#66d9ef>false</span> 
+         :outerjoin_delayed <span style=color:#66d9ef>false</span> 
+         :can_join <span style=color:#66d9ef>true</span> 
+         :pseudoconstant <span style=color:#66d9ef>false</span> 
+         :leakproof <span style=color:#66d9ef>false</span> 
+         :has_volatile <span style=color:#ae81ff>2</span> 
+         :security_level <span style=color:#ae81ff>0</span> 
+         :clause_relids (b <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>2</span>)
+         :required_relids (b <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>2</span>)
+         :outer_relids (b <span style=color:#ae81ff>1</span>)
+         :nullable_relids (b)
+         :left_relids (b <span style=color:#ae81ff>1</span>)
+         :right_relids (b <span style=color:#ae81ff>2</span>)
+         :orclause <span style=color:#f92672>&lt;&gt;</span> 
+         :eval_cost.startup <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> 
+         :eval_cost.per_tuple <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> 
+         :norm_selec <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0050</span> 
+         :outer_selec <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0050</span> 
+         :mergeopfamilies (o <span style=color:#ae81ff>1976</span>)
+         :left_em <span style=color:#f92672>&lt;&gt;</span> 
+         :right_em <span style=color:#f92672>&lt;&gt;</span> 
+         :outer_is_left <span style=color:#66d9ef>false</span> 
+         :hashjoinoperator <span style=color:#ae81ff>96</span> 
+         :left_bucketsize <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0909</span> 
+         :right_bucketsize <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>1000</span> 
+         :left_mcvfreq <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0000</span> 
+         :right_mcvfreq <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0000</span> 
+         :left_hasheqoperator <span style=color:#ae81ff>96</span> 
+         :right_hasheqoperator <span style=color:#ae81ff>96</span>
+         <span style=color:#960050;background-color:#1e0010>}</span>
+      )
+      :num_batches <span style=color:#ae81ff>1</span> 
+      :inner_rows_total <span style=color:#ae81ff>11</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+   :jpath.joinrestrictinfo (
+      <span style=color:#960050;background-color:#1e0010>{</span>RESTRICTINFO 
+      :clause 
+         <span style=color:#960050;background-color:#1e0010>{</span>OPEXPR 
+         :opno <span style=color:#ae81ff>96</span> 
+         :opfuncid <span style=color:#ae81ff>65</span> 
+         :opresulttype <span style=color:#ae81ff>16</span> 
+         :opretset <span style=color:#66d9ef>false</span> 
+         :opcollid <span style=color:#ae81ff>0</span> 
+         :inputcollid <span style=color:#ae81ff>0</span> 
+         :args (
+            <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>143</span><span style=color:#960050;background-color:#1e0010>}</span>
+            <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>4</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>4</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>158</span><span style=color:#960050;background-color:#1e0010>}</span>
+         )
+         :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>156</span>
+         <span style=color:#960050;background-color:#1e0010>}</span>
+      :is_pushed_down <span style=color:#66d9ef>false</span> 
+      :outerjoin_delayed <span style=color:#66d9ef>false</span> 
+      :can_join <span style=color:#66d9ef>true</span> 
+      :pseudoconstant <span style=color:#66d9ef>false</span> 
+      :leakproof <span style=color:#66d9ef>false</span> 
+      :has_volatile <span style=color:#ae81ff>2</span> 
+      :security_level <span style=color:#ae81ff>0</span> 
+      :clause_relids (b <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>4</span>)
+      :required_relids (b <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>4</span>)
+      :outer_relids (b <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>2</span>)
+      :nullable_relids (b)
+      :left_relids (b <span style=color:#ae81ff>1</span>)
+      :right_relids (b <span style=color:#ae81ff>4</span>)
+      :orclause <span style=color:#f92672>&lt;&gt;</span> 
+      :eval_cost.startup <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> 
+      :eval_cost.per_tuple <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> 
+      :norm_selec <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0050</span> 
+      :outer_selec <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0050</span> 
+      :mergeopfamilies (o <span style=color:#ae81ff>1976</span>)
+      :left_em <span style=color:#f92672>&lt;&gt;</span> 
+      :right_em <span style=color:#f92672>&lt;&gt;</span> 
+      :outer_is_left <span style=color:#66d9ef>false</span> 
+      :hashjoinoperator <span style=color:#ae81ff>96</span> 
+      :left_bucketsize <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0909</span> 
+      :right_bucketsize <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>1000</span> 
+      :left_mcvfreq <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0000</span> 
+      :right_mcvfreq <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0000</span> 
+      :left_hasheqoperator <span style=color:#ae81ff>96</span> 
+      :right_hasheqoperator <span style=color:#ae81ff>96</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+   )
+   :path_hashclauses (
+      <span style=color:#960050;background-color:#1e0010>{</span>RESTRICTINFO 
+      :clause 
+         <span style=color:#960050;background-color:#1e0010>{</span>OPEXPR 
+         :opno <span style=color:#ae81ff>96</span> 
+         :opfuncid <span style=color:#ae81ff>65</span> 
+         :opresulttype <span style=color:#ae81ff>16</span> 
+         :opretset <span style=color:#66d9ef>false</span> 
+         :opcollid <span style=color:#ae81ff>0</span> 
+         :inputcollid <span style=color:#ae81ff>0</span> 
+         :args (
+            <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>143</span><span style=color:#960050;background-color:#1e0010>}</span>
+            <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>4</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>4</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>158</span><span style=color:#960050;background-color:#1e0010>}</span>
+         )
+         :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>156</span>
+         <span style=color:#960050;background-color:#1e0010>}</span>
+      :is_pushed_down <span style=color:#66d9ef>false</span> 
+      :outerjoin_delayed <span style=color:#66d9ef>false</span> 
+      :can_join <span style=color:#66d9ef>true</span> 
+      :pseudoconstant <span style=color:#66d9ef>false</span> 
+      :leakproof <span style=color:#66d9ef>false</span> 
+      :has_volatile <span style=color:#ae81ff>2</span> 
+      :security_level <span style=color:#ae81ff>0</span> 
+      :clause_relids (b <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>4</span>)
+      :required_relids (b <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>4</span>)
+      :outer_relids (b <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>2</span>)
+      :nullable_relids (b)
+      :left_relids (b <span style=color:#ae81ff>1</span>)
+      :right_relids (b <span style=color:#ae81ff>4</span>)
+      :orclause <span style=color:#f92672>&lt;&gt;</span> 
+      :eval_cost.startup <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> 
+      :eval_cost.per_tuple <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> 
+      :norm_selec <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0050</span> 
+      :outer_selec <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0050</span> 
+      :mergeopfamilies (o <span style=color:#ae81ff>1976</span>)
+      :left_em <span style=color:#f92672>&lt;&gt;</span> 
+      :right_em <span style=color:#f92672>&lt;&gt;</span> 
+      :outer_is_left <span style=color:#66d9ef>false</span> 
+      :hashjoinoperator <span style=color:#ae81ff>96</span> 
+      :left_bucketsize <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0909</span> 
+      :right_bucketsize <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>1000</span> 
+      :left_mcvfreq <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0000</span> 
+      :right_mcvfreq <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0000</span> 
+      :left_hasheqoperator <span style=color:#ae81ff>96</span> 
+      :right_hasheqoperator <span style=color:#ae81ff>96</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+   )
+   :num_batches <span style=color:#ae81ff>1</span> 
+   :inner_rows_total <span style=color:#ae81ff>112</span>
+   <span style=color:#960050;background-color:#1e0010>}</span>
+
+
+<span style=color:#66d9ef>select</span> s.product_id, pc.product_id <span style=color:#66d9ef>from</span> sales <span style=color:#66d9ef>as</span> s 
+ <span style=color:#66d9ef>join</span> product_class pc 
+  <span style=color:#66d9ef>on</span> s.product_id <span style=color:#f92672>=</span> pc.product_id;
+
+
+<span style=color:#66d9ef>CREATE</span> <span style=color:#66d9ef>TABLE</span> emp <span style=color:#66d9ef>AS</span>
+<span style=color:#66d9ef>SELECT</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>FROM</span> (<span style=color:#66d9ef>VALUES</span>
+ (<span style=color:#ae81ff>7369</span>, <span style=color:#e6db74>&#39;SMITH&#39;</span>,  <span style=color:#e6db74>&#39;CLERK&#39;</span>,     <span style=color:#ae81ff>7902</span>, DATE <span style=color:#e6db74>&#39;1980-12-17&#39;</span>, <span style=color:#ae81ff>800</span>.<span style=color:#ae81ff>00</span>,     <span style=color:#66d9ef>null</span>, <span style=color:#ae81ff>20</span>),
+ (<span style=color:#ae81ff>7499</span>, <span style=color:#e6db74>&#39;ALLEN&#39;</span>,  <span style=color:#e6db74>&#39;SALESMAN&#39;</span>,  <span style=color:#ae81ff>7698</span>, DATE <span style=color:#e6db74>&#39;1981-02-20&#39;</span>, <span style=color:#ae81ff>1600</span>.<span style=color:#ae81ff>00</span>,  <span style=color:#ae81ff>300</span>.<span style=color:#ae81ff>00</span>, <span style=color:#ae81ff>30</span>),
+ (<span style=color:#ae81ff>7521</span>, <span style=color:#e6db74>&#39;WARD&#39;</span>,   <span style=color:#e6db74>&#39;SALESMAN&#39;</span>,  <span style=color:#ae81ff>7698</span>, DATE <span style=color:#e6db74>&#39;1981-02-22&#39;</span>, <span style=color:#ae81ff>1250</span>.<span style=color:#ae81ff>00</span>,  <span style=color:#ae81ff>500</span>.<span style=color:#ae81ff>00</span>, <span style=color:#ae81ff>30</span>),
+ (<span style=color:#ae81ff>7566</span>, <span style=color:#e6db74>&#39;JONES&#39;</span>,  <span style=color:#e6db74>&#39;MANAGER&#39;</span>,   <span style=color:#ae81ff>7839</span>, DATE <span style=color:#e6db74>&#39;1981-02-04&#39;</span>, <span style=color:#ae81ff>2975</span>.<span style=color:#ae81ff>00</span>,    <span style=color:#66d9ef>null</span>, <span style=color:#ae81ff>20</span>),
+ (<span style=color:#ae81ff>7654</span>, <span style=color:#e6db74>&#39;MARTIN&#39;</span>, <span style=color:#e6db74>&#39;SALESMAN&#39;</span>,  <span style=color:#ae81ff>7698</span>, DATE <span style=color:#e6db74>&#39;1981-09-28&#39;</span>, <span style=color:#ae81ff>1250</span>.<span style=color:#ae81ff>00</span>, <span style=color:#ae81ff>1400</span>.<span style=color:#ae81ff>00</span>, <span style=color:#ae81ff>30</span>),
+ (<span style=color:#ae81ff>7698</span>, <span style=color:#e6db74>&#39;BLAKE&#39;</span>,  <span style=color:#e6db74>&#39;MANAGER&#39;</span>,   <span style=color:#ae81ff>7839</span>, DATE <span style=color:#e6db74>&#39;1981-01-05&#39;</span>, <span style=color:#ae81ff>2850</span>.<span style=color:#ae81ff>00</span>,    <span style=color:#66d9ef>null</span>, <span style=color:#ae81ff>30</span>),
+ (<span style=color:#ae81ff>7782</span>, <span style=color:#e6db74>&#39;CLARK&#39;</span>,  <span style=color:#e6db74>&#39;MANAGER&#39;</span>,   <span style=color:#ae81ff>7839</span>, DATE <span style=color:#e6db74>&#39;1981-06-09&#39;</span>, <span style=color:#ae81ff>2450</span>.<span style=color:#ae81ff>00</span>,    <span style=color:#66d9ef>null</span>, <span style=color:#ae81ff>10</span>),
+ (<span style=color:#ae81ff>7788</span>, <span style=color:#e6db74>&#39;SCOTT&#39;</span>,  <span style=color:#e6db74>&#39;ANALYST&#39;</span>,   <span style=color:#ae81ff>7566</span>, DATE <span style=color:#e6db74>&#39;1987-04-19&#39;</span>, <span style=color:#ae81ff>3000</span>.<span style=color:#ae81ff>00</span>,    <span style=color:#66d9ef>null</span>, <span style=color:#ae81ff>20</span>),
+ (<span style=color:#ae81ff>7839</span>, <span style=color:#e6db74>&#39;KING&#39;</span>,   <span style=color:#e6db74>&#39;PRESIDENT&#39;</span>, <span style=color:#66d9ef>null</span>, DATE <span style=color:#e6db74>&#39;1981-11-17&#39;</span>, <span style=color:#ae81ff>5000</span>.<span style=color:#ae81ff>00</span>,    <span style=color:#66d9ef>null</span>, <span style=color:#ae81ff>10</span>),
+ (<span style=color:#ae81ff>7844</span>, <span style=color:#e6db74>&#39;TURNER&#39;</span>, <span style=color:#e6db74>&#39;SALESMAN&#39;</span>,  <span style=color:#ae81ff>7698</span>, DATE <span style=color:#e6db74>&#39;1981-09-08&#39;</span>, <span style=color:#ae81ff>1500</span>.<span style=color:#ae81ff>00</span>,    <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>, <span style=color:#ae81ff>30</span>),
+ (<span style=color:#ae81ff>7876</span>, <span style=color:#e6db74>&#39;ADAMS&#39;</span>,  <span style=color:#e6db74>&#39;CLERK&#39;</span>,     <span style=color:#ae81ff>7788</span>, DATE <span style=color:#e6db74>&#39;1987-05-23&#39;</span>, <span style=color:#ae81ff>1100</span>.<span style=color:#ae81ff>00</span>,    <span style=color:#66d9ef>null</span>, <span style=color:#ae81ff>20</span>),
+ (<span style=color:#ae81ff>7900</span>, <span style=color:#e6db74>&#39;JAMES&#39;</span>,  <span style=color:#e6db74>&#39;CLERK&#39;</span>,     <span style=color:#ae81ff>7698</span>, DATE <span style=color:#e6db74>&#39;1981-12-03&#39;</span>,  <span style=color:#ae81ff>950</span>.<span style=color:#ae81ff>00</span>,    <span style=color:#66d9ef>null</span>, <span style=color:#ae81ff>30</span>),
+ (<span style=color:#ae81ff>7902</span>, <span style=color:#e6db74>&#39;FORD&#39;</span>,   <span style=color:#e6db74>&#39;ANALYST&#39;</span>,   <span style=color:#ae81ff>7566</span>, DATE <span style=color:#e6db74>&#39;1981-12-03&#39;</span>, <span style=color:#ae81ff>3000</span>.<span style=color:#ae81ff>00</span>,    <span style=color:#66d9ef>null</span>, <span style=color:#ae81ff>20</span>),
+ (<span style=color:#ae81ff>7934</span>, <span style=color:#e6db74>&#39;MILLER&#39;</span>, <span style=color:#e6db74>&#39;CLERK&#39;</span>,     <span style=color:#ae81ff>7782</span>, DATE <span style=color:#e6db74>&#39;1982-01-23&#39;</span>, <span style=color:#ae81ff>1300</span>.<span style=color:#ae81ff>00</span>,    <span style=color:#66d9ef>null</span>, <span style=color:#ae81ff>10</span>)
+) <span style=color:#66d9ef>AS</span> emp (EMPNO, ENAME, JOB, MGR, HIREDATE, SAL, COMM, DEPTNO);
+
+<span style=color:#66d9ef>CREATE</span> <span style=color:#66d9ef>TABLE</span> dept <span style=color:#66d9ef>AS</span>
+<span style=color:#66d9ef>SELECT</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>FROM</span> (<span style=color:#66d9ef>VALUES</span>
+ (<span style=color:#ae81ff>10</span>, <span style=color:#e6db74>&#39;ACCOUNTING&#39;</span>, <span style=color:#e6db74>&#39;NEW YORK&#39;</span>),
+ (<span style=color:#ae81ff>20</span>, <span style=color:#e6db74>&#39;RESEARCH&#39;</span>,   <span style=color:#e6db74>&#39;DALLAS&#39;</span>),
+ (<span style=color:#ae81ff>30</span>, <span style=color:#e6db74>&#39;SALES&#39;</span>,      <span style=color:#e6db74>&#39;CHICAGO&#39;</span>),
+ (<span style=color:#ae81ff>40</span>, <span style=color:#e6db74>&#39;OPERATIONS&#39;</span>, <span style=color:#e6db74>&#39;BOSTON&#39;</span>)
+) <span style=color:#66d9ef>AS</span> dept (DEPTNO, DNAME, LOC);
+
+<span style=color:#66d9ef>CREATE</span> <span style=color:#66d9ef>TABLE</span> bonus (
+  ENAME VARCHAR(<span style=color:#ae81ff>10</span>),
+  JOB  VARCHAR(<span style=color:#ae81ff>9</span>),
+  SAL  DECIMAL(<span style=color:#ae81ff>6</span>, <span style=color:#ae81ff>2</span>),
+  COMM DECIMAL(<span style=color:#ae81ff>6</span>, <span style=color:#ae81ff>2</span>));
+
+<span style=color:#66d9ef>CREATE</span> <span style=color:#66d9ef>TABLE</span> salgrade <span style=color:#66d9ef>AS</span>
+<span style=color:#66d9ef>SELECT</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>FROM</span> (<span style=color:#66d9ef>VALUES</span>
+  (<span style=color:#ae81ff>1</span>,  <span style=color:#ae81ff>700</span>, <span style=color:#ae81ff>1200</span>),
+  (<span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>1201</span>, <span style=color:#ae81ff>1400</span>),
+  (<span style=color:#ae81ff>3</span>, <span style=color:#ae81ff>1401</span>, <span style=color:#ae81ff>2000</span>),
+  (<span style=color:#ae81ff>4</span>, <span style=color:#ae81ff>2001</span>, <span style=color:#ae81ff>3000</span>),
+  (<span style=color:#ae81ff>5</span>, <span style=color:#ae81ff>3001</span>, <span style=color:#ae81ff>9999</span>)
+) <span style=color:#66d9ef>AS</span> salgrade (GRADE, LOSAL, HISAL);
+
+<span style=color:#66d9ef>CREATE</span> <span style=color:#66d9ef>TABLE</span> dummy <span style=color:#66d9ef>AS</span>
+<span style=color:#66d9ef>SELECT</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>FROM</span> (<span style=color:#66d9ef>VALUES</span>
+  (<span style=color:#ae81ff>0</span>)
+) <span style=color:#66d9ef>AS</span> dummy (DUMMY);
+
+
+<span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> sales.dept d <span style=color:#66d9ef>where</span> d.deptno <span style=color:#66d9ef>in</span> (<span style=color:#66d9ef>select</span> e.deptno <span style=color:#66d9ef>from</span> sales.emp e) <span style=color:#66d9ef>order</span> <span style=color:#66d9ef>by</span> d.deptno
+
+
+</code></pre></div><h2 id=case-2>
+case 2
+<a href=#case-2 class=h-anchor aria-hidden=true>#</a>
+</h2>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> student(sno int <span style=color:#66d9ef>primary</span> <span style=color:#66d9ef>key</span>, sname varchar(<span style=color:#ae81ff>10</span>), ssex int);
+
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> student <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>1</span>, <span style=color:#e6db74>&#39;tom&#39;</span>, <span style=color:#ae81ff>1</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> student <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>2</span>, <span style=color:#e6db74>&#39;bob&#39;</span>, <span style=color:#ae81ff>0</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> student <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>3</span>, <span style=color:#e6db74>&#39;andy&#39;</span>, <span style=color:#ae81ff>0</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> student <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>4</span>, <span style=color:#e6db74>&#39;anven&#39;</span>, <span style=color:#ae81ff>1</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> student <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>5</span>, <span style=color:#e6db74>&#39;snona&#39;</span>, <span style=color:#ae81ff>1</span>);
+
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> course(cno int <span style=color:#66d9ef>primary</span> <span style=color:#66d9ef>key</span>, cname varchar(<span style=color:#ae81ff>10</span>), tno int);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> course <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>1</span>, <span style=color:#e6db74>&#39;math&#39;</span>, <span style=color:#ae81ff>1</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> course <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>2</span>, <span style=color:#e6db74>&#39;chinese&#39;</span>, <span style=color:#ae81ff>3</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> course <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>3</span>, <span style=color:#e6db74>&#39;english&#39;</span>, <span style=color:#ae81ff>2</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> course <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>4</span>, <span style=color:#e6db74>&#39;music&#39;</span>, <span style=color:#ae81ff>5</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> course <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>5</span>, <span style=color:#e6db74>&#39;art&#39;</span>, <span style=color:#ae81ff>4</span>);
+
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> score(sno int, cno int, degree int);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> score <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>70</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> score <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>70</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> score <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>3</span>, <span style=color:#ae81ff>70</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> score <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>4</span>, <span style=color:#ae81ff>70</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> score <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>5</span>, <span style=color:#ae81ff>70</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> score <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>80</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> score <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>80</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> score <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>3</span>, <span style=color:#ae81ff>80</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> score <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>4</span>, <span style=color:#ae81ff>80</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> score <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>5</span>, <span style=color:#ae81ff>80</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> score <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>3</span>, <span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>80</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> score <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>3</span>, <span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>80</span>);
+
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> teacher(tno int <span style=color:#66d9ef>primary</span> <span style=color:#66d9ef>key</span>, tname varchar(<span style=color:#ae81ff>10</span>), tsex int);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> teacher <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>1</span>, <span style=color:#e6db74>&#39;zhao&#39;</span>, <span style=color:#ae81ff>1</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> teacher <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>2</span>, <span style=color:#e6db74>&#39;qian&#39;</span>, <span style=color:#ae81ff>0</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> teacher <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>3</span>, <span style=color:#e6db74>&#39;sun&#39;</span>, <span style=color:#ae81ff>0</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> teacher <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>4</span>, <span style=color:#e6db74>&#39;li&#39;</span>, <span style=color:#ae81ff>1</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> teacher <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>5</span>, <span style=color:#e6db74>&#39;zhou&#39;</span>, <span style=color:#ae81ff>1</span>);
+
+</code></pre></div><p><code>SELECT st.sname FROM STUDENT st WHERE st.sno =ANY (SELECT sno FROM SCORE WHERE st.sno = sno);</code></p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>
+<span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>SELECT</span> st.sname <span style=color:#66d9ef>FROM</span> STUDENT st <span style=color:#66d9ef>WHERE</span> st.sno <span style=color:#f92672>=</span><span style=color:#66d9ef>ANY</span> (<span style=color:#66d9ef>SELECT</span> sno <span style=color:#66d9ef>FROM</span> SCORE <span style=color:#66d9ef>WHERE</span> st.sno <span style=color:#f92672>=</span> sno);
+                          QUERY PLAN                           
+<span style=color:#75715e>---------------------------------------------------------------
+</span><span style=color:#75715e></span> Seq Scan <span style=color:#66d9ef>on</span> student st  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>661</span>.<span style=color:#ae81ff>75</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>550</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>38</span>)
+   Filter: (SubPlan <span style=color:#ae81ff>1</span>)
+   SubPlan <span style=color:#ae81ff>1</span>
+     <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> score  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>15</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>4</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+           Filter: (st.sno <span style=color:#f92672>=</span> sno)
+
+   <span style=color:#960050;background-color:#1e0010>{</span>QUERY 
+   :commandType <span style=color:#ae81ff>1</span> 
+   :querySource <span style=color:#ae81ff>0</span> 
+   :canSetTag <span style=color:#66d9ef>true</span> 
+   :utilityStmt <span style=color:#f92672>&lt;&gt;</span> 
+   :resultRelation <span style=color:#ae81ff>0</span> 
+   :hasAggs <span style=color:#66d9ef>false</span> 
+   :hasWindowFuncs <span style=color:#66d9ef>false</span> 
+   :hasTargetSRFs <span style=color:#66d9ef>false</span> 
+   :hasSubLinks <span style=color:#66d9ef>true</span> 
+   :hasDistinctOn <span style=color:#66d9ef>false</span> 
+   :hasRecursive <span style=color:#66d9ef>false</span> 
+   :hasModifyingCTE <span style=color:#66d9ef>false</span> 
+   :hasForUpdate <span style=color:#66d9ef>false</span> 
+   :hasRowSecurity <span style=color:#66d9ef>false</span> 
+   :isReturn <span style=color:#66d9ef>false</span> 
+   :cteList <span style=color:#f92672>&lt;&gt;</span> 
+   :rtable (
+      <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLENTRY 
+      :<span style=color:#66d9ef>alias</span> 
+         <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname st :colnames <span style=color:#f92672>&lt;&gt;</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :eref 
+         <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname st :colnames (<span style=color:#e6db74>&#34;sno&#34;</span> <span style=color:#e6db74>&#34;sname&#34;</span> <span style=color:#e6db74>&#34;ssex&#34;</span>)<span style=color:#960050;background-color:#1e0010>}</span>
+      :rtekind <span style=color:#ae81ff>0</span> 
+      :relid <span style=color:#ae81ff>91474</span> 
+      :relkind r 
+      :rellockmode <span style=color:#ae81ff>1</span> 
+      :tablesample <span style=color:#f92672>&lt;&gt;</span> 
+      :<span style=color:#66d9ef>lateral</span> <span style=color:#66d9ef>false</span> 
+      :inh <span style=color:#66d9ef>true</span> 
+      :inFromCl <span style=color:#66d9ef>true</span> 
+      :requiredPerms <span style=color:#ae81ff>2</span> 
+      :checkAsUser <span style=color:#ae81ff>0</span> 
+      :selectedCols (b <span style=color:#ae81ff>8</span> <span style=color:#ae81ff>9</span>)
+      :insertedCols (b)
+      :updatedCols (b)
+      :extraUpdatedCols (b)
+      :securityQuals <span style=color:#f92672>&lt;&gt;</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+   )
+   :jointree 
+      <span style=color:#960050;background-color:#1e0010>{</span>FROMEXPR 
+      :fromlist (
+         <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLREF 
+         :rtindex <span style=color:#ae81ff>1</span>
+         <span style=color:#960050;background-color:#1e0010>}</span>
+      )
+      :quals 
+         <span style=color:#960050;background-color:#1e0010>{</span>SUBLINK 
+         :subLinkType <span style=color:#ae81ff>2</span> 
+         :subLinkId <span style=color:#ae81ff>0</span> 
+         :testexpr 
+            <span style=color:#960050;background-color:#1e0010>{</span>OPEXPR 
+            :opno <span style=color:#ae81ff>96</span> 
+            :opfuncid <span style=color:#ae81ff>65</span> 
+            :opresulttype <span style=color:#ae81ff>16</span> 
+            :opretset <span style=color:#66d9ef>false</span> 
+            :opcollid <span style=color:#ae81ff>0</span> 
+            :inputcollid <span style=color:#ae81ff>0</span> 
+            :args (
+               <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>38</span><span style=color:#960050;background-color:#1e0010>}</span>
+               <span style=color:#960050;background-color:#1e0010>{</span>PARAM 
+               :paramkind <span style=color:#ae81ff>2</span> 
+               :paramid <span style=color:#ae81ff>1</span> 
+               :paramtype <span style=color:#ae81ff>23</span> 
+               :paramtypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+               :paramcollid <span style=color:#ae81ff>0</span> 
+               :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+               <span style=color:#960050;background-color:#1e0010>}</span>
+            )
+            :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>45</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+         :operName (<span style=color:#e6db74>&#34;=&#34;</span>)
+         :subselect 
+            <span style=color:#960050;background-color:#1e0010>{</span>QUERY 
+            :commandType <span style=color:#ae81ff>1</span> 
+            :querySource <span style=color:#ae81ff>0</span> 
+            :canSetTag <span style=color:#66d9ef>true</span> 
+            :utilityStmt <span style=color:#f92672>&lt;&gt;</span> 
+            :resultRelation <span style=color:#ae81ff>0</span> 
+            :hasAggs <span style=color:#66d9ef>false</span> 
+            :hasWindowFuncs <span style=color:#66d9ef>false</span> 
+            :hasTargetSRFs <span style=color:#66d9ef>false</span> 
+            :hasSubLinks <span style=color:#66d9ef>false</span> 
+            :hasDistinctOn <span style=color:#66d9ef>false</span> 
+            :hasRecursive <span style=color:#66d9ef>false</span> 
+            :hasModifyingCTE <span style=color:#66d9ef>false</span> 
+            :hasForUpdate <span style=color:#66d9ef>false</span> 
+            :hasRowSecurity <span style=color:#66d9ef>false</span> 
+            :isReturn <span style=color:#66d9ef>false</span> 
+            :cteList <span style=color:#f92672>&lt;&gt;</span> 
+            :rtable (
+               <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLENTRY 
+               :<span style=color:#66d9ef>alias</span> <span style=color:#f92672>&lt;&gt;</span> 
+               :eref 
+                  <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname score :colnames (<span style=color:#e6db74>&#34;sno&#34;</span> <span style=color:#e6db74>&#34;cno&#34;</span> <span style=color:#e6db74>&#34;degree&#34;</span>)<span style=color:#960050;background-color:#1e0010>}</span>
+               :rtekind <span style=color:#ae81ff>0</span> 
+               :relid <span style=color:#ae81ff>91466</span> 
+               :relkind r 
+               :rellockmode <span style=color:#ae81ff>1</span> 
+               :tablesample <span style=color:#f92672>&lt;&gt;</span> 
+               :<span style=color:#66d9ef>lateral</span> <span style=color:#66d9ef>false</span> 
+               :inh <span style=color:#66d9ef>true</span> 
+               :inFromCl <span style=color:#66d9ef>true</span> 
+               :requiredPerms <span style=color:#ae81ff>2</span> 
+               :checkAsUser <span style=color:#ae81ff>0</span> 
+               :selectedCols (b <span style=color:#ae81ff>8</span>)
+               :insertedCols (b)
+               :updatedCols (b)
+               :extraUpdatedCols (b)
+               :securityQuals <span style=color:#f92672>&lt;&gt;</span>
+               <span style=color:#960050;background-color:#1e0010>}</span>
+            )
+            :jointree 
+               <span style=color:#960050;background-color:#1e0010>{</span>FROMEXPR 
+               :fromlist (
+                  <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLREF 
+                  :rtindex <span style=color:#ae81ff>1</span>
+                  <span style=color:#960050;background-color:#1e0010>}</span>
+               )
+               :quals 
+                  <span style=color:#960050;background-color:#1e0010>{</span>OPEXPR 
+                  :opno <span style=color:#ae81ff>96</span> 
+                  :opfuncid <span style=color:#ae81ff>65</span> 
+                  :opresulttype <span style=color:#ae81ff>16</span> 
+                  :opretset <span style=color:#66d9ef>false</span> 
+                  :opcollid <span style=color:#ae81ff>0</span> 
+                  :inputcollid <span style=color:#ae81ff>0</span> 
+                  :args (
+                     <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>1</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>79</span><span style=color:#960050;background-color:#1e0010>}</span>
+                     <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>88</span><span style=color:#960050;background-color:#1e0010>}</span>
+                  )
+                  :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>86</span>
+                  <span style=color:#960050;background-color:#1e0010>}</span>
+               <span style=color:#960050;background-color:#1e0010>}</span>
+            :mergeActionList <span style=color:#f92672>&lt;&gt;</span> 
+            :mergeUseOuterJoin <span style=color:#66d9ef>false</span> 
+            :targetList (
+               <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+               :expr 
+                  <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>58</span><span style=color:#960050;background-color:#1e0010>}</span>
+               :resno <span style=color:#ae81ff>1</span> 
+               :resname sno 
+               :ressortgroupref <span style=color:#ae81ff>0</span> 
+               :resorigtbl <span style=color:#ae81ff>91466</span> 
+               :resorigcol <span style=color:#ae81ff>1</span> 
+               :resjunk <span style=color:#66d9ef>false</span>
+               <span style=color:#960050;background-color:#1e0010>}</span>
+            )
+            :override <span style=color:#ae81ff>0</span> 
+            :onConflict <span style=color:#f92672>&lt;&gt;</span> 
+            :returningList <span style=color:#f92672>&lt;&gt;</span> 
+            :groupClause <span style=color:#f92672>&lt;&gt;</span> 
+            :groupDistinct <span style=color:#66d9ef>false</span> 
+            :groupingSets <span style=color:#f92672>&lt;&gt;</span> 
+            :havingQual <span style=color:#f92672>&lt;&gt;</span> 
+            :windowClause <span style=color:#f92672>&lt;&gt;</span> 
+            :distinctClause <span style=color:#f92672>&lt;&gt;</span> 
+            :sortClause <span style=color:#f92672>&lt;&gt;</span> 
+            :limitOffset <span style=color:#f92672>&lt;&gt;</span> 
+            :limitCount <span style=color:#f92672>&lt;&gt;</span> 
+            :limitOption <span style=color:#ae81ff>0</span> 
+            :rowMarks <span style=color:#f92672>&lt;&gt;</span> 
+            :setOperations <span style=color:#f92672>&lt;&gt;</span> 
+            :constraintDeps <span style=color:#f92672>&lt;&gt;</span> 
+            :withCheckOptions <span style=color:#f92672>&lt;&gt;</span> 
+            :stmt_location <span style=color:#ae81ff>0</span> 
+            :stmt_len <span style=color:#ae81ff>0</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+         :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>45</span>
+         <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+   :mergeActionList <span style=color:#f92672>&lt;&gt;</span> 
+   :mergeUseOuterJoin <span style=color:#66d9ef>false</span> 
+   :targetList (
+      <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+      :expr 
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>2</span> :vartype <span style=color:#ae81ff>1043</span> :vartypmod <span style=color:#ae81ff>14</span> :varcollid <span style=color:#ae81ff>100</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>2</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>7</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :resno <span style=color:#ae81ff>1</span> 
+      :resname sname 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      :resorigtbl <span style=color:#ae81ff>91474</span> 
+      :resorigcol <span style=color:#ae81ff>2</span> 
+      :resjunk <span style=color:#66d9ef>false</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+   )
+   :override <span style=color:#ae81ff>0</span> 
+   :onConflict <span style=color:#f92672>&lt;&gt;</span> 
+   :returningList <span style=color:#f92672>&lt;&gt;</span> 
+   :groupClause <span style=color:#f92672>&lt;&gt;</span> 
+   :groupDistinct <span style=color:#66d9ef>false</span> 
+   :groupingSets <span style=color:#f92672>&lt;&gt;</span> 
+   :havingQual <span style=color:#f92672>&lt;&gt;</span> 
+   :windowClause <span style=color:#f92672>&lt;&gt;</span> 
+   :distinctClause <span style=color:#f92672>&lt;&gt;</span> 
+   :sortClause <span style=color:#f92672>&lt;&gt;</span> 
+   :limitOffset <span style=color:#f92672>&lt;&gt;</span> 
+   :limitCount <span style=color:#f92672>&lt;&gt;</span> 
+   :limitOption <span style=color:#ae81ff>0</span> 
+   :rowMarks <span style=color:#f92672>&lt;&gt;</span> 
+   :setOperations <span style=color:#f92672>&lt;&gt;</span> 
+   :constraintDeps <span style=color:#f92672>&lt;&gt;</span> 
+   :withCheckOptions <span style=color:#f92672>&lt;&gt;</span> 
+   :stmt_location <span style=color:#ae81ff>0</span> 
+   :stmt_len <span style=color:#ae81ff>92</span>
+   <span style=color:#960050;background-color:#1e0010>}</span>
+
+</code></pre></div><p><code>SELECT * FROM STUDENT LEFT JOIN SCORE ON TRUE, (SELECT * FROM TEACHER) AS t, COURSE, (VALUES (1, 1)) AS NUM(x, y), GENERATE_SERIES(1, 10) AS GS(z); </code></p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>                                           QUERY PLAN                                           
+<span style=color:#75715e>------------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> Nested Loop  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>2179816861</span>.<span style=color:#ae81ff>25</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>174240000000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>156</span>)
+   <span style=color:#f92672>-&gt;</span>  Nested Loop  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1816836</span>.<span style=color:#ae81ff>25</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>145200000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>108</span>)
+         <span style=color:#f92672>-&gt;</span>  Nested Loop <span style=color:#66d9ef>Left</span> <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1812</span>.<span style=color:#ae81ff>50</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>132000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>62</span>)
+               <span style=color:#f92672>-&gt;</span>  Nested Loop  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>161</span>.<span style=color:#ae81ff>35</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>11000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>50</span>)
+                     <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Function</span> Scan <span style=color:#66d9ef>on</span> generate_series gs  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>10</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>10</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+                     <span style=color:#f92672>-&gt;</span>  Materialize  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>26</span>.<span style=color:#ae81ff>50</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1100</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>46</span>)
+                           <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> student  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>21</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1100</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>46</span>)
+               <span style=color:#f92672>-&gt;</span>  Materialize  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>18</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>12</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+                     <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> score  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>12</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>12</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+         <span style=color:#f92672>-&gt;</span>  Materialize  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>26</span>.<span style=color:#ae81ff>50</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1100</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>46</span>)
+               <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> teacher  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>21</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1100</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>46</span>)
+   <span style=color:#f92672>-&gt;</span>  Materialize  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>28</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1200</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>40</span>)
+         <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> course  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>22</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1200</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>40</span>)
+
+
+                                                                                     QUERY PLAN                                                                                      
+<span style=color:#75715e>-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> Nested Loop  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>2179816861</span>.<span style=color:#ae81ff>25</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>174240000000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>156</span>)
+   <span style=color:#66d9ef>Output</span>: student.sno, student.sname, student.ssex, score.sno, score.cno, score.degree, teacher.tno, teacher.tname, teacher.tsex, course.<span style=color:#66d9ef>no</span>, course.name, course.credit, <span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>1</span>, gs.z
+   <span style=color:#f92672>-&gt;</span>  Nested Loop  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1816836</span>.<span style=color:#ae81ff>25</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>145200000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>108</span>)
+         <span style=color:#66d9ef>Output</span>: student.sno, student.sname, student.ssex, score.sno, score.cno, score.degree, teacher.tno, teacher.tname, teacher.tsex, gs.z
+         <span style=color:#f92672>-&gt;</span>  Nested Loop <span style=color:#66d9ef>Left</span> <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1812</span>.<span style=color:#ae81ff>50</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>132000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>62</span>)
+               <span style=color:#66d9ef>Output</span>: student.sno, student.sname, student.ssex, score.sno, score.cno, score.degree, gs.z
+               <span style=color:#f92672>-&gt;</span>  Nested Loop  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>161</span>.<span style=color:#ae81ff>35</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>11000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>50</span>)
+                     <span style=color:#66d9ef>Output</span>: gs.z, student.sno, student.sname, student.ssex
+                     <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Function</span> Scan <span style=color:#66d9ef>on</span> pg_catalog.generate_series gs  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>10</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>10</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+                           <span style=color:#66d9ef>Output</span>: gs.z
+                           <span style=color:#66d9ef>Function</span> <span style=color:#66d9ef>Call</span>: generate_series(<span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>10</span>)
+                     <span style=color:#f92672>-&gt;</span>  Materialize  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>26</span>.<span style=color:#ae81ff>50</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1100</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>46</span>)
+                           <span style=color:#66d9ef>Output</span>: student.sno, student.sname, student.ssex
+                           <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> <span style=color:#66d9ef>public</span>.student  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>21</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1100</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>46</span>)
+                                 <span style=color:#66d9ef>Output</span>: student.sno, student.sname, student.ssex
+               <span style=color:#f92672>-&gt;</span>  Materialize  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>18</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>12</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+                     <span style=color:#66d9ef>Output</span>: score.sno, score.cno, score.degree
+                     <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> <span style=color:#66d9ef>public</span>.score  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>12</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>12</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+                           <span style=color:#66d9ef>Output</span>: score.sno, score.cno, score.degree
+         <span style=color:#f92672>-&gt;</span>  Materialize  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>26</span>.<span style=color:#ae81ff>50</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1100</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>46</span>)
+               <span style=color:#66d9ef>Output</span>: teacher.tno, teacher.tname, teacher.tsex
+               <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> <span style=color:#66d9ef>public</span>.teacher  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>21</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1100</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>46</span>)
+                     <span style=color:#66d9ef>Output</span>: teacher.tno, teacher.tname, teacher.tsex
+   <span style=color:#f92672>-&gt;</span>  Materialize  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>28</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1200</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>40</span>)
+         <span style=color:#66d9ef>Output</span>: course.<span style=color:#66d9ef>no</span>, course.name, course.credit
+         <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> <span style=color:#66d9ef>public</span>.course  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>22</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1200</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>40</span>)
+               <span style=color:#66d9ef>Output</span>: course.<span style=color:#66d9ef>no</span>, course.name, course.credit
+
+   <span style=color:#960050;background-color:#1e0010>{</span>QUERY 
+   :commandType <span style=color:#ae81ff>1</span> 
+   :querySource <span style=color:#ae81ff>0</span> 
+   :canSetTag <span style=color:#66d9ef>true</span> 
+   :utilityStmt <span style=color:#f92672>&lt;&gt;</span> 
+   :resultRelation <span style=color:#ae81ff>0</span> 
+   :hasAggs <span style=color:#66d9ef>false</span> 
+   :hasWindowFuncs <span style=color:#66d9ef>false</span> 
+   :hasTargetSRFs <span style=color:#66d9ef>false</span> 
+   :hasSubLinks <span style=color:#66d9ef>false</span> 
+   :hasDistinctOn <span style=color:#66d9ef>false</span> 
+   :hasRecursive <span style=color:#66d9ef>false</span> 
+   :hasModifyingCTE <span style=color:#66d9ef>false</span> 
+   :hasForUpdate <span style=color:#66d9ef>false</span> 
+   :hasRowSecurity <span style=color:#66d9ef>false</span> 
+   :isReturn <span style=color:#66d9ef>false</span> 
+   :cteList <span style=color:#f92672>&lt;&gt;</span> 
+   :rtable (
+      <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLENTRY 
+      :<span style=color:#66d9ef>alias</span> <span style=color:#f92672>&lt;&gt;</span> 
+      :eref 
+         <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname student :colnames (<span style=color:#e6db74>&#34;sno&#34;</span> <span style=color:#e6db74>&#34;sname&#34;</span> <span style=color:#e6db74>&#34;ssex&#34;</span>)<span style=color:#960050;background-color:#1e0010>}</span>
+      :rtekind <span style=color:#ae81ff>0</span> 
+      :relid <span style=color:#ae81ff>91474</span> 
+      :relkind r 
+      :rellockmode <span style=color:#ae81ff>1</span> 
+      :tablesample <span style=color:#f92672>&lt;&gt;</span> 
+      :<span style=color:#66d9ef>lateral</span> <span style=color:#66d9ef>false</span> 
+      :inh <span style=color:#66d9ef>true</span> 
+      :inFromCl <span style=color:#66d9ef>true</span> 
+      :requiredPerms <span style=color:#ae81ff>2</span> 
+      :checkAsUser <span style=color:#ae81ff>0</span> 
+      :selectedCols (b <span style=color:#ae81ff>8</span> <span style=color:#ae81ff>9</span> <span style=color:#ae81ff>10</span>)
+      :insertedCols (b)
+      :updatedCols (b)
+      :extraUpdatedCols (b)
+      :securityQuals <span style=color:#f92672>&lt;&gt;</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLENTRY 
+      :<span style=color:#66d9ef>alias</span> <span style=color:#f92672>&lt;&gt;</span> 
+      :eref 
+         <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname score :colnames (<span style=color:#e6db74>&#34;sno&#34;</span> <span style=color:#e6db74>&#34;cno&#34;</span> <span style=color:#e6db74>&#34;degree&#34;</span>)<span style=color:#960050;background-color:#1e0010>}</span>
+      :rtekind <span style=color:#ae81ff>0</span> 
+      :relid <span style=color:#ae81ff>91466</span> 
+      :relkind r 
+      :rellockmode <span style=color:#ae81ff>1</span> 
+      :tablesample <span style=color:#f92672>&lt;&gt;</span> 
+      :<span style=color:#66d9ef>lateral</span> <span style=color:#66d9ef>false</span> 
+      :inh <span style=color:#66d9ef>true</span> 
+      :inFromCl <span style=color:#66d9ef>true</span> 
+      :requiredPerms <span style=color:#ae81ff>2</span> 
+      :checkAsUser <span style=color:#ae81ff>0</span> 
+      :selectedCols (b <span style=color:#ae81ff>8</span> <span style=color:#ae81ff>9</span> <span style=color:#ae81ff>10</span>)
+      :insertedCols (b)
+      :updatedCols (b)
+      :extraUpdatedCols (b)
+      :securityQuals <span style=color:#f92672>&lt;&gt;</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLENTRY 
+      :<span style=color:#66d9ef>alias</span> <span style=color:#f92672>&lt;&gt;</span> 
+      :eref 
+         <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname unnamed_join :colnames (<span style=color:#e6db74>&#34;sno&#34;</span> <span style=color:#e6db74>&#34;sname&#34;</span> <span style=color:#e6db74>&#34;ssex&#34;</span> <span style=color:#e6db74>&#34;sno&#34;</span> <span style=color:#e6db74>&#34;cno&#34;</span> <span style=color:#e6db74>&#34;degree&#34;</span>)<span style=color:#960050;background-color:#1e0010>}</span>
+      :rtekind <span style=color:#ae81ff>2</span> 
+      :jointype <span style=color:#ae81ff>1</span> 
+      :joinmergedcols <span style=color:#ae81ff>0</span> 
+      :joinaliasvars (
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>2</span> :vartype <span style=color:#ae81ff>1043</span> :vartypmod <span style=color:#ae81ff>14</span> :varcollid <span style=color:#ae81ff>100</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>2</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>3</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>3</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>2</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>2</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>3</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>3</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+      )
+      :joinleftcols (i <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>2</span> <span style=color:#ae81ff>3</span>)
+      :joinrightcols (i <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>2</span> <span style=color:#ae81ff>3</span>)
+      :join_using_alias <span style=color:#f92672>&lt;&gt;</span> 
+      :<span style=color:#66d9ef>lateral</span> <span style=color:#66d9ef>false</span> 
+      :inh <span style=color:#66d9ef>false</span> 
+      :inFromCl <span style=color:#66d9ef>true</span> 
+      :requiredPerms <span style=color:#ae81ff>0</span> 
+      :checkAsUser <span style=color:#ae81ff>0</span> 
+      :selectedCols (b)
+      :insertedCols (b)
+      :updatedCols (b)
+      :extraUpdatedCols (b)
+      :securityQuals <span style=color:#f92672>&lt;&gt;</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLENTRY 
+      :<span style=color:#66d9ef>alias</span> 
+         <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname t :colnames <span style=color:#f92672>&lt;&gt;</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :eref 
+         <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname t :colnames (<span style=color:#e6db74>&#34;tno&#34;</span> <span style=color:#e6db74>&#34;tname&#34;</span> <span style=color:#e6db74>&#34;tsex&#34;</span>)<span style=color:#960050;background-color:#1e0010>}</span>
+      :rtekind <span style=color:#ae81ff>1</span> 
+      :subquery 
+         <span style=color:#960050;background-color:#1e0010>{</span>QUERY 
+         :commandType <span style=color:#ae81ff>1</span> 
+         :querySource <span style=color:#ae81ff>0</span> 
+         :canSetTag <span style=color:#66d9ef>true</span> 
+         :utilityStmt <span style=color:#f92672>&lt;&gt;</span> 
+         :resultRelation <span style=color:#ae81ff>0</span> 
+         :hasAggs <span style=color:#66d9ef>false</span> 
+         :hasWindowFuncs <span style=color:#66d9ef>false</span> 
+         :hasTargetSRFs <span style=color:#66d9ef>false</span> 
+         :hasSubLinks <span style=color:#66d9ef>false</span> 
+         :hasDistinctOn <span style=color:#66d9ef>false</span> 
+         :hasRecursive <span style=color:#66d9ef>false</span> 
+         :hasModifyingCTE <span style=color:#66d9ef>false</span> 
+         :hasForUpdate <span style=color:#66d9ef>false</span> 
+         :hasRowSecurity <span style=color:#66d9ef>false</span> 
+         :isReturn <span style=color:#66d9ef>false</span> 
+         :cteList <span style=color:#f92672>&lt;&gt;</span> 
+         :rtable (
+            <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLENTRY 
+            :<span style=color:#66d9ef>alias</span> <span style=color:#f92672>&lt;&gt;</span> 
+            :eref 
+               <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname teacher :colnames (<span style=color:#e6db74>&#34;tno&#34;</span> <span style=color:#e6db74>&#34;tname&#34;</span> <span style=color:#e6db74>&#34;tsex&#34;</span>)<span style=color:#960050;background-color:#1e0010>}</span>
+            :rtekind <span style=color:#ae81ff>0</span> 
+            :relid <span style=color:#ae81ff>91469</span> 
+            :relkind r 
+            :rellockmode <span style=color:#ae81ff>1</span> 
+            :tablesample <span style=color:#f92672>&lt;&gt;</span> 
+            :<span style=color:#66d9ef>lateral</span> <span style=color:#66d9ef>false</span> 
+            :inh <span style=color:#66d9ef>true</span> 
+            :inFromCl <span style=color:#66d9ef>true</span> 
+            :requiredPerms <span style=color:#ae81ff>2</span> 
+            :checkAsUser <span style=color:#ae81ff>0</span> 
+            :selectedCols (b <span style=color:#ae81ff>8</span> <span style=color:#ae81ff>9</span> <span style=color:#ae81ff>10</span>)
+            :insertedCols (b)
+            :updatedCols (b)
+            :extraUpdatedCols (b)
+            :securityQuals <span style=color:#f92672>&lt;&gt;</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+         )
+         :jointree 
+            <span style=color:#960050;background-color:#1e0010>{</span>FROMEXPR 
+            :fromlist (
+               <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLREF 
+               :rtindex <span style=color:#ae81ff>1</span>
+               <span style=color:#960050;background-color:#1e0010>}</span>
+            )
+            :quals <span style=color:#f92672>&lt;&gt;</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+         :mergeActionList <span style=color:#f92672>&lt;&gt;</span> 
+         :mergeUseOuterJoin <span style=color:#66d9ef>false</span> 
+         :targetList (
+            <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+            :expr 
+               <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>55</span><span style=color:#960050;background-color:#1e0010>}</span>
+            :resno <span style=color:#ae81ff>1</span> 
+            :resname tno 
+            :ressortgroupref <span style=color:#ae81ff>0</span> 
+            :resorigtbl <span style=color:#ae81ff>91469</span> 
+            :resorigcol <span style=color:#ae81ff>1</span> 
+            :resjunk <span style=color:#66d9ef>false</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+            <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+            :expr 
+               <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>2</span> :vartype <span style=color:#ae81ff>1043</span> :vartypmod <span style=color:#ae81ff>14</span> :varcollid <span style=color:#ae81ff>100</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>2</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>55</span><span style=color:#960050;background-color:#1e0010>}</span>
+            :resno <span style=color:#ae81ff>2</span> 
+            :resname tname 
+            :ressortgroupref <span style=color:#ae81ff>0</span> 
+            :resorigtbl <span style=color:#ae81ff>91469</span> 
+            :resorigcol <span style=color:#ae81ff>2</span> 
+            :resjunk <span style=color:#66d9ef>false</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+            <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+            :expr 
+               <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>3</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>3</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>55</span><span style=color:#960050;background-color:#1e0010>}</span>
+            :resno <span style=color:#ae81ff>3</span> 
+            :resname tsex 
+            :ressortgroupref <span style=color:#ae81ff>0</span> 
+            :resorigtbl <span style=color:#ae81ff>91469</span> 
+            :resorigcol <span style=color:#ae81ff>3</span> 
+            :resjunk <span style=color:#66d9ef>false</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+         )
+         :override <span style=color:#ae81ff>0</span> 
+         :onConflict <span style=color:#f92672>&lt;&gt;</span> 
+         :returningList <span style=color:#f92672>&lt;&gt;</span> 
+         :groupClause <span style=color:#f92672>&lt;&gt;</span> 
+         :groupDistinct <span style=color:#66d9ef>false</span> 
+         :groupingSets <span style=color:#f92672>&lt;&gt;</span> 
+         :havingQual <span style=color:#f92672>&lt;&gt;</span> 
+         :windowClause <span style=color:#f92672>&lt;&gt;</span> 
+         :distinctClause <span style=color:#f92672>&lt;&gt;</span> 
+         :sortClause <span style=color:#f92672>&lt;&gt;</span> 
+         :limitOffset <span style=color:#f92672>&lt;&gt;</span> 
+         :limitCount <span style=color:#f92672>&lt;&gt;</span> 
+         :limitOption <span style=color:#ae81ff>0</span> 
+         :rowMarks <span style=color:#f92672>&lt;&gt;</span> 
+         :setOperations <span style=color:#f92672>&lt;&gt;</span> 
+         :constraintDeps <span style=color:#f92672>&lt;&gt;</span> 
+         :withCheckOptions <span style=color:#f92672>&lt;&gt;</span> 
+         :stmt_location <span style=color:#ae81ff>0</span> 
+         :stmt_len <span style=color:#ae81ff>0</span>
+         <span style=color:#960050;background-color:#1e0010>}</span>
+      :security_barrier <span style=color:#66d9ef>false</span> 
+      :<span style=color:#66d9ef>lateral</span> <span style=color:#66d9ef>false</span> 
+      :inh <span style=color:#66d9ef>false</span> 
+      :inFromCl <span style=color:#66d9ef>true</span> 
+      :requiredPerms <span style=color:#ae81ff>0</span> 
+      :checkAsUser <span style=color:#ae81ff>0</span> 
+      :selectedCols (b)
+      :insertedCols (b)
+      :updatedCols (b)
+      :extraUpdatedCols (b)
+      :securityQuals <span style=color:#f92672>&lt;&gt;</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLENTRY 
+      :<span style=color:#66d9ef>alias</span> <span style=color:#f92672>&lt;&gt;</span> 
+      :eref 
+         <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname course :colnames (<span style=color:#e6db74>&#34;no&#34;</span> <span style=color:#e6db74>&#34;name&#34;</span> <span style=color:#e6db74>&#34;credit&#34;</span>)<span style=color:#960050;background-color:#1e0010>}</span>
+      :rtekind <span style=color:#ae81ff>0</span> 
+      :relid <span style=color:#ae81ff>66909</span> 
+      :relkind r 
+      :rellockmode <span style=color:#ae81ff>1</span> 
+      :tablesample <span style=color:#f92672>&lt;&gt;</span> 
+      :<span style=color:#66d9ef>lateral</span> <span style=color:#66d9ef>false</span> 
+      :inh <span style=color:#66d9ef>true</span> 
+      :inFromCl <span style=color:#66d9ef>true</span> 
+      :requiredPerms <span style=color:#ae81ff>2</span> 
+      :checkAsUser <span style=color:#ae81ff>0</span> 
+      :selectedCols (b <span style=color:#ae81ff>8</span> <span style=color:#ae81ff>9</span> <span style=color:#ae81ff>10</span>)
+      :insertedCols (b)
+      :updatedCols (b)
+      :extraUpdatedCols (b)
+      :securityQuals <span style=color:#f92672>&lt;&gt;</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLENTRY 
+      :<span style=color:#66d9ef>alias</span> 
+         <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname num :colnames (<span style=color:#e6db74>&#34;x&#34;</span> <span style=color:#e6db74>&#34;y&#34;</span>)<span style=color:#960050;background-color:#1e0010>}</span>
+      :eref 
+         <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname num :colnames (<span style=color:#e6db74>&#34;x&#34;</span> <span style=color:#e6db74>&#34;y&#34;</span>)<span style=color:#960050;background-color:#1e0010>}</span>
+      :rtekind <span style=color:#ae81ff>1</span> 
+      :subquery 
+         <span style=color:#960050;background-color:#1e0010>{</span>QUERY 
+         :commandType <span style=color:#ae81ff>1</span> 
+         :querySource <span style=color:#ae81ff>0</span> 
+         :canSetTag <span style=color:#66d9ef>true</span> 
+         :utilityStmt <span style=color:#f92672>&lt;&gt;</span> 
+         :resultRelation <span style=color:#ae81ff>0</span> 
+         :hasAggs <span style=color:#66d9ef>false</span> 
+         :hasWindowFuncs <span style=color:#66d9ef>false</span> 
+         :hasTargetSRFs <span style=color:#66d9ef>false</span> 
+         :hasSubLinks <span style=color:#66d9ef>false</span> 
+         :hasDistinctOn <span style=color:#66d9ef>false</span> 
+         :hasRecursive <span style=color:#66d9ef>false</span> 
+         :hasModifyingCTE <span style=color:#66d9ef>false</span> 
+         :hasForUpdate <span style=color:#66d9ef>false</span> 
+         :hasRowSecurity <span style=color:#66d9ef>false</span> 
+         :isReturn <span style=color:#66d9ef>false</span> 
+         :cteList <span style=color:#f92672>&lt;&gt;</span> 
+         :rtable (
+            <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLENTRY 
+            :<span style=color:#66d9ef>alias</span> <span style=color:#f92672>&lt;&gt;</span> 
+            :eref 
+               <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> :aliasname <span style=color:#f92672>*</span><span style=color:#66d9ef>VALUES</span><span style=color:#f92672>*</span> :colnames (<span style=color:#e6db74>&#34;column1&#34;</span> <span style=color:#e6db74>&#34;column2&#34;</span>)<span style=color:#960050;background-color:#1e0010>}</span>
+            :rtekind <span style=color:#ae81ff>5</span> 
+            :values_lists ((
+               <span style=color:#960050;background-color:#1e0010>{</span>CONST 
+               :consttype <span style=color:#ae81ff>23</span> 
+               :consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+               :constcollid <span style=color:#ae81ff>0</span> 
+               :constlen <span style=color:#ae81ff>4</span> 
+               :constbyval <span style=color:#66d9ef>true</span> 
+               :constisnull <span style=color:#66d9ef>false</span> 
+               :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>94</span> 
+               :constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]
+               <span style=color:#960050;background-color:#1e0010>}</span>
+               <span style=color:#960050;background-color:#1e0010>{</span>CONST 
+               :consttype <span style=color:#ae81ff>23</span> 
+               :consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+               :constcollid <span style=color:#ae81ff>0</span> 
+               :constlen <span style=color:#ae81ff>4</span> 
+               :constbyval <span style=color:#66d9ef>true</span> 
+               :constisnull <span style=color:#66d9ef>false</span> 
+               :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>97</span> 
+               :constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]
+               <span style=color:#960050;background-color:#1e0010>}</span>
+            ))
+            :coltypes (o <span style=color:#ae81ff>23</span> <span style=color:#ae81ff>23</span>)
+            :coltypmods (i <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>)
+            :colcollations (o <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span>)
+            :<span style=color:#66d9ef>lateral</span> <span style=color:#66d9ef>false</span> 
+            :inh <span style=color:#66d9ef>false</span> 
+            :inFromCl <span style=color:#66d9ef>true</span> 
+            :requiredPerms <span style=color:#ae81ff>0</span> 
+            :checkAsUser <span style=color:#ae81ff>0</span> 
+            :selectedCols (b)
+            :insertedCols (b)
+            :updatedCols (b)
+            :extraUpdatedCols (b)
+            :securityQuals <span style=color:#f92672>&lt;&gt;</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+         )
+         :jointree 
+            <span style=color:#960050;background-color:#1e0010>{</span>FROMEXPR 
+            :fromlist (
+               <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLREF 
+               :rtindex <span style=color:#ae81ff>1</span>
+               <span style=color:#960050;background-color:#1e0010>}</span>
+            )
+            :quals <span style=color:#f92672>&lt;&gt;</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+         :mergeActionList <span style=color:#f92672>&lt;&gt;</span> 
+         :mergeUseOuterJoin <span style=color:#66d9ef>false</span> 
+         :targetList (
+            <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+            :expr 
+               <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+            :resno <span style=color:#ae81ff>1</span> 
+            :resname column1 
+            :ressortgroupref <span style=color:#ae81ff>0</span> 
+            :resorigtbl <span style=color:#ae81ff>0</span> 
+            :resorigcol <span style=color:#ae81ff>0</span> 
+            :resjunk <span style=color:#66d9ef>false</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+            <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+            :expr 
+               <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>2</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>2</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>
+            :resno <span style=color:#ae81ff>2</span> 
+            :resname column2 
+            :ressortgroupref <span style=color:#ae81ff>0</span> 
+            :resorigtbl <span style=color:#ae81ff>0</span> 
+            :resorigcol <span style=color:#ae81ff>0</span> 
+            :resjunk <span style=color:#66d9ef>false</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+         )
+         :override <span style=color:#ae81ff>0</span> 
+         :onConflict <span style=color:#f92672>&lt;&gt;</span> 
+         :returningList <span style=color:#f92672>&lt;&gt;</span> 
+         :groupClause <span style=color:#f92672>&lt;&gt;</span> 
+         :groupDistinct <span style=color:#66d9ef>false</span> 
+         :groupingSets <span style=color:#f92672>&lt;&gt;</span> 
+         :havingQual <span style=color:#f92672>&lt;&gt;</span> 
+         :windowClause <span style=color:#f92672>&lt;&gt;</span> 
+         :distinctClause <span style=color:#f92672>&lt;&gt;</span> 
+         :sortClause <span style=color:#f92672>&lt;&gt;</span> 
+         :limitOffset <span style=color:#f92672>&lt;&gt;</span> 
+         :limitCount <span style=color:#f92672>&lt;&gt;</span> 
+         :limitOption <span style=color:#ae81ff>0</span> 
+         :rowMarks <span style=color:#f92672>&lt;&gt;</span> 
+         :setOperations <span style=color:#f92672>&lt;&gt;</span> 
+         :constraintDeps <span style=color:#f92672>&lt;&gt;</span> 
+         :withCheckOptions <span style=color:#f92672>&lt;&gt;</span> 
+         :stmt_location <span style=color:#ae81ff>0</span> 
+         :stmt_len <span style=color:#ae81ff>0</span>
+         <span style=color:#960050;background-color:#1e0010>}</span>
+      :security_barrier <span style=color:#66d9ef>false</span> 
+      :<span style=color:#66d9ef>lateral</span> <span style=color:#66d9ef>false</span> 
+      :inh <span style=color:#66d9ef>false</span> 
+      :inFromCl <span style=color:#66d9ef>true</span> 
+      :requiredPerms <span style=color:#ae81ff>0</span> 
+      :checkAsUser <span style=color:#ae81ff>0</span> 
+      :selectedCols (b)
+      :insertedCols (b)
+      :updatedCols (b)
+      :extraUpdatedCols (b)
+      :securityQuals <span style=color:#f92672>&lt;&gt;</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLENTRY 
+      :<span style=color:#66d9ef>alias</span> 
+         <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> 
+         :aliasname gs 
+         :colnames (<span style=color:#e6db74>&#34;z&#34;</span>)
+         <span style=color:#960050;background-color:#1e0010>}</span>
+      :eref 
+         <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>ALIAS</span> 
+         :aliasname gs 
+         :colnames (<span style=color:#e6db74>&#34;z&#34;</span>)
+         <span style=color:#960050;background-color:#1e0010>}</span>
+      :rtekind <span style=color:#ae81ff>3</span> 
+      :functions (
+         <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLFUNCTION 
+         :funcexpr 
+            <span style=color:#960050;background-color:#1e0010>{</span>FUNCEXPR 
+            :funcid <span style=color:#ae81ff>1067</span> 
+            :funcresulttype <span style=color:#ae81ff>23</span> 
+            :funcretset <span style=color:#66d9ef>true</span> 
+            :funcvariadic <span style=color:#66d9ef>false</span> 
+            :funcformat <span style=color:#ae81ff>0</span> 
+            :funccollid <span style=color:#ae81ff>0</span> 
+            :inputcollid <span style=color:#ae81ff>0</span> 
+            :args (
+               <span style=color:#960050;background-color:#1e0010>{</span>CONST 
+               :consttype <span style=color:#ae81ff>23</span> 
+               :consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+               :constcollid <span style=color:#ae81ff>0</span> 
+               :constlen <span style=color:#ae81ff>4</span> 
+               :constbyval <span style=color:#66d9ef>true</span> 
+               :constisnull <span style=color:#66d9ef>false</span> 
+               :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>131</span> 
+               :constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]
+               <span style=color:#960050;background-color:#1e0010>}</span>
+               <span style=color:#960050;background-color:#1e0010>{</span>CONST 
+               :consttype <span style=color:#ae81ff>23</span> 
+               :consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+               :constcollid <span style=color:#ae81ff>0</span> 
+               :constlen <span style=color:#ae81ff>4</span> 
+               :constbyval <span style=color:#66d9ef>true</span> 
+               :constisnull <span style=color:#66d9ef>false</span> 
+               :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>134</span> 
+               :constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>10</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]
+               <span style=color:#960050;background-color:#1e0010>}</span>
+            )
+            :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>115</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+         :funccolcount <span style=color:#ae81ff>1</span> 
+         :funccolnames <span style=color:#f92672>&lt;&gt;</span> 
+         :funccoltypes <span style=color:#f92672>&lt;&gt;</span> 
+         :funccoltypmods <span style=color:#f92672>&lt;&gt;</span> 
+         :funccolcollations <span style=color:#f92672>&lt;&gt;</span> 
+         :funcparams (b)
+         <span style=color:#960050;background-color:#1e0010>}</span>
+      )
+      :funcordinality <span style=color:#66d9ef>false</span> 
+      :<span style=color:#66d9ef>lateral</span> <span style=color:#66d9ef>false</span> 
+      :inh <span style=color:#66d9ef>false</span> 
+      :inFromCl <span style=color:#66d9ef>true</span> 
+      :requiredPerms <span style=color:#ae81ff>0</span> 
+      :checkAsUser <span style=color:#ae81ff>0</span> 
+      :selectedCols (b)
+      :insertedCols (b)
+      :updatedCols (b)
+      :extraUpdatedCols (b)
+      :securityQuals <span style=color:#f92672>&lt;&gt;</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+   )
+   :jointree 
+      <span style=color:#960050;background-color:#1e0010>{</span>FROMEXPR 
+      :fromlist (
+         <span style=color:#960050;background-color:#1e0010>{</span>JOINEXPR 
+         :jointype <span style=color:#ae81ff>1</span> 
+         :isNatural <span style=color:#66d9ef>false</span> 
+         :larg 
+            <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLREF 
+            :rtindex <span style=color:#ae81ff>1</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+         :rarg 
+            <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLREF 
+            :rtindex <span style=color:#ae81ff>2</span>
+            <span style=color:#960050;background-color:#1e0010>}</span>
+         :usingClause <span style=color:#f92672>&lt;&gt;</span> 
+         :join_using_alias <span style=color:#f92672>&lt;&gt;</span> 
+         :quals 
+            <span style=color:#960050;background-color:#1e0010>{</span>CONST 
+            :consttype <span style=color:#ae81ff>16</span> 
+            :consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+            :constcollid <span style=color:#ae81ff>0</span> 
+            :constlen <span style=color:#ae81ff>1</span> 
+            :constbyval <span style=color:#66d9ef>true</span> 
+            :constisnull <span style=color:#66d9ef>false</span> 
+            :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>41</span> 
+            :constvalue <span style=color:#ae81ff>1</span> [ <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]
+            <span style=color:#960050;background-color:#1e0010>}</span>
+         :<span style=color:#66d9ef>alias</span> <span style=color:#f92672>&lt;&gt;</span> 
+         :rtindex <span style=color:#ae81ff>3</span>
+         <span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLREF 
+         :rtindex <span style=color:#ae81ff>4</span>
+         <span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLREF 
+         :rtindex <span style=color:#ae81ff>5</span>
+         <span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLREF 
+         :rtindex <span style=color:#ae81ff>6</span>
+         <span style=color:#960050;background-color:#1e0010>}</span>
+         <span style=color:#960050;background-color:#1e0010>{</span>RANGETBLREF 
+         :rtindex <span style=color:#ae81ff>7</span>
+         <span style=color:#960050;background-color:#1e0010>}</span>
+      )
+      :quals <span style=color:#f92672>&lt;&gt;</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+   :mergeActionList <span style=color:#f92672>&lt;&gt;</span> 
+   :mergeUseOuterJoin <span style=color:#66d9ef>false</span> 
+   :targetList (
+      <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+      :expr 
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>7</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :resno <span style=color:#ae81ff>1</span> 
+      :resname sno 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      :resorigtbl <span style=color:#ae81ff>91474</span> 
+      :resorigcol <span style=color:#ae81ff>1</span> 
+      :resjunk <span style=color:#66d9ef>false</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+      :expr 
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>2</span> :vartype <span style=color:#ae81ff>1043</span> :vartypmod <span style=color:#ae81ff>14</span> :varcollid <span style=color:#ae81ff>100</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>2</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>7</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :resno <span style=color:#ae81ff>2</span> 
+      :resname sname 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      :resorigtbl <span style=color:#ae81ff>91474</span> 
+      :resorigcol <span style=color:#ae81ff>2</span> 
+      :resjunk <span style=color:#66d9ef>false</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+      :expr 
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>3</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>3</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>7</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :resno <span style=color:#ae81ff>3</span> 
+      :resname ssex 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      :resorigtbl <span style=color:#ae81ff>91474</span> 
+      :resorigcol <span style=color:#ae81ff>3</span> 
+      :resjunk <span style=color:#66d9ef>false</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+      :expr 
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>7</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :resno <span style=color:#ae81ff>4</span> 
+      :resname sno 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      :resorigtbl <span style=color:#ae81ff>91466</span> 
+      :resorigcol <span style=color:#ae81ff>1</span> 
+      :resjunk <span style=color:#66d9ef>false</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+      :expr 
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>2</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>2</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>7</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :resno <span style=color:#ae81ff>5</span> 
+      :resname cno 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      :resorigtbl <span style=color:#ae81ff>91466</span> 
+      :resorigcol <span style=color:#ae81ff>2</span> 
+      :resjunk <span style=color:#66d9ef>false</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+      :expr 
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>3</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>3</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>7</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :resno <span style=color:#ae81ff>6</span> 
+      :resname degree 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      :resorigtbl <span style=color:#ae81ff>91466</span> 
+      :resorigcol <span style=color:#ae81ff>3</span> 
+      :resjunk <span style=color:#66d9ef>false</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+      :expr 
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>4</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>4</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>7</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :resno <span style=color:#ae81ff>7</span> 
+      :resname tno 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      :resorigtbl <span style=color:#ae81ff>91469</span> 
+      :resorigcol <span style=color:#ae81ff>1</span> 
+      :resjunk <span style=color:#66d9ef>false</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+      :expr 
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>4</span> :varattno <span style=color:#ae81ff>2</span> :vartype <span style=color:#ae81ff>1043</span> :vartypmod <span style=color:#ae81ff>14</span> :varcollid <span style=color:#ae81ff>100</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>4</span> :varattnosyn <span style=color:#ae81ff>2</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>7</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :resno <span style=color:#ae81ff>8</span> 
+      :resname tname 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      :resorigtbl <span style=color:#ae81ff>91469</span> 
+      :resorigcol <span style=color:#ae81ff>2</span> 
+      :resjunk <span style=color:#66d9ef>false</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+      :expr 
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>4</span> :varattno <span style=color:#ae81ff>3</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>4</span> :varattnosyn <span style=color:#ae81ff>3</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>7</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :resno <span style=color:#ae81ff>9</span> 
+      :resname tsex 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      :resorigtbl <span style=color:#ae81ff>91469</span> 
+      :resorigcol <span style=color:#ae81ff>3</span> 
+      :resjunk <span style=color:#66d9ef>false</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+      :expr 
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>5</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>5</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>7</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :resno <span style=color:#ae81ff>10</span> 
+      :resname <span style=color:#66d9ef>no</span> 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      :resorigtbl <span style=color:#ae81ff>66909</span> 
+      :resorigcol <span style=color:#ae81ff>1</span> 
+      :resjunk <span style=color:#66d9ef>false</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+      :expr 
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>5</span> :varattno <span style=color:#ae81ff>2</span> :vartype <span style=color:#ae81ff>1043</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>100</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>5</span> :varattnosyn <span style=color:#ae81ff>2</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>7</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :resno <span style=color:#ae81ff>11</span> 
+      :resname name 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      :resorigtbl <span style=color:#ae81ff>66909</span> 
+      :resorigcol <span style=color:#ae81ff>2</span> 
+      :resjunk <span style=color:#66d9ef>false</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+      :expr 
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>5</span> :varattno <span style=color:#ae81ff>3</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>5</span> :varattnosyn <span style=color:#ae81ff>3</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>7</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :resno <span style=color:#ae81ff>12</span> 
+      :resname credit 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      :resorigtbl <span style=color:#ae81ff>66909</span> 
+      :resorigcol <span style=color:#ae81ff>3</span> 
+      :resjunk <span style=color:#66d9ef>false</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+      :expr 
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>6</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>6</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>7</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :resno <span style=color:#ae81ff>13</span> 
+      :resname x 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      :resorigtbl <span style=color:#ae81ff>0</span> 
+      :resorigcol <span style=color:#ae81ff>0</span> 
+      :resjunk <span style=color:#66d9ef>false</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+      :expr 
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>6</span> :varattno <span style=color:#ae81ff>2</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>6</span> :varattnosyn <span style=color:#ae81ff>2</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>7</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :resno <span style=color:#ae81ff>14</span> 
+      :resname y 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      :resorigtbl <span style=color:#ae81ff>0</span> 
+      :resorigcol <span style=color:#ae81ff>0</span> 
+      :resjunk <span style=color:#66d9ef>false</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+      <span style=color:#960050;background-color:#1e0010>{</span>TARGETENTRY 
+      :expr 
+         <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>7</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>7</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>7</span><span style=color:#960050;background-color:#1e0010>}</span>
+      :resno <span style=color:#ae81ff>15</span> 
+      :resname z 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      :resorigtbl <span style=color:#ae81ff>0</span> 
+      :resorigcol <span style=color:#ae81ff>0</span> 
+      :resjunk <span style=color:#66d9ef>false</span>
+      <span style=color:#960050;background-color:#1e0010>}</span>
+   )
+   :override <span style=color:#ae81ff>0</span> 
+   :onConflict <span style=color:#f92672>&lt;&gt;</span> 
+   :returningList <span style=color:#f92672>&lt;&gt;</span> 
+   :groupClause <span style=color:#f92672>&lt;&gt;</span> 
+   :groupDistinct <span style=color:#66d9ef>false</span> 
+   :groupingSets <span style=color:#f92672>&lt;&gt;</span> 
+   :havingQual <span style=color:#f92672>&lt;&gt;</span> 
+   :windowClause <span style=color:#f92672>&lt;&gt;</span> 
+   :distinctClause <span style=color:#f92672>&lt;&gt;</span> 
+   :sortClause <span style=color:#f92672>&lt;&gt;</span> 
+   :limitOffset <span style=color:#f92672>&lt;&gt;</span> 
+   :limitCount <span style=color:#f92672>&lt;&gt;</span> 
+   :limitOption <span style=color:#ae81ff>0</span> 
+   :rowMarks <span style=color:#f92672>&lt;&gt;</span> 
+   :setOperations <span style=color:#f92672>&lt;&gt;</span> 
+   :constraintDeps <span style=color:#f92672>&lt;&gt;</span> 
+   :withCheckOptions <span style=color:#f92672>&lt;&gt;</span> 
+   :stmt_location <span style=color:#ae81ff>0</span> 
+   :stmt_len <span style=color:#ae81ff>146</span>
+   <span style=color:#960050;background-color:#1e0010>}</span>
+
+</code></pre></div><p>语法树的表示</p>
+<ol>
+<li>node</li>
+<li>var</li>
+<li>rangetableentry</li>
+<li>rangetableref</li>
+<li>joinexpr</li>
+<li>fromexpr</li>
+<li>query
+从上述的表和对应的打印的数据结构，分析具体的结构体的实际操作方法</li>
+</ol>
+<p>语法树的遍历
+1.</p>
+</div>
+<div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>Read other posts</span>
+<hr>
+</div>
+<div class=pagination__buttons>
+<span class="button previous">
+<a href=https://Esoye.github.io/posts/postgres/pgenvbuild/>
+<span class=button__icon>←</span>
+<span class=button__text>Postgres 系列数据库搭建</span>
+</a>
+</span>
+<span class="button next">
+<a href=https://Esoye.github.io/posts/postgres/storage/>
+<span class=button__text>Postgres Storage</span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<div class=copyright>
+<span>© 2022 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
+</div>
+</div>
+</footer>
+<script src=https://Esoye.github.io/assets/main.js></script>
+<script src=https://Esoye.github.io/assets/prism.js></script>
+</div>
+</body>
+</html>

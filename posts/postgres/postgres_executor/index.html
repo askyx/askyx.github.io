@@ -1,0 +1,469 @@
+<!doctype html><html lang=en>
+<head>
+<title>
+Postgres Executor ::
+Esoye — My note blog
+</title>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="执行器 #  exec_simple_query
+pg_parse_query
+pg_analyze_and_rewrite_fixedparams
+pg_plan_queries
+CreatePortal
+PortalDefineQuery
+PortalStart ChoosePortalStrategy PORTAL_ONE_SELECT CreateQueryDesc ExecutorStart standard_ExecutorStart PORTAL_ONE_MOD_WITH PORTAL_ONE_RETURNING ExecCleanTypeFromTL PORTAL_UTIL_SELECT UtilityTupleDescriptor
+PortalRun case PORTAL_ONE_SELECT: case PORTAL_ONE_RETURNING: case PORTAL_ONE_MOD_WITH: case PORTAL_UTIL_SELECT: FillPortalStore PortalRunSelect ExecutorRun standard_ExecutorRun &amp;ndash; hook，可以使用其他执行器 ExecutePlan ExecProcNode &amp;ndash; 递归执行ExecProcNode case PORTAL_MULTI_QUERY: PortalRunMulti ProcessQuery CreateQueryDesc ExecutorStart ExecutorRun ExecutorFinish ExecutorEnd FreeQueryDesc PortalRunUtility ProcessUtility standard_ProcessUtility &amp;ndash; 预留钩子
+PortalDrop PortalCleanup ExecutorFinish ExecutorEnd ExecEndNode FreeQueryDesc
+We have several execution strategies for Portals, depending on what query or queries are to be executed.">
+<meta name=keywords content="数据库">
+<meta name=robots content="noodp">
+<link rel=canonical href=https://Esoye.github.io/posts/postgres/postgres_executor/>
+<link rel=stylesheet href=https://Esoye.github.io/assets/style.css>
+<link rel=stylesheet href=https://Esoye.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://Esoye.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://Esoye.github.io/img/favicon.png>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Postgres Executor">
+<meta name=twitter:description content="执行器 #  exec_simple_query
+pg_parse_query
+pg_analyze_and_rewrite_fixedparams
+pg_plan_queries
+CreatePortal
+PortalDefineQuery
+PortalStart ChoosePortalStrategy PORTAL_ONE_SELECT CreateQueryDesc ExecutorStart standard_ExecutorStart PORTAL_ONE_MOD_WITH PORTAL_ONE_RETURNING ExecCleanTypeFromTL PORTAL_UTIL_SELECT UtilityTupleDescriptor
+PortalRun case PORTAL_ONE_SELECT: case PORTAL_ONE_RETURNING: case PORTAL_ONE_MOD_WITH: case PORTAL_UTIL_SELECT: FillPortalStore PortalRunSelect ExecutorRun standard_ExecutorRun &ndash; hook，可以使用其他执行器 ExecutePlan ExecProcNode &ndash; 递归执行ExecProcNode case PORTAL_MULTI_QUERY: PortalRunMulti ProcessQuery CreateQueryDesc ExecutorStart ExecutorRun ExecutorFinish ExecutorEnd FreeQueryDesc PortalRunUtility ProcessUtility standard_ProcessUtility &ndash; 预留钩子
+PortalDrop PortalCleanup ExecutorFinish ExecutorEnd ExecEndNode FreeQueryDesc
+We have several execution strategies for Portals, depending on what query or queries are to be executed.">
+<meta property="og:title" content="Postgres Executor">
+<meta property="og:description" content="执行器 #  exec_simple_query
+pg_parse_query
+pg_analyze_and_rewrite_fixedparams
+pg_plan_queries
+CreatePortal
+PortalDefineQuery
+PortalStart ChoosePortalStrategy PORTAL_ONE_SELECT CreateQueryDesc ExecutorStart standard_ExecutorStart PORTAL_ONE_MOD_WITH PORTAL_ONE_RETURNING ExecCleanTypeFromTL PORTAL_UTIL_SELECT UtilityTupleDescriptor
+PortalRun case PORTAL_ONE_SELECT: case PORTAL_ONE_RETURNING: case PORTAL_ONE_MOD_WITH: case PORTAL_UTIL_SELECT: FillPortalStore PortalRunSelect ExecutorRun standard_ExecutorRun &ndash; hook，可以使用其他执行器 ExecutePlan ExecProcNode &ndash; 递归执行ExecProcNode case PORTAL_MULTI_QUERY: PortalRunMulti ProcessQuery CreateQueryDesc ExecutorStart ExecutorRun ExecutorFinish ExecutorEnd FreeQueryDesc PortalRunUtility ProcessUtility standard_ProcessUtility &ndash; 预留钩子
+PortalDrop PortalCleanup ExecutorFinish ExecutorEnd ExecEndNode FreeQueryDesc
+We have several execution strategies for Portals, depending on what query or queries are to be executed.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://Esoye.github.io/posts/postgres/postgres_executor/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2022-07-20T09:26:50+08:00">
+<meta property="article:modified_time" content="2022-07-20T09:26:50+08:00"><meta property="og:site_name" content="Esoye">
+</head>
+<body class=light-theme>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archive>Archive</a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archive>Archive</a></li>
+</ul>
+</nav>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class=post>
+<h1 class=post-title>Postgres Executor</h1>
+<div class=post-meta>
+<span class=post-date>
+2022-07-20
+</span>
+</div>
+<span class=post-tags>
+<a href=https://Esoye.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
+<a href=https://Esoye.github.io/tags/postgres/>#Postgres</a>&nbsp;
+<a href=https://Esoye.github.io/tags/%E6%89%A7%E8%A1%8C%E5%99%A8/>#执行器</a>&nbsp;
+</span>
+<div class=post-content>
+<h2 id=执行器>
+执行器
+<a href=#%e6%89%a7%e8%a1%8c%e5%99%a8 class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>exec_simple_query</p>
+<p>pg_parse_query</p>
+<p>pg_analyze_and_rewrite_fixedparams</p>
+<p>pg_plan_queries</p>
+<p>CreatePortal</p>
+<p>PortalDefineQuery</p>
+<p>PortalStart
+ChoosePortalStrategy
+PORTAL_ONE_SELECT
+CreateQueryDesc
+ExecutorStart
+standard_ExecutorStart
+PORTAL_ONE_MOD_WITH
+PORTAL_ONE_RETURNING
+ExecCleanTypeFromTL
+PORTAL_UTIL_SELECT
+UtilityTupleDescriptor</p>
+<p>PortalRun
+case PORTAL_ONE_SELECT:
+case PORTAL_ONE_RETURNING:
+case PORTAL_ONE_MOD_WITH:
+case PORTAL_UTIL_SELECT:
+FillPortalStore
+PortalRunSelect
+ExecutorRun
+standard_ExecutorRun &ndash; hook，可以使用其他执行器
+ExecutePlan
+ExecProcNode &ndash; 递归执行ExecProcNode
+case PORTAL_MULTI_QUERY:
+PortalRunMulti
+ProcessQuery
+CreateQueryDesc
+ExecutorStart
+ExecutorRun
+ExecutorFinish
+ExecutorEnd
+FreeQueryDesc
+PortalRunUtility
+ProcessUtility
+standard_ProcessUtility &ndash; 预留钩子</p>
+<p>PortalDrop
+PortalCleanup
+ExecutorFinish
+ExecutorEnd
+ExecEndNode
+FreeQueryDesc</p>
+<p>We have several execution strategies for Portals, depending on what query or queries are to be executed. (Note: in all cases, a Portal executes just a single source-SQL query, and thus produces just a single result from the user&rsquo;s viewpoint. However, the rule rewriter may expand the single source query to zero or many actual queries.)</p>
+<ul>
+<li>
+<p>PORTAL_ONE_SELECT
+the portal contains one single SELECT query. We run the Executor incrementally as results are demanded. This strategy also supports holdable cursors (the Executor results can be dumped into a tuplestore for access after transaction completion).
+查询操作，结果可以在原子操作之后缓存，用于游标访问</p>
+</li>
+<li>
+<p>PORTAL_ONE_RETURNING
+the portal contains a single INSERT/UPDATE/DELETE query with a RETURNING clause (plus possibly auxiliary queries added by rule rewriting). On first execution, we run the portal to completion and dump the primary query&rsquo;s results into the portal tuplestore; the results are then returned to the client as demanded. (We can&rsquo;t support suspension of the query partway through, because the AFTER TRIGGER code can&rsquo;t cope, and also because we don&rsquo;t want to risk failing to execute all the auxiliary queries.)</p>
+</li>
+<li>
+<p>PORTAL_ONE_MOD_WITH,</p>
+</li>
+<li>
+<p>PORTAL_UTIL_SELECT,</p>
+</li>
+<li>
+<p>PORTAL_MULTI_QUERY</p>
+</li>
+<li>
+<p>常规的DML语句，以节点树的形式表示</p>
+</li>
+<li>
+<p>非DML语句，utility，语句执行时一系列的过程</p>
+</li>
+<li>
+<p>其他子模块</p>
+</li>
+</ul>
+<p>&ndash;</p>
+<h1 id=debug-case>
+DEBUG CASE
+<a href=#debug-case class=h-anchor aria-hidden=true>#</a>
+</h1>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=color:#66d9ef>CREATE</span> <span style=color:#66d9ef>TABLE</span> tenk1 (
+	unique1		int4,
+	unique2		int4,
+	two			int4,
+	four		int4,
+	ten			int4,
+	twenty		int4,
+	hundred		int4,
+	thousand	int4,
+	twothousand	int4,
+	fivethous	int4,
+	tenthous	int4,
+	odd			int4,
+	even		int4,
+	stringu1	name,
+	stringu2	name,
+	string4		name
+);
+
+<span style=color:#75715e>-- 回歸測試文件
+</span><span style=color:#75715e></span><span style=color:#960050;background-color:#1e0010>\</span><span style=color:#66d9ef>set</span> filename :abs_srcdir <span style=color:#e6db74>&#39;/data/tenk.data&#39;</span>
+<span style=color:#66d9ef>COPY</span> tenk1 <span style=color:#66d9ef>FROM</span> :<span style=color:#e6db74>&#39;filename&#39;</span>;
+<span style=color:#66d9ef>VACUUM</span> <span style=color:#66d9ef>ANALYZE</span> tenk1;
+
+
+<span style=color:#66d9ef>select</span> <span style=color:#66d9ef>distinct</span> sub.unique1, stringu1
+<span style=color:#66d9ef>from</span> tenk1, <span style=color:#66d9ef>lateral</span> (<span style=color:#66d9ef>select</span> tenk1.unique1 <span style=color:#66d9ef>from</span> generate_series(<span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>1000</span>)) <span style=color:#66d9ef>as</span> sub;
+
+</code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
+postgres<span style=color:#f92672>=</span><span style=color:#960050;background-color:#1e0010>#</span> explain select distinct sub.unique1, stringu1
+from tenk1, lateral (select tenk1.unique1 from generate_series(<span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>1000</span>)) as sub;
+                                     QUERY PLAN                                     
+<span style=color:#f92672>------------------------------------------------------------------------------------</span>
+ HashAggregate  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>175480.00</span>.<span style=color:#ae81ff>.175580.00</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>10000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>68</span>)
+   Group Key: tenk1.unique1, tenk1.stringu1
+   <span style=color:#f92672>-&gt;</span>  Nested Loop  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.125480.00</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>10000000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>68</span>)
+         <span style=color:#f92672>-&gt;</span>  Function Scan on generate_series  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.10.00</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>1000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
+         <span style=color:#f92672>-&gt;</span>  Materialize  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.495.00</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>10000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>68</span>)
+               <span style=color:#f92672>-&gt;</span>  Seq Scan on tenk1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.445.00</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>10000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>68</span>)
+(<span style=color:#ae81ff>6</span> rows)
+
+<span style=color:#75715e>#0  exec_simple_query (query_string=0x55ef2315fe40 &#34;select distinct sub.unique1, stringu1\nfrom tenk1, lateral (select tenk1.unique1 from generate_series(1, 1000)) as sub;&#34;)
+</span><span style=color:#75715e></span>    at postgres.c:<span style=color:#ae81ff>1243</span>
+<span style=color:#75715e>#1  0x000055ef22314d31 in PostgresMain (dbname=0x55ef2315c598 &#34;postgres&#34;, username=0x55ef2318c218 &#34;wen&#34;) at postgres.c:4482
+</span><span style=color:#75715e>#2  0x000055ef2223aaff in BackendRun (port=0x55ef23185110) at postmaster.c:4490
+</span><span style=color:#75715e>#3  0x000055ef2223a3e4 in BackendStartup (port=0x55ef23185110) at postmaster.c:4218
+</span><span style=color:#75715e>#4  0x000055ef222366da in ServerLoop () at postmaster.c:1808
+</span><span style=color:#75715e>#5  0x000055ef22235e73 in PostmasterMain (argc=3, argv=0x55ef2315a510) at postmaster.c:1480
+</span><span style=color:#75715e>#6  0x000055ef220fb9dd in main (argc=3, argv=0x55ef2315a510) at main.c:197
+</span><span style=color:#75715e></span>
+
+<span style=color:#75715e>#0  standard_ExecutorRun (queryDesc=0x55ef23184340, direction=ForwardScanDirection, count=0, execute_once=true) at execMain.c:321
+</span><span style=color:#75715e>#1  0x000055ef22074ada in ExecutorRun (queryDesc=0x55ef23184340, direction=ForwardScanDirection, count=0, execute_once=true) at execMain.c:307
+</span><span style=color:#75715e>#2  0x000055ef22317259 in PortalRunSelect (portal=0x55ef231d23d0, forward=true, count=0, dest=0x55ef23242a10) at pquery.c:924
+</span><span style=color:#75715e>#3  0x000055ef22316e8c in PortalRun (portal=0x55ef231d23d0, count=9223372036854775807, isTopLevel=true, run_once=true, dest=0x55ef23242a10, altdest=0x55ef23242a10, qc=0x7fffcc2f5d50)
+</span><span style=color:#75715e></span>    at pquery.c:<span style=color:#ae81ff>768</span>
+<span style=color:#75715e>#4  0x000055ef223101bb in exec_simple_query (
+</span><span style=color:#75715e></span>    query_string<span style=color:#f92672>=</span><span style=color:#ae81ff>0x55ef2315fe40</span> <span style=color:#e6db74>&#34;select distinct sub.unique1, stringu1</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>from tenk1, lateral (select tenk1.unique1 from generate_series(1, 1000)) as sub;&#34;</span>) at postgres.c:<span style=color:#ae81ff>1243</span>
+<span style=color:#75715e>#5  0x000055ef22314d31 in PostgresMain (dbname=0x55ef2315c598 &#34;postgres&#34;, username=0x55ef2318c218 &#34;wen&#34;) at postgres.c:4482
+</span><span style=color:#75715e>#6  0x000055ef2223aaff in BackendRun (port=0x55ef23185110) at postmaster.c:4490
+</span><span style=color:#75715e>#7  0x000055ef2223a3e4 in BackendStartup (port=0x55ef23185110) at postmaster.c:4218
+</span><span style=color:#75715e>#8  0x000055ef222366da in ServerLoop () at postmaster.c:1808
+</span><span style=color:#75715e>#9  0x000055ef22235e73 in PostmasterMain (argc=3, argv=0x55ef2315a510) at postmaster.c:1480
+</span><span style=color:#75715e>#10 0x000055ef220fb9dd in main (argc=3, argv=0x55ef2315a510) at main.c:197
+</span><span style=color:#75715e></span>
+<span style=color:#75715e>#0  ExecProcNodeFirst (node=0x55ef232386e0) at execProcnode.c:451
+</span><span style=color:#75715e>#1  0x000055ef220745f1 in ExecProcNode (node=0x55ef232386e0) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
+</span><span style=color:#75715e>#2  0x000055ef220772c9 in ExecutePlan (estate=0x55ef23238490, planstate=0x55ef232386e0, use_parallel_mode=false, operation=CMD_SELECT, sendTuples=true, numberTuples=0,
+</span><span style=color:#75715e></span>    direction<span style=color:#f92672>=</span>ForwardScanDirection, dest<span style=color:#f92672>=</span><span style=color:#ae81ff>0x55ef23242a10</span>, execute_once<span style=color:#f92672>=</span>true) at execMain.c:<span style=color:#ae81ff>1636</span>
+<span style=color:#75715e>#3  0x000055ef22074ccb in standard_ExecutorRun (queryDesc=0x55ef23184340, direction=ForwardScanDirection, count=0, execute_once=true) at execMain.c:363
+</span><span style=color:#75715e>#4  0x000055ef22074ada in ExecutorRun (queryDesc=0x55ef23184340, direction=ForwardScanDirection, count=0, execute_once=true) at execMain.c:307
+</span><span style=color:#75715e>#5  0x000055ef22317259 in PortalRunSelect (portal=0x55ef231d23d0, forward=true, count=0, dest=0x55ef23242a10) at pquery.c:924
+</span><span style=color:#75715e>#6  0x000055ef22316e8c in PortalRun (portal=0x55ef231d23d0, count=9223372036854775807, isTopLevel=true, run_once=true, dest=0x55ef23242a10, altdest=0x55ef23242a10, qc=0x7fffcc2f5d50)
+</span><span style=color:#75715e></span>    at pquery.c:<span style=color:#ae81ff>768</span>
+
+<span style=color:#75715e>#0  agg_retrieve_hash_table (aggstate=0x55ef232386e0) at nodeAgg.c:2730
+</span><span style=color:#75715e>#1  0x000055ef22093f1c in ExecAgg (pstate=0x55ef232386e0) at nodeAgg.c:2157
+</span><span style=color:#75715e>#2  0x000055ef22080dd8 in ExecProcNodeFirst (node=0x55ef232386e0) at execProcnode.c:463
+</span><span style=color:#75715e>#3  0x000055ef220745f1 in ExecProcNode (node=0x55ef232386e0) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
+</span><span style=color:#75715e>#4  0x000055ef220772c9 in ExecutePlan (estate=0x55ef23238490, planstate=0x55ef232386e0, use_parallel_mode=false, operation=CMD_SELECT, sendTuples=true, numberTuples=0,
+</span><span style=color:#75715e></span>    direction<span style=color:#f92672>=</span>ForwardScanDirection, dest<span style=color:#f92672>=</span><span style=color:#ae81ff>0x55ef23242a10</span>, execute_once<span style=color:#f92672>=</span>true) at execMain.c:<span style=color:#ae81ff>1636</span>
+<span style=color:#75715e>#5  0x000055ef22074ccb in standard_ExecutorRun (queryDesc=0x55ef23184340, direction=ForwardScanDirection, count=0, execute_once=true) at execMain.c:363
+</span><span style=color:#75715e>#6  0x000055ef22074ada in ExecutorRun (queryDesc=0x55ef23184340, direction=ForwardScanDirection, count=0, execute_once=true) at execMain.c:307
+</span><span style=color:#75715e>#7  0x000055ef22317259 in PortalRunSelect (portal=0x55ef231d23d0, forward=true, count=0, dest=0x55ef23242a10) at pquery.c:924
+</span><span style=color:#75715e>#8  0x000055ef22316e8c in PortalRun (portal=0x55ef231d23d0, count=9223372036854775807, isTopLevel=true, run_once=true, dest=0x55ef23242a10, altdest=0x55ef23242a10, qc=0x7fffcc2f5d50)
+</span><span style=color:#75715e></span>    at pquery.c:<span style=color:#ae81ff>768</span>
+
+
+<span style=color:#75715e>#0  ExecScan (node=0x55ef23238f80, accessMtd=0x55ef220a0171 &lt;FunctionNext&gt;, recheckMtd=0x55ef220a056d &lt;FunctionRecheck&gt;) at execScan.c:169
+</span><span style=color:#75715e>#1  0x000055ef220a05c3 in ExecFunctionScan (pstate=0x55ef23238f80) at nodeFunctionscan.c:270
+</span><span style=color:#75715e>#2  0x000055ef22080dd8 in ExecProcNodeFirst (node=0x55ef23238f80) at execProcnode.c:463
+</span><span style=color:#75715e>#3  0x000055ef220c4214 in ExecProcNode (node=0x55ef23238f80) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
+</span><span style=color:#75715e>#4  0x000055ef220c4497 in ExecNestLoop (pstate=0x55ef23238dd0) at nodeNestloop.c:109
+</span><span style=color:#75715e>#5  0x000055ef22080dd8 in ExecProcNodeFirst (node=0x55ef23238dd0) at execProcnode.c:463
+</span><span style=color:#75715e>#6  0x000055ef220909a0 in ExecProcNode (node=0x55ef23238dd0) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
+</span><span style=color:#75715e>#7  0x000055ef22090efa in fetch_input_tuple (aggstate=0x55ef232386e0) at nodeAgg.c:563
+</span><span style=color:#75715e>#8  0x000055ef220946d6 in agg_fill_hash_table (aggstate=0x55ef232386e0) at nodeAgg.c:2533
+</span><span style=color:#75715e>#9  0x000055ef22093f10 in ExecAgg (pstate=0x55ef232386e0) at nodeAgg.c:2154
+</span><span style=color:#75715e>#10 0x000055ef22080dd8 in ExecProcNodeFirst (node=0x55ef232386e0) at execProcnode.c:463
+</span><span style=color:#75715e></span>
+<span style=color:#75715e>#0  ExecEvalFuncArgs (fcinfo=0x55ef23257e30, argList=0x55ef23239868, econtext=0x55ef23239198) at execSRF.c:841
+</span><span style=color:#75715e>#1  0x000055ef22083604 in ExecMakeTableFunctionResult (setexpr=0x55ef23239320, econtext=0x55ef23239198, argContext=0x55ef23257d10, expectedDesc=0x55ef23239dc8, randomAccess=false)
+</span><span style=color:#75715e></span>    at execSRF.c:<span style=color:#ae81ff>181</span>
+<span style=color:#75715e>#2  0x000055ef220a0226 in FunctionNext (node=0x55ef23238f80) at nodeFunctionscan.c:95
+</span><span style=color:#75715e>#3  0x000055ef22085167 in ExecScanFetch (node=0x55ef23238f80, accessMtd=0x55ef220a0171 &lt;FunctionNext&gt;, recheckMtd=0x55ef220a056d &lt;FunctionRecheck&gt;) at execScan.c:133
+</span><span style=color:#75715e>#4  0x000055ef220851e0 in ExecScan (node=0x55ef23238f80, accessMtd=0x55ef220a0171 &lt;FunctionNext&gt;, recheckMtd=0x55ef220a056d &lt;FunctionRecheck&gt;) at execScan.c:182
+</span><span style=color:#75715e>#5  0x000055ef220a05c3 in ExecFunctionScan (pstate=0x55ef23238f80) at nodeFunctionscan.c:270
+</span><span style=color:#75715e>#6  0x000055ef22080dd8 in ExecProcNodeFirst (node=0x55ef23238f80) at execProcnode.c:463
+</span><span style=color:#75715e>#7  0x000055ef220c4214 in ExecProcNode (node=0x55ef23238f80) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
+</span><span style=color:#75715e>#8  0x000055ef220c4497 in ExecNestLoop (pstate=0x55ef23238dd0) at nodeNestloop.c:109
+</span><span style=color:#75715e>#9  0x000055ef22080dd8 in ExecProcNodeFirst (node=0x55ef23238dd0) at execProcnode.c:463
+</span><span style=color:#75715e>#10 0x000055ef220909a0 in ExecProcNode (node=0x55ef23238dd0) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
+</span><span style=color:#75715e>#11 0x000055ef22090efa in fetch_input_tuple (aggstate=0x55ef232386e0) at nodeAgg.c:563
+</span><span style=color:#75715e>#12 0x000055ef220946d6 in agg_fill_hash_table (aggstate=0x55ef232386e0) at nodeAgg.c:2533
+</span><span style=color:#75715e></span>
+<span style=color:#75715e>#0  ExecJustConst (state=0x55ef232393b8, econtext=0x55ef23239198, isnull=0x55ef23257e58) at execExprInterp.c:2209
+</span><span style=color:#75715e>#1  0x000055ef22069449 in ExecInterpExprStillValid (state=0x55ef232393b8, econtext=0x55ef23239198, isNull=0x55ef23257e58) at execExprInterp.c:1858
+</span><span style=color:#75715e>#2  0x000055ef220832e3 in ExecEvalExpr (state=0x55ef232393b8, econtext=0x55ef23239198, isNull=0x55ef23257e58) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:324</span><span style=color:#75715e>
+</span><span style=color:#75715e>#3  0x000055ef22084853 in ExecEvalFuncArgs (fcinfo=0x55ef23257e30, argList=0x55ef23239868, econtext=0x55ef23239198) at execSRF.c:846
+</span><span style=color:#75715e>#4  0x000055ef22083604 in ExecMakeTableFunctionResult (setexpr=0x55ef23239320, econtext=0x55ef23239198, argContext=0x55ef23257d10, expectedDesc=0x55ef23239dc8, randomAccess=false)
+</span><span style=color:#75715e></span>    at execSRF.c:<span style=color:#ae81ff>181</span>
+<span style=color:#75715e>#5  0x000055ef220a0226 in FunctionNext (node=0x55ef23238f80) at nodeFunctionscan.c:95
+</span><span style=color:#75715e>#6  0x000055ef22085167 in ExecScanFetch (node=0x55ef23238f80, accessMtd=0x55ef220a0171 &lt;FunctionNext&gt;, recheckMtd=0x55ef220a056d &lt;FunctionRecheck&gt;) at execScan.c:133
+</span><span style=color:#75715e>#7  0x000055ef220851e0 in ExecScan (node=0x55ef23238f80, accessMtd=0x55ef220a0171 &lt;FunctionNext&gt;, recheckMtd=0x55ef220a056d &lt;FunctionRecheck&gt;) at execScan.c:182
+</span><span style=color:#75715e>#8  0x000055ef220a05c3 in ExecFunctionScan (pstate=0x55ef23238f80) at nodeFunctionscan.c:270
+</span><span style=color:#75715e>#9  0x000055ef22080dd8 in ExecProcNodeFirst (node=0x55ef23238f80) at execProcnode.c:463
+</span><span style=color:#75715e>#10 0x000055ef220c4214 in ExecProcNode (node=0x55ef23238f80) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
+</span><span style=color:#75715e>#11 0x000055ef220c4497 in ExecNestLoop (pstate=0x55ef23238dd0) at nodeNestloop.c:109
+</span><span style=color:#75715e>#12 0x000055ef22080dd8 in ExecProcNodeFirst (node=0x55ef23238dd0) at execProcnode.c:463
+</span><span style=color:#75715e>#13 0x000055ef220909a0 in ExecProcNode (node=0x55ef23238dd0) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
+</span><span style=color:#75715e></span>
+<span style=color:#75715e>#0  heap_getnextslot (sscan=0x55ef232d29a0, direction=ForwardScanDirection, slot=0x55ef2322fb00) at heapam.c:1347
+</span><span style=color:#75715e>#1  0x000055ef220c7065 in table_scan_getnextslot (sscan=0x55ef232d29a0, direction=ForwardScanDirection, slot=0x55ef2322fb00) at ../../../src/include</span><span style=color:#75715e>/access/tableam.h:1046</span><span style=color:#75715e>
+</span><span style=color:#75715e>#2  0x000055ef220c7131 in SeqNext (node=0x55ef2322f950) at nodeSeqscan.c:80
+</span><span style=color:#75715e>#3  0x000055ef22085167 in ExecScanFetch (node=0x55ef2322f950, accessMtd=0x55ef220c7099 &lt;SeqNext&gt;, recheckMtd=0x55ef220c7142 &lt;SeqRecheck&gt;) at execScan.c:133
+</span><span style=color:#75715e>#4  0x000055ef2208520c in ExecScan (node=0x55ef2322f950, accessMtd=0x55ef220c7099 &lt;SeqNext&gt;, recheckMtd=0x55ef220c7142 &lt;SeqRecheck&gt;) at execScan.c:199
+</span><span style=color:#75715e>#5  0x000055ef220c7198 in ExecSeqScan (pstate=0x55ef2322f950) at nodeSeqscan.c:112
+</span><span style=color:#75715e>#6  0x000055ef220b53f1 in ExecProcNode (node=0x55ef2322f950) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
+</span><span style=color:#75715e>#7  0x000055ef220b5601 in ExecMaterial (pstate=0x55ef2323a200) at nodeMaterial.c:134
+</span><span style=color:#75715e>#8  0x000055ef220c4214 in ExecProcNode (node=0x55ef2323a200) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
+</span><span style=color:#75715e>#9  0x000055ef220c4673 in ExecNestLoop (pstate=0x55ef23238dd0) at nodeNestloop.c:160
+</span><span style=color:#75715e>#10 0x000055ef220909a0 in ExecProcNode (node=0x55ef23238dd0) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
+</span><span style=color:#75715e>#11 0x000055ef22090efa in fetch_input_tuple (aggstate=0x55ef232386e0) at nodeAgg.c:563
+</span><span style=color:#75715e>#12 0x000055ef220946d6 in agg_fill_hash_table (aggstate=0x55ef232386e0) at nodeAgg.c:2533
+</span></code></pre></div><p>dml的执行，最后生成节点树，每个节点通过ExecProcNode来递归调用</p>
+<p>&ndash; ProcessQuery</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
+CreatePortal
+
+PortalDefineQuery
+
+PortalStart
+  CreateQueryDesc   
+  ExecutorStart
+    standard_ExecutorStart
+      CreateExecutorState
+        InitPlan
+          ExecInitNode  <span style=color:#960050;background-color:#1e0010>按类型执行</span>node的初始化<span style=color:#960050;background-color:#1e0010>，设置执行过程中的关键参数，比如函数指针</span>ExecProcNode<span style=color:#960050;background-color:#1e0010>。执行模型是火山模型，由于没有</span>c<span style=color:#f92672>++</span><span style=color:#960050;background-color:#1e0010>中的虚函数，所以</span>pg中大部分所有的算子都会设置ExecProcNe<span style=color:#960050;background-color:#1e0010>，以达到在后续的</span>ExecProcNode函数中<span style=color:#960050;background-color:#1e0010>，可以直接根据具体的节点类型递归的执行</span>tuple的拉取<span style=color:#960050;background-color:#1e0010>，后续的</span>run和end也是类似的思路
+
+PortalRun
+  ExecutorRun
+    standard_ExecutorRun
+      ExecutePlan
+        ExecProcNode
+
+PortalDrop
+  PortalCleanup
+    ExecutorFinish
+    ExecutorEnd
+      ExecEndNode
+    FreeQueryDesc
+
+</code></pre></div><p>大致的过程，ProcessQuery中有完整的过程，在exec_simple_query中是一个大的循环，和其他类型的语句揉在一起</p>
+<p>&ndash; case 2 ddl执行， utility语句，按照语句类型选择具体的执行函数，以函数为主体执行功能</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> course (
+  <span style=color:#66d9ef>no</span> serial,
+  name varchar,
+  credit int,
+  <span style=color:#66d9ef>constraint</span> cons <span style=color:#66d9ef>check</span> (credit <span style=color:#f92672>&gt;=</span> <span style=color:#ae81ff>0</span> <span style=color:#66d9ef>and</span> name <span style=color:#f92672>&lt;&gt;</span> <span style=color:#e6db74>&#39;&#39;</span>),
+  <span style=color:#66d9ef>primary</span> <span style=color:#66d9ef>key</span>(<span style=color:#66d9ef>no</span>)
+);
+</code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh>
+<span style=color:#75715e>#0  ProcessUtility (pstmt=0x55ef23161a28, queryString=0x55ef2315fe40 &#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;, readOnlyTree=false, context=PROCESS_UTILITY_TOPLEVEL, params=0x0, queryEnv=0x0, dest=0x55ef23161b18, qc=0x7fffcc2f5d50) at utility.c:525</span>
+<span style=color:#75715e>#1  0x000055ef2231785a in PortalRunUtility (portal=0x55ef231d23d0, pstmt=0x55ef23161a28, isTopLevel=true, setHoldSnapshot=false, dest=0x55ef23161b18, qc=0x7fffcc2f5d50) at pquery.c:1158</span>
+<span style=color:#75715e>#2  0x000055ef22317ad0 in PortalRunMulti (portal=0x55ef231d23d0, isTopLevel=true, setHoldSnapshot=false, dest=0x55ef23161b18, altdest=0x55ef23161b18, qc=0x7fffcc2f5d50) at pquery.c:1315</span>
+<span style=color:#75715e>#3  0x000055ef22316f3d in PortalRun (portal=0x55ef231d23d0, count=9223372036854775807, isTopLevel=true, run_once=true, dest=0x55ef23161b18, altdest=0x55ef23161b18, qc=0x7fffcc2f5d50) at pquery.c:791</span>
+<span style=color:#75715e>#4  0x000055ef223101bb in exec_simple_query (query_string=0x55ef2315fe40 &#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;) at postgres.c:1243</span>
+
+
+<span style=color:#75715e>#0  transformColumnDefinition (cxt=0x7fffcc2f54d0, column=0x55ef23160aa8) at parse_utilcmd.c:529</span>
+<span style=color:#75715e>#1  0x000055ef21f815b7 in transformCreateStmt (stmt=0x55ef23161678,</span>
+    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span><span style=color:#f92672>)</span>
+    at parse_utilcmd.c:270
+<span style=color:#75715e>#2  0x000055ef2231a04c in ProcessUtilitySlow (pstate=0x55ef23270be0, pstmt=0x55ef23161a28,</span>
+    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
+    context<span style=color:#f92672>=</span>PROCESS_UTILITY_TOPLEVEL, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef23161b18, qc<span style=color:#f92672>=</span>0x7fffcc2f5d50<span style=color:#f92672>)</span> at utility.c:1147
+
+
+<span style=color:#75715e>#0  ProcessUtilitySlow (pstate=0x55ef232cf220, pstmt=0x55ef232b0fa8,</span>
+    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
+    context<span style=color:#f92672>=</span>PROCESS_UTILITY_SUBCOMMAND, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef2282e060 &lt;donothingDR&gt;, qc<span style=color:#f92672>=</span>0x0<span style=color:#f92672>)</span> at utility.c:1660
+<span style=color:#75715e>#1  0x000055ef22319e3b in standard_ProcessUtility (pstmt=0x55ef232b0fa8,</span>
+    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
+    readOnlyTree<span style=color:#f92672>=</span>false, context<span style=color:#f92672>=</span>PROCESS_UTILITY_SUBCOMMAND, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef2282e060 &lt;donothingDR&gt;, qc<span style=color:#f92672>=</span>0x0<span style=color:#f92672>)</span> at utility.c:1074
+<span style=color:#75715e>#2  0x000055ef22318db1 in ProcessUtility (pstmt=0x55ef232b0fa8,</span>
+    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
+    readOnlyTree<span style=color:#f92672>=</span>false, context<span style=color:#f92672>=</span>PROCESS_UTILITY_SUBCOMMAND, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef2282e060 &lt;donothingDR&gt;, qc<span style=color:#f92672>=</span>0x0<span style=color:#f92672>)</span> at utility.c:530
+<span style=color:#75715e>#3  0x000055ef2231a3ae in ProcessUtilitySlow (pstate=0x55ef23270be0, pstmt=0x55ef23161a28,</span>
+    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
+    context<span style=color:#f92672>=</span>PROCESS_UTILITY_TOPLEVEL, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef23161b18, qc<span style=color:#f92672>=</span>0x7fffcc2f5d50<span style=color:#f92672>)</span> at utility.c:1252
+<span style=color:#75715e>#4  0x000055ef22319e3b in standard_ProcessUtility (pstmt=0x55ef23161a28,</span>
+    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
+    readOnlyTree<span style=color:#f92672>=</span>false, context<span style=color:#f92672>=</span>PROCESS_UTILITY_TOPLEVEL, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef23161b18, qc<span style=color:#f92672>=</span>0x7fffcc2f5d50<span style=color:#f92672>)</span> at utility.c:1074
+
+
+<span style=color:#75715e>#0  DefineSequence (pstate=0x55ef232cf220, seq=0x55ef232cf508) at sequence.c:221</span>
+<span style=color:#75715e>#1  0x000055ef2231b3c9 in ProcessUtilitySlow (pstate=0x55ef232cf220, pstmt=0x55ef232b0fa8,</span>
+    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
+    context<span style=color:#f92672>=</span>PROCESS_UTILITY_SUBCOMMAND, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef2282e060 &lt;donothingDR&gt;, qc<span style=color:#f92672>=</span>0x0<span style=color:#f92672>)</span> at utility.c:1660
+<span style=color:#75715e>#2  0x000055ef22319e3b in standard_ProcessUtility (pstmt=0x55ef232b0fa8,</span>
+    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
+    readOnlyTree<span style=color:#f92672>=</span>false, context<span style=color:#f92672>=</span>PROCESS_UTILITY_SUBCOMMAND, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef2282e060 &lt;donothingDR&gt;, qc<span style=color:#f92672>=</span>0x0<span style=color:#f92672>)</span> at utility.c:1074
+<span style=color:#75715e>#3  0x000055ef22318db1 in ProcessUtility (pstmt=0x55ef232b0fa8,</span>
+    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
+    readOnlyTree<span style=color:#f92672>=</span>false, context<span style=color:#f92672>=</span>PROCESS_UTILITY_SUBCOMMAND, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef2282e060 &lt;donothingDR&gt;, qc<span style=color:#f92672>=</span>0x0<span style=color:#f92672>)</span> at utility.c:530
+<span style=color:#75715e>#4  0x000055ef2231a3ae in ProcessUtilitySlow (pstate=0x55ef23270be0, pstmt=0x55ef23161a28,</span>
+    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
+    context<span style=color:#f92672>=</span>PROCESS_UTILITY_TOPLEVEL, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef23161b18, qc<span style=color:#f92672>=</span>0x7fffcc2f5d50<span style=color:#f92672>)</span> at utility.c:1252
+
+
+<span style=color:#75715e>#0  AlterSequence (pstate=0x55ef232b7df8, stmt=0x55ef232cf6a0) at sequence.c:484</span>
+<span style=color:#75715e>#1  0x000055ef2231b3ff in ProcessUtilitySlow (pstate=0x55ef232b7df8, pstmt=0x55ef232c0f18,</span>
+    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
+    context<span style=color:#f92672>=</span>PROCESS_UTILITY_SUBCOMMAND, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef2282e060 &lt;donothingDR&gt;, qc<span style=color:#f92672>=</span>0x0<span style=color:#f92672>)</span> at utility.c:1664
+<span style=color:#75715e>#2  0x000055ef22319e3b in standard_ProcessUtility (pstmt=0x55ef232c0f18,</span>
+    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
+    readOnlyTree<span style=color:#f92672>=</span>false, context<span style=color:#f92672>=</span>PROCESS_UTILITY_SUBCOMMAND, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef2282e060 &lt;donothingDR&gt;, qc<span style=color:#f92672>=</span>0x0<span style=color:#f92672>)</span> at utility.c:1074
+<span style=color:#75715e>#3  0x000055ef22318db1 in ProcessUtility (pstmt=0x55ef232c0f18,</span>
+    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
+    readOnlyTree<span style=color:#f92672>=</span>false, context<span style=color:#f92672>=</span>PROCESS_UTILITY_SUBCOMMAND, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef2282e060 &lt;donothingDR&gt;, qc<span style=color:#f92672>=</span>0x0<span style=color:#f92672>)</span> at utility.c:530
+</code></pre></div>
+</div>
+<div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>Read other posts</span>
+<hr>
+</div>
+<div class=pagination__buttons>
+<span class="button previous">
+<a href=https://Esoye.github.io/posts/static/note/>
+<span class=button__icon>←</span>
+<span class=button__text>数据库文章资源汇总</span>
+</a>
+</span>
+<span class="button next">
+<a href=https://Esoye.github.io/posts/course/15445/note/>
+<span class=button__text>15445课程笔记</span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<div class=copyright>
+<span>© 2022 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
+</div>
+</div>
+</footer>
+<script src=https://Esoye.github.io/assets/main.js></script>
+<script src=https://Esoye.github.io/assets/prism.js></script>
+</div>
+</body>
+</html>

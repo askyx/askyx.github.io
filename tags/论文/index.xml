@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>论文 on Esoye</title><link>https://Esoye.github.io/tags/%E8%AE%BA%E6%96%87/</link><description>Recent content in 论文 on Esoye</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><lastBuildDate>Mon, 30 May 2022 18:51:02 +0800</lastBuildDate><atom:link href="https://Esoye.github.io/tags/%E8%AE%BA%E6%96%87/index.xml" rel="self" type="application/rss+xml"/><item><title>Raft</title><link>https://Esoye.github.io/posts/course/6.824/raft/</link><pubDate>Mon, 30 May 2022 18:51:02 +0800</pubDate><guid>https://Esoye.github.io/posts/course/6.824/raft/</guid><description>
+译文 原文 有用的飞书文档 和其他的算法相比 Strong leader
+日志只能从领导者发送到其他节点 Leader election
+随机计时器选举领导，在心跳机制上加上一些额外的工作 Membership changes
+角色变换 Replicated state machines # 复制状态机一般基于日志实现，通俗的理解只要所有的机器按照相同的顺序执行指令，那么每个节点的状态都是确定的，所以需要把指令日志复制到其他节点上去，这就是一致性算法的工作
+如果只是要求最终所有的节点都执行一样顺序的指令，而不要求实时性，则可以限定
+只有一个节点可以进行写操作，因为只有写操作才可以改变系统的状态 写节点同步指令到其他节点，最终所有节点指令顺序一致 一致性算法的共有特性
+安全性
+不会返回一个错误结果，只要是在非拜占庭错误情况下，包括网络延迟，乱序，丢包，分区，冗余等都可以保障正确性 可用性
+集群只要大多数机器可以正常通信，就可以确保可用，失败节点可以忽略或者后续恢复状态，大多数指的是半数以上 不依赖时序保证一致性
+时钟错误或者消息延迟只有在极端情况下才会导致可用性 慢节点不会影响消息的反馈，消息可以快速的响应 拜占庭将军问题
+Paxos # 难以理解 没有公认的可以实现的基础架构，大部分系统从Paxos开始，在遇到问题的时候自行想办法解决，导致最后的系统实现只能是类似Paxos的算法 Raft # 管理复制状态机的一种算法，他会在集群中选举一个leader，之后会复制所有的日志到其他节点实现一致性
+他可以分解为三个问题
+领导选举 一个新的领导人需要被选举出来，当先存的领导人宕机的时候 日志复制
+领导人必须从客户端接收日志然后复制到集群中的其他节点，并且强制要求其他节点的日志保持和自己相同 安全性
+在 Raft 中安全性的关键是在图 3 中展示的状态机安全：如果有任何的服务器节点已经应用了一个确定的日志条目到它的状态机中，那么其他服务器节点不能在同一个日志索引位置应用一个不同的指令 可以在这个网站查看实例</description></item><item><title>GFS</title><link>https://Esoye.github.io/posts/course/6.824/gfs/</link><pubDate>Mon, 30 May 2022 16:36:40 +0800</pubDate><guid>https://Esoye.github.io/posts/course/6.824/gfs/</guid><description>
+GFS是一个大规模可扩展的可容错的分布式文件系统。Google三大篇论文之一
+翻译文章在这里
+论文在这里
+6.824 Q&amp;amp;A
+GFS的特点 运行在廉价的机器上，节约成本 灵活性强，可随意扩展，容错性强 文件尾部追加数据，不会有太多的数据变动 架构 # 一个单独的master节点和多个datachunk节点，maste管理元数据信息，包括chunkhandle信息，文件和chunk的映射信息，以及chunkserver的变动信息等。master使用心跳定时和chunkserver同步关键信息。使用单个master的目的是为了简化设计，同时为了避免单点故障，master节点每次操作都和backup master同步数据，master存储的3种关键元数据为
+文件和Chunk的命名空间 文件和Chunk的对应关系 每个Chunk副本的存放地点
+存放在master上，在chunkserver变动的时候难以维护，每个server自己维护自己的信息，然后让master自行同步的方式会简单许多。 这些信息保存在内存中，且1和2的数据变动会保存在日志文件中，每次mater故障恢复的时候，只需要使用此日志就可以恢复到原来的状态，至于3，则保存在chunkserver中，master会使用心跳定时从chunkserver更新此信息到内存中，master的内存承载能力一般是可以维护这些数据，一条master中的信息可以维护一个chunk，一般一条信息可以在64内保存下来，且由于数据的在小范围变化不大，使用一定的压缩方法可以大大的节约空间。 日志记录上面1和2的数据变动信息，用于故障恢复，为了避免日志信息过于庞大，加入检查点机制，恢复时只要回放检查点之后的日志即可。
+chunkserver保存chunk数据，同时维护server上的chunk信息，GFS把大文件切分为64M的chunk文件，64M的原因是
+Google实际存储的数据较大其大部分时候使用顺序读写文件，所以大文件的读写时间可以在接受范围内 大文加可以减少master中的元数据信息，读写的时候，可以对一个大文件进行多次读写，避免了小文件需要多次向master查询位置信息 大文件可以避免小文件反复从server读取，使server变成热点 chunk一般是3个数据副本
+读取操作 # C sends filename and offset to coordinator (CO) (if not cached) CO finds chunk handle for that offset CO replies with list of chunkhandles + chunkservers only those with latest version C caches handle + chunkserver list C sends request to nearest chunkserver chunk handle, offset chunk server reads from chunk file on disk, returns to client 一致性问题 # 弱一致性。易实现， 随机写会有offset重复的问题，但是master限定操作顺序，理论上最终的数据是一致的，但是在client看来，数据是不确定的，因为副本不是要求立刻同步的， append only限定append的offset，所以每个offset上数据是一致的</description></item><item><title>Mapreduce</title><link>https://Esoye.github.io/posts/course/6.824/mapreduce/</link><pubDate>Sun, 29 May 2022 21:05:46 +0800</pubDate><guid>https://Esoye.github.io/posts/course/6.824/mapreduce/</guid><description>
+利用普通机器组成的大规模计算集群进行并行的,高容错,高性能的数据处理函数框架
+原始论文点这里,论文翻译点这里，有时间的话，自行对比翻译和原文
+最终实现的目标是&amp;ndash;实现一个分布式系统，对程序员隐藏底层分布式细节，程序员只需要定义map和reduce 函数即可。
+map reduce实现为简单的kv输出，其中map接受源数据，生成kv的中间结果，中间结果保存在worker节点上。 reduce负责处理map产生的中间结果的kv数据，只是简单的数据处理过程.
+他最先是受到lisp中map和reduce原语的启发，再加上当时Google现实的处理大量数据的需求，从他们现有的系统抽象而来的。
+在论文中，使用了一个单词统计的案例，此时实现map函数用来分割文本，切分出最基本的单词。然后再使用reduce进行聚合操作，
+// 输出单词以及出现的次数，map端输出1 map(String key,String value): // key: 文档名 // value: 文档内容 for each word w in value: EmitIntermediate(w,&amp;#34;1&amp;#34;); // 针对相同的key，次数+1 reduce(String key, Iterator values): // key: 一个单词 // value: 计数值列表 int result = 0; for each v in values: result += ParseInt(v); Emit(AsString(result)); 执行过程 文件划分 主节点划分任务 按照划分的任务启动worker，执行map任务 worker节点的数据生成为中间结果，保存在本节点 所有map任务执行完成之后，reduce得到对应中间节点的文件路径，通过rpc读取文件，进行reduce任务 reduce任务完成之后，最终结果写入目标文件 一个mr任务完成之后，回得到n(reduce)个结果文件，可以按照需求处理文件，可以直接使用，或者继续作为其他mr的输入，mr任务是可以嵌套的。
+主节点</description></item></channel></rss>

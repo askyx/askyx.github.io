@@ -1,0 +1,1871 @@
+<!doctype html><html lang=en>
+<head>
+<title>
+::
+Esoye — My note blog
+</title>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="2022-08-12 02:47:03.470194 UTC,&amp;ldquo;vscode&amp;rdquo;,&amp;ldquo;benchmarksql&amp;rdquo;,p34893,th685154368,&amp;quot;[local]&amp;quot;,seg-1,,,,,&amp;ldquo;DEBUG1&amp;rdquo;,&amp;ldquo;00000&amp;rdquo;,&amp;ldquo;Message type Q received by from libpq, len = 45&amp;rdquo;,,,,,,,0,,&amp;ldquo;postgres.c&amp;rdquo;,5305, 2022-08-12 02:47:03.470253 UTC,&amp;ldquo;vscode&amp;rdquo;,&amp;ldquo;benchmarksql&amp;rdquo;,p34893,th685154368,&amp;quot;[local]&amp;quot;,seg-1,,,,sx1,&amp;ldquo;LOG&amp;rdquo;,&amp;ldquo;00000&amp;rdquo;,&amp;ldquo;statement: explain (verbose, analyze) execute s36(4,1);&amp;rdquo;,,,,,,&amp;ldquo;explain (verbose, analyze) execute s36(4,1);&amp;quot;,0,,&amp;ldquo;postgres.c&amp;rdquo;,1665, 2022-08-12 02:47:03.471695 UTC,&amp;ldquo;vscode&amp;rdquo;,&amp;ldquo;benchmarksql&amp;rdquo;,p34893,th685154368,&amp;quot;[local]&amp;quot;,seg-1,,,,sx1,&amp;ldquo;DEBUG1&amp;rdquo;,&amp;ldquo;00000&amp;rdquo;,&amp;ldquo;Query plan size to dispatch: 2KB&amp;rdquo;,,,,,,,0,,&amp;ldquo;cdbdisp_query.c&amp;rdquo;,618, 2022-08-12 02:47:04.744839 UTC,&amp;ldquo;vscode&amp;rdquo;,&amp;ldquo;benchmarksql&amp;rdquo;,p34893,th446375488,&amp;quot;[local]&amp;quot;,seg-1,,,,sx1,&amp;ldquo;LOG&amp;rdquo;,&amp;ldquo;00000&amp;rdquo;,&amp;ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 0&amp;rdquo;,,,,,,,0,,,, 2022-08-12 02:47:04.811827 UTC,&amp;ldquo;vscode&amp;rdquo;,&amp;ldquo;benchmarksql&amp;rdquo;,p34893,th446375488,&amp;quot;[local]&amp;quot;,seg-1,,,,sx1,&amp;ldquo;LOG&amp;rdquo;,&amp;ldquo;00000&amp;rdquo;,&amp;ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 1&amp;rdquo;,,,,,,,0,,,, 2022-08-12 02:47:04.812848 UTC,&amp;ldquo;vscode&amp;rdquo;,&amp;ldquo;benchmarksql&amp;rdquo;,p34893,th685154368,&amp;quot;[local]&amp;quot;,seg-1,,,,sx1,&amp;ldquo;DEBUG1&amp;rdquo;,&amp;ldquo;00000&amp;rdquo;,&amp;ldquo;Interconnect State: isSender 0 isReceiver 1 snd_queue_depth 2 recv_queue_depth 4 Gp_max_packet_size 8192 UNACK_QUEUE_RING_SLOTS_NUM 2000 TIMER_SPAN 5000 DEFAULT_RTT 20000 hasErrors 0, ic_instance_id 5 ic_id_last_teardown 0 snd_buffer_pool.">
+<meta name=keywords content="数据库">
+<meta name=robots content="noodp">
+<link rel=canonical href=https://Esoye.github.io/posts/postgres/xx/>
+<link rel=stylesheet href=https://Esoye.github.io/assets/style.css>
+<link rel=stylesheet href=https://Esoye.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://Esoye.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://Esoye.github.io/img/favicon.png>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content>
+<meta name=twitter:description content="2022-08-12 02:47:03.470194 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,&#34;[local]&#34;,seg-1,,,,,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Message type Q received by from libpq, len = 45&rdquo;,,,,,,,0,,&ldquo;postgres.c&rdquo;,5305, 2022-08-12 02:47:03.470253 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,&#34;[local]&#34;,seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;statement: explain (verbose, analyze) execute s36(4,1);&rdquo;,,,,,,&ldquo;explain (verbose, analyze) execute s36(4,1);&#34;,0,,&ldquo;postgres.c&rdquo;,1665, 2022-08-12 02:47:03.471695 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,&#34;[local]&#34;,seg-1,,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Query plan size to dispatch: 2KB&rdquo;,,,,,,,0,,&ldquo;cdbdisp_query.c&rdquo;,618, 2022-08-12 02:47:04.744839 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th446375488,&#34;[local]&#34;,seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 0&rdquo;,,,,,,,0,,,, 2022-08-12 02:47:04.811827 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th446375488,&#34;[local]&#34;,seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 1&rdquo;,,,,,,,0,,,, 2022-08-12 02:47:04.812848 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,&#34;[local]&#34;,seg-1,,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Interconnect State: isSender 0 isReceiver 1 snd_queue_depth 2 recv_queue_depth 4 Gp_max_packet_size 8192 UNACK_QUEUE_RING_SLOTS_NUM 2000 TIMER_SPAN 5000 DEFAULT_RTT 20000 hasErrors 0, ic_instance_id 5 ic_id_last_teardown 0 snd_buffer_pool.">
+<meta property="og:title" content>
+<meta property="og:description" content="2022-08-12 02:47:03.470194 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,&#34;[local]&#34;,seg-1,,,,,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Message type Q received by from libpq, len = 45&rdquo;,,,,,,,0,,&ldquo;postgres.c&rdquo;,5305, 2022-08-12 02:47:03.470253 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,&#34;[local]&#34;,seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;statement: explain (verbose, analyze) execute s36(4,1);&rdquo;,,,,,,&ldquo;explain (verbose, analyze) execute s36(4,1);&#34;,0,,&ldquo;postgres.c&rdquo;,1665, 2022-08-12 02:47:03.471695 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,&#34;[local]&#34;,seg-1,,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Query plan size to dispatch: 2KB&rdquo;,,,,,,,0,,&ldquo;cdbdisp_query.c&rdquo;,618, 2022-08-12 02:47:04.744839 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th446375488,&#34;[local]&#34;,seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 0&rdquo;,,,,,,,0,,,, 2022-08-12 02:47:04.811827 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th446375488,&#34;[local]&#34;,seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 1&rdquo;,,,,,,,0,,,, 2022-08-12 02:47:04.812848 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,&#34;[local]&#34;,seg-1,,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Interconnect State: isSender 0 isReceiver 1 snd_queue_depth 2 recv_queue_depth 4 Gp_max_packet_size 8192 UNACK_QUEUE_RING_SLOTS_NUM 2000 TIMER_SPAN 5000 DEFAULT_RTT 20000 hasErrors 0, ic_instance_id 5 ic_id_last_teardown 0 snd_buffer_pool.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://Esoye.github.io/posts/postgres/xx/"><meta property="article:section" content="posts">
+<meta property="og:site_name" content="Esoye">
+</head>
+<body class=light-theme>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archive>Archive</a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archive>Archive</a></li>
+</ul>
+</nav>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class=post>
+<h1 class=post-title></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+<p>2022-08-12 02:47:03.470194 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,"[local]",seg-1,,,,,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Message type Q received by from libpq, len = 45&rdquo;,,,,,,,0,,&ldquo;postgres.c&rdquo;,5305,
+2022-08-12 02:47:03.470253 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,"[local]",seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;statement: explain (verbose, analyze) execute s36(4,1);&rdquo;,,,,,,&ldquo;explain (verbose, analyze) execute s36(4,1);",0,,&ldquo;postgres.c&rdquo;,1665,
+2022-08-12 02:47:03.471695 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,"[local]",seg-1,,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Query plan size to dispatch: 2KB&rdquo;,,,,,,,0,,&ldquo;cdbdisp_query.c&rdquo;,618,
+2022-08-12 02:47:04.744839 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th446375488,"[local]",seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 0&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.811827 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th446375488,"[local]",seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 1&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.812848 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,"[local]",seg-1,,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Interconnect State: isSender 0 isReceiver 1 snd_queue_depth 2 recv_queue_depth 4 Gp_max_packet_size 8192 UNACK_QUEUE_RING_SLOTS_NUM 2000 TIMER_SPAN 5000 DEFAULT_RTT 20000 hasErrors 0, ic_instance_id 5 ic_id_last_teardown 0 snd_buffer_pool.count 0 snd_buffer_pool.maxCount 0 snd_sock_bufsize 2097152 recv_sock_bufsize 2097152 snd_pkt_count 0 retransmits 0 crc_errors 0 recv_pkt_count 3325 recv_ack_num 0 recv_queue_size_avg 1.753139 capacity_avg -nan freebuf_avg -nan mismatch_pkt_num 0 disordered_pkt_num 0 duplicated_pkt_num 0 rtt/dev [0/0, 0.000000/0.000000, 0/0] cwnd 0.000000 status_query_msg_num 0&rdquo;,,,,,,,0,,&ldquo;ic_udpifc.c&rdquo;,3624,
+2022-08-12 02:47:04.812888 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,"[local]",seg-1,,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;TeardownUDPIFCInterconnect successful&rdquo;,,,,,,,0,,&ldquo;ic_udpifc.c&rdquo;,3674,
+2022-08-12 02:47:04.812901 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,"[local]",seg-1,,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&rdquo;
+Motion Node 3 (RECEIVER) Statistics:
+Timing:<br>
+Time receiving the tuple: 1.138736 sec
+Counters:
+numTuplesFromChild: 0
+numTuplesFromAMS: 2249955
+numTuplesToAMS: 0
+numTuplesToParent: 2249955
+&ldquo;,,,,,,,0,,&ldquo;nodeMotion.c&rdquo;,1270,</p>
+<p>2022-08-12 02:47:03.499830 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35777,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58264&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice2,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (32, 32] got 32 flags 0x8b, capacity 4 consumedSeq 32&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:03.499846 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35777,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58264&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice2,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Interconnect State: isSender 1 isReceiver 0 snd_queue_depth 2 recv_queue_depth 4 Gp_max_packet_size 8192 UNACK_QUEUE_RING_SLOTS_NUM 2000 TIMER_SPAN 5000 DEFAULT_RTT 20000 hasErrors 0, ic_instance_id 5 ic_id_last_teardown 5 snd_buffer_pool.count 0 snd_buffer_pool.maxCount 0 snd_sock_bufsize 2097152 recv_sock_bufsize 2097152 snd_pkt_count 67 retransmits 0 crc_errors 0 recv_pkt_count 0 recv_ack_num 100 recv_queue_size_avg -nan capacity_avg 2.938462 freebuf_avg 1.040404 mismatch_pkt_num 0 disordered_pkt_num 0 duplicated_pkt_num 0 rtt/dev [696/454, 732.000000/517.000000, 768/580] cwnd 4.000000 status_query_msg_num 0&rdquo;,,,,,,,0,,&ldquo;ic_udpifc.c&rdquo;,3624,
+2022-08-12 02:47:03.499855 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35777,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58264&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice2,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;TeardownUDPIFCInterconnect successful&rdquo;,,,,,,,0,,&ldquo;ic_udpifc.c&rdquo;,3674,
+2022-08-12 02:47:03.499948 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35777,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58264&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice2,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&rdquo;
+Motion Node 2 (SENDER) Statistics:
+Timing:
+Time getting next tuple to send: 0.009968 sec
+Time sending the tuple: 0.015726 sec
+Percentage of time sending: 61.20%
+Counters:
+numTuplesFromChild: 27017
+numTuplesToAMS: 27017
+&ldquo;,,,,,,,0,,&ldquo;nodeMotion.c&rdquo;,1290,
+2022-08-12 02:47:03.499962 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35777,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58264&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice2,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;CommitTransactionCommand: called as segment Reader in state STARTED&rdquo;,,,,,,,0,,&ldquo;xact.c&rdquo;,3617,
+2022-08-12 02:47:04.542333 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1137, 1137] got 1137 flags 0x83, capacity 1 consumedSeq 1134&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.543039 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35782,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58266&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice1,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (22, 22] got 22 flags 0x83, capacity 2 consumedSeq 20&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.543166 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1138, 1138] got 1138 flags 0x83, capacity 2 consumedSeq 1136&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.544193 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1140, 1140] got 1140 flags 0x83, capacity 2 consumedSeq 1138&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.592468 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1248, 1249] got 1248 flags 0x83, capacity 1 consumedSeq 1246&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.593275 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1250, 1251] got 1250 flags 0x83, capacity 1 consumedSeq 1248&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.593692 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35782,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58266&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice1,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (24, 24] got 24 flags 0x83, capacity 2 consumedSeq 22&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.594095 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1253, 1253] got 1253 flags 0x83, capacity 1 consumedSeq 1250&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.594766 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1254, 1255] got 1254 flags 0x83, capacity 1 consumedSeq 1252&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.595637 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1256, 1257] got 1256 flags 0x83, capacity 1 consumedSeq 1254&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.596751 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35782,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58266&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice1,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (24, 24] got 24 flags 0x83, capacity 2 consumedSeq 22&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.596899 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1258, 1259] got 1258 flags 0x83, capacity 1 consumedSeq 1256&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.597371 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1260, 1261] got 1260 flags 0x83, capacity 1 consumedSeq 1258&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.624165 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1320, 1320] got 1320 flags 0x83, capacity 2 consumedSeq 1318&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.625131 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35782,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58266&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice1,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (26, 26] got 26 flags 0x83, capacity 2 consumedSeq 24&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.625150 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1322, 1322] got 1322 flags 0x83, capacity 2 consumedSeq 1320&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.626282 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1324, 1325] got 1324 flags 0x83, capacity 1 consumedSeq 1322&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.646568 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1370, 1371] got 1370 flags 0x83, capacity 1 consumedSeq 1368&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.647486 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1372, 1373] got 1372 flags 0x83, capacity 1 consumedSeq 1370&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.647665 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35782,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58266&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice1,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (26, 26] got 26 flags 0x83, capacity 2 consumedSeq 24&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.648178 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1374, 1374] got 1374 flags 0x83, capacity 2 consumedSeq 1372&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.649140 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1376, 1376] got 1376 flags 0x83, capacity 2 consumedSeq 1374&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.650288 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1378, 1379] got 1378 flags 0x83, capacity 1 consumedSeq 1376&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.650755 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1380, 1381] got 1380 flags 0x83, capacity 1 consumedSeq 1378&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.651873 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35782,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58266&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice1,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (28, 28] got 28 flags 0x83, capacity 2 consumedSeq 26&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.652054 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1382, 1383] got 1382 flags 0x83, capacity 1 consumedSeq 1380&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.652494 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1384, 1385] got 1384 flags 0x83, capacity 1 consumedSeq 1382&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.653691 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1386, 1387] got 1386 flags 0x83, capacity 1 consumedSeq 1384&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.676945 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1439, 1439] got 1439 flags 0x83, capacity 1 consumedSeq 1436&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.677286 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35782,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58266&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice1,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (28, 28] got 28 flags 0x83, capacity 2 consumedSeq 26&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.677621 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1440, 1440] got 1440 flags 0x83, capacity 2 consumedSeq 1438&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.678581 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35782,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58266&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice1,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (29, 29] got 29 flags 0x83, capacity 3 consumedSeq 28&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.678716 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1442, 1442] got 1442 flags 0x83, capacity 2 consumedSeq 1440&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.679678 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1444, 1445] got 1444 flags 0x83, capacity 1 consumedSeq 1442&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.680506 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1446, 1447] got 1446 flags 0x83, capacity 1 consumedSeq 1444&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.681301 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1448, 1448] got 1448 flags 0x83, capacity 2 consumedSeq 1446&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.701185 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1492, 1492] got 1492 flags 0x83, capacity 2 consumedSeq 1490&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.702278 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1494, 1495] got 1494 flags 0x83, capacity 1 consumedSeq 1492&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.703097 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1497, 1497] got 1497 flags 0x83, capacity 1 consumedSeq 1494&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.703855 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1498, 1498] got 1498 flags 0x83, capacity 2 consumedSeq 1496&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.704298 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35782,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58266&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice1,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (30, 30] got 30 flags 0x83, capacity 2 consumedSeq 28&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.704793 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1500, 1500] got 1500 flags 0x83, capacity 2 consumedSeq 1498&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.705875 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35782,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58266&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice1,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (30, 31] got 30 flags 0x83, capacity 3 consumedSeq 30&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.705897 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1502, 1502] got 1502 flags 0x83, capacity 2 consumedSeq 1500&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.706338 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-591169984,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 0&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.706772 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1504, 1505] got 1504 flags 0x83, capacity 1 consumedSeq 1502&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.729968 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1556, 1556] got 1556 flags 0x83, capacity 2 consumedSeq 1554&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.731036 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35782,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58266&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice1,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (32, 32] got 32 flags 0x83, capacity 2 consumedSeq 30&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.731284 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1558, 1558] got 1558 flags 0x83, capacity 2 consumedSeq 1556&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.731300 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1558, 1560] got 1558 flags 0x83, capacity 2 consumedSeq 1558&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.732270 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1561, 1562] got 1561 flags 0x83, capacity 2 consumedSeq 1560&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.732920 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35782,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58266&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice1,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (32, 32] got 32 flags 0x8b, capacity 4 consumedSeq 32&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.744720 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1584, 1585] got 1584 flags 0x83, capacity 1 consumedSeq 1582&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.744758 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1584, 1585] got 1584 flags 0x83, capacity 3 consumedSeq 1584&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.744891 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Interconnect State: isSender 1 isReceiver 1 snd_queue_depth 2 recv_queue_depth 4 Gp_max_packet_size 8192 UNACK_QUEUE_RING_SLOTS_NUM 2000 TIMER_SPAN 5000 DEFAULT_RTT 20000 hasErrors 0, ic_instance_id 5 ic_id_last_teardown 5 snd_buffer_pool.count 0 snd_buffer_pool.maxCount 0 snd_sock_bufsize 2097152 recv_sock_bufsize 2097152 snd_pkt_count 1585 retransmits 0 crc_errors 0 recv_pkt_count 108 recv_ack_num 2377 recv_queue_size_avg 1.394558 capacity_avg 0.852904 freebuf_avg 0.567850 mismatch_pkt_num 0 disordered_pkt_num 0 duplicated_pkt_num 0 rtt/dev [693/602, 693.000000/602.000000, 693/602] cwnd 2.000000 status_query_msg_num 0&rdquo;,,,,,,,0,,&ldquo;ic_udpifc.c&rdquo;,3624,
+2022-08-12 02:47:04.744906 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;TeardownUDPIFCInterconnect successful&rdquo;,,,,,,,0,,&ldquo;ic_udpifc.c&rdquo;,3674,
+2022-08-12 02:47:04.744913 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&rdquo;
+Motion Node 1 (RECEIVER) Statistics:
+Timing:<br>
+Time receiving the tuple: 0.009442 sec
+Counters:
+numTuplesFromChild: 0
+numTuplesFromAMS: 21450
+numTuplesToAMS: 0
+numTuplesToParent: 21450
+&ldquo;,,,,,,,0,,&ldquo;nodeMotion.c&rdquo;,1270,
+2022-08-12 02:47:04.744923 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&rdquo;
+Motion Node 2 (RECEIVER) Statistics:
+Timing:<br>
+Time receiving the tuple: 0.018350 sec
+Counters:
+numTuplesFromChild: 0
+numTuplesFromAMS: 21450
+numTuplesToAMS: 0
+numTuplesToParent: 21450
+&ldquo;,,,,,,,0,,&ldquo;nodeMotion.c&rdquo;,1270,
+2022-08-12 02:47:04.744944 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35774,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58262&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice3,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&rdquo;
+Motion Node 3 (SENDER) Statistics:
+Timing:<br>
+Time getting next tuple to send: 0.910967 sec
+Time sending the tuple: 0.361539 sec
+Percentage of time sending: 28.41%
+Counters:
+numTuplesFromChild: 1072500
+numTuplesToAMS: 1072500
+&ldquo;,,,,,,,0,,&ldquo;nodeMotion.c&rdquo;,1290,
+2022-08-12 02:47:04.757146 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35782,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58266&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice1,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (34, 34] got 34 flags 0x83, capacity 2 consumedSeq 32&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.757929 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35782,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58266&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice1,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Interconnect State: isSender 1 isReceiver 0 snd_queue_depth 2 recv_queue_depth 4 Gp_max_packet_size 8192 UNACK_QUEUE_RING_SLOTS_NUM 2000 TIMER_SPAN 5000 DEFAULT_RTT 20000 hasErrors 0, ic_instance_id 5 ic_id_last_teardown 5 snd_buffer_pool.count 0 snd_buffer_pool.maxCount 0 snd_sock_bufsize 2097152 recv_sock_bufsize 2097152 snd_pkt_count 67 retransmits 0 crc_errors 0 recv_pkt_count 0 recv_ack_num 99 recv_queue_size_avg -nan capacity_avg 0.584615 freebuf_avg 0.486911 mismatch_pkt_num 0 disordered_pkt_num 0 duplicated_pkt_num 0 rtt/dev [509/313, 532.500000/407.000000, 556/501] cwnd 4.000000 status_query_msg_num 0&rdquo;,,,,,,,0,,&ldquo;ic_udpifc.c&rdquo;,3624,
+2022-08-12 02:47:04.757949 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35782,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58266&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice1,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;TeardownUDPIFCInterconnect successful&rdquo;,,,,,,,0,,&ldquo;ic_udpifc.c&rdquo;,3674,
+2022-08-12 02:47:04.758106 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35782,th-301170624,&ldquo;172.17.0.2&rdquo;,&ldquo;58266&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg0,slice1,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&rdquo;
+Motion Node 1 (SENDER) Statistics:
+Timing:<br>
+Time getting next tuple to send: 0.011781 sec
+Time sending the tuple: 1.271652 sec
+Percentage of time sending: 99.08%
+Counters:
+numTuplesFromChild: 27017
+numTuplesToAMS: 27017
+&ldquo;,,,,,,,0,,&ldquo;nodeMotion.c&rdquo;,1290,</p>
+<p>2022-08-12 02:46:53.864083 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35773,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56786&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd12,seg1,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1740, 1740] got 1740 flags 0x8b, capacity 4 consumedSeq 1740&rdquo;,,,,,,,0,,,,
+2022-08-12 02:46:53.864194 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35773,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56786&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd12,seg1,slice3,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Interconnect State: isSender 1 isReceiver 1 snd_queue_depth 2 recv_queue_depth 4 Gp_max_packet_size 8192 UNACK_QUEUE_RING_SLOTS_NUM 2000 TIMER_SPAN 5000 DEFAULT_RTT 20000 hasErrors 0, ic_instance_id 4 ic_id_last_teardown 4 snd_buffer_pool.count 0 snd_buffer_pool.maxCount 0 snd_sock_bufsize 2097152 recv_sock_bufsize 2097152 snd_pkt_count 1740 retransmits 0 crc_errors 0 recv_pkt_count 118 recv_ack_num 2610 recv_queue_size_avg 1.726027 capacity_avg 0.652099 freebuf_avg 0.584460 mismatch_pkt_num 0 disordered_pkt_num 0 duplicated_pkt_num 0 rtt/dev [1197/1137, 1197.000000/1137.000000, 1197/1137] cwnd 2.000000 status_query_msg_num 0&rdquo;,,,,,,,0,,&ldquo;ic_udpifc.c&rdquo;,3624,
+2022-08-12 02:46:53.864209 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35773,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56786&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd12,seg1,slice3,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;TeardownUDPIFCInterconnect successful&rdquo;,,,,,,,0,,&ldquo;ic_udpifc.c&rdquo;,3674,
+2022-08-12 02:46:53.864219 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35773,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56786&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd12,seg1,slice3,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&rdquo;
+Motion Node 1 (RECEIVER) Statistics:
+Timing:
+Time receiving the tuple: 0.009915 sec
+Counters:
+numTuplesFromChild: 0
+numTuplesFromAMS: 23583
+numTuplesToAMS: 0
+numTuplesToParent: 23583
+&ldquo;,,,,,,,0,,&ldquo;nodeMotion.c&rdquo;,1270,
+2022-08-12 02:46:53.864380 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35773,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56786&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd12,seg1,slice3,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&rdquo;
+Motion Node 2 (RECEIVER) Statistics:
+Timing:
+Time receiving the tuple: 0.013621 sec
+Counters:
+numTuplesFromChild: 0
+numTuplesFromAMS: 23583
+numTuplesToAMS: 0
+numTuplesToParent: 23583
+&ldquo;,,,,,,,0,,&ldquo;nodeMotion.c&rdquo;,1270,
+2022-08-12 02:46:53.864394 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35773,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56786&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd12,seg1,slice3,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&rdquo;
+Motion Node 3 (SENDER) Statistics:
+Timing:
+Time getting next tuple to send: 0.556166 sec
+Time sending the tuple: 0.411045 sec
+Percentage of time sending: 42.50%
+Counters:
+numTuplesFromChild: 1177455
+numTuplesToAMS: 1177455
+&ldquo;,,,,,,,0,,&ldquo;nodeMotion.c&rdquo;,1290,
+2022-08-12 02:47:03.472030 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35781,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56790&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg1,,,,,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Message type M received by from libpq, len = 947&rdquo;,,,,,,,0,,&ldquo;postgres.c&rdquo;,5367,
+2022-08-12 02:47:04.554134 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35773,th-2031528384,&ldquo;172.17.0.2&rdquo;,&ldquo;56786&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg1,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 1&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.554285 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35781,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56790&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg1,slice1,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Interconnect State: isSender 1 isReceiver 0 snd_queue_depth 2 recv_queue_depth 4 Gp_max_packet_size 8192 UNACK_QUEUE_RING_SLOTS_NUM 2000 TIMER_SPAN 5000 DEFAULT_RTT 20000 hasErrors 0, ic_instance_id 5 ic_id_last_teardown 5 snd_buffer_pool.count 0 snd_buffer_pool.maxCount 0 snd_sock_bufsize 2097152 recv_sock_bufsize 2097152 snd_pkt_count 46 retransmits 0 crc_errors 0 recv_pkt_count 0 recv_ack_num 65 recv_queue_size_avg -nan capacity_avg 0.545455 freebuf_avg 0.511450 mismatch_pkt_num 0 disordered_pkt_num 0 duplicated_pkt_num 0 rtt/dev [1103/1437, 1238.500000/1610.000000, 1374/1783] cwnd 4.000000 status_query_msg_num 0&rdquo;,,,,,,,0,,&ldquo;ic_udpifc.c&rdquo;,3624,
+2022-08-12 02:47:04.554299 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35781,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56790&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg1,slice1,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;TeardownUDPIFCInterconnect successful&rdquo;,,,,,,,0,,&ldquo;ic_udpifc.c&rdquo;,3674,
+2022-08-12 02:47:04.554306 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35781,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56790&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg1,slice1,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&rdquo;
+Motion Node 1 (SENDER) Statistics:
+Timing:
+Time getting next tuple to send: 0.006777 sec
+Time sending the tuple: 1.073269 sec
+Percentage of time sending: 99.37%
+Counters:
+numTuplesFromChild: 18016
+numTuplesToAMS: 18016
+&ldquo;,,,,,,,0,,&ldquo;nodeMotion.c&rdquo;,1290,
+2022-08-12 02:47:04.554314 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35781,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56790&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg1,slice1,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;CommitTransactionCommand: called as segment Reader in state STARTED&rdquo;,,,,,,,0,,&ldquo;xact.c&rdquo;,3617,
+2022-08-12 02:47:04.554323 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35781,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56790&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg1,slice1,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;CommitTransaction: called as segment Reader&rdquo;,,,,,,,0,,&ldquo;xact.c&rdquo;,2624,
+2022-08-12 02:47:04.804573 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35773,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56786&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg1,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1732, 1733] got 1732 flags 0x83, capacity 3 consumedSeq 1732&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.805445 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35773,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56786&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg1,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1734, 1735] got 1734 flags 0x83, capacity 3 consumedSeq 1734&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.806306 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35773,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56786&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg1,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1736, 1737] got 1736 flags 0x83, capacity 3 consumedSeq 1736&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.807140 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35773,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56786&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg1,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1738, 1739] got 1738 flags 0x83, capacity 3 consumedSeq 1738&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.812132 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35773,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56786&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg1,slice3,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;ack with bad seq?! expected (1740, 1740] got 1740 flags 0x8b, capacity 4 consumedSeq 1740&rdquo;,,,,,,,0,,,,
+2022-08-12 02:47:04.812205 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35773,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56786&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg1,slice3,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Interconnect State: isSender 1 isReceiver 1 snd_queue_depth 2 recv_queue_depth 4 Gp_max_packet_size 8192 UNACK_QUEUE_RING_SLOTS_NUM 2000 TIMER_SPAN 5000 DEFAULT_RTT 20000 hasErrors 0, ic_instance_id 5 ic_id_last_teardown 5 snd_buffer_pool.count 0 snd_buffer_pool.maxCount 0 snd_sock_bufsize 2097152 recv_sock_bufsize 2097152 snd_pkt_count 1740 retransmits 0 crc_errors 0 recv_pkt_count 118 recv_ack_num 2610 recv_queue_size_avg 1.620915 capacity_avg 1.019551 freebuf_avg 0.548080 mismatch_pkt_num 0 disordered_pkt_num 0 duplicated_pkt_num 0 rtt/dev [935/676, 935.000000/676.000000, 935/676] cwnd 2.000000 status_query_msg_num 0&rdquo;,,,,,,,0,,&ldquo;ic_udpifc.c&rdquo;,3624,
+2022-08-12 02:47:04.812223 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35773,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56786&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg1,slice3,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;TeardownUDPIFCInterconnect successful&rdquo;,,,,,,,0,,&ldquo;ic_udpifc.c&rdquo;,3674,
+2022-08-12 02:47:04.812232 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35773,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56786&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg1,slice3,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&rdquo;
+Motion Node 1 (RECEIVER) Statistics:
+Timing:
+Time receiving the tuple: 0.010232 sec
+Counters:
+numTuplesFromChild: 0
+numTuplesFromAMS: 23583
+numTuplesToAMS: 0
+numTuplesToParent: 23583
+&ldquo;,,,,,,,0,,&ldquo;nodeMotion.c&rdquo;,1270,
+2022-08-12 02:47:04.812243 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35773,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56786&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg1,slice3,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&rdquo;
+Motion Node 2 (RECEIVER) Statistics:
+Timing:
+Time receiving the tuple: 0.017071 sec
+Counters:
+numTuplesFromChild: 0
+numTuplesFromAMS: 23583
+numTuplesToAMS: 0
+numTuplesToParent: 23583
+&ldquo;,,,,,,,0,,&ldquo;nodeMotion.c&rdquo;,1270,
+2022-08-12 02:47:04.812253 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p35773,th-1741529024,&ldquo;172.17.0.2&rdquo;,&ldquo;56786&rdquo;,2022-08-12 02:41:37 UTC,0,con8,cmd14,seg1,slice3,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&rdquo;
+Motion Node 3 (SENDER) Statistics:
+Timing:
+Time getting next tuple to send: 0.947318 sec
+Time sending the tuple: 0.392382 sec
+Percentage of time sending: 29.29%
+Counters:
+numTuplesFromChild: 1177455
+numTuplesToAMS: 1177455
+&ldquo;,,,,,,,0,,&ldquo;nodeMotion.c&rdquo;,1290,</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
+
+ Gather Motion <span style=color:#ae81ff>2</span><span style=color:#f92672>:</span><span style=color:#ae81ff>1</span>  (slice3; segments: <span style=color:#ae81ff>2</span>)  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1975.90</span>.<span style=color:#ae81ff>.29568.15</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>2243323</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>27.853</span>.<span style=color:#ae81ff>.1062.597</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>2249955</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+   Output: a.no_o_id
+   <span style=color:#f92672>-&gt;</span>  Hash Join  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1975.90</span>.<span style=color:#ae81ff>.29568.15</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>1121662</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>27.156</span>.<span style=color:#ae81ff>.445.908</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>1177455</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+         Output: a.no_o_id
+         Hash Cond: (a.no_o_id <span style=color:#f92672>=</span> b.no_o_id)
+         Executor Memory: <span style=color:#ae81ff>1408</span>kB  Segments: <span style=color:#ae81ff>2</span>  Max: <span style=color:#ae81ff>737</span>kB (segment <span style=color:#ae81ff>1</span>)
+         work_mem: <span style=color:#ae81ff>1408</span>kB  Segments: <span style=color:#ae81ff>2</span>  Max: <span style=color:#ae81ff>737</span>kB (segment <span style=color:#ae81ff>1</span>)  Workfile: (<span style=color:#ae81ff>0</span> spilling)
+         Extra Text: (seg1)   Hash chain length <span style=color:#ae81ff>49.6</span> avg, <span style=color:#ae81ff>50</span> max, <span style=color:#66d9ef>using</span> <span style=color:#ae81ff>475</span> of <span style=color:#ae81ff>524288</span> buckets.
+         <span style=color:#f92672>-&gt;</span>  Redistribute Motion <span style=color:#ae81ff>2</span><span style=color:#f92672>:</span><span style=color:#ae81ff>2</span>  (slice1; segments: <span style=color:#ae81ff>2</span>)  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.1412.99</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>22517</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0.123</span>.<span style=color:#ae81ff>.10.948</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>23583</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+               Output: a.no_o_id, a.no_w_id
+               Hash Key: a.no_o_id
+               <span style=color:#f92672>-&gt;</span>  Seq Scan on <span style=color:#66d9ef>public</span>.bmsql_new_order a  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.512.33</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>22517</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0.014</span>.<span style=color:#ae81ff>.7.987</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>27017</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+                     Output: a.no_o_id, a.no_w_id
+         <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1412.99</span>.<span style=color:#ae81ff>.1412.99</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>22517</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>25.454</span>.<span style=color:#ae81ff>.25.454</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>23583</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+               Output: b.no_o_id, b.no_w_id
+               <span style=color:#f92672>-&gt;</span>  Redistribute Motion <span style=color:#ae81ff>2</span><span style=color:#f92672>:</span><span style=color:#ae81ff>2</span>  (slice2; segments: <span style=color:#ae81ff>2</span>)  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.1412.99</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>22517</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>1.616</span>.<span style=color:#ae81ff>.17.073</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>23583</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+                     Output: b.no_o_id, b.no_w_id
+                     Hash Key: b.no_o_id
+                     <span style=color:#f92672>-&gt;</span>  Seq Scan on <span style=color:#66d9ef>public</span>.bmsql_new_order_bak1 b  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.512.33</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>22517</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0.024</span>.<span style=color:#ae81ff>.8.003</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>27017</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+                           Output: b.no_o_id, b.no_w_id
+
+
+</code></pre></div><p>select a.no_o_id from bmsql_new_order a join bmsql_new_order_bak1 b on a.no_o_id = b.no_o_id ;</p>
+<pre><code>                        MOTION
+
+                  hash join
+</code></pre>
+<p>Redistribute Motion Hash
+Seq Scan Redistribute Motion
+Seq Scan</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>   {MOTION 
+   :motionID <span style=color:#ae81ff>3</span> 
+   <span style=color:#f92672>:</span>motionType <span style=color:#ae81ff>1</span> 
+   <span style=color:#f92672>:</span>sendSorted false 
+   <span style=color:#f92672>:</span>hashExprs <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>hashFuncs 
+   :isBroadcast <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>numSortCols <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>sortColIdx 
+   :sortOperators 
+   :collations 
+   :segidColIdx <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>plan_node_id <span style=color:#ae81ff>1</span> 
+   <span style=color:#f92672>:</span>startup_cost <span style=color:#ae81ff>1975.90</span> 
+   <span style=color:#f92672>:</span>total_cost <span style=color:#ae81ff>29568.15</span> 
+   <span style=color:#f92672>:</span>plan_rows <span style=color:#ae81ff>2243323</span> 
+   <span style=color:#f92672>:</span>plan_width <span style=color:#ae81ff>4</span> 
+   <span style=color:#f92672>:</span>targetlist (
+      {TARGETENTRY 
+      :expr 
+         {VAR 
+         :varno <span style=color:#ae81ff>65001</span> 
+         <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>65001</span> 
+         <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>location <span style=color:#ae81ff>32</span>
+         }
+      <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>1</span> 
+      <span style=color:#f92672>:</span>resname no_o_id 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>24603</span> 
+      <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>3</span> 
+      <span style=color:#f92672>:</span>resjunk false
+      }
+   )
+   <span style=color:#f92672>:</span>qual <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>extParam (b)
+   <span style=color:#f92672>:</span>allParam (b)
+   <span style=color:#f92672>:</span>flow 
+      {FLOW 
+      :flotype <span style=color:#ae81ff>1</span> 
+      <span style=color:#f92672>:</span>req_move <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>locustype <span style=color:#ae81ff>1</span> 
+      <span style=color:#f92672>:</span>segindex <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+      <span style=color:#f92672>:</span>numsegments <span style=color:#ae81ff>2</span> 
+      <span style=color:#f92672>:</span>hashExprs <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>hashOpfamilies <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>flow_before_req_move <span style=color:#f92672>&lt;&gt;</span>
+      }
+   <span style=color:#f92672>:</span>dispatch <span style=color:#ae81ff>2</span> 
+   <span style=color:#f92672>:</span>nMotionNodes <span style=color:#ae81ff>3</span> 
+   <span style=color:#f92672>:</span>nInitPlans <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>sliceTable <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>lefttree 
+      {HASHJOIN 
+      :plan_node_id <span style=color:#ae81ff>2</span> 
+      <span style=color:#f92672>:</span>startup_cost <span style=color:#ae81ff>1975.90</span> 
+      <span style=color:#f92672>:</span>total_cost <span style=color:#ae81ff>29568.15</span> 
+      <span style=color:#f92672>:</span>plan_rows <span style=color:#ae81ff>2243323</span> 
+      <span style=color:#f92672>:</span>plan_width <span style=color:#ae81ff>4</span> 
+      <span style=color:#f92672>:</span>targetlist (
+         {TARGETENTRY 
+         :expr 
+            {VAR 
+            :varno <span style=color:#ae81ff>65001</span> 
+            <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+            <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+            <span style=color:#f92672>:</span>location <span style=color:#ae81ff>32</span>
+            }
+         <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>resname no_o_id 
+         :ressortgroupref <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>24603</span> 
+         <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>3</span> 
+         <span style=color:#f92672>:</span>resjunk false
+         }
+      )
+      <span style=color:#f92672>:</span>qual <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>extParam (b)
+      <span style=color:#f92672>:</span>allParam (b)
+      <span style=color:#f92672>:</span>flow 
+         {FLOW 
+         :flotype <span style=color:#ae81ff>3</span> 
+         <span style=color:#f92672>:</span>req_move <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>locustype <span style=color:#ae81ff>6</span> 
+         <span style=color:#f92672>:</span>segindex <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>numsegments <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>hashExprs (
+            {VAR 
+            :varno <span style=color:#ae81ff>65001</span> 
+            <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+            <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+            <span style=color:#f92672>:</span>location <span style=color:#ae81ff>97</span>
+            }
+         )
+         <span style=color:#f92672>:</span>hashOpfamilies (o <span style=color:#ae81ff>1977</span>)
+         <span style=color:#f92672>:</span>flow_before_req_move <span style=color:#f92672>&lt;&gt;</span>
+         }
+      <span style=color:#f92672>:</span>dispatch <span style=color:#ae81ff>2</span> 
+      <span style=color:#f92672>:</span>nMotionNodes <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>nInitPlans <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>sliceTable <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>lefttree 
+         {MOTION 
+         :motionID <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>motionType <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>sendSorted false 
+         <span style=color:#f92672>:</span>hashExprs (
+            {VAR 
+            :varno <span style=color:#ae81ff>65001</span> 
+            <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+            <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+            <span style=color:#f92672>:</span>location <span style=color:#ae81ff>97</span>
+            }
+         )
+         <span style=color:#f92672>:</span>hashFuncs <span style=color:#ae81ff>450</span> 
+         <span style=color:#f92672>:</span>isBroadcast <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>numSortCols <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>sortColIdx 
+         :sortOperators 
+         :collations 
+         :segidColIdx <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>plan_node_id <span style=color:#ae81ff>3</span> 
+         <span style=color:#f92672>:</span>startup_cost <span style=color:#ae81ff>0.00</span> 
+         <span style=color:#f92672>:</span>total_cost <span style=color:#ae81ff>1412.99</span> 
+         <span style=color:#f92672>:</span>plan_rows <span style=color:#ae81ff>45033</span> 
+         <span style=color:#f92672>:</span>plan_width <span style=color:#ae81ff>4</span> 
+         <span style=color:#f92672>:</span>targetlist (
+            {TARGETENTRY 
+            :expr 
+               {VAR 
+               :varno <span style=color:#ae81ff>65001</span> 
+               <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+               <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+               <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+               }
+            <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>resname <span style=color:#f92672>&lt;&gt;</span> 
+            <span style=color:#f92672>:</span>ressortgroupref <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>resjunk false
+            }
+            {TARGETENTRY 
+            :expr 
+               {VAR 
+               :varno <span style=color:#ae81ff>65001</span> 
+               <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> 
+               <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+               <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+               }
+            <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>2</span> 
+            <span style=color:#f92672>:</span>resname <span style=color:#f92672>&lt;&gt;</span> 
+            <span style=color:#f92672>:</span>ressortgroupref <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>resjunk true
+            }
+         )
+         <span style=color:#f92672>:</span>qual <span style=color:#f92672>&lt;&gt;</span> 
+         <span style=color:#f92672>:</span>extParam (b)
+         <span style=color:#f92672>:</span>allParam (b)
+         <span style=color:#f92672>:</span>flow 
+            {FLOW 
+            :flotype <span style=color:#ae81ff>3</span> 
+            <span style=color:#f92672>:</span>req_move <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>locustype <span style=color:#ae81ff>6</span> 
+            <span style=color:#f92672>:</span>segindex <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>numsegments <span style=color:#ae81ff>2</span> 
+            <span style=color:#f92672>:</span>hashExprs (
+               {VAR 
+               :varno <span style=color:#ae81ff>65001</span> 
+               <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+               <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+               <span style=color:#f92672>:</span>location <span style=color:#ae81ff>97</span>
+               }
+            )
+            <span style=color:#f92672>:</span>hashOpfamilies (o <span style=color:#ae81ff>1977</span>)
+            <span style=color:#f92672>:</span>flow_before_req_move <span style=color:#f92672>&lt;&gt;</span>
+            }
+         <span style=color:#f92672>:</span>dispatch <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>nMotionNodes <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>nInitPlans <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>sliceTable <span style=color:#f92672>&lt;&gt;</span> 
+         <span style=color:#f92672>:</span>lefttree 
+            {SEQSCAN 
+            :plan_node_id <span style=color:#ae81ff>4</span> 
+            <span style=color:#f92672>:</span>startup_cost <span style=color:#ae81ff>0.00</span> 
+            <span style=color:#f92672>:</span>total_cost <span style=color:#ae81ff>512.33</span> 
+            <span style=color:#f92672>:</span>plan_rows <span style=color:#ae81ff>45033</span> 
+            <span style=color:#f92672>:</span>plan_width <span style=color:#ae81ff>4</span> 
+            <span style=color:#f92672>:</span>targetlist (
+               {TARGETENTRY 
+               :expr 
+                  {VAR 
+                  :varno <span style=color:#ae81ff>1</span> 
+                  <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>3</span> 
+                  <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+                  <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+                  <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+                  <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+                  <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> 
+                  <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+                  <span style=color:#f92672>:</span>location <span style=color:#ae81ff>32</span>
+                  }
+               <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>resname <span style=color:#f92672>&lt;&gt;</span> 
+               <span style=color:#f92672>:</span>ressortgroupref <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>resjunk false
+               }
+               {TARGETENTRY 
+               :expr 
+                  {VAR 
+                  :varno <span style=color:#ae81ff>1</span> 
+                  <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+                  <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+                  <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+                  <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+                  <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+                  <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> 
+                  <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>1</span> 
+                  <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+                  }
+               <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>2</span> 
+               <span style=color:#f92672>:</span>resname <span style=color:#f92672>&lt;&gt;</span> 
+               <span style=color:#f92672>:</span>ressortgroupref <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>resjunk true
+               }
+            )
+            <span style=color:#f92672>:</span>qual <span style=color:#f92672>&lt;&gt;</span> 
+            <span style=color:#f92672>:</span>extParam (b)
+            <span style=color:#f92672>:</span>allParam (b)
+            <span style=color:#f92672>:</span>flow 
+               {FLOW 
+               :flotype <span style=color:#ae81ff>3</span> 
+               <span style=color:#f92672>:</span>req_move <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>locustype <span style=color:#ae81ff>6</span> 
+               <span style=color:#f92672>:</span>segindex <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>numsegments <span style=color:#ae81ff>2</span> 
+               <span style=color:#f92672>:</span>hashExprs (
+                  {VAR 
+                  :varno <span style=color:#ae81ff>65001</span> 
+                  <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> 
+                  <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+                  <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+                  <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+                  <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+                  <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> 
+                  <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>1</span> 
+                  <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+                  }
+               )
+               <span style=color:#f92672>:</span>hashOpfamilies (o <span style=color:#ae81ff>1977</span>)
+               <span style=color:#f92672>:</span>flow_before_req_move <span style=color:#f92672>&lt;&gt;</span>
+               }
+            <span style=color:#f92672>:</span>dispatch <span style=color:#ae81ff>2</span> 
+            <span style=color:#f92672>:</span>nMotionNodes <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>nInitPlans <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>sliceTable <span style=color:#f92672>&lt;&gt;</span> 
+            <span style=color:#f92672>:</span>lefttree <span style=color:#f92672>&lt;&gt;</span> 
+            <span style=color:#f92672>:</span>righttree <span style=color:#f92672>&lt;&gt;</span> 
+            <span style=color:#f92672>:</span>initPlan <span style=color:#f92672>&lt;&gt;</span> 
+            <span style=color:#f92672>:</span>operatorMemKB <span style=color:#ae81ff>100</span> 
+            <span style=color:#f92672>:</span>scanrelid <span style=color:#ae81ff>1</span>
+            }
+         <span style=color:#f92672>:</span>righttree <span style=color:#f92672>&lt;&gt;</span> 
+         <span style=color:#f92672>:</span>initPlan <span style=color:#f92672>&lt;&gt;</span> 
+         <span style=color:#f92672>:</span>operatorMemKB <span style=color:#ae81ff>100</span>
+         }
+      <span style=color:#f92672>:</span>righttree 
+         {HASH 
+         :plan_node_id <span style=color:#ae81ff>5</span> 
+         <span style=color:#f92672>:</span>startup_cost <span style=color:#ae81ff>1412.99</span> 
+         <span style=color:#f92672>:</span>total_cost <span style=color:#ae81ff>1412.99</span> 
+         <span style=color:#f92672>:</span>plan_rows <span style=color:#ae81ff>45033</span> 
+         <span style=color:#f92672>:</span>plan_width <span style=color:#ae81ff>4</span> 
+         <span style=color:#f92672>:</span>targetlist (
+            {TARGETENTRY 
+            :expr 
+               {VAR 
+               :varno <span style=color:#ae81ff>65001</span> 
+               <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+               <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+               <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+               <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+               }
+            <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>resname <span style=color:#f92672>&lt;&gt;</span> 
+            <span style=color:#f92672>:</span>ressortgroupref <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>resjunk false
+            }
+            {TARGETENTRY 
+            :expr 
+               {VAR 
+               :varno <span style=color:#ae81ff>65001</span> 
+               <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> 
+               <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+               <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+               <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+               }
+            <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>2</span> 
+            <span style=color:#f92672>:</span>resname <span style=color:#f92672>&lt;&gt;</span> 
+            <span style=color:#f92672>:</span>ressortgroupref <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>resjunk true
+            }
+         )
+         <span style=color:#f92672>:</span>qual <span style=color:#f92672>&lt;&gt;</span> 
+         <span style=color:#f92672>:</span>extParam (b)
+         <span style=color:#f92672>:</span>allParam (b)
+         <span style=color:#f92672>:</span>flow <span style=color:#f92672>&lt;&gt;</span> 
+         <span style=color:#f92672>:</span>dispatch <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>nMotionNodes <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>nInitPlans <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>sliceTable <span style=color:#f92672>&lt;&gt;</span> 
+         <span style=color:#f92672>:</span>lefttree 
+            {MOTION 
+            :motionID <span style=color:#ae81ff>2</span> 
+            <span style=color:#f92672>:</span>motionType <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>sendSorted false 
+            <span style=color:#f92672>:</span>hashExprs (
+               {VAR 
+               :varno <span style=color:#ae81ff>65001</span> 
+               <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+               <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+               <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+               <span style=color:#f92672>:</span>location <span style=color:#ae81ff>110</span>
+               }
+            )
+            <span style=color:#f92672>:</span>hashFuncs <span style=color:#ae81ff>450</span> 
+            <span style=color:#f92672>:</span>isBroadcast <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>numSortCols <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>sortColIdx 
+            :sortOperators 
+            :collations 
+            :segidColIdx <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>plan_node_id <span style=color:#ae81ff>6</span> 
+            <span style=color:#f92672>:</span>startup_cost <span style=color:#ae81ff>0.00</span> 
+            <span style=color:#f92672>:</span>total_cost <span style=color:#ae81ff>1412.99</span> 
+            <span style=color:#f92672>:</span>plan_rows <span style=color:#ae81ff>45033</span> 
+            <span style=color:#f92672>:</span>plan_width <span style=color:#ae81ff>4</span> 
+            <span style=color:#f92672>:</span>targetlist (
+               {TARGETENTRY 
+               :expr 
+                  {VAR 
+                  :varno <span style=color:#ae81ff>65001</span> 
+                  <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+                  <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+                  <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+                  <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+                  <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+                  <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+                  <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+                  <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+                  }
+               <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>resname <span style=color:#f92672>&lt;&gt;</span> 
+               <span style=color:#f92672>:</span>ressortgroupref <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>resjunk false
+               }
+               {TARGETENTRY 
+               :expr 
+                  {VAR 
+                  :varno <span style=color:#ae81ff>65001</span> 
+                  <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> 
+                  <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+                  <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+                  <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+                  <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+                  <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+                  <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>1</span> 
+                  <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+                  }
+               <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>2</span> 
+               <span style=color:#f92672>:</span>resname <span style=color:#f92672>&lt;&gt;</span> 
+               <span style=color:#f92672>:</span>ressortgroupref <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>resjunk true
+               }
+            )
+            <span style=color:#f92672>:</span>qual <span style=color:#f92672>&lt;&gt;</span> 
+            <span style=color:#f92672>:</span>extParam (b)
+            <span style=color:#f92672>:</span>allParam (b)
+            <span style=color:#f92672>:</span>flow 
+               {FLOW 
+               :flotype <span style=color:#ae81ff>3</span> 
+               <span style=color:#f92672>:</span>req_move <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>locustype <span style=color:#ae81ff>6</span> 
+               <span style=color:#f92672>:</span>segindex <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>numsegments <span style=color:#ae81ff>2</span> 
+               <span style=color:#f92672>:</span>hashExprs (
+                  {VAR 
+                  :varno <span style=color:#ae81ff>65001</span> 
+                  <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+                  <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+                  <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+                  <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+                  <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+                  <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+                  <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+                  <span style=color:#f92672>:</span>location <span style=color:#ae81ff>110</span>
+                  }
+               )
+               <span style=color:#f92672>:</span>hashOpfamilies (o <span style=color:#ae81ff>1977</span>)
+               <span style=color:#f92672>:</span>flow_before_req_move <span style=color:#f92672>&lt;&gt;</span>
+               }
+            <span style=color:#f92672>:</span>dispatch <span style=color:#ae81ff>2</span> 
+            <span style=color:#f92672>:</span>nMotionNodes <span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>nInitPlans <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>sliceTable <span style=color:#f92672>&lt;&gt;</span> 
+            <span style=color:#f92672>:</span>lefttree 
+               {SEQSCAN 
+               :plan_node_id <span style=color:#ae81ff>7</span> 
+               <span style=color:#f92672>:</span>startup_cost <span style=color:#ae81ff>0.00</span> 
+               <span style=color:#f92672>:</span>total_cost <span style=color:#ae81ff>512.33</span> 
+               <span style=color:#f92672>:</span>plan_rows <span style=color:#ae81ff>45033</span> 
+               <span style=color:#f92672>:</span>plan_width <span style=color:#ae81ff>4</span> 
+               <span style=color:#f92672>:</span>targetlist (
+                  {TARGETENTRY 
+                  :expr 
+                     {VAR 
+                     :varno <span style=color:#ae81ff>2</span> 
+                     <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>3</span> 
+                     <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+                     <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+                     <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+                     <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+                     <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+                     <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+                     <span style=color:#f92672>:</span>location <span style=color:#ae81ff>110</span>
+                     }
+                  <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>1</span> 
+                  <span style=color:#f92672>:</span>resname <span style=color:#f92672>&lt;&gt;</span> 
+                  <span style=color:#f92672>:</span>ressortgroupref <span style=color:#ae81ff>0</span> 
+                  <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>0</span> 
+                  <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>0</span> 
+                  <span style=color:#f92672>:</span>resjunk false
+                  }
+                  {TARGETENTRY 
+                  :expr 
+                     {VAR 
+                     :varno <span style=color:#ae81ff>2</span> 
+                     <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+                     <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+                     <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+                     <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+                     <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+                     <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+                     <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>1</span> 
+                     <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+                     }
+                  <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>2</span> 
+                  <span style=color:#f92672>:</span>resname <span style=color:#f92672>&lt;&gt;</span> 
+                  <span style=color:#f92672>:</span>ressortgroupref <span style=color:#ae81ff>0</span> 
+                  <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>0</span> 
+                  <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>0</span> 
+                  <span style=color:#f92672>:</span>resjunk true
+                  }
+               )
+               <span style=color:#f92672>:</span>qual <span style=color:#f92672>&lt;&gt;</span> 
+               <span style=color:#f92672>:</span>extParam (b)
+               <span style=color:#f92672>:</span>allParam (b)
+               <span style=color:#f92672>:</span>flow 
+                  {FLOW 
+                  :flotype <span style=color:#ae81ff>3</span> 
+                  <span style=color:#f92672>:</span>req_move <span style=color:#ae81ff>0</span> 
+                  <span style=color:#f92672>:</span>locustype <span style=color:#ae81ff>6</span> 
+                  <span style=color:#f92672>:</span>segindex <span style=color:#ae81ff>0</span> 
+                  <span style=color:#f92672>:</span>numsegments <span style=color:#ae81ff>2</span> 
+                  <span style=color:#f92672>:</span>hashExprs (
+                     {VAR 
+                     :varno <span style=color:#ae81ff>65001</span> 
+                     <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> 
+                     <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+                     <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+                     <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+                     <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+                     <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+                     <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>1</span> 
+                     <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+                     }
+                  )
+                  <span style=color:#f92672>:</span>hashOpfamilies (o <span style=color:#ae81ff>1977</span>)
+                  <span style=color:#f92672>:</span>flow_before_req_move <span style=color:#f92672>&lt;&gt;</span>
+                  }
+               <span style=color:#f92672>:</span>dispatch <span style=color:#ae81ff>2</span> 
+               <span style=color:#f92672>:</span>nMotionNodes <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>nInitPlans <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>sliceTable <span style=color:#f92672>&lt;&gt;</span> 
+               <span style=color:#f92672>:</span>lefttree <span style=color:#f92672>&lt;&gt;</span> 
+               <span style=color:#f92672>:</span>righttree <span style=color:#f92672>&lt;&gt;</span> 
+               <span style=color:#f92672>:</span>initPlan <span style=color:#f92672>&lt;&gt;</span> 
+               <span style=color:#f92672>:</span>operatorMemKB <span style=color:#ae81ff>100</span> 
+               <span style=color:#f92672>:</span>scanrelid <span style=color:#ae81ff>2</span>
+               }
+            <span style=color:#f92672>:</span>righttree <span style=color:#f92672>&lt;&gt;</span> 
+            <span style=color:#f92672>:</span>initPlan <span style=color:#f92672>&lt;&gt;</span> 
+            <span style=color:#f92672>:</span>operatorMemKB <span style=color:#ae81ff>100</span>
+            }
+         <span style=color:#f92672>:</span>righttree <span style=color:#f92672>&lt;&gt;</span> 
+         <span style=color:#f92672>:</span>initPlan <span style=color:#f92672>&lt;&gt;</span> 
+         <span style=color:#f92672>:</span>operatorMemKB <span style=color:#ae81ff>127600</span> 
+         <span style=color:#f92672>:</span>skewTable <span style=color:#ae81ff>24603</span> 
+         <span style=color:#f92672>:</span>skewColumn <span style=color:#ae81ff>3</span> 
+         <span style=color:#f92672>:</span>skewInherit false 
+         <span style=color:#f92672>:</span>skewColType <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>skewColTypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>rescannable false
+         }
+      <span style=color:#f92672>:</span>initPlan <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>operatorMemKB <span style=color:#ae81ff>100</span> 
+      <span style=color:#f92672>:</span>prefetch_inner true 
+      <span style=color:#f92672>:</span>prefetch_joinqual false 
+      <span style=color:#f92672>:</span>prefetch_qual false 
+      <span style=color:#f92672>:</span>jointype <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>joinqual <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>hashclauses (
+         {OPEXPR 
+         :opno <span style=color:#ae81ff>96</span> 
+         <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+         <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+         <span style=color:#f92672>:</span>opretset false 
+         <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>args (
+            {VAR 
+            :varno <span style=color:#ae81ff>65001</span> 
+            <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+            <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+            <span style=color:#f92672>:</span>location <span style=color:#ae81ff>97</span>
+            }
+            {VAR 
+            :varno <span style=color:#ae81ff>65000</span> 
+            <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+            <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+            <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+            <span style=color:#f92672>:</span>location <span style=color:#ae81ff>110</span>
+            }
+         )
+         <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+         }
+      )
+      <span style=color:#f92672>:</span>hashqualclauses <span style=color:#f92672>&lt;&gt;</span>
+      }
+   <span style=color:#f92672>:</span>righttree <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>initPlan <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>operatorMemKB <span style=color:#ae81ff>100</span>
+   }
+
+
+
+
+
+
+</code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
+   {MOTION 
+   :motionID <span style=color:#ae81ff>2</span> 
+   <span style=color:#f92672>:</span>motionType <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>sendSorted false 
+   <span style=color:#f92672>:</span>hashExprs (
+      {VAR 
+      :varno <span style=color:#ae81ff>65001</span> 
+      <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+      <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+      <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+      <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+      <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+      <span style=color:#f92672>:</span>location <span style=color:#ae81ff>110</span>
+      }
+   )
+   <span style=color:#f92672>:</span>hashFuncs <span style=color:#ae81ff>450</span> 
+   <span style=color:#f92672>:</span>isBroadcast <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>numSortCols <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>sortColIdx 
+   :sortOperators 
+   :collations 
+   :segidColIdx <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>plan_node_id <span style=color:#ae81ff>6</span> 
+   <span style=color:#f92672>:</span>startup_cost <span style=color:#ae81ff>0.00</span> 
+   <span style=color:#f92672>:</span>total_cost <span style=color:#ae81ff>1412.99</span> 
+   <span style=color:#f92672>:</span>plan_rows <span style=color:#ae81ff>45033</span> 
+   <span style=color:#f92672>:</span>plan_width <span style=color:#ae81ff>4</span> 
+   <span style=color:#f92672>:</span>targetlist (
+      {TARGETENTRY 
+      :expr 
+         {VAR 
+         :varno <span style=color:#ae81ff>65001</span> 
+         <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+         <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+         }
+      <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>1</span> 
+      <span style=color:#f92672>:</span>resname <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>ressortgroupref <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>resjunk false
+      }
+      {TARGETENTRY 
+      :expr 
+         {VAR 
+         :varno <span style=color:#ae81ff>65001</span> 
+         <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+         }
+      <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>2</span> 
+      <span style=color:#f92672>:</span>resname <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>ressortgroupref <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>resjunk true
+      }
+   )
+   <span style=color:#f92672>:</span>qual <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>extParam (b)
+   <span style=color:#f92672>:</span>allParam (b)
+   <span style=color:#f92672>:</span>flow 
+      {FLOW 
+      :flotype <span style=color:#ae81ff>3</span> 
+      <span style=color:#f92672>:</span>req_move <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>locustype <span style=color:#ae81ff>6</span> 
+      <span style=color:#f92672>:</span>segindex <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>numsegments <span style=color:#ae81ff>2</span> 
+      <span style=color:#f92672>:</span>hashExprs (
+         {VAR 
+         :varno <span style=color:#ae81ff>65001</span> 
+         <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+         <span style=color:#f92672>:</span>location <span style=color:#ae81ff>110</span>
+         }
+      )
+      <span style=color:#f92672>:</span>hashOpfamilies (o <span style=color:#ae81ff>1977</span>)
+      <span style=color:#f92672>:</span>flow_before_req_move <span style=color:#f92672>&lt;&gt;</span>
+      }
+   <span style=color:#f92672>:</span>dispatch <span style=color:#ae81ff>2</span> 
+   <span style=color:#f92672>:</span>nMotionNodes <span style=color:#ae81ff>1</span> 
+   <span style=color:#f92672>:</span>nInitPlans <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>sliceTable <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>lefttree 
+      {SEQSCAN 
+      :plan_node_id <span style=color:#ae81ff>7</span> 
+      <span style=color:#f92672>:</span>startup_cost <span style=color:#ae81ff>0.00</span> 
+      <span style=color:#f92672>:</span>total_cost <span style=color:#ae81ff>512.33</span> 
+      <span style=color:#f92672>:</span>plan_rows <span style=color:#ae81ff>45033</span> 
+      <span style=color:#f92672>:</span>plan_width <span style=color:#ae81ff>4</span> 
+      <span style=color:#f92672>:</span>targetlist (
+         {TARGETENTRY 
+         :expr 
+            {VAR 
+            :varno <span style=color:#ae81ff>2</span> 
+            <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>3</span> 
+            <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+            <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+            <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+            <span style=color:#f92672>:</span>location <span style=color:#ae81ff>110</span>
+            }
+         <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>resname <span style=color:#f92672>&lt;&gt;</span> 
+         <span style=color:#f92672>:</span>ressortgroupref <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>resjunk false
+         }
+         {TARGETENTRY 
+         :expr 
+            {VAR 
+            :varno <span style=color:#ae81ff>2</span> 
+            <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+            <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+            <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+            }
+         <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>resname <span style=color:#f92672>&lt;&gt;</span> 
+         <span style=color:#f92672>:</span>ressortgroupref <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>resjunk true
+         }
+      )
+      <span style=color:#f92672>:</span>qual <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>extParam (b)
+      <span style=color:#f92672>:</span>allParam (b)
+      <span style=color:#f92672>:</span>flow 
+         {FLOW 
+         :flotype <span style=color:#ae81ff>3</span> 
+         <span style=color:#f92672>:</span>req_move <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>locustype <span style=color:#ae81ff>6</span> 
+         <span style=color:#f92672>:</span>segindex <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>numsegments <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>hashExprs (
+            {VAR 
+            :varno <span style=color:#ae81ff>65001</span> 
+            <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> 
+            <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+            <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+            <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>1</span> 
+            <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+            }
+         )
+         <span style=color:#f92672>:</span>hashOpfamilies (o <span style=color:#ae81ff>1977</span>)
+         <span style=color:#f92672>:</span>flow_before_req_move <span style=color:#f92672>&lt;&gt;</span>
+         }
+      <span style=color:#f92672>:</span>dispatch <span style=color:#ae81ff>2</span> 
+      <span style=color:#f92672>:</span>nMotionNodes <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>nInitPlans <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>sliceTable <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>lefttree <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>righttree <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>initPlan <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>operatorMemKB <span style=color:#ae81ff>100</span> 
+      <span style=color:#f92672>:</span>scanrelid <span style=color:#ae81ff>2</span>
+      }
+   <span style=color:#f92672>:</span>righttree <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>initPlan <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>operatorMemKB <span style=color:#ae81ff>100</span>
+   }
+
+</code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
+   {MOTION 
+   :motionID <span style=color:#ae81ff>1</span> 
+   <span style=color:#f92672>:</span>motionType <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>sendSorted false 
+   <span style=color:#f92672>:</span>hashExprs (
+      {VAR :varno <span style=color:#ae81ff>65001</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> <span style=color:#f92672>:</span>location <span style=color:#ae81ff>97</span>}
+   )
+   <span style=color:#f92672>:</span>hashFuncs <span style=color:#ae81ff>450</span> 
+   <span style=color:#f92672>:</span>isBroadcast <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>numSortCols <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>sortColIdx 
+   :sortOperators 
+   :collations 
+   :segidColIdx <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>plan_node_id <span style=color:#ae81ff>3</span> 
+   <span style=color:#f92672>:</span>startup_cost <span style=color:#ae81ff>0.00</span> 
+   <span style=color:#f92672>:</span>total_cost <span style=color:#ae81ff>1412.99</span> 
+   <span style=color:#f92672>:</span>plan_rows <span style=color:#ae81ff>45033</span> 
+   <span style=color:#f92672>:</span>plan_width <span style=color:#ae81ff>4</span> 
+   <span style=color:#f92672>:</span>targetlist (
+      {TARGETENTRY 
+      :expr 
+         {VAR :varno <span style=color:#ae81ff>65001</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+      <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>1</span> 
+      <span style=color:#f92672>:</span>resname <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>ressortgroupref <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>resjunk false
+      }
+      {TARGETENTRY 
+      :expr 
+         {VAR :varno <span style=color:#ae81ff>65001</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+      <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>2</span> 
+      <span style=color:#f92672>:</span>resname <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>ressortgroupref <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>resjunk true
+      }
+   )
+   <span style=color:#f92672>:</span>qual <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>extParam (b)
+   <span style=color:#f92672>:</span>allParam (b)
+   <span style=color:#f92672>:</span>flow 
+      {FLOW 
+      :flotype <span style=color:#ae81ff>3</span> 
+      <span style=color:#f92672>:</span>req_move <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>locustype <span style=color:#ae81ff>6</span> 
+      <span style=color:#f92672>:</span>segindex <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>numsegments <span style=color:#ae81ff>2</span> 
+      <span style=color:#f92672>:</span>hashExprs (
+         {VAR :varno <span style=color:#ae81ff>65001</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> <span style=color:#f92672>:</span>location <span style=color:#ae81ff>97</span>}
+      )
+      <span style=color:#f92672>:</span>hashOpfamilies (o <span style=color:#ae81ff>1977</span>)
+      <span style=color:#f92672>:</span>flow_before_req_move <span style=color:#f92672>&lt;&gt;</span>
+      }
+   <span style=color:#f92672>:</span>dispatch <span style=color:#ae81ff>2</span> 
+   <span style=color:#f92672>:</span>nMotionNodes <span style=color:#ae81ff>1</span> 
+   <span style=color:#f92672>:</span>nInitPlans <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>sliceTable <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>lefttree 
+      {SEQSCAN 
+      :plan_node_id <span style=color:#ae81ff>4</span> 
+      <span style=color:#f92672>:</span>startup_cost <span style=color:#ae81ff>0.00</span> 
+      <span style=color:#f92672>:</span>total_cost <span style=color:#ae81ff>512.33</span> 
+      <span style=color:#f92672>:</span>plan_rows <span style=color:#ae81ff>45033</span> 
+      <span style=color:#f92672>:</span>plan_width <span style=color:#ae81ff>4</span> 
+      <span style=color:#f92672>:</span>targetlist (
+         {TARGETENTRY 
+         :expr 
+            {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>3</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> <span style=color:#f92672>:</span>location <span style=color:#ae81ff>32</span>}
+         <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>resname <span style=color:#f92672>&lt;&gt;</span> 
+         <span style=color:#f92672>:</span>ressortgroupref <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>resjunk false
+         }
+         {TARGETENTRY 
+         :expr 
+            {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+         <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>resname <span style=color:#f92672>&lt;&gt;</span> 
+         <span style=color:#f92672>:</span>ressortgroupref <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>resjunk true
+         }
+      )
+      <span style=color:#f92672>:</span>qual <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>extParam (b)
+      <span style=color:#f92672>:</span>allParam (b)
+      <span style=color:#f92672>:</span>flow 
+         {FLOW 
+         :flotype <span style=color:#ae81ff>3</span> 
+         <span style=color:#f92672>:</span>req_move <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>locustype <span style=color:#ae81ff>6</span> 
+         <span style=color:#f92672>:</span>segindex <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>numsegments <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>hashExprs (
+            {VAR :varno <span style=color:#ae81ff>65001</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+         )
+         <span style=color:#f92672>:</span>hashOpfamilies (o <span style=color:#ae81ff>1977</span>)
+         <span style=color:#f92672>:</span>flow_before_req_move <span style=color:#f92672>&lt;&gt;</span>
+         }
+      <span style=color:#f92672>:</span>dispatch <span style=color:#ae81ff>2</span> 
+      <span style=color:#f92672>:</span>nMotionNodes <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>nInitPlans <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>sliceTable <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>lefttree <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>righttree <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>initPlan <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>operatorMemKB <span style=color:#ae81ff>100</span> 
+      <span style=color:#f92672>:</span>scanrelid <span style=color:#ae81ff>1</span>
+      }
+   <span style=color:#f92672>:</span>righttree <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>initPlan <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>operatorMemKB <span style=color:#ae81ff>100</span>
+   }
+
+
+
+vscode     <span style=color:#ae81ff>92027</span>  <span style=color:#ae81ff>0.0</span>  <span style=color:#ae81ff>0.0</span> <span style=color:#ae81ff>303196</span>  <span style=color:#ae81ff>4200</span>  postgres:  <span style=color:#ae81ff>5432</span>, bgworker: sweeper process   
+vscode     <span style=color:#ae81ff>92230</span>  <span style=color:#ae81ff>0.1</span>  <span style=color:#ae81ff>0.1</span> <span style=color:#ae81ff>370880</span> <span style=color:#ae81ff>23784</span>  postgres:  <span style=color:#ae81ff>5432</span>, vscode benchmarksql [local] con5 cmd6 EXPLAIN
+vscode     <span style=color:#ae81ff>92268</span>  <span style=color:#ae81ff>0.1</span>  <span style=color:#ae81ff>0.1</span> <span style=color:#ae81ff>426320</span> <span style=color:#ae81ff>26012</span>  postgres: <span style=color:#ae81ff>40001</span>, vscode benchmarksql <span style=color:#ae81ff>172.17.0.2</span>(<span style=color:#ae81ff>57266</span>) con5 seg1 cmd7 slice3 MPPEXEC SELECT
+vscode     <span style=color:#ae81ff>92269</span>  <span style=color:#ae81ff>0.2</span>  <span style=color:#ae81ff>0.1</span> <span style=color:#ae81ff>426320</span> <span style=color:#ae81ff>25912</span>  postgres: <span style=color:#ae81ff>40000</span>, vscode benchmarksql <span style=color:#ae81ff>172.17.0.2</span>(<span style=color:#ae81ff>58754</span>) con5 seg0 cmd7 slice3 MPPEXEC SELECT
+vscode     <span style=color:#ae81ff>92272</span>  <span style=color:#ae81ff>0.3</span>  <span style=color:#ae81ff>0.1</span> <span style=color:#ae81ff>420112</span> <span style=color:#ae81ff>15624</span>  postgres: <span style=color:#ae81ff>40001</span>, vscode benchmarksql <span style=color:#ae81ff>172.17.0.2</span>(<span style=color:#ae81ff>57268</span>) con5 seg1 cmd7 slice1 MPPEXEC SELECT
+vscode     <span style=color:#ae81ff>92273</span>  <span style=color:#ae81ff>0.3</span>  <span style=color:#ae81ff>0.1</span> <span style=color:#ae81ff>420112</span> <span style=color:#ae81ff>15668</span>  postgres: <span style=color:#ae81ff>40000</span>, vscode benchmarksql <span style=color:#ae81ff>172.17.0.2</span>(<span style=color:#ae81ff>58756</span>) con5 seg0 cmd7 slice1 MPPEXEC SELECT
+vscode     <span style=color:#ae81ff>92276</span>  <span style=color:#ae81ff>0.3</span>  <span style=color:#ae81ff>0.1</span> <span style=color:#ae81ff>420112</span> <span style=color:#ae81ff>15288</span>  postgres: <span style=color:#ae81ff>40001</span>, vscode benchmarksql <span style=color:#ae81ff>172.17.0.2</span>(<span style=color:#ae81ff>57270</span>) con5 seg1 cmd7 slice2 MPPEXEC SELECT
+vscode     <span style=color:#ae81ff>92277</span>  <span style=color:#ae81ff>0.3</span>  <span style=color:#ae81ff>0.1</span> <span style=color:#ae81ff>420112</span> <span style=color:#ae81ff>15376</span>  postgres: <span style=color:#ae81ff>40000</span>, vscode benchmarksql <span style=color:#ae81ff>172.17.0.2</span>(<span style=color:#ae81ff>58758</span>) con5 seg0 cmd7 slice2 MPPEXEC SELECT
+vscode     <span style=color:#ae81ff>99272</span>  <span style=color:#ae81ff>0.0</span>  <span style=color:#ae81ff>0.0</span>   <span style=color:#ae81ff>6608</span>  <span style=color:#ae81ff>2184</span>  grep <span style=color:#f92672>--</span>color<span style=color:#f92672>=</span><span style=color:#66d9ef>auto</span> postgres
+
+
+
+
+<span style=color:#ae81ff>656008</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;got data with length 8188&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3781</span>,
+<span style=color:#ae81ff>656462</span>  <span style=color:#e6db74>&#34;DEBUG3&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;In prepareRxConnForRead: conn 0x5565f3196890, q_head 3 q_tail 0 q_size 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3714</span>,
+<span style=color:#ae81ff>656484</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;receiveChunksUDPIFC: non-directed rx woke on route 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3769</span>,
+<span style=color:#ae81ff>656491</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;got data with length 8188&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3781</span>,
+<span style=color:#ae81ff>657006</span>  <span style=color:#e6db74>&#34;DEBUG3&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;In prepareRxConnForRead: conn 0x5565f3196890, q_head 0 q_tail 1 q_size 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3714</span>,
+<span style=color:#ae81ff>657030</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;receiveChunksUDPIFC: non-directed rx woke on route 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3769</span>,
+<span style=color:#ae81ff>657037</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;got data with length 8188&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3781</span>,
+<span style=color:#ae81ff>657457</span>  <span style=color:#e6db74>&#34;DEBUG3&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;In prepareRxConnForRead: conn 0x5565f3196890, q_head 1 q_tail 2 q_size 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3714</span>,
+<span style=color:#ae81ff>657501</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;receiveChunksUDPIFC: non-directed rx woke on route 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3769</span>,
+<span style=color:#ae81ff>657508</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;got data with length 8188&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3781</span>,
+<span style=color:#ae81ff>657793</span>  <span style=color:#e6db74>&#34;DEBUG3&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;In prepareRxConnForRead: conn 0x5565f3196890, q_head 2 q_tail 3 q_size 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3714</span>,
+<span style=color:#ae81ff>658375</span>  <span style=color:#e6db74>&#34;DEBUG3&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;In prepareRxConnForRead: conn 0x5565f3196890, q_head 3 q_tail 0 q_size 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3714</span>,
+<span style=color:#ae81ff>658415</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;receiveChunksUDPIFC: non-directed rx woke on route 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3769</span>,
+<span style=color:#ae81ff>658441</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;got data with length 8188&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3781</span>,
+<span style=color:#ae81ff>658775</span>  <span style=color:#e6db74>&#34;DEBUG3&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;In prepareRxConnForRead: conn 0x5565f3196890, q_head 0 q_tail 1 q_size 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3714</span>,
+<span style=color:#ae81ff>658789</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;receiveChunksUDPIFC: non-directed rx woke on route 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3769</span>,
+<span style=color:#ae81ff>658795</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;got data with length 8188&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3781</span>,
+<span style=color:#ae81ff>659177</span>  <span style=color:#e6db74>&#34;DEBUG3&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;In prepareRxConnForRead: conn 0x5565f3196890, q_head 1 q_tail 2 q_size 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3714</span>,
+<span style=color:#ae81ff>659191</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;receiveChunksUDPIFC: non-directed rx woke on route 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3769</span>,
+<span style=color:#ae81ff>659197</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;got data with length 8188&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3781</span>,
+<span style=color:#ae81ff>659693</span>  <span style=color:#e6db74>&#34;DEBUG3&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;In prepareRxConnForRead: conn 0x5565f3196890, q_head 2 q_tail 3 q_size 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3714</span>,
+<span style=color:#ae81ff>659711</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;receiveChunksUDPIFC: non-directed rx woke on route 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3769</span>,
+<span style=color:#ae81ff>659717</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;got data with length 8188&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3781</span>,
+<span style=color:#ae81ff>660078</span>  <span style=color:#e6db74>&#34;DEBUG3&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;In prepareRxConnForRead: conn 0x5565f3196890, q_head 3 q_tail 0 q_size 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3714</span>,
+<span style=color:#ae81ff>660095</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;receiveChunksUDPIFC: non-directed rx woke on route 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3769</span>,
+<span style=color:#ae81ff>660102</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;got data with length 8188&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3781</span>,
+<span style=color:#ae81ff>660534</span>  <span style=color:#e6db74>&#34;DEBUG3&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;In prepareRxConnForRead: conn 0x5565f3196890, q_head 0 q_tail 1 q_size 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3714</span>,
+<span style=color:#ae81ff>660566</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;receiveChunksUDPIFC: non-directed rx woke on route 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3769</span>,
+<span style=color:#ae81ff>660573</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;got data with length 8188&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3781</span>,
+<span style=color:#ae81ff>661351</span>  <span style=color:#e6db74>&#34;DEBUG3&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;In prepareRxConnForRead: conn 0x5565f3196890, q_head 1 q_tail 2 q_size 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3714</span>,
+<span style=color:#ae81ff>661394</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;receiveChunksUDPIFC: non-directed rx woke on route 1&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3769</span>,
+<span style=color:#ae81ff>661423</span>  <span style=color:#e6db74>&#34;DEBUG2&#34;</span>,<span style=color:#e6db74>&#34;00000&#34;</span>,<span style=color:#e6db74>&#34;got data with length 8188&#34;</span>,,,,,,,<span style=color:#ae81ff>0</span>,,<span style=color:#e6db74>&#34;ic_udpifc.c&#34;</span>,<span style=color:#ae81ff>3781</span>,
+
+
+
+
+   {QUERY 
+   :commandType <span style=color:#ae81ff>1</span> 
+   <span style=color:#f92672>:</span>querySource <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>canSetTag true 
+   <span style=color:#f92672>:</span>utilityStmt <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>resultRelation <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>hasAggs false 
+   <span style=color:#f92672>:</span>hasWindowFuncs false 
+   <span style=color:#f92672>:</span>hasSubLinks false 
+   <span style=color:#f92672>:</span>hasDynamicFunctions false 
+   <span style=color:#f92672>:</span>hasFuncsWithExecRestrictions false 
+   <span style=color:#f92672>:</span>hasDistinctOn false 
+   <span style=color:#f92672>:</span>hasRecursive false 
+   <span style=color:#f92672>:</span>hasModifyingCTE false 
+   <span style=color:#f92672>:</span>hasForUpdate false 
+   <span style=color:#f92672>:</span>cteList <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>rtable (
+      {RTE 
+      :alias 
+         {ALIAS 
+         :aliasname a 
+         :colnames <span style=color:#f92672>&lt;&gt;</span>
+         }
+      <span style=color:#f92672>:</span>eref 
+         {ALIAS 
+         :aliasname a 
+         :colnames (<span style=color:#e6db74>&#34;&#34;</span>no_w_id<span style=color:#e6db74>&#34;&#34;</span> <span style=color:#e6db74>&#34;&#34;</span>no_d_id<span style=color:#e6db74>&#34;&#34;</span> <span style=color:#e6db74>&#34;&#34;</span>no_o_id<span style=color:#e6db74>&#34;&#34;</span>)
+         }
+      <span style=color:#f92672>:</span>rtekind <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>relid <span style=color:#ae81ff>24603</span> 
+      <span style=color:#f92672>:</span>relkind r 
+      :lateral false 
+      <span style=color:#f92672>:</span>inh true 
+      <span style=color:#f92672>:</span>inFromCl true 
+      <span style=color:#f92672>:</span>requiredPerms <span style=color:#ae81ff>2</span> 
+      <span style=color:#f92672>:</span>checkAsUser <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>selectedCols (b <span style=color:#ae81ff>12</span>)
+      <span style=color:#f92672>:</span>modifiedCols (b)
+      <span style=color:#f92672>:</span>forceDistRandom false 
+      <span style=color:#f92672>:</span>securityQuals <span style=color:#f92672>&lt;&gt;</span>
+      }
+      {RTE 
+      :alias 
+         {ALIAS 
+         :aliasname b 
+         :colnames <span style=color:#f92672>&lt;&gt;</span>
+         }
+      <span style=color:#f92672>:</span>eref 
+         {ALIAS 
+         :aliasname b 
+         :colnames (<span style=color:#e6db74>&#34;&#34;</span>no_w_id<span style=color:#e6db74>&#34;&#34;</span> <span style=color:#e6db74>&#34;&#34;</span>no_d_id<span style=color:#e6db74>&#34;&#34;</span> <span style=color:#e6db74>&#34;&#34;</span>no_o_id<span style=color:#e6db74>&#34;&#34;</span>)
+         }
+      <span style=color:#f92672>:</span>rtekind <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>relid <span style=color:#ae81ff>24699</span> 
+      <span style=color:#f92672>:</span>relkind r 
+      :lateral false 
+      <span style=color:#f92672>:</span>inh true 
+      <span style=color:#f92672>:</span>inFromCl true 
+      <span style=color:#f92672>:</span>requiredPerms <span style=color:#ae81ff>2</span> 
+      <span style=color:#f92672>:</span>checkAsUser <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>selectedCols (b <span style=color:#ae81ff>12</span>)
+      <span style=color:#f92672>:</span>modifiedCols (b)
+      <span style=color:#f92672>:</span>forceDistRandom false 
+      <span style=color:#f92672>:</span>securityQuals <span style=color:#f92672>&lt;&gt;</span>
+      }
+      {RTE 
+      :alias <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>eref 
+         {ALIAS 
+         :aliasname unnamed_join 
+         :colnames (<span style=color:#e6db74>&#34;&#34;</span>no_w_id<span style=color:#e6db74>&#34;&#34;</span> <span style=color:#e6db74>&#34;&#34;</span>no_d_id<span style=color:#e6db74>&#34;&#34;</span> <span style=color:#e6db74>&#34;&#34;</span>no_o_id<span style=color:#e6db74>&#34;&#34;</span> <span style=color:#e6db74>&#34;&#34;</span>no_w_id<span style=color:#e6db74>&#34;&#34;</span> <span style=color:#e6db74>&#34;&#34;</span>no_d_id<span style=color:#e6db74>&#34;&#34;</span> <span style=color:#e6db74>&#34;&#34;</span>no_o_id
+         <span style=color:#e6db74>&#34;&#34;</span>)
+         }
+      <span style=color:#f92672>:</span>rtekind <span style=color:#ae81ff>2</span> 
+      <span style=color:#f92672>:</span>jointype <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>joinaliasvars (
+         {VAR 
+         :varno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+         }
+         {VAR 
+         :varno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+         }
+         {VAR 
+         :varno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>3</span> 
+         <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+         <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+         }
+         {VAR 
+         :varno <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+         }
+         {VAR 
+         :varno <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+         }
+         {VAR 
+         :varno <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>3</span> 
+         <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+         <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+         }
+      )
+      <span style=color:#f92672>:</span>lateral false 
+      <span style=color:#f92672>:</span>inh false 
+      <span style=color:#f92672>:</span>inFromCl true 
+      <span style=color:#f92672>:</span>requiredPerms <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>checkAsUser <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>selectedCols (b)
+      <span style=color:#f92672>:</span>modifiedCols (b)
+      <span style=color:#f92672>:</span>forceDistRandom false 
+      <span style=color:#f92672>:</span>securityQuals <span style=color:#f92672>&lt;&gt;</span>
+      }
+   )
+   <span style=color:#f92672>:</span>jointree 
+      {FROMEXPR 
+      :fromlist (
+         {JOINEXPR 
+         :jointype <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>isNatural false 
+         <span style=color:#f92672>:</span>larg 
+            {RANGETBLREF 
+            :rtindex <span style=color:#ae81ff>1</span>
+            }
+         <span style=color:#f92672>:</span>rarg 
+            {RANGETBLREF 
+            :rtindex <span style=color:#ae81ff>2</span>
+            }
+         <span style=color:#f92672>:</span>usingClause <span style=color:#f92672>&lt;&gt;</span> 
+         <span style=color:#f92672>:</span>quals 
+            {OPEXPR 
+            :opno <span style=color:#ae81ff>96</span> 
+            <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+            <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+            <span style=color:#f92672>:</span>opretset false 
+            <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>args (
+               {VAR 
+               :varno <span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>3</span> 
+               <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+               <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+               <span style=color:#f92672>:</span>location <span style=color:#ae81ff>72</span>
+               }
+               {VAR 
+               :varno <span style=color:#ae81ff>2</span> 
+               <span style=color:#f92672>:</span>varattn <span style=color:#ae81ff>3</span> 
+               <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+               <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+               <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+               <span style=color:#f92672>:</span>location <span style=color:#ae81ff>85</span>
+               }
+            )
+            <span style=color:#f92672>:</span>location <span style=color:#ae81ff>83</span>
+            }
+         <span style=color:#f92672>:</span>alias <span style=color:#f92672>&lt;&gt;</span> 
+         <span style=color:#f92672>:</span>rtindex <span style=color:#ae81ff>3</span>
+         }
+      )
+      <span style=color:#f92672>:</span>quals <span style=color:#f92672>&lt;&gt;</span>
+      }
+   <span style=color:#f92672>:</span>targetList (
+      {TARGETENTRY 
+      :expr 
+         {VAR 
+         :varno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>3</span> 
+         <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+         <span style=color:#f92672>:</span>location <span style=color:#ae81ff>7</span>
+         }
+      <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>1</span> 
+      <span style=color:#f92672>:</span>resname no_o_id 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>24603</span> 
+      <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>3</span> 
+      <span style=color:#f92672>:</span>resjunk false
+      }
+   )
+   <span style=color:#f92672>:</span>withCheckOptions <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>returningList <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>groupClause <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>havingQual <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>windowClause <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>distinctClause <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>sortClause <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>scatterClause <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>isTableValueSelect false 
+   <span style=color:#f92672>:</span>limitOffset <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>limitCount <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>rowMarks <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>setOperations <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>constraintDeps <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>parentStmtType false
+   }
+
+
+
+   {QUERY 
+   :commandType <span style=color:#ae81ff>1</span> 
+   <span style=color:#f92672>:</span>querySource <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>canSetTag true 
+   <span style=color:#f92672>:</span>utilityStmt <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>resultRelation <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>hasAggs false 
+   <span style=color:#f92672>:</span>hasWindowFuncs false 
+   <span style=color:#f92672>:</span>hasSubLinks false 
+   <span style=color:#f92672>:</span>hasDynamicFunctions false 
+   <span style=color:#f92672>:</span>hasFuncsWithExecRestrictions false 
+   <span style=color:#f92672>:</span>hasDistinctOn false 
+   <span style=color:#f92672>:</span>hasRecursive false 
+   <span style=color:#f92672>:</span>hasModifyingCTE false 
+   <span style=color:#f92672>:</span>hasForUpdate false 
+   <span style=color:#f92672>:</span>cteList <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>rtable (
+      {RTE 
+      :alias 
+         {ALIAS 
+         :aliasname a 
+         :colnames <span style=color:#f92672>&lt;&gt;</span>
+         }
+      <span style=color:#f92672>:</span>eref 
+         {ALIAS 
+         :aliasname a 
+         :colnames (<span style=color:#e6db74>&#34;&#34;</span>no_w_id<span style=color:#e6db74>&#34;&#34;</span> <span style=color:#e6db74>&#34;&#34;</span>no_d_id<span style=color:#e6db74>&#34;&#34;</span> <span style=color:#e6db74>&#34;&#34;</span>no_o_id<span style=color:#e6db74>&#34;&#34;</span>)
+         }
+      <span style=color:#f92672>:</span>rtekind <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>relid <span style=color:#ae81ff>24603</span> 
+      <span style=color:#f92672>:</span>relkind r 
+      :lateral false 
+      <span style=color:#f92672>:</span>inh false 
+      <span style=color:#f92672>:</span>inFromCl true 
+      <span style=color:#f92672>:</span>requiredPerms <span style=color:#ae81ff>2</span> 
+      <span style=color:#f92672>:</span>checkAsUser <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>selectedCols (b <span style=color:#ae81ff>12</span>)
+      <span style=color:#f92672>:</span>modifiedCols (b)
+      <span style=color:#f92672>:</span>forceDistRandom false 
+      <span style=color:#f92672>:</span>securityQuals <span style=color:#f92672>&lt;&gt;</span>
+      }
+      {RTE 
+      :alias 
+         {ALIAS 
+         :aliasname b 
+         :colnames <span style=color:#f92672>&lt;&gt;</span>
+         }
+      <span style=color:#f92672>:</span>eref 
+         {ALIAS 
+         :aliasname b 
+         :colnames (<span style=color:#e6db74>&#34;&#34;</span>no_w_id<span style=color:#e6db74>&#34;&#34;</span> <span style=color:#e6db74>&#34;&#34;</span>no_d_id<span style=color:#e6db74>&#34;&#34;</span> <span style=color:#e6db74>&#34;&#34;</span>no_o_id<span style=color:#e6db74>&#34;&#34;</span>)
+         }
+      <span style=color:#f92672>:</span>rtekind <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>relid <span style=color:#ae81ff>24699</span> 
+      <span style=color:#f92672>:</span>relkind r 
+      :lateral false 
+      <span style=color:#f92672>:</span>inh false 
+      <span style=color:#f92672>:</span>inFromCl true 
+      <span style=color:#f92672>:</span>requiredPerms <span style=color:#ae81ff>2</span> 
+      <span style=color:#f92672>:</span>checkAsUser <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>selectedCols (b <span style=color:#ae81ff>12</span>)
+      <span style=color:#f92672>:</span>modifiedCols (b)
+      <span style=color:#f92672>:</span>forceDistRandom false 
+      <span style=color:#f92672>:</span>securityQuals <span style=color:#f92672>&lt;&gt;</span>
+      }
+      {RTE 
+      :alias <span style=color:#f92672>&lt;&gt;</span> 
+      <span style=color:#f92672>:</span>eref 
+         {ALIAS 
+         :aliasname unnamed_join 
+         :colnames (<span style=color:#e6db74>&#34;&#34;</span>no_w_id<span style=color:#e6db74>&#34;&#34;</span> <span style=color:#e6db74>&#34;&#34;</span>no_d_id<span style=color:#e6db74>&#34;&#34;</span> <span style=color:#e6db74>&#34;&#34;</span>no_o_id<span style=color:#e6db74>&#34;&#34;</span> <span style=color:#e6db74>&#34;&#34;</span>no_w_id<span style=color:#e6db74>&#34;&#34;</span> <span style=color:#e6db74>&#34;&#34;</span>no_d_id<span style=color:#e6db74>&#34;&#34;</span> <span style=color:#e6db74>&#34;&#34;</span>no_o_id
+         <span style=color:#e6db74>&#34;&#34;</span>)
+         }
+      <span style=color:#f92672>:</span>rtekind <span style=color:#ae81ff>2</span> 
+      <span style=color:#f92672>:</span>jointype <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>joinaliasvars (
+         {VAR 
+         :varno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+         }
+         {VAR 
+         :varno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+         }
+         {VAR 
+         :varno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>3</span> 
+         <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+         <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+         }
+         {VAR 
+         :varno <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+         }
+         {VAR 
+         :varno <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+         }
+         {VAR 
+         :varno <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>3</span> 
+         <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+         <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+         <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+         }
+      )
+      <span style=color:#f92672>:</span>lateral false 
+      <span style=color:#f92672>:</span>inh false 
+      <span style=color:#f92672>:</span>inFromCl true 
+      <span style=color:#f92672>:</span>requiredPerms <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>checkAsUser <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>selectedCols (b)
+      <span style=color:#f92672>:</span>modifiedCols (b)
+      <span style=color:#f92672>:</span>forceDistRandom false 
+      <span style=color:#f92672>:</span>securityQuals <span style=color:#f92672>&lt;&gt;</span>
+      }
+   )
+   <span style=color:#f92672>:</span>jointree 
+      {FROMEXPR 
+      :fromlist (
+         {JOINEXPR 
+         :jointype <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>isNatural false 
+         <span style=color:#f92672>:</span>larg 
+            {RANGETBLREF 
+            :rtindex <span style=color:#ae81ff>1</span>
+            }
+         <span style=color:#f92672>:</span>rarg 
+            {RANGETBLREF 
+            :rtindex <span style=color:#ae81ff>2</span>
+            }
+         <span style=color:#f92672>:</span>usingClause <span style=color:#f92672>&lt;&gt;</span> 
+         <span style=color:#f92672>:</span>quals (
+            {OPEXPR 
+            :opno <span style=color:#ae81ff>96</span> 
+            <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+            <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+            <span style=color:#f92672>:</span>opretset false 
+            <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>args (
+               {VAR 
+               :varno <span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>3</span> 
+               <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+               <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+               <span style=color:#f92672>:</span>location <span style=color:#ae81ff>72</span>
+               }
+               {VAR 
+               :varno <span style=color:#ae81ff>2</span> 
+               <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>3</span> 
+               <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+               <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+               <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>2</span> 
+               <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+               <span style=color:#f92672>:</span>location <span style=color:#ae81ff>85</span>
+               }
+            )
+            <span style=color:#f92672>:</span>location <span style=color:#ae81ff>83</span>
+            }
+         )
+         <span style=color:#f92672>:</span>alias <span style=color:#f92672>&lt;&gt;</span> 
+         <span style=color:#f92672>:</span>rtindex <span style=color:#ae81ff>3</span>
+         }
+      )
+      <span style=color:#f92672>:</span>quals <span style=color:#f92672>&lt;&gt;</span>
+      }
+   <span style=color:#f92672>:</span>targetList (
+      {TARGETENTRY 
+      :expr 
+         {VAR 
+         :varno <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>3</span> 
+         <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>varnoold <span style=color:#ae81ff>1</span> 
+         <span style=color:#f92672>:</span>varoattno <span style=color:#ae81ff>3</span> 
+         <span style=color:#f92672>:</span>location <span style=color:#ae81ff>7</span>
+         }
+      <span style=color:#f92672>:</span>resno <span style=color:#ae81ff>1</span> 
+      <span style=color:#f92672>:</span>resname no_o_id 
+      :ressortgroupref <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>resorigtbl <span style=color:#ae81ff>24603</span> 
+      <span style=color:#f92672>:</span>resorigcol <span style=color:#ae81ff>3</span> 
+      <span style=color:#f92672>:</span>resjunk false
+      }
+   )
+   <span style=color:#f92672>:</span>withCheckOptions <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>returningList <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>groupClause <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>havingQual <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>windowClause <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>distinctClause <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>sortClause <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>scatterClause <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>isTableValueSelect false 
+   <span style=color:#f92672>:</span>limitOffset <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>limitCount <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>rowMarks <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>setOperations <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>constraintDeps <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>parentStmtType false
+   }
+
+
+create table <span style=color:#a6e22e>bmsql_new_order_bak1</span> (no_w_id <span style=color:#66d9ef>int</span>, no_d_id <span style=color:#66d9ef>int</span>, no_o_id <span style=color:#66d9ef>int</span>) Distributed BY(no_w_id) ;
+
+
+insert into bmsql_new_order_bak1 select <span style=color:#f92672>*</span> from bmsql_new_order;
+
+
+
+
+wen       <span style=color:#ae81ff>138704</span>  <span style=color:#ae81ff>1.1</span>  <span style=color:#ae81ff>0.2</span> <span style=color:#ae81ff>258992</span> <span style=color:#ae81ff>26484</span> <span style=color:#f92672>?</span>        Ss   <span style=color:#ae81ff>14</span><span style=color:#f92672>:</span><span style=color:#ae81ff>44</span>   <span style=color:#ae81ff>0</span><span style=color:#f92672>:</span><span style=color:#ae81ff>15</span> postgres: wen benchmarksql [local] idle
+wen       <span style=color:#ae81ff>138747</span>  <span style=color:#ae81ff>1.1</span>  <span style=color:#ae81ff>0.1</span> <span style=color:#ae81ff>247772</span> <span style=color:#ae81ff>20436</span> <span style=color:#f92672>?</span>        Ss   <span style=color:#ae81ff>14</span><span style=color:#f92672>:</span><span style=color:#ae81ff>44</span>   <span style=color:#ae81ff>0</span><span style=color:#f92672>:</span><span style=color:#ae81ff>14</span> postgres: wen benchmarksql <span style=color:#ae81ff>192.168.150.132</span>(<span style=color:#ae81ff>58718</span>) idle
+wen       <span style=color:#ae81ff>138748</span>  <span style=color:#ae81ff>1.0</span>  <span style=color:#ae81ff>0.1</span> <span style=color:#ae81ff>247772</span> <span style=color:#ae81ff>19608</span> <span style=color:#f92672>?</span>        Ss   <span style=color:#ae81ff>14</span><span style=color:#f92672>:</span><span style=color:#ae81ff>44</span>   <span style=color:#ae81ff>0</span><span style=color:#f92672>:</span><span style=color:#ae81ff>14</span> postgres: wen benchmarksql <span style=color:#ae81ff>192.168.150.132</span>(<span style=color:#ae81ff>41542</span>) idle
+wen       <span style=color:#ae81ff>138809</span>  <span style=color:#ae81ff>0.1</span>  <span style=color:#ae81ff>0.0</span> <span style=color:#ae81ff>246176</span>  <span style=color:#ae81ff>5228</span> <span style=color:#f92672>?</span>        Ss   <span style=color:#ae81ff>14</span><span style=color:#f92672>:</span><span style=color:#ae81ff>44</span>   <span style=color:#ae81ff>0</span><span style=color:#f92672>:</span><span style=color:#ae81ff>01</span> postgres: dynamic reduce <span style=color:#66d9ef>for</span> PID <span style=color:#ae81ff>138747</span> 
+wen       <span style=color:#ae81ff>138810</span>  <span style=color:#ae81ff>0.1</span>  <span style=color:#ae81ff>0.0</span> <span style=color:#ae81ff>246176</span>  <span style=color:#ae81ff>5184</span> <span style=color:#f92672>?</span>        Ss   <span style=color:#ae81ff>14</span><span style=color:#f92672>:</span><span style=color:#ae81ff>44</span>   <span style=color:#ae81ff>0</span><span style=color:#f92672>:</span><span style=color:#ae81ff>01</span> postgres: dynamic reduce <span style=color:#66d9ef>for</span> PID <span style=color:#ae81ff>138748</span> 
+wen       <span style=color:#ae81ff>138811</span>  <span style=color:#ae81ff>0.1</span>  <span style=color:#ae81ff>0.0</span> <span style=color:#ae81ff>246176</span>  <span style=color:#ae81ff>5368</span> <span style=color:#f92672>?</span>        Ss   <span style=color:#ae81ff>14</span><span style=color:#f92672>:</span><span style=color:#ae81ff>44</span>   <span style=color:#ae81ff>0</span><span style=color:#f92672>:</span><span style=color:#ae81ff>01</span> postgres: dynamic reduce <span style=color:#66d9ef>for</span> PID <span style=color:#ae81ff>138704</span> 
+
+
+
+
+sudo perf record <span style=color:#f92672>-</span>F <span style=color:#ae81ff>1500</span> <span style=color:#f92672>-</span>p <span style=color:#ae81ff>181056</span> <span style=color:#f92672>-</span>g <span style=color:#f92672>--</span> sleep <span style=color:#ae81ff>5</span>
+
+sudo perf report <span style=color:#f92672>-</span>n <span style=color:#f92672>--</span>stdio
+
+sudo perf script <span style=color:#f92672>&gt;</span> out.nodestacks
+
+.<span style=color:#f92672>/</span>FlameGraph<span style=color:#f92672>/</span>stackcollapse<span style=color:#f92672>-</span>perf.pl <span style=color:#f92672>&lt;</span> .<span style=color:#f92672>/</span>out.nodestacks <span style=color:#f92672>|</span> .<span style=color:#f92672>/</span>FlameGraph<span style=color:#f92672>/</span>flamegraph.pl <span style=color:#f92672>&gt;</span> .<span style=color:#f92672>/</span>masterfqsseg1.svg
+
+wen       <span style=color:#ae81ff>181020</span>  <span style=color:#ae81ff>2.1</span>  <span style=color:#ae81ff>0.1</span> <span style=color:#ae81ff>246916</span> <span style=color:#ae81ff>18908</span> <span style=color:#f92672>?</span>        Ss   <span style=color:#ae81ff>16</span><span style=color:#f92672>:</span><span style=color:#ae81ff>10</span>   <span style=color:#ae81ff>0</span><span style=color:#f92672>:</span><span style=color:#ae81ff>00</span> postgres: wen benchmarksql [local] idle
+wen       <span style=color:#ae81ff>181056</span>  <span style=color:#ae81ff>1.3</span>  <span style=color:#ae81ff>0.1</span> <span style=color:#ae81ff>245940</span> <span style=color:#ae81ff>19028</span> <span style=color:#f92672>?</span>        Ss   <span style=color:#ae81ff>16</span><span style=color:#f92672>:</span><span style=color:#ae81ff>10</span>   <span style=color:#ae81ff>0</span><span style=color:#f92672>:</span><span style=color:#ae81ff>00</span> postgres: wen benchmarksql <span style=color:#ae81ff>192.168.150.132</span>(<span style=color:#ae81ff>58726</span>) idle
+wen       <span style=color:#ae81ff>181057</span>  <span style=color:#ae81ff>0.5</span>  <span style=color:#ae81ff>0.1</span> <span style=color:#ae81ff>245940</span> <span style=color:#ae81ff>18496</span> <span style=color:#f92672>?</span>        Ss   <span style=color:#ae81ff>16</span><span style=color:#f92672>:</span><span style=color:#ae81ff>10</span>   <span style=color:#ae81ff>0</span><span style=color:#f92672>:</span><span style=color:#ae81ff>00</span> postgres: wen benchmarksql <span style=color:#ae81ff>192.168.150.132</span>(<span style=color:#ae81ff>41570</span>) idle
+
+
+
+sudo perf record <span style=color:#f92672>-</span>F <span style=color:#ae81ff>1500</span> <span style=color:#f92672>-</span>p <span style=color:#ae81ff>181020</span> <span style=color:#f92672>-</span>g <span style=color:#f92672>--</span> sleep <span style=color:#ae81ff>5</span></code></pre></div>
+</div>
+<div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>Read other posts</span>
+<hr>
+</div>
+<div class=pagination__buttons>
+<span class="button previous">
+<a href=https://Esoye.github.io/posts/postgres/postgres-xc/>
+<span class=button__icon>←</span>
+<span class=button__text></span>
+</a>
+</span>
+<span class="button next">
+<a href=https://Esoye.github.io/posts/postgres/%E5%85%83%E6%95%B0%E6%8D%AE/>
+<span class=button__text></span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<div class=copyright>
+<span>© 2022 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
+</div>
+</div>
+</footer>
+<script src=https://Esoye.github.io/assets/main.js></script>
+<script src=https://Esoye.github.io/assets/prism.js></script>
+</div>
+</body>
+</html>

@@ -1,0 +1,603 @@
+<!doctype html><html lang=en>
+<head>
+<title>
+Postgres Storage ::
+Esoye — My note blog
+</title>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="存储 #  内存 #    共享内存
+  本地内存
+  缓存
+  内存上下文
+  缓存空间管理
+数据块的缓存，减少磁盘IO，有共享缓存和进程缓存
+  Cache
+数据块之外的缓存，例如系统表
+ 系统表缓存不会缓存整个表，是以block为单位缓存？    虚拟文件描述符
+系统中文件有打开的上限，使用VFD可以突破这种限制，本质上是一个LRU缓存
+  空闲空间定位
+快速定位磁盘中的空闲空间以插入数据
+  进程间通信 使用共享内存或者信号量通信
+  读取过程 #   从系统表中读取表的元数据信息构造元组信息 尝试从缓存读取数据 使用SMGR从磁盘读取数据到缓存中，SMGR是一个抽象层，用于实现不同存储介质的管理 SMGR和存储介质之间使用VFD来管理文件描述符，以突破系统的FD限制   标记删除，vacuum清理数据 FSM记录空闲空间  磁盘 #    表文件
+  SMGR
+  VFD
+  FSM">
+<meta name=keywords content="数据库">
+<meta name=robots content="noodp">
+<link rel=canonical href=https://Esoye.github.io/posts/postgres/storage/>
+<link rel=stylesheet href=https://Esoye.github.io/assets/style.css>
+<link rel=stylesheet href=https://Esoye.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://Esoye.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://Esoye.github.io/img/favicon.png>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Postgres Storage">
+<meta name=twitter:description content="存储 #  内存 #    共享内存
+  本地内存
+  缓存
+  内存上下文
+  缓存空间管理
+数据块的缓存，减少磁盘IO，有共享缓存和进程缓存
+  Cache
+数据块之外的缓存，例如系统表
+ 系统表缓存不会缓存整个表，是以block为单位缓存？    虚拟文件描述符
+系统中文件有打开的上限，使用VFD可以突破这种限制，本质上是一个LRU缓存
+  空闲空间定位
+快速定位磁盘中的空闲空间以插入数据
+  进程间通信 使用共享内存或者信号量通信
+  读取过程 #   从系统表中读取表的元数据信息构造元组信息 尝试从缓存读取数据 使用SMGR从磁盘读取数据到缓存中，SMGR是一个抽象层，用于实现不同存储介质的管理 SMGR和存储介质之间使用VFD来管理文件描述符，以突破系统的FD限制   标记删除，vacuum清理数据 FSM记录空闲空间  磁盘 #    表文件
+  SMGR
+  VFD
+  FSM">
+<meta property="og:title" content="Postgres Storage">
+<meta property="og:description" content="存储 #  内存 #    共享内存
+  本地内存
+  缓存
+  内存上下文
+  缓存空间管理
+数据块的缓存，减少磁盘IO，有共享缓存和进程缓存
+  Cache
+数据块之外的缓存，例如系统表
+ 系统表缓存不会缓存整个表，是以block为单位缓存？    虚拟文件描述符
+系统中文件有打开的上限，使用VFD可以突破这种限制，本质上是一个LRU缓存
+  空闲空间定位
+快速定位磁盘中的空闲空间以插入数据
+  进程间通信 使用共享内存或者信号量通信
+  读取过程 #   从系统表中读取表的元数据信息构造元组信息 尝试从缓存读取数据 使用SMGR从磁盘读取数据到缓存中，SMGR是一个抽象层，用于实现不同存储介质的管理 SMGR和存储介质之间使用VFD来管理文件描述符，以突破系统的FD限制   标记删除，vacuum清理数据 FSM记录空闲空间  磁盘 #    表文件
+  SMGR
+  VFD
+  FSM">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://Esoye.github.io/posts/postgres/storage/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2022-07-21T09:15:05+08:00">
+<meta property="article:modified_time" content="2022-07-21T09:15:05+08:00"><meta property="og:site_name" content="Esoye">
+</head>
+<body class=light-theme>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archive>Archive</a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archive>Archive</a></li>
+</ul>
+</nav>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class=post>
+<h1 class=post-title>Postgres Storage</h1>
+<div class=post-meta>
+<span class=post-date>
+2022-07-21
+</span>
+</div>
+<span class=post-tags>
+<a href=https://Esoye.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
+<a href=https://Esoye.github.io/tags/postgres/>#Postgres</a>&nbsp;
+<a href=https://Esoye.github.io/tags/%E5%AD%98%E5%82%A8/>#存储</a>&nbsp;
+</span>
+<div class=post-content>
+<h2 id=存储>
+存储
+<a href=#%e5%ad%98%e5%82%a8 class=h-anchor aria-hidden=true>#</a>
+</h2>
+<h3 id=内存>
+内存
+<a href=#%e5%86%85%e5%ad%98 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<ul>
+<li>
+<p>共享内存</p>
+</li>
+<li>
+<p>本地内存</p>
+</li>
+<li>
+<p>缓存</p>
+</li>
+<li>
+<p>内存上下文</p>
+</li>
+<li>
+<p>缓存空间管理<br>
+数据块的缓存，减少磁盘IO，有共享缓存和进程缓存</p>
+</li>
+<li>
+<p>Cache<br>
+数据块之外的缓存，例如系统表</p>
+<ul>
+<li>系统表缓存不会缓存整个表，是以block为单位缓存？</li>
+</ul>
+</li>
+<li>
+<p>虚拟文件描述符<br>
+系统中文件有打开的上限，使用VFD可以突破这种限制，本质上是一个LRU缓存</p>
+</li>
+<li>
+<p>空闲空间定位<br>
+快速定位磁盘中的空闲空间以插入数据</p>
+</li>
+<li>
+<p>进程间通信
+使用共享内存或者信号量通信</p>
+</li>
+</ul>
+<h4 id=读取过程>
+读取过程
+<a href=#%e8%af%bb%e5%8f%96%e8%bf%87%e7%a8%8b class=h-anchor aria-hidden=true>#</a>
+</h4>
+<ol>
+<li>从系统表中读取表的元数据信息构造元组信息</li>
+<li>尝试从缓存读取数据</li>
+<li>使用SMGR从磁盘读取数据到缓存中，SMGR是一个抽象层，用于实现不同存储介质的管理</li>
+<li>SMGR和存储介质之间使用VFD来管理文件描述符，以突破系统的FD限制</li>
+</ol>
+<ul>
+<li>标记删除，vacuum清理数据</li>
+<li>FSM记录空闲空间</li>
+</ul>
+<h3 id=磁盘>
+磁盘
+<a href=#%e7%a3%81%e7%9b%98 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<ul>
+<li>
+<p>表文件</p>
+</li>
+<li>
+<p>SMGR</p>
+</li>
+<li>
+<p>VFD</p>
+</li>
+<li>
+<p>FSM</p>
+</li>
+</ul>
+<h4 id=page-结构>
+Page 结构
+<a href=#page-%e7%bb%93%e6%9e%84 class=h-anchor aria-hidden=true>#</a>
+</h4>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
+<span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>PageHeaderData</span>
+{
+  <span style=color:#75715e>/* XXX LSN is member of *any* block, not only page-organized ones */</span>
+  PageXLogRecPtr pd_lsn;        <span style=color:#75715e>/* LSN: next byte after last byte of xlog record for last change to this page */</span>
+  uint16    pd_checksum;        <span style=color:#75715e>/* checksum */</span>
+  uint16    pd_flags;           <span style=color:#75715e>/* flag bits, see below */</span>
+  LocationIndex pd_lower;       <span style=color:#75715e>/* offset to start of free space */</span>
+  LocationIndex pd_upper;       <span style=color:#75715e>/* offset to end of free space */</span>
+  LocationIndex pd_special;     <span style=color:#75715e>/* offset to start of special space */</span>
+  uint16 pd_pagesize_version;
+  TransactionId pd_prune_xid;   <span style=color:#75715e>/* oldest prunable XID, or zero if none */</span>
+  ItemIdData  pd_linp[FLEXIBLE_ARRAY_MEMBER]; <span style=color:#75715e>/* line pointer array */</span>
+} PageHeaderData;
+
+<span style=color:#66d9ef>void</span>
+<span style=color:#a6e22e>PageInit</span>(Page page, Size pageSize, Size specialSize)
+{
+  PageHeader  p <span style=color:#f92672>=</span> (PageHeader) page;
+
+  specialSize <span style=color:#f92672>=</span> MAXALIGN(specialSize);
+
+  Assert(pageSize <span style=color:#f92672>==</span> BLCKSZ);
+  Assert(pageSize <span style=color:#f92672>&gt;</span> specialSize <span style=color:#f92672>+</span> SizeOfPageHeaderData);
+
+  <span style=color:#75715e>/* Make sure all fields of page are zero, as well as unused space */</span>
+  MemSet(p, <span style=color:#ae81ff>0</span>, pageSize);
+
+  p<span style=color:#f92672>-&gt;</span>pd_flags <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+  p<span style=color:#f92672>-&gt;</span>pd_lower <span style=color:#f92672>=</span> SizeOfPageHeaderData;
+  p<span style=color:#f92672>-&gt;</span>pd_upper <span style=color:#f92672>=</span> pageSize <span style=color:#f92672>-</span> specialSize;
+  p<span style=color:#f92672>-&gt;</span>pd_special <span style=color:#f92672>=</span> pageSize <span style=color:#f92672>-</span> specialSize;
+  PageSetPageSizeAndVersion(page, pageSize, PG_PAGE_LAYOUT_VERSION);
+  <span style=color:#75715e>/* p-&gt;pd_prune_xid = InvalidTransactionId;    done by above MemSet */</span>
+}
+</code></pre></div><p>大小为pageSize，默认为8k，最开始是PageHeader，
+RelationPutHeapTuple insert tuple到page中，根据head中的信息，计算insert的位置，其中page中的数据从首位向中兴靠齐，尾部为数据，前面为offset</p>
+<ul>
+<li>数据的变动以page为单位，不直接和存储交互，先把数据块读到缓存，然后在进行insert或者update或者delete，具体的函数有
+<ul>
+<li>heap_update</li>
+<li>heap_multi_insert</li>
+<li>heap_insert</li>
+</ul>
+</li>
+</ul>
+<p>tuple结构如下</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>HeapTupleHeaderData</span>
+{
+  <span style=color:#66d9ef>union</span>
+  {
+    HeapTupleFields t_heap;
+    DatumTupleFields t_datum;
+  }      t_choice;
+  <span style=color:#75715e>// 一个union，在内存中的时候t_heap记录事务相关的信息，在磁盘中的时候，事务信息不在使用，此时转换为数据长度等信息
+</span><span style=color:#75715e></span>
+  ItemPointerData t_ctid;    <span style=color:#75715e>/* current TID of this or newer tuple (or a * speculative insertion token) */</span>
+
+  <span style=color:#75715e>/* Fields below here must match MinimalTupleData! */</span>
+
+<span style=color:#75715e>#define FIELDNO_HEAPTUPLEHEADERDATA_INFOMASK2 2
+</span><span style=color:#75715e></span>  <span style=color:#75715e>// hot相关信息，
+</span><span style=color:#75715e></span>  <span style=color:#75715e>//   hot指的是数据在更新的时候，如果有index,会同事更新index，即使没有修改到index属性的数据，此时index中也会有一条数据的链表，为了节约空间，在满足
+</span><span style=color:#75715e></span>  <span style=color:#75715e>//   1. 没有修改到index属性数据
+</span><span style=color:#75715e></span>  <span style=color:#75715e>//   2. 数组修改限于在同一个page内，此时index不会有额外的数据，查找的时候从index找到最老的数据，按照数据链查找到最新数据即可
+</span><span style=color:#75715e></span>  uint16    t_infomask2;  <span style=color:#75715e>/* number of attributes + various flags */</span>
+
+<span style=color:#75715e>#define FIELDNO_HEAPTUPLEHEADERDATA_INFOMASK 3
+</span><span style=color:#75715e></span>  uint16    t_infomask;    <span style=color:#75715e>/* various flag bits, see below */</span>
+
+<span style=color:#75715e>#define FIELDNO_HEAPTUPLEHEADERDATA_HOFF 4
+</span><span style=color:#75715e></span>  uint8    t_hoff;      <span style=color:#75715e>/* sizeof header incl. bitmap, padding */</span>
+
+  <span style=color:#75715e>/* ^ - 23 bytes - ^ */</span>
+
+<span style=color:#75715e>#define FIELDNO_HEAPTUPLEHEADERDATA_BITS 5
+</span><span style=color:#75715e></span>  bits8    t_bits[FLEXIBLE_ARRAY_MEMBER];  <span style=color:#75715e>/* bitmap of NULLs */</span>
+
+  <span style=color:#75715e>/* MORE DATA FOLLOWS AT END OF STRUCT */</span>
+};
+</code></pre></div><p>page具体的操作代码在<code>storage/page</code>目录下，建议进行15445的实验，可以更好的理解page相关的操作，这里page的操作总体类似，主要是具体的数据结构和某些特定的方法需要时间进行记忆，但是大的方向上似曾相识。</p>
+<p>Each table and index is stored in a separate file. For ordinary relations, these files are named after the table or index&rsquo;s <firstterm>filenode</firstterm> number,
+which can be found in <structname>pg_class</structname>.<structfield>relfilenode</structfield>. But
+for temporary relations, the file name is of the form
+<literal>t<replaceable>BBB</replaceable>_<replaceable>FFF</replaceable></literal>, where <replaceable>BBB</replaceable>
+is the backend ID of the backend which created the file, and <replaceable>FFF</replaceable>
+is the filenode number. In either case, in addition to the main file (a/k/a
+main fork), each table and index has a <firstterm>free space map</firstterm> (see <xref linkend=storage-fsm>), which stores information about free space available in
+the relation. The free space map is stored in a file named with the filenode
+number plus the suffix <literal>_fsm</literal>. Tables also have a
+<firstterm>visibility map</firstterm>, stored in a fork with the suffix <literal>_vm</literal>,
+to track which pages are known to have no dead tuples. The visibility map is
+described further in <xref linkend=storage-vm>. Unlogged tables and indexes
+have a third fork, known as the initialization fork, which is stored in a fork
+with the suffix <literal>_init</literal> (see <xref linkend=storage-init>).</p>
+<ul>
+<li>these files are named after the table or index’s filenode number, which can be found in pg_class.relfilenode.</li>
+<li>for temporary relations, the file name is of the form tBBB_FFF, where BBB is the backend ID of the backend which created the file, and FFF is the filenode number.</li>
+<li>each table and index has a free space map (see ), which stores information about free space available in the relation.</li>
+<li>Tables also have a visibility map, to track which pages are known to have no dead tuples.</li>
+</ul>
+<para>
+Tablespaces make the scenario more complicated. Each user-defined tablespace
+has a symbolic link inside the <varname>PGDATA</varname><filename>/pg_tblspc</filename>
+directory, which points to the physical tablespace directory (i.e., the
+location specified in the tablespace's <command>CREATE TABLESPACE</command> command).
+This symbolic link is named after
+the tablespace's OID. Inside the physical tablespace directory there is
+a subdirectory with a name that depends on the <productname>PostgreSQL</productname>
+server version, such as <literal>PG_9.0_201008051</literal>. (The reason for using
+this subdirectory is so that successive versions of the database can use
+the same <command>CREATE TABLESPACE</command> location value without conflicts.)
+Within the version-specific subdirectory, there is
+a subdirectory for each database that has elements in the tablespace, named
+after the database's OID. Tables and indexes are stored within that
+directory, using the filenode naming scheme.
+The <literal>pg_default</literal> tablespace is not accessed through
+<filename>pg_tblspc</filename>, but corresponds to
+<varname>PGDATA</varname><filename>/base</filename>. Similarly, the <literal>pg_global</literal>
+tablespace is not accessed through <filename>pg_tblspc</filename>, but corresponds to
+<varname>PGDATA</varname><filename>/global</filename>.
+</para>
+<ul>
+<li>pg_relation_filepath(oid)</li>
+</ul>
+<para>
+<productname>PostgreSQL</productname> uses a fixed page size (commonly
+8 kB), and does not allow tuples to span multiple pages. Therefore, it is
+not possible to store very large field values directly. To overcome
+this limitation, large field values are compressed and/or broken up into
+multiple physical rows. This happens transparently to the user, with only
+small impact on most of the backend code. The technique is affectionately
+known as <acronym>TOAST</acronym> (or <quote>the best thing since sliced bread</quote>).
+The <acronym>TOAST</acronym> infrastructure is also used to improve handling of
+large data values in-memory.
+</para>
+<ul>
+<li>TOAST<br>
+大字段数据，在字段数据大于2k的时候，会触发相应的机制，把数据按2k切分，存储到TOAST表中，原表使用专门的指针指向数据</li>
+</ul>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
+<span style=color:#75715e>#0  GetPageWithFreeSpace (rel=0x61951eb6c3c4, spaceNeeded=3280) at freespace.c:134
+</span><span style=color:#75715e>#1  0x000055d41e4a9a8c in RelationGetBufferForTuple (relation=0x7f3d795c2160, len=32, otherBuffer=0, options=0, bistate=0x0, vmbuffer=0x7ffeab8f6d54, vmbuffer_other=0x0) at hio.c:409
+</span><span style=color:#75715e>#2  0x000055d41e49078b in heap_insert (relation=0x7f3d795c2160, tup=0x55d41fd92818, cid=0, options=0, bistate=0x0) at heapam.c:2051
+</span><span style=color:#75715e>#3  0x000055d41e4a039d in heapam_tuple_insert (relation=0x7f3d795c2160, slot=0x55d41fd92780, cid=0, options=0, bistate=0x0) at heapam_handler.c:252
+</span><span style=color:#75715e>#4  0x000055d41e7402d6 in table_tuple_insert (rel=0x7f3d795c2160, slot=0x55d41fd92780, cid=0, options=0, bistate=0x0) at ../../../src/include</span><span style=color:#75715e>/access/tableam.h:1376</span><span style=color:#75715e>
+</span><span style=color:#75715e>#5  0x000055d41e742093 in ExecInsert (context=0x7ffeab8f6fe0, resultRelInfo=0x55d41fd91b70, slot=0x55d41fd92780, canSetTag=true, inserted_tuple=0x0, insert_destrel=0x0)
+</span><span style=color:#75715e></span>    at nodeModifyTable.c:<span style=color:#ae81ff>1058</span>
+<span style=color:#75715e>#6  0x000055d41e746203 in ExecModifyTable (pstate=0x55d41fd91958) at nodeModifyTable.c:3700
+</span><span style=color:#75715e>#7  0x000055d41e704dd8 in ExecProcNodeFirst (node=0x55d41fd91958) at execProcnode.c:463
+</span><span style=color:#75715e>#8  0x000055d41e6f85f1 in ExecProcNode (node=0x55d41fd91958) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
+</span><span style=color:#75715e>#9  0x000055d41e6fb2c9 in ExecutePlan (estate=0x55d41fd916e0, planstate=0x55d41fd91958, use_parallel_mode=false, operation=CMD_INSERT, sendTuples=false, numberTuples=0,
+</span><span style=color:#75715e></span>    direction<span style=color:#f92672>=</span>ForwardScanDirection, dest<span style=color:#f92672>=</span><span style=color:#ae81ff>0x55d41fd7a718</span>, execute_once<span style=color:#f92672>=</span>true) at execMain.c:<span style=color:#ae81ff>1636</span>
+<span style=color:#75715e>#10 0x000055d41e6f8ccb in standard_ExecutorRun (queryDesc=0x55d41fd742c0, direction=ForwardScanDirection, count=0, execute_once=true) at execMain.c:363
+</span><span style=color:#75715e>#11 0x000055d41e6f8ada in ExecutorRun (queryDesc=0x55d41fd742c0, direction=ForwardScanDirection, count=0, execute_once=true) at execMain.c:307
+</span><span style=color:#75715e>#12 0x000055d41e999ed0 in ProcessQuery (plan=0x55d41fd7a628, sourceText=0x55d41fc53e40 &#34;insert into t values(1);&#34;, params=0x0, queryEnv=0x0, dest=0x55d41fd7a718, qc=0x7ffeab8f7440)
+</span><span style=color:#75715e></span>    at pquery.c:<span style=color:#ae81ff>160</span>
+<span style=color:#75715e>#13 0x000055d41e99ba25 in PortalRunMulti (portal=0x55d41fcc1bb0, isTopLevel=true, setHoldSnapshot=false, dest=0x55d41fd7a718, altdest=0x55d41fd7a718, qc=0x7ffeab8f7440)
+</span><span style=color:#75715e></span>    at pquery.c:<span style=color:#ae81ff>1277</span>
+
+</code></pre></div><h2 id=smgr>
+SMGR
+<a href=#smgr class=h-anchor aria-hidden=true>#</a>
+</h2>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
+<span style=color:#75715e>/*
+</span><span style=color:#75715e> * This struct of function pointers defines the API between smgr.c and
+</span><span style=color:#75715e> * any individual storage manager module.  Note that smgr subfunctions are
+</span><span style=color:#75715e> * generally expected to report problems via elog(ERROR).  An exception is
+</span><span style=color:#75715e> * that smgr_unlink should use elog(WARNING), rather than erroring out,
+</span><span style=color:#75715e> * because we normally unlink relations during post-commit/abort cleanup,
+</span><span style=color:#75715e> * and so it&#39;s too late to raise an error.  Also, various conditions that
+</span><span style=color:#75715e> * would normally be errors should be allowed during bootstrap and/or WAL
+</span><span style=color:#75715e> * recovery --- see comments in md.c for details.
+</span><span style=color:#75715e> */</span>
+<span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>f_smgr</span>
+{
+  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_init) (<span style=color:#66d9ef>void</span>);  <span style=color:#75715e>/* may be NULL */</span>
+  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_shutdown) (<span style=color:#66d9ef>void</span>);  <span style=color:#75715e>/* may be NULL */</span>
+  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_open) (SMgrRelation reln);
+  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_close) (SMgrRelation reln, ForkNumber forknum);
+  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_create) (SMgrRelation reln, ForkNumber forknum,
+                <span style=color:#66d9ef>bool</span> isRedo);
+  <span style=color:#66d9ef>bool</span>    (<span style=color:#f92672>*</span>smgr_exists) (SMgrRelation reln, ForkNumber forknum);
+  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_unlink) (RelFileLocatorBackend rlocator, ForkNumber forknum,
+                <span style=color:#66d9ef>bool</span> isRedo);
+  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_extend) (SMgrRelation reln, ForkNumber forknum,
+                BlockNumber blocknum, <span style=color:#66d9ef>char</span> <span style=color:#f92672>*</span>buffer, <span style=color:#66d9ef>bool</span> skipFsync);
+  <span style=color:#66d9ef>bool</span>    (<span style=color:#f92672>*</span>smgr_prefetch) (SMgrRelation reln, ForkNumber forknum,
+                  BlockNumber blocknum);
+  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_read) (SMgrRelation reln, ForkNumber forknum,
+                BlockNumber blocknum, <span style=color:#66d9ef>char</span> <span style=color:#f92672>*</span>buffer);
+  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_write) (SMgrRelation reln, ForkNumber forknum,
+                 BlockNumber blocknum, <span style=color:#66d9ef>char</span> <span style=color:#f92672>*</span>buffer, <span style=color:#66d9ef>bool</span> skipFsync);
+  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_writeback) (SMgrRelation reln, ForkNumber forknum,
+                   BlockNumber blocknum, BlockNumber nblocks);
+  BlockNumber (<span style=color:#f92672>*</span>smgr_nblocks) (SMgrRelation reln, ForkNumber forknum);
+  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_truncate) (SMgrRelation reln, ForkNumber forknum,
+                  BlockNumber nblocks);
+  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_immedsync) (SMgrRelation reln, ForkNumber forknum);
+} f_smgr;
+
+<span style=color:#66d9ef>static</span> <span style=color:#66d9ef>const</span> f_smgr smgrsw[] <span style=color:#f92672>=</span> {
+  <span style=color:#75715e>/* magnetic disk */</span>
+  {
+    .smgr_init <span style=color:#f92672>=</span> mdinit,
+    .smgr_shutdown <span style=color:#f92672>=</span> NULL,
+    .smgr_open <span style=color:#f92672>=</span> mdopen,
+    .smgr_close <span style=color:#f92672>=</span> mdclose,
+    .smgr_create <span style=color:#f92672>=</span> mdcreate,
+    .smgr_exists <span style=color:#f92672>=</span> mdexists,
+    .smgr_unlink <span style=color:#f92672>=</span> mdunlink,
+    .smgr_extend <span style=color:#f92672>=</span> mdextend,
+    .smgr_prefetch <span style=color:#f92672>=</span> mdprefetch,
+    .smgr_read <span style=color:#f92672>=</span> mdread,
+    .smgr_write <span style=color:#f92672>=</span> mdwrite,
+    .smgr_writeback <span style=color:#f92672>=</span> mdwriteback,
+    .smgr_nblocks <span style=color:#f92672>=</span> mdnblocks,
+    .smgr_truncate <span style=color:#f92672>=</span> mdtruncate,
+    .smgr_immedsync <span style=color:#f92672>=</span> mdimmedsync,
+  }
+};
+</code></pre></div><p>操作不同介质的文件抽象层，在f_smgr中定义了操作的接口，当前默认实现为smgrsw中的对磁盘操作的函数，理论上支持其他存储介质，只需要实现对应的接口即可，当前只是作为一个简单的中转，具体的文件操作在<code>smgr/md.c</code>中</p>
+<h3 id=vfd>
+VFD
+<a href=#vfd class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>使用LRU缓存维护的fd，管理打开的文件描述符，主要代码在<code>file/fd.c</code>中，主要结构为</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>vfd</span>
+{
+  <span style=color:#66d9ef>int</span>      fd;        <span style=color:#75715e>/* current FD, or VFD_CLOSED if none */</span>
+  <span style=color:#66d9ef>unsigned</span> <span style=color:#66d9ef>short</span> fdstate;    <span style=color:#75715e>/* bitflags for VFD&#39;s state */</span>
+  ResourceOwner resowner;    <span style=color:#75715e>/* owner, for automatic cleanup */</span>
+  File    nextFree;    <span style=color:#75715e>/* link to next free VFD, if in freelist */</span>
+  File    lruMoreRecently;  <span style=color:#75715e>/* doubly linked recency-of-use list */</span>
+  File    lruLessRecently;
+  off_t    fileSize;    <span style=color:#75715e>/* current size of file (0 if not temporary) */</span>
+  <span style=color:#66d9ef>char</span>     <span style=color:#f92672>*</span>fileName;    <span style=color:#75715e>/* name of file, or NULL for unused VFD */</span>
+  <span style=color:#75715e>/* NB: fileName is malloc&#39;d, and must be free&#39;d when closing the VFD */</span>
+  <span style=color:#66d9ef>int</span>      fileFlags;    <span style=color:#75715e>/* open(2) flags for (re)opening the file */</span>
+  mode_t    fileMode;    <span style=color:#75715e>/* mode to pass to open(2) */</span>
+} Vfd;
+</code></pre></div><h3 id=fsm>
+FSM
+<a href=#fsm class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>free space map，page中的数据在删除且vacuum之后，会有数据空洞，此时为了节约空间，在后续insert的时候，会尝试把数据insert到之前的page中，但是遍历page查找空间类似全表扫，所以为了加快这个过程，使用额外的数据结构记录空闲page的大小，insert的时候直接定位page</p>
+<ol>
+<li>空闲空间不是精确统计，page默认大小为8k，把8k划分为255份，一份大小为32字节，此时使用一个字节就可以记录page中大约空闲的空间，</li>
+<li>为了快速定位，fsm使用二叉树来维护，一个page大小为8192，除了header剩下的空间约为8000字节，使用叶子节点标记page大小，此时一个page大约可以记录4000个page，</li>
+<li>一般使用三层fsm，此时前两层为辅助块，最后层page数目为4000^3，完全可以记录所有的数据块的使用情况，所以最初的时候fsm文件大小为 8192* 3，此时只使用到3个块记录大小，后期数据扩展的时候，此时fsm文件大小也会进行扩展</li>
+</ol>
+<p>It is important to keep the map small so that it can be searched rapidly.
+Therefore, we don&rsquo;t attempt to record the exact free space on a page.
+We allocate one map byte to each page, allowing us to record free space
+at a granularity of 1/256th of a page. Another way to say it is that
+the stored value is the free space divided by BLCKSZ/256 (rounding down).
+We assume that the free space must always be less than BLCKSZ, since
+all pages have some overhead; so the maximum map value is 255.</p>
+<p>The binary tree is stored on each FSM page as an array. Because the page
+header takes some space on a page, the binary tree isn&rsquo;t perfect. That is,
+a few right-most leaf nodes are missing, and there are some useless non-leaf
+nodes at the right. So the tree looks something like this:</p>
+<pre tabindex=0><code>       0
+   1       2
+ 3   4   5   6
+7 8 9 A B
+</code></pre><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#75715e>/*
+</span><span style=color:#75715e> * Structure of a FSM page. See src/backend/storage/freespace/README for
+</span><span style=color:#75715e> * details.
+</span><span style=color:#75715e> */</span>
+<span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span>
+{
+  <span style=color:#75715e>/*
+</span><span style=color:#75715e>   * fsm_search_avail() tries to spread the load of multiple backends by
+</span><span style=color:#75715e>   * returning different pages to different backends in a round-robin
+</span><span style=color:#75715e>   * fashion. fp_next_slot points to the next slot to be returned (assuming
+</span><span style=color:#75715e>   * there&#39;s enough space on it for the request). It&#39;s defined as an int,
+</span><span style=color:#75715e>   * because it&#39;s updated without an exclusive lock. uint16 would be more
+</span><span style=color:#75715e>   * appropriate, but int is more likely to be atomically
+</span><span style=color:#75715e>   * fetchable/storable.
+</span><span style=color:#75715e>   */</span>
+  <span style=color:#66d9ef>int</span>      fp_next_slot;
+
+  <span style=color:#75715e>/*
+</span><span style=color:#75715e>   * fp_nodes contains the binary tree, stored in array. The first
+</span><span style=color:#75715e>   * NonLeafNodesPerPage elements are upper nodes, and the following
+</span><span style=color:#75715e>   * LeafNodesPerPage elements are leaf nodes. Unused nodes are zero.
+</span><span style=color:#75715e>   */</span>
+  uint8    fp_nodes[FLEXIBLE_ARRAY_MEMBER];
+} FSMPageData;
+</code></pre></div><p>fp_next_slot记录下一此使用的节点，目的是</p>
+<ol>
+<li>在多进程写同一个表时候，避免对同一个page的竞争</li>
+<li>记录下一个page，在顺序读写的时候可以有更高的性能</li>
+</ol>
+<p>具体的查找算法为</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
+  <span style=color:#75715e>/*----------
+</span><span style=color:#75715e>   * Start the search from the target slot.  At every step, move one
+</span><span style=color:#75715e>   * node to the right, then climb up to the parent.  Stop when we reach
+</span><span style=color:#75715e>   * a node with enough free space (as we must, since the root has enough
+</span><span style=color:#75715e>   * space).
+</span><span style=color:#75715e>   *
+</span><span style=color:#75715e>   * The idea is to gradually expand our &#34;search triangle&#34;, that is, all
+</span><span style=color:#75715e>   * nodes covered by the current node, and to be sure we search to the
+</span><span style=color:#75715e>   * right from the start point.  At the first step, only the target slot
+</span><span style=color:#75715e>   * is examined.  When we move up from a left child to its parent, we are
+</span><span style=color:#75715e>   * adding the right-hand subtree of that parent to the search triangle.
+</span><span style=color:#75715e>   * When we move right then up from a right child, we are dropping the
+</span><span style=color:#75715e>   * current search triangle (which we know doesn&#39;t contain any suitable
+</span><span style=color:#75715e>   * page) and instead looking at the next-larger-size triangle to its
+</span><span style=color:#75715e>   * right.  So we never look left from our original start point, and at
+</span><span style=color:#75715e>   * each step the size of the search triangle doubles, ensuring it takes
+</span><span style=color:#75715e>   * only log2(N) work to search N pages.
+</span><span style=color:#75715e>   *
+</span><span style=color:#75715e>   * The &#34;move right&#34; operation will wrap around if it hits the right edge
+</span><span style=color:#75715e>   * of the tree, so the behavior is still good if we start near the right.
+</span><span style=color:#75715e>   * Note also that the move-and-climb behavior ensures that we can&#39;t end
+</span><span style=color:#75715e>   * up on one of the missing nodes at the right of the leaf level.
+</span><span style=color:#75715e>   *
+</span><span style=color:#75715e>   * For example, consider this tree:
+</span><span style=color:#75715e>   *
+</span><span style=color:#75715e>   *       7
+</span><span style=color:#75715e>   *     7     6
+</span><span style=color:#75715e>   *   5   7   6   5
+</span><span style=color:#75715e>   *  4 5 5 7 2 6 5 2
+</span><span style=color:#75715e>   *        T
+</span><span style=color:#75715e>   *
+</span><span style=color:#75715e>   * Assume that the target node is the node indicated by the letter T,
+</span><span style=color:#75715e>   * and we&#39;re searching for a node with value of 6 or higher. The search
+</span><span style=color:#75715e>   * begins at T. At the first iteration, we move to the right, then to the
+</span><span style=color:#75715e>   * parent, arriving at the rightmost 5. At the second iteration, we move
+</span><span style=color:#75715e>   * to the right, wrapping around, then climb up, arriving at the 7 on the
+</span><span style=color:#75715e>   * third level.  7 satisfies our search, so we descend down to the bottom,
+</span><span style=color:#75715e>   * following the path of sevens.  This is in fact the first suitable page
+</span><span style=color:#75715e>   * to the right of (allowing for wraparound) our start point.
+</span><span style=color:#75715e>   *----------
+</span><span style=color:#75715e>   */</span>
+</code></pre></div><p>结合代码理解</p>
+<ol>
+<li>先判断root节点</li>
+<li>从fp_next_slot或者midel node开始，向右上查找，直到找到复合的node</li>
+<li>从这里开始向下查找</li>
+</ol>
+<p>代码就是简单的对二叉树的操作，所有代码在<code>freespace/fsmpage.c</code>中，vacuum的时候会触发sfm的操作，具体的代码在<code>freespce/freespace.c</code>中。</p>
+<h3 id=vm>
+VM
+<a href=#vm class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>可见性映射表，记录数据变动的page，pg支持多版本，在数据变动的时候不会立即清除数据，而指挥打上tag，等待后续的vacuum进程进行数据的清理，vm记录数据的变动，让vacuum可以快速的清理数据，vacuum有两种模式，一种是lazy vacuum，一种是full vacuum，lazy 的时候不会跨page清理，此时可以使用vm文件，但是full vacuum的时候一般需要全表扫描，基本不会有太大的最用，
+vm是简单的bit位，0代表有数据变动，</p>
+<h2 id=内存-1>
+内存
+<a href=#%e5%86%85%e5%ad%98-1 class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>内存上下文，简单的理解就是一定范围内的内存池？</p>
+<p><a href=https://smartkeyerror.com/PostgreSQL-MemoryContext>https://smartkeyerror.com/PostgreSQL-MemoryContext</a></p>
+</div>
+<div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>Read other posts</span>
+<hr>
+</div>
+<div class=pagination__buttons>
+<span class="button previous">
+<a href=https://Esoye.github.io/posts/postgres/opt/>
+<span class=button__icon>←</span>
+<span class=button__text>Postgres Optimizer</span>
+</a>
+</span>
+<span class="button next">
+<a href=https://Esoye.github.io/posts/postgres/env/>
+<span class=button__text>Postgres源码编译及调试</span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<div class=copyright>
+<span>© 2022 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
+</div>
+</div>
+</footer>
+<script src=https://Esoye.github.io/assets/main.js></script>
+<script src=https://Esoye.github.io/assets/prism.js></script>
+</div>
+</body>
+</html>

@@ -1,0 +1,775 @@
+<!doctype html><html lang=en>
+<head>
+<title>
+::
+Esoye — My note blog
+</title>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="explain verbose select no_o_id from bmsql_new_order where no_w_id = 4 and no_d_id = 1 order by no_o_id asc;
+benchmarksql=# explain verbose select no_o_id from bmsql_new_order where no_w_id = 4 and no_d_id = 1 order by no_o_id asc; QUERY PLAN #  Data Node Scan on &amp;ldquo;REMOTE_FQS_QUERY&amp;rdquo; (cost=0.00..0.00 rows=0 width=0) Output: bmsql_new_order.no_o_id Node/s: dn2 Remote query: SELECT no_o_id FROM public.bmsql_new_order bmsql_new_order WHERE ((no_w_id = 4) AND (no_d_id = 1)) ORDER BY no_o_id (4 rows)">
+<meta name=keywords content="数据库">
+<meta name=robots content="noodp">
+<link rel=canonical href=https://Esoye.github.io/posts/others/%E9%9D%99%E6%80%81%E8%AF%AD%E5%8F%A5/>
+<link rel=stylesheet href=https://Esoye.github.io/assets/style.css>
+<link rel=stylesheet href=https://Esoye.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://Esoye.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://Esoye.github.io/img/favicon.png>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content>
+<meta name=twitter:description content="explain verbose select no_o_id from bmsql_new_order where no_w_id = 4 and no_d_id = 1 order by no_o_id asc;
+benchmarksql=# explain verbose select no_o_id from bmsql_new_order where no_w_id = 4 and no_d_id = 1 order by no_o_id asc; QUERY PLAN #  Data Node Scan on &ldquo;REMOTE_FQS_QUERY&rdquo; (cost=0.00..0.00 rows=0 width=0) Output: bmsql_new_order.no_o_id Node/s: dn2 Remote query: SELECT no_o_id FROM public.bmsql_new_order bmsql_new_order WHERE ((no_w_id = 4) AND (no_d_id = 1)) ORDER BY no_o_id (4 rows)">
+<meta property="og:title" content>
+<meta property="og:description" content="explain verbose select no_o_id from bmsql_new_order where no_w_id = 4 and no_d_id = 1 order by no_o_id asc;
+benchmarksql=# explain verbose select no_o_id from bmsql_new_order where no_w_id = 4 and no_d_id = 1 order by no_o_id asc; QUERY PLAN #  Data Node Scan on &ldquo;REMOTE_FQS_QUERY&rdquo; (cost=0.00..0.00 rows=0 width=0) Output: bmsql_new_order.no_o_id Node/s: dn2 Remote query: SELECT no_o_id FROM public.bmsql_new_order bmsql_new_order WHERE ((no_w_id = 4) AND (no_d_id = 1)) ORDER BY no_o_id (4 rows)">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://Esoye.github.io/posts/others/%E9%9D%99%E6%80%81%E8%AF%AD%E5%8F%A5/"><meta property="article:section" content="posts">
+<meta property="og:site_name" content="Esoye">
+</head>
+<body class=light-theme>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archive>Archive</a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archive>Archive</a></li>
+</ul>
+</nav>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class=post>
+<h1 class=post-title></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+<p>explain verbose select no_o_id from bmsql_new_order where no_w_id = 4 and no_d_id = 1 order by no_o_id asc;</p>
+<h2 id=query-plan>
+benchmarksql=# explain verbose select no_o_id from bmsql_new_order where no_w_id = 4 and no_d_id = 1 order by no_o_id asc;
+QUERY PLAN
+<a href=#query-plan class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>Data Node Scan on &ldquo;<strong>REMOTE_FQS_QUERY</strong>&rdquo; (cost=0.00..0.00 rows=0 width=0)
+Output: bmsql_new_order.no_o_id
+Node/s: dn2
+Remote query: SELECT no_o_id FROM public.bmsql_new_order bmsql_new_order WHERE ((no_w_id = 4) AND (no_d_id = 1)) ORDER BY no_o_id
+(4 rows)</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
+
+relation_remote_by_constraints_base
+quals
+
+   {BOOLEXPR 
+   :boolop and 
+   :args (
+      {OPEXPR 
+      :opno <span style=color:#ae81ff>96</span> 
+      <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+      <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+      <span style=color:#f92672>:</span>opretset false 
+      <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>args (
+         {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>location <span style=color:#ae81ff>58</span>}
+         {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#ae81ff>68</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>4</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+      )
+      <span style=color:#f92672>:</span>location <span style=color:#ae81ff>66</span>
+      }
+      {OPEXPR 
+      :opno <span style=color:#ae81ff>96</span> 
+      <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+      <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+      <span style=color:#f92672>:</span>opretset false 
+      <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>args (
+         {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>location <span style=color:#ae81ff>74</span>}
+         {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#ae81ff>84</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+      )
+      <span style=color:#f92672>:</span>location <span style=color:#ae81ff>82</span>
+      }
+   )
+   <span style=color:#f92672>:</span>location <span style=color:#ae81ff>70</span>
+   }
+(no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> and no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>)
+
+
+
+
+relid: <span style=color:#ae81ff>16412</span>
+locatorType: <span style=color:#ae81ff>72</span> <span style=color:#e6db74>&#39;H&#39;</span>
+keys: <span style=color:#ae81ff>0x560a4c0ec4f8</span>
+  type: T_List
+  length: <span style=color:#ae81ff>1</span>
+  max_length: <span style=color:#ae81ff>5</span>
+  elements: <span style=color:#ae81ff>0x560a4c0ec510</span>
+  initial_elements
+nodeids:  <span style=color:#ae81ff>0x560a4c0ec548</span>
+  type: T_OidList
+  length: <span style=color:#ae81ff>2</span>
+  max_length: <span style=color:#ae81ff>5</span>
+  elements: <span style=color:#ae81ff>0x560a4c0ec560</span>
+  initial_elements
+values: <span style=color:#ae81ff>0x0</span>
+masternodeids:  <span style=color:#ae81ff>0x560a4c0ec548</span>
+  type: T_OidList
+  length  <span style=color:#ae81ff>2</span>
+  max_length: <span style=color:#ae81ff>5</span>
+  elements: <span style=color:#ae81ff>0x560a4c0ec560</span>
+  initial_elements
+slavenodeids: <span style=color:#ae81ff>0x560a4c0ec598</span>
+  type: T_OidList
+  length: <span style=color:#ae81ff>2</span>
+  max_length: <span style=color:#ae81ff>5</span>
+  elements: <span style=color:#ae81ff>0x560a4c0ec5b0</span>
+  initial_elements
+
+
+<span style=color:#ae81ff>337</span> <span style=color:#f92672>:</span> safe_constraints
+
+(
+   {NULLTEST 
+   :arg 
+      {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+   <span style=color:#f92672>:</span>nulltesttype <span style=color:#ae81ff>1</span> 
+   <span style=color:#f92672>:</span>argisrow false 
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+   {NULLTEST 
+   :arg 
+      {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+   <span style=color:#f92672>:</span>nulltesttype <span style=color:#ae81ff>1</span> 
+   <span style=color:#f92672>:</span>argisrow false 
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+   {NULLTEST 
+   :arg 
+      {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>3</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>3</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+   <span style=color:#f92672>:</span>nulltesttype <span style=color:#ae81ff>1</span> 
+   <span style=color:#f92672>:</span>argisrow false 
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+   {NULLTEST 
+   :arg 
+      {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#f92672>-</span><span style=color:#ae81ff>7</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#f92672>-</span><span style=color:#ae81ff>7</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+   <span style=color:#f92672>:</span>nulltesttype <span style=color:#ae81ff>1</span> 
+   <span style=color:#f92672>:</span>argisrow false 
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+)
+
+(no_w_id, no_d_id, no_o_id) is not null 
+XC_NODE_ID is not null
+
+
+
+new_clauses
+
+(
+   {BOOLEXPR 
+   :boolop and 
+   :args (
+      {OPEXPR 
+      :opno <span style=color:#ae81ff>96</span> 
+      <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+      <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+      <span style=color:#f92672>:</span>opretset false 
+      <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>args (
+         {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>location <span style=color:#ae81ff>58</span>}
+         {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#ae81ff>68</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>4</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+      )
+      <span style=color:#f92672>:</span>location <span style=color:#ae81ff>66</span>
+      }
+      {OPEXPR 
+      :opno <span style=color:#ae81ff>96</span> 
+      <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+      <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+      <span style=color:#f92672>:</span>opretset false 
+      <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>args (
+         {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>location <span style=color:#ae81ff>74</span>}
+         {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#ae81ff>84</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+      )
+      <span style=color:#f92672>:</span>location <span style=color:#ae81ff>82</span>
+      }
+   )
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+   {BOOLEXPR 
+   :boolop and 
+   :args (
+      {OPEXPR 
+      :opno <span style=color:#ae81ff>96</span> 
+      <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+      <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+      <span style=color:#f92672>:</span>opretset false 
+      <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>args (
+         {COALESCE 
+         :coalescetype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>coalescecollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>args (
+            {FUNCEXPR 
+            :funcid <span style=color:#ae81ff>9125</span> 
+            <span style=color:#f92672>:</span>funcresulttype <span style=color:#ae81ff>23</span> 
+            <span style=color:#f92672>:</span>funcretset false 
+            <span style=color:#f92672>:</span>funcvariadic false 
+            <span style=color:#f92672>:</span>funcformat <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>funccollid <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>args (
+               {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>2</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+               {FUNCEXPR 
+               :funcid <span style=color:#ae81ff>450</span> 
+               <span style=color:#f92672>:</span>funcresulttype <span style=color:#ae81ff>23</span> 
+               <span style=color:#f92672>:</span>funcretset false 
+               <span style=color:#f92672>:</span>funcvariadic false 
+               <span style=color:#f92672>:</span>funcformat <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>funccollid <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>100</span> 
+               <span style=color:#f92672>:</span>args (
+                  {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+               )
+               <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+               }
+            )
+            <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+            }
+            {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+         )
+         <span style=color:#f92672>:</span>location <span style=color:#ae81ff>0</span>
+         }
+         {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+      )
+      <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+      }
+      {OPEXPR 
+      :opno <span style=color:#ae81ff>96</span> 
+      <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+      <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+      <span style=color:#f92672>:</span>opretset false 
+      <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>args (
+         {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>location <span style=color:#ae81ff>74</span>}
+         {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#ae81ff>84</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+      )
+      <span style=color:#f92672>:</span>location <span style=color:#ae81ff>82</span>
+      }
+   )
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+)
+
+(no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> and no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>)
+COALESCE(hash_combin_mod(<span style=color:#ae81ff>2</span>, hash(no_w_id)), <span style=color:#ae81ff>0</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span> and (no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>)
+
+hash(no_w_id) <span style=color:#f92672>%</span> node_count <span style=color:#f92672>=</span> hash(<span style=color:#ae81ff>4</span>) <span style=color:#f92672>%</span> node_count
+
+
+
+
+
+predicate_refuted_by<span style=color:#f92672>==============</span>
+
+(
+   {NULLTEST 
+   :arg 
+      {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+   <span style=color:#f92672>:</span>nulltesttype <span style=color:#ae81ff>1</span> 
+   <span style=color:#f92672>:</span>argisrow false 
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+   {NULLTEST 
+   :arg 
+      {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+   <span style=color:#f92672>:</span>nulltesttype <span style=color:#ae81ff>1</span> 
+   <span style=color:#f92672>:</span>argisrow false 
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+   {NULLTEST 
+   :arg 
+      {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>3</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>3</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+   <span style=color:#f92672>:</span>nulltesttype <span style=color:#ae81ff>1</span> 
+   <span style=color:#f92672>:</span>argisrow false 
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+   {NULLTEST 
+   :arg 
+      {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#f92672>-</span><span style=color:#ae81ff>7</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#f92672>-</span><span style=color:#ae81ff>7</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+   <span style=color:#f92672>:</span>nulltesttype <span style=color:#ae81ff>1</span> 
+   <span style=color:#f92672>:</span>argisrow false 
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+   {OPEXPR 
+   :opno <span style=color:#ae81ff>96</span> 
+   <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+   <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+   <span style=color:#f92672>:</span>opretset false 
+   <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>args (
+      {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#f92672>-</span><span style=color:#ae81ff>7</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#f92672>-</span><span style=color:#ae81ff>7</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+      {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#f92672>-</span><span style=color:#ae81ff>85</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>65</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>98</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>34</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> ]}
+   )
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+   {OPEXPR 
+   :opno <span style=color:#ae81ff>96</span> 
+   <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+   <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+   <span style=color:#f92672>:</span>opretset false 
+   <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>args (
+      {COALESCE 
+      :coalescetype <span style=color:#ae81ff>23</span> 
+      <span style=color:#f92672>:</span>coalescecollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>args (
+         {FUNCEXPR 
+         :funcid <span style=color:#ae81ff>9125</span> 
+         <span style=color:#f92672>:</span>funcresulttype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>funcretset false 
+         <span style=color:#f92672>:</span>funcvariadic false 
+         <span style=color:#f92672>:</span>funcformat <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>funccollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>args (
+            {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>2</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+            {FUNCEXPR 
+            :funcid <span style=color:#ae81ff>450</span> 
+            <span style=color:#f92672>:</span>funcresulttype <span style=color:#ae81ff>23</span> 
+            <span style=color:#f92672>:</span>funcretset false 
+            <span style=color:#f92672>:</span>funcvariadic false 
+            <span style=color:#f92672>:</span>funcformat <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>funccollid <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>100</span> 
+            <span style=color:#f92672>:</span>args (
+               {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+            )
+            <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+            }
+         )
+         <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+         }
+         {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+      )
+      <span style=color:#f92672>:</span>location <span style=color:#ae81ff>0</span>
+      }
+      {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+   )
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+)
+
+(no_w_id, no_d_id, no_o_id) is not null 
+XC_NODE_ID is not null
+XC_NODE_ID<span style=color:#f92672>=</span>id
+COALESCE(hash_combin_mod(<span style=color:#ae81ff>2</span>, hash(no_w_id))<span style=color:#960050;background-color:#1e0010>，</span> <span style=color:#ae81ff>0</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
+
+
+
+new_clauses
+(
+   {BOOLEXPR 
+   :boolop and 
+   :args (
+      {OPEXPR 
+      :opno <span style=color:#ae81ff>96</span> 
+      <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+      <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+      <span style=color:#f92672>:</span>opretset false 
+      <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>args (
+         {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>location <span style=color:#ae81ff>58</span>}
+         {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#ae81ff>68</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>4</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+      )
+      <span style=color:#f92672>:</span>location <span style=color:#ae81ff>66</span>
+      }
+      {OPEXPR 
+      :opno <span style=color:#ae81ff>96</span> 
+      <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+      <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+      <span style=color:#f92672>:</span>opretset false 
+      <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>args (
+         {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>location <span style=color:#ae81ff>74</span>}
+         {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#ae81ff>84</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+      )
+      <span style=color:#f92672>:</span>location <span style=color:#ae81ff>82</span>
+      }
+   )
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+   {BOOLEXPR 
+   :boolop and 
+   :args (
+      {OPEXPR 
+      :opno <span style=color:#ae81ff>96</span> 
+      <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+      <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+      <span style=color:#f92672>:</span>opretset false 
+      <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>args (
+         {COALESCE 
+         :coalescetype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>coalescecollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>args (
+            {FUNCEXPR 
+            :funcid <span style=color:#ae81ff>9125</span> 
+            <span style=color:#f92672>:</span>funcresulttype <span style=color:#ae81ff>23</span> 
+            <span style=color:#f92672>:</span>funcretset false 
+            <span style=color:#f92672>:</span>funcvariadic false 
+            <span style=color:#f92672>:</span>funcformat <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>funccollid <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>args (
+               {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>2</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+               {FUNCEXPR 
+               :funcid <span style=color:#ae81ff>450</span> 
+               <span style=color:#f92672>:</span>funcresulttype <span style=color:#ae81ff>23</span> 
+               <span style=color:#f92672>:</span>funcretset false 
+               <span style=color:#f92672>:</span>funcvariadic false 
+               <span style=color:#f92672>:</span>funcformat <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>funccollid <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>100</span> 
+               <span style=color:#f92672>:</span>args (
+                  {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+               )
+               <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+               }
+            )
+            <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+            }
+            {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+         )
+         <span style=color:#f92672>:</span>location <span style=color:#ae81ff>0</span>
+         }
+         {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+      )
+      <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+      }
+      {OPEXPR 
+      :opno <span style=color:#ae81ff>96</span> 
+      <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+      <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+      <span style=color:#f92672>:</span>opretset false 
+      <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>args (
+         {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>location <span style=color:#ae81ff>74</span>}
+         {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#ae81ff>84</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+      )
+      <span style=color:#f92672>:</span>location <span style=color:#ae81ff>82</span>
+      }
+   )
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+)
+
+(no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> and no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>)
+COALESCE(hash_combin_mod(<span style=color:#ae81ff>2</span>, hash(no_w_id)), <span style=color:#ae81ff>0</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span> and (no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>)
+
+
+hash(no_w_id) <span style=color:#f92672>%</span> node_count <span style=color:#f92672>=</span> hash(<span style=color:#ae81ff>4</span>) <span style=color:#f92672>%</span> node_count
+
+
+<span style=color:#960050;background-color:#1e0010>第一轮循环没有</span>result
+
+<span style=color:#f92672>================================</span>
+
+
+
+
+(
+   {NULLTEST 
+   :arg 
+      {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+   <span style=color:#f92672>:</span>nulltesttype <span style=color:#ae81ff>1</span> 
+   <span style=color:#f92672>:</span>argisrow false 
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+   {NULLTEST 
+   :arg 
+      {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+   <span style=color:#f92672>:</span>nulltesttype <span style=color:#ae81ff>1</span> 
+   <span style=color:#f92672>:</span>argisrow false 
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+   {NULLTEST 
+   :arg 
+      {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>3</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>3</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+   <span style=color:#f92672>:</span>nulltesttype <span style=color:#ae81ff>1</span> 
+   <span style=color:#f92672>:</span>argisrow false 
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+   {NULLTEST 
+   :arg 
+      {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#f92672>-</span><span style=color:#ae81ff>7</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#f92672>-</span><span style=color:#ae81ff>7</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+   <span style=color:#f92672>:</span>nulltesttype <span style=color:#ae81ff>1</span> 
+   <span style=color:#f92672>:</span>argisrow false 
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+   {OPEXPR 
+   :opno <span style=color:#ae81ff>96</span> 
+   <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+   <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+   <span style=color:#f92672>:</span>opretset false 
+   <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>args (
+      {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#f92672>-</span><span style=color:#ae81ff>7</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#f92672>-</span><span style=color:#ae81ff>7</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+      {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>70</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>80</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>21</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+   )
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+   {NULLTEST 
+   :arg 
+      {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+   <span style=color:#f92672>:</span>nulltesttype <span style=color:#ae81ff>1</span> 
+   <span style=color:#f92672>:</span>argisrow false 
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+   {OPEXPR 
+   :opno <span style=color:#ae81ff>96</span> 
+   <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+   <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+   <span style=color:#f92672>:</span>opretset false 
+   <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>args (
+      {COALESCE 
+      :coalescetype <span style=color:#ae81ff>23</span> 
+      <span style=color:#f92672>:</span>coalescecollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>args (
+         {FUNCEXPR 
+         :funcid <span style=color:#ae81ff>9125</span> 
+         <span style=color:#f92672>:</span>funcresulttype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>funcretset false 
+         <span style=color:#f92672>:</span>funcvariadic false 
+         <span style=color:#f92672>:</span>funcformat <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>funccollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>args (
+            {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>2</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+            {FUNCEXPR 
+            :funcid <span style=color:#ae81ff>450</span> 
+            <span style=color:#f92672>:</span>funcresulttype <span style=color:#ae81ff>23</span> 
+            <span style=color:#f92672>:</span>funcretset false 
+            <span style=color:#f92672>:</span>funcvariadic false 
+            <span style=color:#f92672>:</span>funcformat <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>funccollid <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>100</span> 
+            <span style=color:#f92672>:</span>args (
+               {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+            )
+            <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+            }
+         )
+         <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+         }
+         {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+      )
+      <span style=color:#f92672>:</span>location <span style=color:#ae81ff>0</span>
+      }
+      {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+   )
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+)
+
+
+(no_w_id, no_d_id, no_o_id) is not null 
+XC_NODE_ID is not null
+XC_NODE_ID<span style=color:#f92672>=</span>id
+COALESCE(hash_combin_mod(<span style=color:#ae81ff>2</span>, hash(no_w_id))<span style=color:#960050;background-color:#1e0010>，</span> <span style=color:#ae81ff>0</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>
+
+
+
+(
+   {BOOLEXPR 
+   :boolop and 
+   :args (
+      {OPEXPR 
+      :opno <span style=color:#ae81ff>96</span> 
+      <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+      <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+      <span style=color:#f92672>:</span>opretset false 
+      <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>args (
+         {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>location <span style=color:#ae81ff>58</span>}
+         {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#ae81ff>68</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>4</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+      )
+      <span style=color:#f92672>:</span>location <span style=color:#ae81ff>66</span>
+      }
+      {OPEXPR 
+      :opno <span style=color:#ae81ff>96</span> 
+      <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+      <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+      <span style=color:#f92672>:</span>opretset false 
+      <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>args (
+         {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>location <span style=color:#ae81ff>74</span>}
+         {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#ae81ff>84</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+      )
+      <span style=color:#f92672>:</span>location <span style=color:#ae81ff>82</span>
+      }
+   )
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+   {BOOLEXPR 
+   :boolop and 
+   :args (
+      {OPEXPR 
+      :opno <span style=color:#ae81ff>96</span> 
+      <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+      <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+      <span style=color:#f92672>:</span>opretset false 
+      <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>args (
+         {COALESCE 
+         :coalescetype <span style=color:#ae81ff>23</span> 
+         <span style=color:#f92672>:</span>coalescecollid <span style=color:#ae81ff>0</span> 
+         <span style=color:#f92672>:</span>args (
+            {FUNCEXPR 
+            :funcid <span style=color:#ae81ff>9125</span> 
+            <span style=color:#f92672>:</span>funcresulttype <span style=color:#ae81ff>23</span> 
+            <span style=color:#f92672>:</span>funcretset false 
+            <span style=color:#f92672>:</span>funcvariadic false 
+            <span style=color:#f92672>:</span>funcformat <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>funccollid <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+            <span style=color:#f92672>:</span>args (
+               {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>2</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+               {FUNCEXPR 
+               :funcid <span style=color:#ae81ff>450</span> 
+               <span style=color:#f92672>:</span>funcresulttype <span style=color:#ae81ff>23</span> 
+               <span style=color:#f92672>:</span>funcretset false 
+               <span style=color:#f92672>:</span>funcvariadic false 
+               <span style=color:#f92672>:</span>funcformat <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>funccollid <span style=color:#ae81ff>0</span> 
+               <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>100</span> 
+               <span style=color:#f92672>:</span>args (
+                  {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>}
+               )
+               <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+               }
+            )
+            <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+            }
+            {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+         )
+         <span style=color:#f92672>:</span>location <span style=color:#ae81ff>0</span>
+         }
+         {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+      )
+      <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+      }
+      {OPEXPR 
+      :opno <span style=color:#ae81ff>96</span> 
+      <span style=color:#f92672>:</span>opfuncid <span style=color:#ae81ff>65</span> 
+      <span style=color:#f92672>:</span>opresulttype <span style=color:#ae81ff>16</span> 
+      <span style=color:#f92672>:</span>opretset false 
+      <span style=color:#f92672>:</span>opcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>inputcollid <span style=color:#ae81ff>0</span> 
+      <span style=color:#f92672>:</span>args (
+         {VAR :varno <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattno <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>vartype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varlevelsup <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>varnosyn <span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>varattnosyn <span style=color:#ae81ff>2</span> <span style=color:#f92672>:</span>location <span style=color:#ae81ff>74</span>}
+         {CONST :consttype <span style=color:#ae81ff>23</span> <span style=color:#f92672>:</span>consttypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>:</span>constcollid <span style=color:#ae81ff>0</span> <span style=color:#f92672>:</span>constlen <span style=color:#ae81ff>4</span> <span style=color:#f92672>:</span>constbyval true <span style=color:#f92672>:</span>constisnull false <span style=color:#f92672>:</span>location <span style=color:#ae81ff>84</span> <span style=color:#f92672>:</span>constvalue <span style=color:#ae81ff>4</span> [ <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> <span style=color:#ae81ff>0</span> ]}
+      )
+      <span style=color:#f92672>:</span>location <span style=color:#ae81ff>82</span>
+      }
+   )
+   <span style=color:#f92672>:</span>location <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+   }
+)
+
+(no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> and no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>)
+COALESCE(hash_combin_mod(<span style=color:#ae81ff>2</span>, hash(no_w_id)), <span style=color:#ae81ff>0</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span> and (no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>)
+
+
+
+
+   {EXEC_NODES 
+   :accesstype <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>baselocatortype H 
+   :en_relid <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>en_funcid <span style=color:#ae81ff>0</span> 
+   <span style=color:#f92672>:</span>en_expr <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>en_dist_vars <span style=color:#f92672>&lt;&gt;</span> 
+   <span style=color:#f92672>:</span>nodeids (o <span style=color:#ae81ff>16387</span>)
+   }</code></pre></div>
+</div>
+<div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>Read other posts</span>
+<hr>
+</div>
+<div class=pagination__buttons>
+<span class="button previous">
+<a href=https://Esoye.github.io/posts/others/%E5%8A%A8%E6%80%81%E8%AF%AD%E5%8F%A5/>
+<span class=button__icon>←</span>
+<span class=button__text></span>
+</a>
+</span>
+<span class="button next">
+<a href=https://Esoye.github.io/posts/postgres/cost/>
+<span class=button__text></span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<div class=copyright>
+<span>© 2022 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
+</div>
+</div>
+</footer>
+<script src=https://Esoye.github.io/assets/main.js></script>
+<script src=https://Esoye.github.io/assets/prism.js></script>
+</div>
+</body>
+</html>

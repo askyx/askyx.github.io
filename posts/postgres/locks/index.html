@@ -1,0 +1,285 @@
+<!doctype html><html lang=en>
+<head>
+<title>
+Locks ::
+Esoye — My note blog
+</title>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="https://www.jianshu.com/p/70069c663554?u_atoken=32991cbe-1955-40bc-9718-8d3a35665f89&amp;amp;u_asession=01c4OwPpzAFvgvxZm5PHV1hhBw4zAaxWLCjNLOUx1S0r65K5j_Co9qzK2QP3djrxxlX0KNBwm7Lovlpxjd_P_q4JsKWYrT3W_NKPr8w6oU7K8kc-sAmRM1ALm4x465txKiLDnIvqHhvwKBSiCA9W2pPWBkFo3NEHBv0PZUm6pbxQU&amp;amp;u_asig=05Y3_7uvSQPfeIm07fP1vQdkWeuCRx6EeGjwlKCyZv-3VFasqiGjJkIYokMAzoIY3OUnpfq31N9-YnXa7iZsAG0GGa_jplO472u1JsgaBhVgawWIt-WyU9QFJBdx-2l9l6Kh9xGFYxS8c7EmhEJD97Ui2KtWnr1tnaOIbJC5SZpuT9JS7q8ZD7Xtz2Ly-b0kmuyAKRFSVJkkdwVUnyHAIJzUMyz75HKVeBaK2YeP8Z-vshy4LDmw1kx2t7EvJMCe7BT6aHbewJv6RwWiEQAUeSSO3h9VXwMyh6PgyDIVSG1W8q4Tc-oNDe7qAOFBZNsoQ4TOybdtHlb3igdkDLY_odFR1XLKRTU_RDIFE8Sle2zKb4_cTkWcIdlnLWPTLKoE4CmWspDxyAEEo4kbsryBKb9Q&amp;amp;u_aref=4hkwpSZ%2B%2BpvZu6cQGg9n3Ljxk8g%3D
+SpinLock #  使用tas实现的自旋锁。
+while (TAS_SPIN(lock)) { perform_spin_delay(&amp;amp;delayStatus); } perform_spin_delay(SpinDelayStatus *status) { /* CPU-specific delay each time through the loop */ SPIN_DELAY(); /* Block the process every spins_per_delay tries */ if (++(status-&amp;gt;spins) &amp;gt;= spins_per_delay) { if (++(status-&amp;gt;delays) &amp;gt; NUM_DELAYS) s_lock_stuck(status-&amp;gt;file, status-&amp;gt;line, status-&amp;gt;func); if (status-&amp;gt;cur_delay == 0) /* first time to delay? */ status-&amp;gt;cur_delay = MIN_DELAY_USEC; pg_usleep(status-&amp;gt;cur_delay); /* increase delay by a random fraction between 1X and 2X */ status-&amp;gt;cur_delay += (int) (status-&amp;gt;cur_delay * pg_prng_double(&amp;amp;pg_global_prng_state) + 0.">
+<meta name=keywords content="数据库">
+<meta name=robots content="noodp">
+<link rel=canonical href=https://Esoye.github.io/posts/postgres/locks/>
+<link rel=stylesheet href=https://Esoye.github.io/assets/style.css>
+<link rel=stylesheet href=https://Esoye.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://Esoye.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://Esoye.github.io/img/favicon.png>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Locks">
+<meta name=twitter:description content="PG 中锁的分析">
+<meta property="og:title" content="Locks">
+<meta property="og:description" content="PG 中锁的分析">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://Esoye.github.io/posts/postgres/locks/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2022-09-28T15:42:18+08:00">
+<meta property="article:modified_time" content="2022-09-28T15:42:18+08:00"><meta property="og:site_name" content="Esoye">
+</head>
+<body class=light-theme>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archive>Archive</a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archive>Archive</a></li>
+</ul>
+</nav>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class=post>
+<h1 class=post-title>Locks</h1>
+<div class=post-meta>
+<span class=post-date>
+2022-09-28
+</span>
+</div>
+<span class=post-tags>
+<a href=https://Esoye.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
+<a href=https://Esoye.github.io/tags/postgres/>#Postgres</a>&nbsp;
+<a href=https://Esoye.github.io/tags/lock/>#LOCK</a>&nbsp;
+</span>
+<div class=post-content>
+<h2>Table of Contents</h2>
+<aside class=table-of-contents><nav id=TableOfContents>
+<ul>
+<li><a href=#spinlock>SpinLock</a></li>
+<li><a href=#lwlock>LWLock</a></li>
+<li><a href=#常规locks>常规Locks</a></li>
+</ul>
+</nav></aside>
+<p><a href="https://www.jianshu.com/p/70069c663554?u_atoken=32991cbe-1955-40bc-9718-8d3a35665f89&u_asession=01c4OwPpzAFvgvxZm5PHV1hhBw4zAaxWLCjNLOUx1S0r65K5j_Co9qzK2QP3djrxxlX0KNBwm7Lovlpxjd_P_q4JsKWYrT3W_NKPr8w6oU7K8kc-sAmRM1ALm4x465txKiLDnIvqHhvwKBSiCA9W2pPWBkFo3NEHBv0PZUm6pbxQU&u_asig=05Y3_7uvSQPfeIm07fP1vQdkWeuCRx6EeGjwlKCyZv-3VFasqiGjJkIYokMAzoIY3OUnpfq31N9-YnXa7iZsAG0GGa_jplO472u1JsgaBhVgawWIt-WyU9QFJBdx-2l9l6Kh9xGFYxS8c7EmhEJD97Ui2KtWnr1tnaOIbJC5SZpuT9JS7q8ZD7Xtz2Ly-b0kmuyAKRFSVJkkdwVUnyHAIJzUMyz75HKVeBaK2YeP8Z-vshy4LDmw1kx2t7EvJMCe7BT6aHbewJv6RwWiEQAUeSSO3h9VXwMyh6PgyDIVSG1W8q4Tc-oNDe7qAOFBZNsoQ4TOybdtHlb3igdkDLY_odFR1XLKRTU_RDIFE8Sle2zKb4_cTkWcIdlnLWPTLKoE4CmWspDxyAEEo4kbsryBKb9Q&u_aref=4hkwpSZ%2B%2BpvZu6cQGg9n3Ljxk8g%3D">https://www.jianshu.com/p/70069c663554?u_atoken=32991cbe-1955-40bc-9718-8d3a35665f89&u_asession=01c4OwPpzAFvgvxZm5PHV1hhBw4zAaxWLCjNLOUx1S0r65K5j_Co9qzK2QP3djrxxlX0KNBwm7Lovlpxjd_P_q4JsKWYrT3W_NKPr8w6oU7K8kc-sAmRM1ALm4x465txKiLDnIvqHhvwKBSiCA9W2pPWBkFo3NEHBv0PZUm6pbxQU&u_asig=05Y3_7uvSQPfeIm07fP1vQdkWeuCRx6EeGjwlKCyZv-3VFasqiGjJkIYokMAzoIY3OUnpfq31N9-YnXa7iZsAG0GGa_jplO472u1JsgaBhVgawWIt-WyU9QFJBdx-2l9l6Kh9xGFYxS8c7EmhEJD97Ui2KtWnr1tnaOIbJC5SZpuT9JS7q8ZD7Xtz2Ly-b0kmuyAKRFSVJkkdwVUnyHAIJzUMyz75HKVeBaK2YeP8Z-vshy4LDmw1kx2t7EvJMCe7BT6aHbewJv6RwWiEQAUeSSO3h9VXwMyh6PgyDIVSG1W8q4Tc-oNDe7qAOFBZNsoQ4TOybdtHlb3igdkDLY_odFR1XLKRTU_RDIFE8Sle2zKb4_cTkWcIdlnLWPTLKoE4CmWspDxyAEEo4kbsryBKb9Q&u_aref=4hkwpSZ%2B%2BpvZu6cQGg9n3Ljxk8g%3D</a></p>
+<h2 id=spinlock>
+SpinLock
+<a href=#spinlock class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>使用tas实现的自旋锁。</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>	<span style=color:#66d9ef>while</span> (TAS_SPIN(lock))
+	{
+		perform_spin_delay(<span style=color:#f92672>&amp;</span>delayStatus);
+	}
+
+perform_spin_delay(SpinDelayStatus <span style=color:#f92672>*</span>status)
+{
+	<span style=color:#75715e>/* CPU-specific delay each time through the loop */</span>
+	SPIN_DELAY();
+
+	<span style=color:#75715e>/* Block the process every spins_per_delay tries */</span>
+	<span style=color:#66d9ef>if</span> (<span style=color:#f92672>++</span>(status<span style=color:#f92672>-&gt;</span>spins) <span style=color:#f92672>&gt;=</span> spins_per_delay)
+	{
+		<span style=color:#66d9ef>if</span> (<span style=color:#f92672>++</span>(status<span style=color:#f92672>-&gt;</span>delays) <span style=color:#f92672>&gt;</span> NUM_DELAYS)
+			s_lock_stuck(status<span style=color:#f92672>-&gt;</span>file, status<span style=color:#f92672>-&gt;</span>line, status<span style=color:#f92672>-&gt;</span>func);
+
+		<span style=color:#66d9ef>if</span> (status<span style=color:#f92672>-&gt;</span>cur_delay <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>) <span style=color:#75715e>/* first time to delay? */</span>
+			status<span style=color:#f92672>-&gt;</span>cur_delay <span style=color:#f92672>=</span> MIN_DELAY_USEC;
+
+		pg_usleep(status<span style=color:#f92672>-&gt;</span>cur_delay);
+
+		<span style=color:#75715e>/* increase delay by a random fraction between 1X and 2X */</span>
+		status<span style=color:#f92672>-&gt;</span>cur_delay <span style=color:#f92672>+=</span> (<span style=color:#66d9ef>int</span>) (status<span style=color:#f92672>-&gt;</span>cur_delay <span style=color:#f92672>*</span>
+									pg_prng_double(<span style=color:#f92672>&amp;</span>pg_global_prng_state) <span style=color:#f92672>+</span> <span style=color:#ae81ff>0.5</span>);
+		<span style=color:#75715e>/* wrap back to minimum delay when max is exceeded */</span>
+		<span style=color:#66d9ef>if</span> (status<span style=color:#f92672>-&gt;</span>cur_delay <span style=color:#f92672>&gt;</span> MAX_DELAY_USEC)
+			status<span style=color:#f92672>-&gt;</span>cur_delay <span style=color:#f92672>=</span> MIN_DELAY_USEC;
+
+		status<span style=color:#f92672>-&gt;</span>spins <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+	}
+}
+
+</code></pre></div><p>如果没有tas，则使用信号量实现，属于最底层的锁</p>
+<h2 id=lwlock>
+LWLock
+<a href=#lwlock class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p><a href=https://zhmin.github.io/posts/postgresql-lwlock/>https://zhmin.github.io/posts/postgresql-lwlock/</a>
+文档描述清楚</p>
+<ol>
+<li>lock状态保存在共享内存中</li>
+<li>共享变量是在竞争lock失败之后尝试PGSemaphoreLock，此时sem是默认值为0，所以会等待</li>
+<li>本质上lock是同一块内存，可以调试查看地址，只是对内存使用信号量进行控制</li>
+<li>LWLock会进行lock竞争，有等待队列，但是没有死锁检测</li>
+</ol>
+<h2 id=常规locks>
+常规Locks
+<a href=#%e5%b8%b8%e8%a7%84locks class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>使用lw实现</p>
+<ol>
+<li>共有下面8种，</li>
+</ol>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
+<span style=color:#75715e>#0  LockAcquireExtended (locktag=0x7ffe04c94b00, lockmode=5, sessionLock=false, dontWait=true, reportMemoryError=true, locallockp=0x7ffe04c94af8) at /home/esoye/postgres/src/backend/storage/lmgr/lock.c:1145
+</span><span style=color:#75715e>#1  0x00005563f316862d in ConditionalLockRelationOid (relid=16385, lockmode=5) at /home/esoye/postgres/src/backend/storage/lmgr/lmgr.c:160
+</span><span style=color:#75715e>#2  0x00005563f2da006e in RangeVarGetRelidExtended (relation=0x5563f3738618, lockmode=5, flags=2, callback=0x5563f2e9ae66 &lt;RangeVarCallbackForLockTable&gt;, callback_arg=0x5563f37386b8) at /home/esoye/postgres/src/backend/catalog/namespace.c:390
+</span><span style=color:#75715e>#3  0x00005563f2e9adb6 in LockTableCommand (lockstmt=0x5563f37386a8) at /home/esoye/postgres/src/backend/commands/lockcmds.c:55
+</span><span style=color:#75715e>#4  0x00005563f3190b97 in standard_ProcessUtility (pstmt=0x5563f3738998,
+</span><span style=color:#75715e></span>
+
+<span style=color:#75715e>#define AccessShareLock				1	</span><span style=color:#75715e>/* SELECT */</span><span style=color:#75715e>																	</span><span style=color:#75715e>// 可以正常访问，除非删表等操作才会阻塞，其他操作不阻塞，需要调研事务细节
+</span><span style=color:#75715e></span><span style=color:#75715e>#define RowShareLock				2	</span><span style=color:#75715e>/* SELECT FOR UPDATE/FOR SHARE */</span><span style=color:#75715e>												</span><span style=color:#75715e>// for share，意向锁，实际上是锁tuple，只是为了避免某些操作可能需要遍历全表时对表加锁，目的是提前检测
+</span><span style=color:#75715e></span><span style=color:#75715e>#define RowExclusiveLock			3	</span><span style=color:#75715e>/* INSERT, UPDATE, DELETE */</span><span style=color:#75715e>													</span><span style=color:#75715e>// 意向排他锁，正常数据变动会加这个锁。
+</span><span style=color:#75715e></span><span style=color:#75715e>#define ShareUpdateExclusiveLock	4	</span><span style=color:#75715e>/* VACUUM (non-FULL), ANALYZE, CREATE INDEX CONCURRENTLY */</span><span style=color:#75715e>						
+</span><span style=color:#75715e>#define ShareLock					5	</span><span style=color:#75715e>/* CREATE INDEX (WITHOUT CONCURRENTLY) */</span><span style=color:#75715e>
+</span><span style=color:#75715e>#define ShareRowExclusiveLock		6	</span><span style=color:#75715e>/* like EXCLUSIVE MODE, but allows ROW SHARE */</span><span style=color:#75715e>
+</span><span style=color:#75715e>#define ExclusiveLock				7	</span><span style=color:#75715e>/* blocks ROW SHARE/SELECT...FOR UPDATE */</span><span style=color:#75715e>
+</span><span style=color:#75715e>#define AccessExclusiveLock			8	</span><span style=color:#75715e>/* ALTER TABLE, DROP TABLE, VACUUM FULL, and unqualified LOCK TABLE */</span><span style=color:#75715e>
+</span><span style=color:#75715e></span>
+
+<span style=color:#66d9ef>static</span> <span style=color:#66d9ef>const</span> LOCKMASK LockConflicts[] <span style=color:#f92672>=</span> {
+	<span style=color:#ae81ff>0</span>,
+
+	<span style=color:#75715e>/* AccessShareLock */</span>
+	LOCKBIT_ON(AccessExclusiveLock),
+
+	<span style=color:#75715e>/* RowShareLock */</span>
+	LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock),
+
+	<span style=color:#75715e>/* RowExclusiveLock */</span>
+	LOCKBIT_ON(ShareLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareRowExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock),
+
+	<span style=color:#75715e>/* ShareUpdateExclusiveLock */</span>
+	LOCKBIT_ON(ShareUpdateExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareRowExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock),
+
+	<span style=color:#75715e>/* ShareLock */</span>
+	LOCKBIT_ON(RowExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareUpdateExclusiveLock) <span style=color:#f92672>|</span>
+	LOCKBIT_ON(ShareRowExclusiveLock) <span style=color:#f92672>|</span>
+	LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock),
+
+	<span style=color:#75715e>/* ShareRowExclusiveLock */</span>
+	LOCKBIT_ON(RowExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareUpdateExclusiveLock) <span style=color:#f92672>|</span>
+	LOCKBIT_ON(ShareLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareRowExclusiveLock) <span style=color:#f92672>|</span>
+	LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock),
+
+	<span style=color:#75715e>/* ExclusiveLock */</span>
+	LOCKBIT_ON(RowShareLock) <span style=color:#f92672>|</span>
+	LOCKBIT_ON(RowExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareUpdateExclusiveLock) <span style=color:#f92672>|</span>
+	LOCKBIT_ON(ShareLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareRowExclusiveLock) <span style=color:#f92672>|</span>
+	LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock),
+
+	<span style=color:#75715e>/* AccessExclusiveLock */</span>
+	LOCKBIT_ON(AccessShareLock) <span style=color:#f92672>|</span> LOCKBIT_ON(RowShareLock) <span style=color:#f92672>|</span>
+	LOCKBIT_ON(RowExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareUpdateExclusiveLock) <span style=color:#f92672>|</span>
+	LOCKBIT_ON(ShareLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareRowExclusiveLock) <span style=color:#f92672>|</span>
+	LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock)
+
+};
+
+<span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>enum</span> <span style=color:#a6e22e>LockTagType</span> {
+  LOCKTAG_RELATION,            <span style=color:#75715e>/* whole relation */</span>
+  LOCKTAG_RELATION_EXTEND,     <span style=color:#75715e>/* the right to extend a relation */</span>
+  LOCKTAG_DATABASE_FROZEN_IDS, <span style=color:#75715e>/* pg_database.datfrozenxid */</span>
+  LOCKTAG_PAGE,                <span style=color:#75715e>/* one page of a relation */</span>
+  LOCKTAG_TUPLE,               <span style=color:#75715e>/* one physical tuple */</span>
+  LOCKTAG_TRANSACTION,         <span style=color:#75715e>/* transaction (for waiting for xact done) */</span>
+  LOCKTAG_VIRTUALTRANSACTION,  <span style=color:#75715e>/* virtual transaction (ditto) */</span>
+  LOCKTAG_SPECULATIVE_TOKEN,   <span style=color:#75715e>/* speculative insertion Xid and token */</span>
+  LOCKTAG_OBJECT,              <span style=color:#75715e>/* non-relation database object */</span>
+  LOCKTAG_USERLOCK,            <span style=color:#75715e>/* reserved for old contrib/userlock code */</span>
+  LOCKTAG_ADVISORY             <span style=color:#75715e>/* advisory user locks */</span>
+} LockTagType;
+</code></pre></div><p><a href=https://blog.csdn.net/hyman_c/article/details/119666570>https://blog.csdn.net/hyman_c/article/details/119666570</a></p>
+<ol>
+<li>
+<p>普通共享锁普通排他锁
+锁检测在LockAcquireExtended函数中</p>
+</li>
+<li>
+<p>访问共享锁访问排他锁</p>
+</li>
+<li></li>
+<li>
+<p>直接select 的时候会在analyze阶段对表加<code>AccessShareLock</code>，此时会进行bind操作，所以会open relation</p>
+</li>
+</ol>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#75715e>#0  0x00005563f2c95ec4 in relation_openrv_extended (relation=0x5563f3738708, lockmode=1, missing_ok=true) at /home/esoye/postgres/src/backend/access/common/relation.c:186
+</span><span style=color:#75715e>#1  0x00005563f2d32f35 in table_openrv_extended (relation=0x5563f3738708, lockmode=1, missing_ok=true) at /home/esoye/postgres/src/backend/access/table/table.c:108
+</span><span style=color:#75715e>#2  0x00005563f2e2d02e in parserOpenTable (pstate=0x5563f3738928, relation=0x5563f3738708, lockmode=1) at /home/esoye/postgres/src/backend/parser/parse_relation.c:1367
+</span><span style=color:#75715e>#3  0x00005563f2e2d29b in addRangeTableEntry (pstate=0x5563f3738928, relation=0x5563f3738708, alias=0x0, inh=true, inFromCl=true) at /home/esoye/postgres/src/backend/parser/parse_relation.c:1443
+</span><span style=color:#75715e>#4  0x00005563f2e0a17d in transformTableEntry (pstate=0x5563f3738928, r=0x5563f3738708) at /home/esoye/postgres/src/backend/parser/parse_clause.c:395
+</span><span style=color:#75715e>#5  0x00005563f2e0bc36 in transformFromClauseItem (pstate=0x5563f3738928, n=0x5563f3738708, top_nsitem=0x7ffe04c94d90, namespace=0x7ffe04c94d98) at /home/esoye/postgres/src/backend/parser/parse_clause.c:1066
+</span><span style=color:#75715e>#6  0x00005563f2e09a29 in transformFromClause (pstate=0x5563f3738928, frmList=0x5563f3738750) at /home/esoye/postgres/src/backend/parser/parse_clause.c:132
+</span><span style=color:#75715e>#7  0x00005563f2dd1175 in transformSelectStmt (pstate=0x5563f3738928, stmt=0x5563f37387b0) at /home/esoye/postgres/src/backend/parser/analyze.c:1313
+</span><span style=color:#75715e>#8  0x00005563f2dcf606 in transformStmt (pstate=0x5563f3738928, parseTree=0x5563f37387b0) at /home/esoye/postgres/src/backend/parser/analyze.c:365
+</span><span style=color:#75715e>#9  0x00005563f2dcf4ad in transformOptionalSelectInto (pstate=0x5563f3738928, parseTree=0x5563f37387b0) at /home/esoye/postgres/src/backend/parser/analyze.c:305
+</span><span style=color:#75715e>#10 0x00005563f2dcf3a3 in transformTopLevelStmt (pstate=0x5563f3738928, parseTree=0x5563f37388b8) at /home/esoye/postgres/src/backend/parser/analyze.c:255
+</span><span style=color:#75715e>#11 0x00005563f2dcf093 in parse_analyze_fixedparams (parseTree=0x5563f37388b8, sourceText=0x5563f3737c50 &#34;select * from t1;&#34;, paramTypes=0x0, numParams=0, queryEnv=0x0) at /home/esoye/postgres/src/backend/parser/analyze.c:123
+</span><span style=color:#75715e>#12 0x00005563f3186c9d in pg_analyze_and_rewrite_fixedparams (parsetree=0x5563f37388b8, query_string=0x5563f3737c50 &#34;select * from t1;&#34;, paramTypes=0x0, numParams=0, queryEnv=0x0) at /home/esoye/postgres/src/backend/tcop/postgres.c:643
+</span><span style=color:#75715e>#13 0x00005563f31874a7 in exec_simple_query (query_string=0x5563f3737c50 &#34;select * from t1;&#34;) at /home/esoye/postgres/src/backend/tcop/postgres.c:1152
+</span><span style=color:#75715e></span>
+</code></pre></div>
+</div>
+<div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>Read other posts</span>
+<hr>
+</div>
+<div class=pagination__buttons>
+<span class="button previous">
+<a href=https://Esoye.github.io/posts/postgres/parser/>
+<span class=button__icon>←</span>
+<span class=button__text>postgres Parser</span>
+</a>
+</span>
+<span class="button next">
+<a href=https://Esoye.github.io/posts/postgres/vacuum/>
+<span class=button__text>vacuum 和 analyze 过程分析</span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<div class=copyright>
+<span>© 2022 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
+</div>
+</div>
+</footer>
+<script src=https://Esoye.github.io/assets/main.js></script>
+<script src=https://Esoye.github.io/assets/prism.js></script>
+</div>
+</body>
+</html>

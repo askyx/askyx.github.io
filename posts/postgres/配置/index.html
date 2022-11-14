@@ -1,0 +1,264 @@
+<!doctype html><html lang=en>
+<head>
+<title>
+::
+Esoye — My note blog
+</title>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="配置文件guc.c
+http://www.postgres.cn/docs/12/view-pg-settings.html
+ Column | Type | Collation | Nullable | Default | Storage | Description  &amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;ndash;+&amp;mdash;&amp;mdash;&amp;mdash;+&amp;mdash;&amp;mdash;&amp;mdash;&amp;ndash;+&amp;mdash;&amp;mdash;&amp;mdash;-+&amp;mdash;&amp;mdash;&amp;mdash;+&amp;mdash;&amp;mdash;&amp;mdash;-+&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;- name | text | | | | extended | 名称 setting | text | | | | extended | 配置 unit | text | | | | extended | 单位 category | text | | | | extended | 分类 short_desc | text | | | | extended | 描述 extra_desc | text | | | | extended | 附加描述 context | text | | | | extended | 上下文 vartype | text | | | | extended | 参数类型 source | text | | | | extended | 来源 min_val | text | | | | extended | 最小值 max_val | text | | | | extended | 最大值 enumvals | text[] | | | | extended | 枚举的允许值 boot_val | text | | | | extended | 默认值 reset_val | text | | | | extended | 当前session中reset 之后会设置的值 sourcefile | text | | | | extended | 设置文件 sourceline | integer | | | | plain | 文件行号 pending_restart | boolean | | | | plain | 修改文件是否需要重启生效 select name, setting, boot_val, reset_val, sourcefile, sourceline, pending_restart from pg_settings ; View definition: SELECT a.">
+<meta name=keywords content="数据库">
+<meta name=robots content="noodp">
+<link rel=canonical href=https://Esoye.github.io/posts/postgres/%E9%85%8D%E7%BD%AE/>
+<link rel=stylesheet href=https://Esoye.github.io/assets/style.css>
+<link rel=stylesheet href=https://Esoye.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://Esoye.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://Esoye.github.io/img/favicon.png>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://Esoye.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content>
+<meta name=twitter:description content="配置文件guc.c
+http://www.postgres.cn/docs/12/view-pg-settings.html
+ Column | Type | Collation | Nullable | Default | Storage | Description  &mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+&mdash;&mdash;&mdash;+&mdash;&mdash;&mdash;&ndash;+&mdash;&mdash;&mdash;-+&mdash;&mdash;&mdash;+&mdash;&mdash;&mdash;-+&mdash;&mdash;&mdash;&mdash;- name | text | | | | extended | 名称 setting | text | | | | extended | 配置 unit | text | | | | extended | 单位 category | text | | | | extended | 分类 short_desc | text | | | | extended | 描述 extra_desc | text | | | | extended | 附加描述 context | text | | | | extended | 上下文 vartype | text | | | | extended | 参数类型 source | text | | | | extended | 来源 min_val | text | | | | extended | 最小值 max_val | text | | | | extended | 最大值 enumvals | text[] | | | | extended | 枚举的允许值 boot_val | text | | | | extended | 默认值 reset_val | text | | | | extended | 当前session中reset 之后会设置的值 sourcefile | text | | | | extended | 设置文件 sourceline | integer | | | | plain | 文件行号 pending_restart | boolean | | | | plain | 修改文件是否需要重启生效 select name, setting, boot_val, reset_val, sourcefile, sourceline, pending_restart from pg_settings ; View definition: SELECT a.">
+<meta property="og:title" content>
+<meta property="og:description" content="配置文件guc.c
+http://www.postgres.cn/docs/12/view-pg-settings.html
+ Column | Type | Collation | Nullable | Default | Storage | Description  &mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+&mdash;&mdash;&mdash;+&mdash;&mdash;&mdash;&ndash;+&mdash;&mdash;&mdash;-+&mdash;&mdash;&mdash;+&mdash;&mdash;&mdash;-+&mdash;&mdash;&mdash;&mdash;- name | text | | | | extended | 名称 setting | text | | | | extended | 配置 unit | text | | | | extended | 单位 category | text | | | | extended | 分类 short_desc | text | | | | extended | 描述 extra_desc | text | | | | extended | 附加描述 context | text | | | | extended | 上下文 vartype | text | | | | extended | 参数类型 source | text | | | | extended | 来源 min_val | text | | | | extended | 最小值 max_val | text | | | | extended | 最大值 enumvals | text[] | | | | extended | 枚举的允许值 boot_val | text | | | | extended | 默认值 reset_val | text | | | | extended | 当前session中reset 之后会设置的值 sourcefile | text | | | | extended | 设置文件 sourceline | integer | | | | plain | 文件行号 pending_restart | boolean | | | | plain | 修改文件是否需要重启生效 select name, setting, boot_val, reset_val, sourcefile, sourceline, pending_restart from pg_settings ; View definition: SELECT a.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://Esoye.github.io/posts/postgres/%E9%85%8D%E7%BD%AE/"><meta property="article:section" content="posts">
+<meta property="og:site_name" content="Esoye">
+</head>
+<body class=light-theme>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archive>Archive</a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archive>Archive</a></li>
+</ul>
+</nav>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class=post>
+<h1 class=post-title></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+<p>配置文件guc.c</p>
+<p><a href=http://www.postgres.cn/docs/12/view-pg-settings.html>http://www.postgres.cn/docs/12/view-pg-settings.html</a></p>
+<pre><code> Column      |  Type   | Collation | Nullable | Default | Storage  | Description
+</code></pre>
+<p>&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+&mdash;&mdash;&mdash;+&mdash;&mdash;&mdash;&ndash;+&mdash;&mdash;&mdash;-+&mdash;&mdash;&mdash;+&mdash;&mdash;&mdash;-+&mdash;&mdash;&mdash;&mdash;-
+name | text | | | | extended | 名称
+setting | text | | | | extended | 配置
+unit | text | | | | extended | 单位
+category | text | | | | extended | 分类
+short_desc | text | | | | extended | 描述
+extra_desc | text | | | | extended | 附加描述
+context | text | | | | extended | 上下文
+vartype | text | | | | extended | 参数类型
+source | text | | | | extended | 来源
+min_val | text | | | | extended | 最小值
+max_val | text | | | | extended | 最大值
+enumvals | text[] | | | | extended | 枚举的允许值
+boot_val | text | | | | extended | 默认值
+reset_val | text | | | | extended | 当前session中reset 之后会设置的值
+sourcefile | text | | | | extended | 设置文件
+sourceline | integer | | | | plain | 文件行号
+pending_restart | boolean | | | | plain | 修改文件是否需要重启生效 select name, setting, boot_val, reset_val, sourcefile, sourceline, pending_restart from pg_settings ;
+View definition:
+SELECT a.name,
+a.setting,
+a.unit,
+a.category,
+a.short_desc,
+a.extra_desc,
+a.context,
+a.vartype,
+a.source,
+a.min_val,
+a.max_val,
+a.enumvals,
+a.boot_val,
+a.reset_val,
+a.sourcefile,
+a.sourceline,
+a.pending_restart
+FROM pg_show_all_settings() a(name, setting, unit, category, short_desc, extra_desc, context, vartype, source, min_val, max_val, enumvals, boot_val, reset_val, sourcefile, sourceline, pending_restart);
+Rules:
+pg_settings_n AS
+ON UPDATE TO pg_settings DO INSTEAD NOTHING
+pg_settings_u AS
+ON UPDATE TO pg_settings
+WHERE new.name = old.name DO SELECT set_config(old.name, new.setting, false) AS set_config</p>
+<p>表中需要说明参数文件以及行号是因为可以在一个文件中配置多个相同参数，但是只有最后一个生效，另外，配置文件支持include操作，实现复杂配置</p>
+<p>typedef enum
+{
+PGC_INTERNAL, 环境搭建之后无法修改，例如block大小，只能在编译或者初始化的时候设置
+PGC_POSTMASTER, 修改后需要重启，一般是会影响整个环境的参数，例如节点类型，节点端口等。
+PGC_SIGHUP, 不需要重启，修改之后使用SIGHUP信号通知其他进程获取文件重新获取或者直接修改值
+PGC_SU_BACKEND, 可以在使用libpq链接的时候设置值
+PGC_BACKEND, 和PGC_SU_BACKEND类似，但是PGC_SU_BACKEND需要时super用户才可以使用，而这项任何用户都可以
+PGC_SUSET, 可以在session中直接设置值，但是需要时supper用户
+PGC_USERSET 任何人都可以在随意设置
+} GucContext;</p>
+<p>PGC_SIGHUP之后的选项，几乎都可以在配置文件postgresql.conf中重新设置，但是需要使用信号触发重新读取，SQL可以使用 <code>SELECT pg_reload_conf();</code>，命令行可以使用 <code>pg_ctl reload</code>
+一般配置在postgresql.conf中设置，但是也可以使用SQL<code>ALTER SYSTEM</code>配置参数，次SQL会创建一个postgresql.auto.conf，然后设置参数，且触发其他进程重新加载配置，优先级在postgresql.conf之上，会覆盖postgresql.conf中的设置
+不建议修改</p>
+<p>在启动会话的时候使用 -c 或者 libpq 链接时候设置的值，此时它具有最最高优先级，后续无法修改，即使后续修改了默认值，也只会影响其他进程或者后续启动的进程</p>
+<p>设置参数的方法</p>
+<ol>
+<li>set
+允许在事务回滚，只能修改</li>
+<li>ALTER SYSTEM set
+直接作用在文件系统，不能回滚</li>
+<li>ALTER DATABASE</li>
+<li>ALTER ROLE</li>
+</ol>
+<p>context的检测规则，一些参数需要满足上下文条件才可以使用，或者使用权限更高的语句，例如alter system</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>    <span style=color:#66d9ef>switch</span> (record<span style=color:#f92672>-&gt;</span>context)
+    {
+        <span style=color:#66d9ef>case</span> PGC_INTERNAL:
+            <span style=color:#66d9ef>if</span> (context <span style=color:#f92672>!=</span> PGC_INTERNAL)
+            {
+                ereport(elevel,
+                        (errcode(ERRCODE_CANT_CHANGE_RUNTIME_PARAM),
+                         errmsg(<span style=color:#e6db74>&#34;parameter </span><span style=color:#ae81ff>\&#34;</span><span style=color:#e6db74>%s</span><span style=color:#ae81ff>\&#34;</span><span style=color:#e6db74> cannot be changed&#34;</span>,
+                                name)));
+                <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+            }
+            <span style=color:#66d9ef>break</span>;
+        <span style=color:#66d9ef>case</span> PGC_POSTMASTER:
+            <span style=color:#66d9ef>if</span> (context <span style=color:#f92672>==</span> PGC_SIGHUP)
+            {
+                prohibitValueChange <span style=color:#f92672>=</span> true;
+            }
+            <span style=color:#66d9ef>else</span> <span style=color:#a6e22e>if</span> (context <span style=color:#f92672>!=</span> PGC_POSTMASTER)
+            {
+                ereport(elevel,
+                        (errcode(ERRCODE_CANT_CHANGE_RUNTIME_PARAM),
+                         errmsg(<span style=color:#e6db74>&#34;parameter </span><span style=color:#ae81ff>\&#34;</span><span style=color:#e6db74>%s</span><span style=color:#ae81ff>\&#34;</span><span style=color:#e6db74> cannot be changed without restarting the server&#34;</span>,
+                                name)));
+                <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+            }
+            <span style=color:#66d9ef>break</span>;
+        <span style=color:#66d9ef>case</span> PGC_SIGHUP:
+            <span style=color:#66d9ef>if</span> (context <span style=color:#f92672>!=</span> PGC_SIGHUP <span style=color:#f92672>&amp;&amp;</span> context <span style=color:#f92672>!=</span> PGC_POSTMASTER)
+            {
+                ereport(elevel,
+                        (errcode(ERRCODE_CANT_CHANGE_RUNTIME_PARAM),
+                         errmsg(<span style=color:#e6db74>&#34;parameter </span><span style=color:#ae81ff>\&#34;</span><span style=color:#e6db74>%s</span><span style=color:#ae81ff>\&#34;</span><span style=color:#e6db74> cannot be changed now&#34;</span>,
+                                name)));
+                <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+            }
+
+            <span style=color:#66d9ef>break</span>;
+        <span style=color:#66d9ef>case</span> PGC_SU_BACKEND:
+            <span style=color:#66d9ef>if</span> (context <span style=color:#f92672>==</span> PGC_BACKEND)
+            {
+                ereport(elevel,
+                        (errcode(ERRCODE_INSUFFICIENT_PRIVILEGE),
+                         errmsg(<span style=color:#e6db74>&#34;permission denied to set parameter </span><span style=color:#ae81ff>\&#34;</span><span style=color:#e6db74>%s</span><span style=color:#ae81ff>\&#34;</span><span style=color:#e6db74>&#34;</span>,
+                                name)));
+                <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+            }
+        <span style=color:#66d9ef>case</span> PGC_BACKEND:
+            <span style=color:#66d9ef>if</span> (context <span style=color:#f92672>==</span> PGC_SIGHUP)
+            {
+                <span style=color:#66d9ef>if</span> (IsUnderPostmaster <span style=color:#f92672>&amp;&amp;</span> <span style=color:#f92672>!</span>is_reload)
+                    <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
+            }
+            <span style=color:#66d9ef>else</span> <span style=color:#a6e22e>if</span> (context <span style=color:#f92672>!=</span> PGC_POSTMASTER <span style=color:#f92672>&amp;&amp;</span>
+                     context <span style=color:#f92672>!=</span> PGC_BACKEND <span style=color:#f92672>&amp;&amp;</span>
+                     context <span style=color:#f92672>!=</span> PGC_SU_BACKEND <span style=color:#f92672>&amp;&amp;</span>
+                     source <span style=color:#f92672>!=</span> PGC_S_CLIENT)
+            {
+                ereport(elevel,
+                        (errcode(ERRCODE_CANT_CHANGE_RUNTIME_PARAM),
+                         errmsg(<span style=color:#e6db74>&#34;parameter </span><span style=color:#ae81ff>\&#34;</span><span style=color:#e6db74>%s</span><span style=color:#ae81ff>\&#34;</span><span style=color:#e6db74> cannot be set after connection start&#34;</span>,
+                                name)));
+                <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+            }
+            <span style=color:#66d9ef>break</span>;
+        <span style=color:#66d9ef>case</span> PGC_SUSET:
+            <span style=color:#66d9ef>if</span> (context <span style=color:#f92672>==</span> PGC_USERSET <span style=color:#f92672>||</span> context <span style=color:#f92672>==</span> PGC_BACKEND)
+            {
+                ereport(elevel,
+                        (errcode(ERRCODE_INSUFFICIENT_PRIVILEGE),
+                         errmsg(<span style=color:#e6db74>&#34;permission denied to set parameter </span><span style=color:#ae81ff>\&#34;</span><span style=color:#e6db74>%s</span><span style=color:#ae81ff>\&#34;</span><span style=color:#e6db74>&#34;</span>,
+                                name)));
+                <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+            }
+            <span style=color:#66d9ef>break</span>;
+        <span style=color:#66d9ef>case</span> PGC_USERSET:
+            <span style=color:#66d9ef>break</span>;
+    }
+
+</code></pre></div>
+</div>
+<div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>Read other posts</span>
+<hr>
+</div>
+<div class=pagination__buttons>
+<span class="button previous">
+<a href=https://Esoye.github.io/posts/postgres/%E5%85%83%E6%95%B0%E6%8D%AE/>
+<span class=button__icon>←</span>
+<span class=button__text></span>
+</a>
+</span>
+<span class="button next">
+<a href=https://Esoye.github.io/posts/static/mysql/>
+<span class=button__text></span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<div class=copyright>
+<span>© 2022 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
+</div>
+</div>
+</footer>
+<script src=https://Esoye.github.io/assets/main.js></script>
+<script src=https://Esoye.github.io/assets/prism.js></script>
+</div>
+</body>
+</html>

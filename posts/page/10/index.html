@@ -58,6 +58,34 @@ Esoye — My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
+<h1 class=post-title><a href=https://Esoye.github.io/posts/course/15441/note/>Bison Note</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-11-17
+</span>
+</div>
+<div class=post-content>
+bison 文档重点记录
+</div>
+<div>
+<a class="read-more button" href=/posts/course/15441/note/>Read more →</a>
+</div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://Esoye.github.io/posts/postgres/tx/>Tx</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-11-14
+</span>
+</div>
+<div class=post-content>
+事务分析记录
+</div>
+<div>
+<a class="read-more button" href=/posts/postgres/tx/>Read more →</a>
+</div>
+</div>
+<div class="post on-list">
 <h1 class=post-title><a href=https://Esoye.github.io/posts/readcode/libpqxx/>Libpqxx</a></h1>
 <div class=post-meta>
 <span class=post-date>
@@ -187,20 +215,6 @@ AntDB VACUUM 流程
 </div>
 <div>
 <a class="read-more button" href=/posts/postgres/remotequery/>Read more →</a>
-</div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://Esoye.github.io/posts/postgres/motion/>Motion 移植实验</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-08-17
-</span>
-</div>
-<div class=post-content>
-AntDB的cluster和GP的motion原理上类似，但是实现上略有区别，这里尝试移植motion到AntDB上
-</div>
-<div>
-<a class="read-more button" href=/posts/postgres/motion/>Read more →</a>
 </div>
 </div>
 <div class="post on-list">
@@ -340,16 +354,7 @@ Postges 源码环境搭建，Ubuntu22，VSCode，docker
 <a href=https://Esoye.github.io/tags/%E6%89%A7%E8%A1%8C%E5%99%A8/>#执行器</a>&nbsp;
 </span>
 <div class=post-content>
-执行器 # exec_simple_query
-pg_parse_query
-pg_analyze_and_rewrite_fixedparams
-pg_plan_queries
-CreatePortal
-PortalDefineQuery
-PortalStart ChoosePortalStrategy PORTAL_ONE_SELECT CreateQueryDesc ExecutorStart standard_ExecutorStart PORTAL_ONE_MOD_WITH PORTAL_ONE_RETURNING ExecCleanTypeFromTL PORTAL_UTIL_SELECT UtilityTupleDescriptor
-PortalRun case PORTAL_ONE_SELECT: case PORTAL_ONE_RETURNING: case PORTAL_ONE_MOD_WITH: case PORTAL_UTIL_SELECT: FillPortalStore PortalRunSelect ExecutorRun standard_ExecutorRun &ndash; hook，可以使用其他执行器 ExecutePlan ExecProcNode &ndash; 递归执行ExecProcNode case PORTAL_MULTI_QUERY: PortalRunMulti ProcessQuery CreateQueryDesc ExecutorStart ExecutorRun ExecutorFinish ExecutorEnd FreeQueryDesc PortalRunUtility ProcessUtility standard_ProcessUtility &ndash; 预留钩子
-PortalDrop PortalCleanup ExecutorFinish ExecutorEnd ExecEndNode FreeQueryDesc
-We have several execution strategies for Portals, depending on what query or queries are to be executed.
+Postgres 执行器总结
 </div>
 <div>
 <a class="read-more button" href=/posts/postgres/postgres_executor/>Read more →</a>

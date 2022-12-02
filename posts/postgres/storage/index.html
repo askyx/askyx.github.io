@@ -199,7 +199,46 @@ Esoye — My note blog
 Page 结构
 <a href=#page-%e7%bb%93%e6%9e%84 class=h-anchor aria-hidden=true>#</a>
 </h4>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
+<p>工具汇总说明</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>get_raw_page(relname text, fork text, blkno <span style=color:#66d9ef>int</span>)
+<span style=color:#960050;background-color:#1e0010>返回执行表的</span>page<span style=color:#960050;background-color:#1e0010>，</span>text指定类型<span style=color:#960050;background-color:#1e0010>，默认是</span>main<span style=color:#960050;background-color:#1e0010>，代表普通</span>page<span style=color:#960050;background-color:#1e0010>，使用</span>fsm或者vm查看其他类型<span style=color:#960050;background-color:#1e0010>，可以省略</span>
+
+page_header(page bytea)
+<span style=color:#960050;background-color:#1e0010>查看</span>page头<span style=color:#960050;background-color:#1e0010>，输入是</span>page数组<span style=color:#960050;background-color:#1e0010>，使用上面的函数的输出作为参数</span>
+
+fsm_page_contents(page bytea) returns text
+<span style=color:#960050;background-color:#1e0010>查看</span>fsm页面结构
+
+<span style=color:#f92672>===</span> HEAP相关
+heap_page_items(page bytea)
+<span style=color:#960050;background-color:#1e0010>查看</span>page的具体信息
+
+heap_tuple_infomask_flags(t_infomask integer, t_infomask2 integer) returns record
+<span style=color:#960050;background-color:#1e0010>查看</span>mask的具体含义<span style=color:#960050;background-color:#1e0010>，具体的使用方法为</span>
+SELECT <span style=color:#f92672>*</span> FROM heap_page_items(get_raw_page(<span style=color:#e6db74>&#39;a&#39;</span>, <span style=color:#ae81ff>0</span>)), LATERAL heap_tuple_infomask_flags(t_infomask, t_infomask2) WHERE t_infomask IS NOT NULL OR t_infomask2 IS NOT NULL order by lp desc;
+<span style=color:#960050;background-color:#1e0010>输出为</span>
+ t_infomask2 <span style=color:#f92672>|</span> t_infomask <span style=color:#f92672>|</span> t_hoff <span style=color:#f92672>|</span>  t_bits  <span style=color:#f92672>|</span> t_oid <span style=color:#f92672>|</span>   t_data   <span style=color:#f92672>|</span>                                raw_flags                                 <span style=color:#f92672>|</span> combined_flags 
+<span style=color:#f92672>-------------+------------+--------+----------+-------+------------+--------------------------------------------------------------------------+----------------</span>
+           <span style=color:#ae81ff>3</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>2305</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>10000000</span> <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x02000000 <span style=color:#f92672>|</span> {HEAP_HASNULL,HEAP_XMIN_COMMITTED,HEAP_XMAX_INVALID}                     <span style=color:#f92672>|</span> {}
+        <span style=color:#ae81ff>8195</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>1281</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>10000000</span> <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x01000000 <span style=color:#f92672>|</span> {HEAP_HASNULL,HEAP_XMIN_COMMITTED,HEAP_XMAX_COMMITTED,HEAP_KEYS_UPDATED} <span style=color:#f92672>|</span> {}
+<span style=color:#960050;background-color:#1e0010>主要目的是查看数据的</span>mask的信息
+
+
+<span style=color:#f92672>===</span> Btree相关
+bt_metap(relname text)
+<span style=color:#960050;background-color:#1e0010>查看</span>btree元数据信息
+
+bt_page_stats(relname text, blkno <span style=color:#66d9ef>int</span>)
+<span style=color:#960050;background-color:#1e0010>查看</span>btree page的统计信息
+
+bt_page_items(relname text, blkno <span style=color:#66d9ef>int</span>) <span style=color:#960050;background-color:#1e0010>或者</span> bt_page_items(page bytea) returns setof record
+<span style=color:#960050;background-color:#1e0010>查看具体的信息，可以指定</span>index或者直接使用page byte
+
+
+
+
+
+</code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
 <span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>PageHeaderData</span>
 {
   <span style=color:#75715e>/* XXX LSN is member of *any* block, not only page-organized ones */</span>
@@ -234,8 +273,7 @@ Page 结构
   PageSetPageSizeAndVersion(page, pageSize, PG_PAGE_LAYOUT_VERSION);
   <span style=color:#75715e>/* p-&gt;pd_prune_xid = InvalidTransactionId;    done by above MemSet */</span>
 }
-</code></pre></div><p>大小为pageSize，默认为8k，最开始是PageHeader，
-RelationPutHeapTuple insert tuple到page中，根据head中的信息，计算insert的位置，其中page中的数据从首位向中兴靠齐，尾部为数据，前面为offset</p>
+</code></pre></div><p>大小为pageSize，默认为8k，最开始是PageHeader，</p>
 <ul>
 <li>数据的变动以page为单位，不直接和存储交互，先把数据块读到缓存，然后在进行insert或者update或者delete，具体的函数有
 <ul>
@@ -253,8 +291,7 @@ RelationPutHeapTuple insert tuple到page中，根据head中的信息，计算ins
     HeapTupleFields t_heap;
     DatumTupleFields t_datum;
   }      t_choice;
-  <span style=color:#75715e>// 一个union，在内存中的时候t_heap记录事务相关的信息，在磁盘中的时候，事务信息不在使用，此时转换为数据长度等信息
-</span><span style=color:#75715e></span>
+
   ItemPointerData t_ctid;    <span style=color:#75715e>/* current TID of this or newer tuple (or a * speculative insertion token) */</span>
 
   <span style=color:#75715e>/* Fields below here must match MinimalTupleData! */</span>
@@ -280,86 +317,373 @@ RelationPutHeapTuple insert tuple到page中，根据head中的信息，计算ins
   <span style=color:#75715e>/* MORE DATA FOLLOWS AT END OF STRUCT */</span>
 };
 </code></pre></div><p>page具体的操作代码在<code>storage/page</code>目录下，建议进行15445的实验，可以更好的理解page相关的操作，这里page的操作总体类似，主要是具体的数据结构和某些特定的方法需要时间进行记忆，但是大的方向上似曾相识。</p>
-<p>Each table and index is stored in a separate file. For ordinary relations, these files are named after the table or index&rsquo;s <firstterm>filenode</firstterm> number,
-which can be found in <structname>pg_class</structname>.<structfield>relfilenode</structfield>. But
-for temporary relations, the file name is of the form
-<literal>t<replaceable>BBB</replaceable>_<replaceable>FFF</replaceable></literal>, where <replaceable>BBB</replaceable>
-is the backend ID of the backend which created the file, and <replaceable>FFF</replaceable>
-is the filenode number. In either case, in addition to the main file (a/k/a
-main fork), each table and index has a <firstterm>free space map</firstterm> (see <xref linkend=storage-fsm>), which stores information about free space available in
-the relation. The free space map is stored in a file named with the filenode
-number plus the suffix <literal>_fsm</literal>. Tables also have a
-<firstterm>visibility map</firstterm>, stored in a fork with the suffix <literal>_vm</literal>,
-to track which pages are known to have no dead tuples. The visibility map is
-described further in <xref linkend=storage-vm>. Unlogged tables and indexes
-have a third fork, known as the initialization fork, which is stored in a fork
-with the suffix <literal>_init</literal> (see <xref linkend=storage-init>).</p>
-<ul>
-<li>these files are named after the table or index’s filenode number, which can be found in pg_class.relfilenode.</li>
-<li>for temporary relations, the file name is of the form tBBB_FFF, where BBB is the backend ID of the backend which created the file, and FFF is the filenode number.</li>
-<li>each table and index has a free space map (see ), which stores information about free space available in the relation.</li>
-<li>Tables also have a visibility map, to track which pages are known to have no dead tuples.</li>
+<p>RelationPutHeapTuple insert tuple到page中，根据head中的信息，计算insert的位置，其中page中的数据从首位向中心靠齐，尾部为数据，前面为offset，使用pd_lower和pd_upper进行管理，最后为柔性数组，数据在最后，
+在内存总操作的时候，使用偏移可以直接定位到数据，具体使用<code>pageinspect</code>插件查看</p>
+<p>调试<code>heap_page_items</code>函数，结合<a href=http://www.postgres.cn/docs/12/storage-page-layout.html>官网</a>和源码熟悉数据的组织结构</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>table</span> a ;
+ a <span style=color:#f92672>|</span> b 
+<span style=color:#75715e>---+---
+</span><span style=color:#75715e></span> <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>1</span>
+ <span style=color:#ae81ff>5</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>2</span>
+ <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>2</span>
+ <span style=color:#ae81ff>7</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>7</span>
+ <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>9</span>
+(<span style=color:#ae81ff>5</span> <span style=color:#66d9ef>rows</span>)
+esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> page_header(get_raw_page(<span style=color:#e6db74>&#39;a&#39;</span>, <span style=color:#ae81ff>0</span>));
+    lsn    <span style=color:#f92672>|</span> checksum <span style=color:#f92672>|</span> flags <span style=color:#f92672>|</span> <span style=color:#66d9ef>lower</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>upper</span> <span style=color:#f92672>|</span> special <span style=color:#f92672>|</span> pagesize <span style=color:#f92672>|</span> <span style=color:#66d9ef>version</span> <span style=color:#f92672>|</span> prune_xid 
+<span style=color:#75715e>-----------+----------+-------+-------+-------+---------+----------+---------+-----------
+</span><span style=color:#75715e></span> <span style=color:#ae81ff>0</span><span style=color:#f92672>/</span><span style=color:#ae81ff>5</span>BD92B8 <span style=color:#f92672>|</span>        <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>64</span> <span style=color:#f92672>|</span>  <span style=color:#ae81ff>7872</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>8192</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>8192</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>4</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>788</span>
+(<span style=color:#ae81ff>1</span> <span style=color:#66d9ef>row</span>)
+<span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> heap_page_items(get_raw_page(<span style=color:#e6db74>&#39;a&#39;</span>, <span style=color:#ae81ff>0</span>));
+ lp <span style=color:#f92672>|</span> lp_off <span style=color:#f92672>|</span> lp_flags <span style=color:#f92672>|</span> lp_len <span style=color:#f92672>|</span> t_xmin <span style=color:#f92672>|</span> t_xmax <span style=color:#f92672>|</span> t_field3 <span style=color:#f92672>|</span> t_ctid <span style=color:#f92672>|</span> t_infomask2 <span style=color:#f92672>|</span> t_infomask <span style=color:#f92672>|</span> t_hoff <span style=color:#f92672>|</span> t_bits <span style=color:#f92672>|</span> t_oid <span style=color:#f92672>|</span>       t_data       
+<span style=color:#75715e>----+--------+----------+--------+--------+--------+----------+--------+-------------+------------+--------+--------+-------+--------------------
+</span><span style=color:#75715e></span>  <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>   <span style=color:#ae81ff>8160</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>787</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>1</span>)  <span style=color:#f92672>|</span>           <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>2304</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span>        <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x0100000001000000
+  <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>   <span style=color:#ae81ff>8128</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>788</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>788</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>3</span>)  <span style=color:#f92672>|</span>           <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>1312</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span>        <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x0200000002000000
+  <span style=color:#ae81ff>3</span> <span style=color:#f92672>|</span>   <span style=color:#ae81ff>8096</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>788</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>788</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>4</span>)  <span style=color:#f92672>|</span>           <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>9504</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span>        <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x0300000002000000
+  <span style=color:#ae81ff>4</span> <span style=color:#f92672>|</span>   <span style=color:#ae81ff>8064</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>788</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>788</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>5</span>)  <span style=color:#f92672>|</span>           <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>9504</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span>        <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x0400000002000000
+  <span style=color:#ae81ff>5</span> <span style=color:#f92672>|</span>   <span style=color:#ae81ff>8032</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>788</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>3</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>5</span>)  <span style=color:#f92672>|</span>           <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>10496</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span>        <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x0500000002000000
+  <span style=color:#ae81ff>6</span> <span style=color:#f92672>|</span>   <span style=color:#ae81ff>8000</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>791</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>6</span>)  <span style=color:#f92672>|</span>           <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>2304</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span>        <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x0200000002000000
+  <span style=color:#ae81ff>7</span> <span style=color:#f92672>|</span>   <span style=color:#ae81ff>7968</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>792</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>792</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>8</span>)  <span style=color:#f92672>|</span>           <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>544</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span>        <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x0400000004000000
+  <span style=color:#ae81ff>8</span> <span style=color:#f92672>|</span>   <span style=color:#ae81ff>7936</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>792</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>8</span>)  <span style=color:#f92672>|</span>           <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>10752</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span>        <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x0600000004000000
+  <span style=color:#ae81ff>9</span> <span style=color:#f92672>|</span>   <span style=color:#ae81ff>7904</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>793</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>9</span>)  <span style=color:#f92672>|</span>           <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>2304</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span>        <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x0700000007000000
+ <span style=color:#ae81ff>10</span> <span style=color:#f92672>|</span>   <span style=color:#ae81ff>7872</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>794</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>10</span>) <span style=color:#f92672>|</span>           <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>2048</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span>        <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x0100000009000000
+(<span style=color:#ae81ff>10</span> <span style=color:#66d9ef>rows</span>)
+</code></pre></div><p><code>pageinspect</code>插件<code>get_raw_page</code>直接获得指定page的数据，然后在<code>heap_page_items</code>函数中解读page<br>
+page结构<img src=https://www.interdb.jp/pg/img/fig-1-04.png alt=如图><br>
+tuple结构<img src=https://smartkeyerror.oss-cn-shenzhen.aliyuncs.com/Mario/PostgreSQL-MVCC/1639204953030.png alt=如图></p>
+<p>首先是<code>PageHeader</code>，大小为24，在函数<code>page_header</code>中直接获取到page之后，进行强转，然后读取header中的数据即可，其中lsn和wal有关，后面需要调研机制，prune_xid和数据剪枝有关，后面调研。再然后在page得最后由部分数据和index有关，这里不关注<br>
+然后是具体的数据组织，在header之后，开始数据的存储，数据使用index定位偏移，实际的数据从尾部进行增长。定位数据偏移的数据结构为<code>ItemId</code>，</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>ItemIdData</span>
+{
+    <span style=color:#66d9ef>unsigned</span>    lp_off:<span style=color:#ae81ff>15</span>,        <span style=color:#75715e>/* offset to tuple (from start of page) */</span>
+                lp_flags:<span style=color:#ae81ff>2</span>,       <span style=color:#75715e>/* state of line pointer, see below */</span>
+                lp_len:<span style=color:#ae81ff>15</span>;        <span style=color:#75715e>/* byte length of tuple */</span>
+} ItemIdData;
+</code></pre></div><p>lp_off是实际的数据的偏移的位置，lp_flags表示数据状态，例如死元组，或者重定位的数据，一般是1，表示LP_NORMAL，lp_len是数据的长度，具体案例见上面的例子</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>Datum <span style=color:#a6e22e>heap_page_items</span>(PG_FUNCTION_ARGS) {
+  bytea <span style=color:#f92672>*</span>raw_page <span style=color:#f92672>=</span> PG_GETARG_BYTEA_P(<span style=color:#ae81ff>0</span>);
+  heap_page_items_state <span style=color:#f92672>*</span>inter_call_data <span style=color:#f92672>=</span> NULL;
+  FuncCallContext <span style=color:#f92672>*</span>fctx;
+  <span style=color:#66d9ef>int</span> raw_page_size;
+
+  <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span>superuser())
+    ereport(ERROR, (errcode(ERRCODE_INSUFFICIENT_PRIVILEGE), errmsg(<span style=color:#e6db74>&#34;must be superuser to use raw page functions&#34;</span>)));
+
+  raw_page_size <span style=color:#f92672>=</span> VARSIZE(raw_page) <span style=color:#f92672>-</span> VARHDRSZ;
+
+  <span style=color:#66d9ef>if</span> (SRF_IS_FIRSTCALL()) {
+    TupleDesc tupdesc;
+    MemoryContext mctx;
+
+    <span style=color:#66d9ef>if</span> (raw_page_size <span style=color:#f92672>&lt;</span> SizeOfPageHeaderData)
+      ereport(ERROR,
+              (errcode(ERRCODE_INVALID_PARAMETER_VALUE), errmsg(<span style=color:#e6db74>&#34;input page too small (%d bytes)&#34;</span>, raw_page_size)));
+
+    fctx <span style=color:#f92672>=</span> SRF_FIRSTCALL_INIT();
+    mctx <span style=color:#f92672>=</span> MemoryContextSwitchTo(fctx<span style=color:#f92672>-&gt;</span>multi_call_memory_ctx);
+
+    inter_call_data <span style=color:#f92672>=</span> palloc(<span style=color:#66d9ef>sizeof</span>(heap_page_items_state));
+
+    <span style=color:#75715e>/* Build a tuple descriptor for our result type */</span>
+    <span style=color:#66d9ef>if</span> (get_call_result_type(fcinfo, NULL, <span style=color:#f92672>&amp;</span>tupdesc) <span style=color:#f92672>!=</span> TYPEFUNC_COMPOSITE)
+      elog(ERROR, <span style=color:#e6db74>&#34;return type must be a row type&#34;</span>);
+
+    inter_call_data<span style=color:#f92672>-&gt;</span>tupd <span style=color:#f92672>=</span> tupdesc;
+
+    inter_call_data<span style=color:#f92672>-&gt;</span>offset <span style=color:#f92672>=</span> FirstOffsetNumber;
+    inter_call_data<span style=color:#f92672>-&gt;</span>page <span style=color:#f92672>=</span> VARDATA(raw_page);
+
+    fctx<span style=color:#f92672>-&gt;</span>max_calls <span style=color:#f92672>=</span> PageGetMaxOffsetNumber(inter_call_data<span style=color:#f92672>-&gt;</span>page);
+    fctx<span style=color:#f92672>-&gt;</span>user_fctx <span style=color:#f92672>=</span> inter_call_data;
+
+    MemoryContextSwitchTo(mctx);
+  }
+
+  fctx <span style=color:#f92672>=</span> SRF_PERCALL_SETUP();
+  inter_call_data <span style=color:#f92672>=</span> fctx<span style=color:#f92672>-&gt;</span>user_fctx;
+
+  <span style=color:#66d9ef>if</span> (fctx<span style=color:#f92672>-&gt;</span>call_cntr <span style=color:#f92672>&lt;</span> fctx<span style=color:#f92672>-&gt;</span>max_calls) {
+    Page page <span style=color:#f92672>=</span> inter_call_data<span style=color:#f92672>-&gt;</span>page;
+    HeapTuple resultTuple;
+    Datum result;
+    ItemId id;
+    Datum values[<span style=color:#ae81ff>14</span>];
+    <span style=color:#66d9ef>bool</span> nulls[<span style=color:#ae81ff>14</span>];
+    uint16 lp_offset;
+    uint16 lp_flags;
+    uint16 lp_len;
+
+    memset(nulls, <span style=color:#ae81ff>0</span>, <span style=color:#66d9ef>sizeof</span>(nulls));
+
+    <span style=color:#75715e>/* Extract information from the line pointer */</span>
+
+    id <span style=color:#f92672>=</span> PageGetItemId(page, inter_call_data<span style=color:#f92672>-&gt;</span>offset);
+
+    lp_offset <span style=color:#f92672>=</span> ItemIdGetOffset(id);
+    lp_flags <span style=color:#f92672>=</span> ItemIdGetFlags(id);
+    lp_len <span style=color:#f92672>=</span> ItemIdGetLength(id);
+
+    values[<span style=color:#ae81ff>0</span>] <span style=color:#f92672>=</span> UInt16GetDatum(inter_call_data<span style=color:#f92672>-&gt;</span>offset);
+    values[<span style=color:#ae81ff>1</span>] <span style=color:#f92672>=</span> UInt16GetDatum(lp_offset);
+    values[<span style=color:#ae81ff>2</span>] <span style=color:#f92672>=</span> UInt16GetDatum(lp_flags);
+    values[<span style=color:#ae81ff>3</span>] <span style=color:#f92672>=</span> UInt16GetDatum(lp_len);
+
+    <span style=color:#75715e>/*
+</span><span style=color:#75715e>     * We do just enough validity checking to make sure we don&#39;t reference
+</span><span style=color:#75715e>     * data outside the page passed to us. The page could be corrupt in
+</span><span style=color:#75715e>     * many other ways, but at least we won&#39;t crash.
+</span><span style=color:#75715e>     */</span>
+    <span style=color:#66d9ef>if</span> (ItemIdHasStorage(id) <span style=color:#f92672>&amp;&amp;</span> lp_len <span style=color:#f92672>&gt;=</span> MinHeapTupleSize <span style=color:#f92672>&amp;&amp;</span> lp_offset <span style=color:#f92672>==</span> MAXALIGN(lp_offset) <span style=color:#f92672>&amp;&amp;</span>
+        lp_offset <span style=color:#f92672>+</span> lp_len <span style=color:#f92672>&lt;=</span> raw_page_size) {
+      HeapTupleHeader tuphdr;
+      bytea <span style=color:#f92672>*</span>tuple_data_bytea;
+      <span style=color:#66d9ef>int</span> tuple_data_len;
+
+      <span style=color:#75715e>/* Extract information from the tuple header */</span>
+
+      <span style=color:#75715e>// 由id定位到具体的tuple，然后进行读取，这里需要对照tuple的数据结构
+</span><span style=color:#75715e></span>      tuphdr <span style=color:#f92672>=</span> (HeapTupleHeader)PageGetItem(page, id);
+
+      values[<span style=color:#ae81ff>4</span>] <span style=color:#f92672>=</span> UInt32GetDatum(HeapTupleHeaderGetRawXmin(tuphdr));
+      values[<span style=color:#ae81ff>5</span>] <span style=color:#f92672>=</span> UInt32GetDatum(HeapTupleHeaderGetRawXmax(tuphdr));
+      <span style=color:#75715e>/* shared with xvac */</span>
+      values[<span style=color:#ae81ff>6</span>] <span style=color:#f92672>=</span> UInt32GetDatum(HeapTupleHeaderGetRawCommandId(tuphdr));
+      <span style=color:#75715e>// 数据的具体位置，使用此字段可以直接定位一个tuple的位置
+</span><span style=color:#75715e></span>      values[<span style=color:#ae81ff>7</span>] <span style=color:#f92672>=</span> PointerGetDatum(<span style=color:#f92672>&amp;</span>tuphdr<span style=color:#f92672>-&gt;</span>t_ctid);
+      values[<span style=color:#ae81ff>8</span>] <span style=color:#f92672>=</span> UInt32GetDatum(tuphdr<span style=color:#f92672>-&gt;</span>t_infomask2);
+      values[<span style=color:#ae81ff>9</span>] <span style=color:#f92672>=</span> UInt32GetDatum(tuphdr<span style=color:#f92672>-&gt;</span>t_infomask);
+      values[<span style=color:#ae81ff>10</span>] <span style=color:#f92672>=</span> UInt8GetDatum(tuphdr<span style=color:#f92672>-&gt;</span>t_hoff);
+
+      <span style=color:#75715e>/* Copy raw tuple data into bytea attribute */</span>
+      tuple_data_len <span style=color:#f92672>=</span> lp_len <span style=color:#f92672>-</span> tuphdr<span style=color:#f92672>-&gt;</span>t_hoff;
+      tuple_data_bytea <span style=color:#f92672>=</span> (bytea <span style=color:#f92672>*</span>)palloc(tuple_data_len <span style=color:#f92672>+</span> VARHDRSZ);
+      SET_VARSIZE(tuple_data_bytea, tuple_data_len <span style=color:#f92672>+</span> VARHDRSZ);
+      memcpy(VARDATA(tuple_data_bytea), (<span style=color:#66d9ef>char</span> <span style=color:#f92672>*</span>)tuphdr <span style=color:#f92672>+</span> tuphdr<span style=color:#f92672>-&gt;</span>t_hoff, tuple_data_len);
+      values[<span style=color:#ae81ff>13</span>] <span style=color:#f92672>=</span> PointerGetDatum(tuple_data_bytea);
+
+      <span style=color:#75715e>/*
+</span><span style=color:#75715e>       * We already checked that the item is completely within the raw
+</span><span style=color:#75715e>       * page passed to us, with the length given in the line pointer.
+</span><span style=color:#75715e>       * Let&#39;s check that t_hoff doesn&#39;t point over lp_len, before using
+</span><span style=color:#75715e>       * it to access t_bits and oid.
+</span><span style=color:#75715e>       */</span>
+      <span style=color:#66d9ef>if</span> (tuphdr<span style=color:#f92672>-&gt;</span>t_hoff <span style=color:#f92672>&gt;=</span> SizeofHeapTupleHeader <span style=color:#f92672>&amp;&amp;</span> tuphdr<span style=color:#f92672>-&gt;</span>t_hoff <span style=color:#f92672>&lt;=</span> lp_len <span style=color:#f92672>&amp;&amp;</span>
+          tuphdr<span style=color:#f92672>-&gt;</span>t_hoff <span style=color:#f92672>==</span> MAXALIGN(tuphdr<span style=color:#f92672>-&gt;</span>t_hoff)) {
+        <span style=color:#66d9ef>if</span> (tuphdr<span style=color:#f92672>-&gt;</span>t_infomask <span style=color:#f92672>&amp;</span> HEAP_HASNULL) {
+          <span style=color:#66d9ef>int</span> bits_len;
+
+          bits_len <span style=color:#f92672>=</span> BITMAPLEN(HeapTupleHeaderGetNatts(tuphdr)) <span style=color:#f92672>*</span> BITS_PER_BYTE;
+          values[<span style=color:#ae81ff>11</span>] <span style=color:#f92672>=</span> CStringGetTextDatum(bits_to_text(tuphdr<span style=color:#f92672>-&gt;</span>t_bits, bits_len));
+        } <span style=color:#66d9ef>else</span>
+          nulls[<span style=color:#ae81ff>11</span>] <span style=color:#f92672>=</span> true;
+
+        <span style=color:#66d9ef>if</span> (tuphdr<span style=color:#f92672>-&gt;</span>t_infomask <span style=color:#f92672>&amp;</span> HEAP_HASOID_OLD)
+          values[<span style=color:#ae81ff>12</span>] <span style=color:#f92672>=</span> HeapTupleHeaderGetOidOld(tuphdr);
+        <span style=color:#66d9ef>else</span>
+          nulls[<span style=color:#ae81ff>12</span>] <span style=color:#f92672>=</span> true;
+      } <span style=color:#66d9ef>else</span> {
+        nulls[<span style=color:#ae81ff>11</span>] <span style=color:#f92672>=</span> true;
+        nulls[<span style=color:#ae81ff>12</span>] <span style=color:#f92672>=</span> true;
+      }
+    } <span style=color:#66d9ef>else</span> {
+      <span style=color:#75715e>/*
+</span><span style=color:#75715e>       * The line pointer is not used, or it&#39;s invalid. Set the rest of
+</span><span style=color:#75715e>       * the fields to NULL
+</span><span style=color:#75715e>       */</span>
+      <span style=color:#66d9ef>int</span> i;
+
+      <span style=color:#66d9ef>for</span> (i <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span>; i <span style=color:#f92672>&lt;=</span> <span style=color:#ae81ff>13</span>; i<span style=color:#f92672>++</span>) nulls[i] <span style=color:#f92672>=</span> true;
+    }
+
+    <span style=color:#75715e>/* Build and return the result tuple. */</span>
+    resultTuple <span style=color:#f92672>=</span> heap_form_tuple(inter_call_data<span style=color:#f92672>-&gt;</span>tupd, values, nulls);
+    result <span style=color:#f92672>=</span> HeapTupleGetDatum(resultTuple);
+
+    inter_call_data<span style=color:#f92672>-&gt;</span>offset<span style=color:#f92672>++</span>;
+
+    SRF_RETURN_NEXT(fctx, result);
+  } <span style=color:#66d9ef>else</span>
+    SRF_RETURN_DONE(fctx);
+}
+</code></pre></div><h2 id=index>
+index
+<a href=#index class=h-anchor aria-hidden=true>#</a>
+</h2>
+<h3 id=btree>
+btree
+<a href=#btree class=h-anchor aria-hidden=true>#</a>
+</h3>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> bt_metap(<span style=color:#e6db74>&#39;idx&#39;</span>);
+<span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> bt_page_stats(<span style=color:#e6db74>&#39;idx&#39;</span>,<span style=color:#ae81ff>3</span>);
+<span style=color:#66d9ef>SELECT</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>FROM</span> bt_page_items(<span style=color:#e6db74>&#39;idx&#39;</span>, <span style=color:#ae81ff>3</span>);
+</code></pre></div><ul>
+<li>Implement an algorithm for building the index and map the data into pages (for the buffer cache manager to uniformly process each index).</li>
+<li>Search information in the index by a predicate in the form &ldquo;indexed-field operator expression&rdquo;.</li>
+<li>Evaluate the index usage cost.</li>
+<li>Manipulate the locks required for correct parallel processing.</li>
+<li>Generate write-ahead log (WAL) records.</li>
 </ul>
-<para>
-Tablespaces make the scenario more complicated. Each user-defined tablespace
-has a symbolic link inside the <varname>PGDATA</varname><filename>/pg_tblspc</filename>
-directory, which points to the physical tablespace directory (i.e., the
-location specified in the tablespace's <command>CREATE TABLESPACE</command> command).
-This symbolic link is named after
-the tablespace's OID. Inside the physical tablespace directory there is
-a subdirectory with a name that depends on the <productname>PostgreSQL</productname>
-server version, such as <literal>PG_9.0_201008051</literal>. (The reason for using
-this subdirectory is so that successive versions of the database can use
-the same <command>CREATE TABLESPACE</command> location value without conflicts.)
-Within the version-specific subdirectory, there is
-a subdirectory for each database that has elements in the tablespace, named
-after the database's OID. Tables and indexes are stored within that
-directory, using the filenode naming scheme.
-The <literal>pg_default</literal> tablespace is not accessed through
-<filename>pg_tblspc</filename>, but corresponds to
-<varname>PGDATA</varname><filename>/base</filename>. Similarly, the <literal>pg_global</literal>
-tablespace is not accessed through <filename>pg_tblspc</filename>, but corresponds to
-<varname>PGDATA</varname><filename>/global</filename>.
-</para>
-<ul>
-<li>pg_relation_filepath(oid)</li>
-</ul>
-<para>
-<productname>PostgreSQL</productname> uses a fixed page size (commonly
-8 kB), and does not allow tuples to span multiple pages. Therefore, it is
-not possible to store very large field values directly. To overcome
-this limitation, large field values are compressed and/or broken up into
-multiple physical rows. This happens transparently to the user, with only
-small impact on most of the backend code. The technique is affectionately
-known as <acronym>TOAST</acronym> (or <quote>the best thing since sliced bread</quote>).
-The <acronym>TOAST</acronym> infrastructure is also used to improve handling of
-large data values in-memory.
-</para>
+<p><img src=/posts/postgres/images/btree.png alt=btree></p>
+<ol>
+<li>树节点默认8k，按照page的方式进行组织，几乎和heap的组织格式类似，尾部有一个特殊区域，常规page中也有，但是并未启用</li>
+</ol>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>BTPageOpaqueData</span>
+{
+    BlockNumber btpo_prev;        <span style=color:#75715e>/* left sibling, or P_NONE if leftmost */</span>
+    BlockNumber btpo_next;        <span style=color:#75715e>/* right sibling, or P_NONE if rightmost */</span>
+    uint32      btpo_level;       <span style=color:#75715e>/* tree level --- zero for leaf pages */</span>
+    uint16      btpo_flags;       <span style=color:#75715e>/* flag bits, see below */</span>
+    BTCycleId   btpo_cycleid;     <span style=color:#75715e>/* vacuum cycle ID of latest split */</span>
+} BTPageOpaqueData;
+<span style=color:#75715e>#define BTP_LEAF              (1 &lt;&lt; 0)    </span><span style=color:#75715e>/* leaf page, i.e. not internal page */</span><span style=color:#75715e>
+</span><span style=color:#75715e>#define BTP_ROOT              (1 &lt;&lt; 1)    </span><span style=color:#75715e>/* root page (has no parent) */</span><span style=color:#75715e>
+</span><span style=color:#75715e>#define BTP_DELETED           (1 &lt;&lt; 2)    </span><span style=color:#75715e>/* page has been deleted from tree */</span><span style=color:#75715e>
+</span><span style=color:#75715e>#define BTP_META              (1 &lt;&lt; 3)    </span><span style=color:#75715e>/* meta-page */</span><span style=color:#75715e>
+</span><span style=color:#75715e>#define BTP_HALF_DEAD         (1 &lt;&lt; 4)    </span><span style=color:#75715e>/* empty, but still in tree */</span><span style=color:#75715e>
+</span><span style=color:#75715e>#define BTP_SPLIT_END         (1 &lt;&lt; 5)    </span><span style=color:#75715e>/* rightmost page of split group */</span><span style=color:#75715e>
+</span><span style=color:#75715e>#define BTP_HAS_GARBAGE       (1 &lt;&lt; 6)    </span><span style=color:#75715e>/* page has LP_DEAD tuples (deprecated) */</span><span style=color:#75715e>
+</span><span style=color:#75715e>#define BTP_INCOMPLETE_SPLIT  (1 &lt;&lt; 7)    </span><span style=color:#75715e>/* right sibling&#39;s downlink is missing */</span><span style=color:#75715e>
+</span><span style=color:#75715e>#define BTP_HAS_FULLXID       (1 &lt;&lt; 8)    </span><span style=color:#75715e>/* contains BTDeletedPageData */</span><span style=color:#75715e>
+</span><span style=color:#75715e></span>
+</code></pre></div><p>主要保存当前page的prev和next，以及level和flag，flag状态如上，此项可以使用<code>bt_page_stats</code>进行观察</p>
+<ol start=2>
+<li>
+<p>实现来自于一篇古老的论文，添加额外的特性使得他获得更高的并发度。和常规Btree区别是</p>
+</li>
+<li>
+<p>每层兄弟节点之间使用指针相连</p>
+</li>
+<li>
+<p>每层非最右节点保存当前节点的最大值<br>
+1. 在查找得时候，如果已经查找到子节点，此时表示数据一定在当前的page中，但是假如在查找的过程中page分裂了，则此时可以快速使用high key 进行判断，此时在无需对整个树加锁</p>
+</li>
+<li>
+<p>假设一个indextuple大小为16，则完整表示一个item的空间大小为(16 + 4)，再加上header和special计算得一个8k的page大约可以保存407条记录，可以简单的测试一下，最终page的free space 的大小为8</p>
+</li>
+</ol>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> a (a int, b int);
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>index</span> idx <span style=color:#66d9ef>on</span> a(b);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> a <span style=color:#66d9ef>select</span> <span style=color:#66d9ef>g</span>, random() <span style=color:#f92672>*</span> <span style=color:#ae81ff>100000</span>, <span style=color:#66d9ef>g</span><span style=color:#f92672>%</span><span style=color:#ae81ff>999</span> <span style=color:#66d9ef>from</span> generate_series(<span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>400</span>) <span style=color:#66d9ef>g</span>;
+esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> bt_metap(<span style=color:#e6db74>&#39;idx&#39;</span>);
+ magic  <span style=color:#f92672>|</span> <span style=color:#66d9ef>version</span> <span style=color:#f92672>|</span> root <span style=color:#f92672>|</span> <span style=color:#66d9ef>level</span> <span style=color:#f92672>|</span> fastroot <span style=color:#f92672>|</span> fastlevel <span style=color:#f92672>|</span> last_cleanup_num_delpages <span style=color:#f92672>|</span> last_cleanup_num_tuples <span style=color:#f92672>|</span> allequalimage 
+<span style=color:#75715e>--------+---------+------+-------+----------+-----------+---------------------------+-------------------------+---------------
+</span><span style=color:#75715e></span> <span style=color:#ae81ff>340322</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>4</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>3</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>         <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>                         <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>                      <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span> t
+(<span style=color:#ae81ff>1</span> <span style=color:#66d9ef>row</span>)
+
+esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>SELECT</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>FROM</span> bt_page_items(<span style=color:#e6db74>&#39;idx&#39;</span>, <span style=color:#ae81ff>3</span>);
+ itemoffset <span style=color:#f92672>|</span> ctid  <span style=color:#f92672>|</span> itemlen <span style=color:#f92672>|</span> nulls <span style=color:#f92672>|</span> vars <span style=color:#f92672>|</span> <span style=color:#66d9ef>data</span> <span style=color:#f92672>|</span> dead <span style=color:#f92672>|</span> htid <span style=color:#f92672>|</span> tids 
+<span style=color:#75715e>------------+-------+---------+-------+------+------+------+------+------
+</span><span style=color:#75715e></span>          <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>0</span>) <span style=color:#f92672>|</span>       <span style=color:#ae81ff>8</span> <span style=color:#f92672>|</span> f     <span style=color:#f92672>|</span> f    <span style=color:#f92672>|</span>      <span style=color:#f92672>|</span>      <span style=color:#f92672>|</span>      <span style=color:#f92672>|</span> 
+(<span style=color:#ae81ff>1</span> <span style=color:#66d9ef>row</span>)
+esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> bt_page_stats(<span style=color:#e6db74>&#39;idx&#39;</span>,<span style=color:#ae81ff>1</span>);
+ blkno <span style=color:#f92672>|</span> <span style=color:#66d9ef>type</span> <span style=color:#f92672>|</span> live_items <span style=color:#f92672>|</span> dead_items <span style=color:#f92672>|</span> avg_item_size <span style=color:#f92672>|</span> page_size <span style=color:#f92672>|</span> free_size <span style=color:#f92672>|</span> btpo_prev <span style=color:#f92672>|</span> btpo_next <span style=color:#f92672>|</span> btpo_level <span style=color:#f92672>|</span> btpo_flags 
+<span style=color:#75715e>-------+------+------------+------------+---------------+-----------+-----------+-----------+-----------+------------+------------
+</span><span style=color:#75715e></span>     <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span> l    <span style=color:#f92672>|</span>        <span style=color:#ae81ff>400</span> <span style=color:#f92672>|</span>          <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>            <span style=color:#ae81ff>16</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>8192</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>148</span> <span style=color:#f92672>|</span>         <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>         <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>          <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>          <span style=color:#ae81ff>1</span>
+(<span style=color:#ae81ff>1</span> <span style=color:#66d9ef>row</span>)
+</code></pre></div><h4 id=index-function>
+index function
+<a href=#index-function class=h-anchor aria-hidden=true>#</a>
+</h4>
+<blockquote>
+<p>pg中所有的数据类型，或者函数，索引等都可以使用元数据管理，感觉他在底层是搭了一个架子，其他东西都是架子上的工具</p>
+</blockquote>
+<p>所有的index都有一个对应的handle，btree对应的是bthandler，内部把btree的关键的操作函数指针赋给IndexAmRoutine，</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>Datum
+<span style=color:#a6e22e>bthandler</span>(PG_FUNCTION_ARGS)
+{
+    IndexAmRoutine <span style=color:#f92672>*</span>amroutine <span style=color:#f92672>=</span> makeNode(IndexAmRoutine);
+
+    amroutine<span style=color:#f92672>-&gt;</span>amstrategies <span style=color:#f92672>=</span> BTMaxStrategyNumber;
+    amroutine<span style=color:#f92672>-&gt;</span>amsupport <span style=color:#f92672>=</span> BTNProcs;
+    amroutine<span style=color:#f92672>-&gt;</span>amoptsprocnum <span style=color:#f92672>=</span> BTOPTIONS_PROC;
+    amroutine<span style=color:#f92672>-&gt;</span>amcanorder <span style=color:#f92672>=</span> true;
+    amroutine<span style=color:#f92672>-&gt;</span>amcanorderbyop <span style=color:#f92672>=</span> false;
+    amroutine<span style=color:#f92672>-&gt;</span>amcanbackward <span style=color:#f92672>=</span> true;
+    amroutine<span style=color:#f92672>-&gt;</span>amcanunique <span style=color:#f92672>=</span> true;
+    amroutine<span style=color:#f92672>-&gt;</span>amcanmulticol <span style=color:#f92672>=</span> true;
+    amroutine<span style=color:#f92672>-&gt;</span>amoptionalkey <span style=color:#f92672>=</span> true;
+    amroutine<span style=color:#f92672>-&gt;</span>amsearcharray <span style=color:#f92672>=</span> true;
+    amroutine<span style=color:#f92672>-&gt;</span>amsearchnulls <span style=color:#f92672>=</span> true;
+    amroutine<span style=color:#f92672>-&gt;</span>amstorage <span style=color:#f92672>=</span> false;
+    amroutine<span style=color:#f92672>-&gt;</span>amclusterable <span style=color:#f92672>=</span> true;
+    amroutine<span style=color:#f92672>-&gt;</span>ampredlocks <span style=color:#f92672>=</span> true;
+    amroutine<span style=color:#f92672>-&gt;</span>amcanparallel <span style=color:#f92672>=</span> true;
+    amroutine<span style=color:#f92672>-&gt;</span>amcaninclude <span style=color:#f92672>=</span> true;
+    amroutine<span style=color:#f92672>-&gt;</span>amusemaintenanceworkmem <span style=color:#f92672>=</span> false;
+    amroutine<span style=color:#f92672>-&gt;</span>amparallelvacuumoptions <span style=color:#f92672>=</span>
+        VACUUM_OPTION_PARALLEL_BULKDEL <span style=color:#f92672>|</span> VACUUM_OPTION_PARALLEL_COND_CLEANUP;
+    amroutine<span style=color:#f92672>-&gt;</span>amkeytype <span style=color:#f92672>=</span> InvalidOid;
+
+    amroutine<span style=color:#f92672>-&gt;</span>ambuild <span style=color:#f92672>=</span> btbuild;
+    amroutine<span style=color:#f92672>-&gt;</span>ambuildempty <span style=color:#f92672>=</span> btbuildempty;
+    amroutine<span style=color:#f92672>-&gt;</span>aminsert <span style=color:#f92672>=</span> btinsert;
+    amroutine<span style=color:#f92672>-&gt;</span>ambulkdelete <span style=color:#f92672>=</span> btbulkdelete;
+    amroutine<span style=color:#f92672>-&gt;</span>amvacuumcleanup <span style=color:#f92672>=</span> btvacuumcleanup;
+    amroutine<span style=color:#f92672>-&gt;</span>amcanreturn <span style=color:#f92672>=</span> btcanreturn;
+    amroutine<span style=color:#f92672>-&gt;</span>amcostestimate <span style=color:#f92672>=</span> btcostestimate;
+    amroutine<span style=color:#f92672>-&gt;</span>amoptions <span style=color:#f92672>=</span> btoptions;
+    amroutine<span style=color:#f92672>-&gt;</span>amproperty <span style=color:#f92672>=</span> btproperty;
+    amroutine<span style=color:#f92672>-&gt;</span>ambuildphasename <span style=color:#f92672>=</span> btbuildphasename;
+    amroutine<span style=color:#f92672>-&gt;</span>amvalidate <span style=color:#f92672>=</span> btvalidate;
+    amroutine<span style=color:#f92672>-&gt;</span>amadjustmembers <span style=color:#f92672>=</span> btadjustmembers;
+    amroutine<span style=color:#f92672>-&gt;</span>ambeginscan <span style=color:#f92672>=</span> btbeginscan;
+    amroutine<span style=color:#f92672>-&gt;</span>amrescan <span style=color:#f92672>=</span> btrescan;
+    amroutine<span style=color:#f92672>-&gt;</span>amgettuple <span style=color:#f92672>=</span> btgettuple;
+    amroutine<span style=color:#f92672>-&gt;</span>amgetbitmap <span style=color:#f92672>=</span> btgetbitmap;
+    amroutine<span style=color:#f92672>-&gt;</span>amendscan <span style=color:#f92672>=</span> btendscan;
+    amroutine<span style=color:#f92672>-&gt;</span>ammarkpos <span style=color:#f92672>=</span> btmarkpos;
+    amroutine<span style=color:#f92672>-&gt;</span>amrestrpos <span style=color:#f92672>=</span> btrestrpos;
+    amroutine<span style=color:#f92672>-&gt;</span>amestimateparallelscan <span style=color:#f92672>=</span> btestimateparallelscan;
+    amroutine<span style=color:#f92672>-&gt;</span>aminitparallelscan <span style=color:#f92672>=</span> btinitparallelscan;
+    amroutine<span style=color:#f92672>-&gt;</span>amparallelrescan <span style=color:#f92672>=</span> btparallelrescan;
+
+    PG_RETURN_POINTER(amroutine);
+}
+</code></pre></div><p>其他index和表类似，都有自己的接口</p>
+<ol>
+<li><code>create</code></li>
+</ol>
+<p>建立index</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>   a    <span style=color:#f92672>|</span>   b    <span style=color:#f92672>|</span>  <span style=color:#66d9ef>c</span>   <span style=color:#f92672>|</span>   ctid    
+<span style=color:#75715e>--------+--------+------+-----------
+</span><span style=color:#75715e></span>  <span style=color:#ae81ff>19928</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>947</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>107</span>,<span style=color:#ae81ff>133</span>)
+    <span style=color:#ae81ff>883</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>883</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>4</span>,<span style=color:#ae81ff>143</span>)
+  <span style=color:#ae81ff>18064</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>82</span>   <span style=color:#f92672>|</span> (<span style=color:#ae81ff>97</span>,<span style=color:#ae81ff>119</span>)
+  <span style=color:#ae81ff>89238</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>327</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>482</span>,<span style=color:#ae81ff>68</span>)
+  <span style=color:#ae81ff>96552</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>3</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>648</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>521</span>,<span style=color:#ae81ff>167</span>)
+  <span style=color:#ae81ff>96831</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>3</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>927</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>523</span>,<span style=color:#ae81ff>76</span>)
+  <span style=color:#ae81ff>22937</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>6</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>959</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>123</span>,<span style=color:#ae81ff>182</span>)
+  <span style=color:#ae81ff>59675</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>6</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>734</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>322</span>,<span style=color:#ae81ff>105</span>)
+  <span style=color:#ae81ff>76742</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>10</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>818</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>414</span>,<span style=color:#ae81ff>152</span>)
+  <span style=color:#ae81ff>42563</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>11</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>605</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>230</span>,<span style=color:#ae81ff>13</span>)
+  <span style=color:#ae81ff>53421</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>11</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>474</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>288</span>,<span style=color:#ae81ff>141</span>)
+  <span style=color:#ae81ff>41441</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>12</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>482</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>224</span>,<span style=color:#ae81ff>1</span>)
+  <span style=color:#ae81ff>88531</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>12</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>619</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>478</span>,<span style=color:#ae81ff>101</span>)
+  <span style=color:#ae81ff>14010</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>17</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>24</span>   <span style=color:#f92672>|</span> (<span style=color:#ae81ff>75</span>,<span style=color:#ae81ff>135</span>)
+  <span style=color:#ae81ff>57127</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>17</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>184</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>308</span>,<span style=color:#ae81ff>147</span>)
+  <span style=color:#ae81ff>31710</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>19</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>741</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>171</span>,<span style=color:#ae81ff>75</span>)
+  <span style=color:#ae81ff>58259</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>19</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>317</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>314</span>,<span style=color:#ae81ff>169</span>)
+  <span style=color:#ae81ff>61877</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>19</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>938</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>334</span>,<span style=color:#ae81ff>87</span>)
+  <span style=color:#ae81ff>20741</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>22</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>761</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>112</span>,<span style=color:#ae81ff>21</span>)
+  <span style=color:#ae81ff>83730</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>22</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>813</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>452</span>,<span style=color:#ae81ff>110</span>)
+  <span style=color:#ae81ff>92344</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>22</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>436</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>499</span>,<span style=color:#ae81ff>29</span>)
+  <span style=color:#ae81ff>18195</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>213</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>98</span>,<span style=color:#ae81ff>65</span>)
+  <span style=color:#ae81ff>54456</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>26</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>510</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>294</span>,<span style=color:#ae81ff>66</span>)
+  <span style=color:#ae81ff>58764</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>26</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>822</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>317</span>,<span style=color:#ae81ff>119</span>)
+   <span style=color:#ae81ff>1742</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>27</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>743</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>9</span>,<span style=color:#ae81ff>77</span>)
+  <span style=color:#ae81ff>98925</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>27</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>24</span>   <span style=color:#f92672>|</span> (<span style=color:#ae81ff>534</span>,<span style=color:#ae81ff>135</span>)
+  <span style=color:#ae81ff>29363</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>29</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>392</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>158</span>,<span style=color:#ae81ff>133</span>)
+   <span style=color:#ae81ff>6564</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>30</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>570</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>35</span>,<span style=color:#ae81ff>89</span>)
+  <span style=color:#ae81ff>63464</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>527</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>343</span>,<span style=color:#ae81ff>9</span>)
+  <span style=color:#ae81ff>65040</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>33</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>105</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>351</span>,<span style=color:#ae81ff>105</span>)
+   <span style=color:#ae81ff>1598</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>37</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>599</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>8</span>,<span style=color:#ae81ff>118</span>)
+  <span style=color:#ae81ff>53945</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>39</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>998</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>291</span>,<span style=color:#ae81ff>110</span>)
+</code></pre></div><p><a href=https://www.interdb.jp/pg/pgsql01.html>https://www.interdb.jp/pg/pgsql01.html</a></p>
 <ul>
 <li>TOAST<br>
 大字段数据，在字段数据大于2k的时候，会触发相应的机制，把数据按2k切分，存储到TOAST表中，原表使用专门的指针指向数据</li>
 </ul>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
-<span style=color:#75715e>#0  GetPageWithFreeSpace (rel=0x61951eb6c3c4, spaceNeeded=3280) at freespace.c:134
-</span><span style=color:#75715e>#1  0x000055d41e4a9a8c in RelationGetBufferForTuple (relation=0x7f3d795c2160, len=32, otherBuffer=0, options=0, bistate=0x0, vmbuffer=0x7ffeab8f6d54, vmbuffer_other=0x0) at hio.c:409
-</span><span style=color:#75715e>#2  0x000055d41e49078b in heap_insert (relation=0x7f3d795c2160, tup=0x55d41fd92818, cid=0, options=0, bistate=0x0) at heapam.c:2051
-</span><span style=color:#75715e>#3  0x000055d41e4a039d in heapam_tuple_insert (relation=0x7f3d795c2160, slot=0x55d41fd92780, cid=0, options=0, bistate=0x0) at heapam_handler.c:252
-</span><span style=color:#75715e>#4  0x000055d41e7402d6 in table_tuple_insert (rel=0x7f3d795c2160, slot=0x55d41fd92780, cid=0, options=0, bistate=0x0) at ../../../src/include</span><span style=color:#75715e>/access/tableam.h:1376</span><span style=color:#75715e>
-</span><span style=color:#75715e>#5  0x000055d41e742093 in ExecInsert (context=0x7ffeab8f6fe0, resultRelInfo=0x55d41fd91b70, slot=0x55d41fd92780, canSetTag=true, inserted_tuple=0x0, insert_destrel=0x0)
-</span><span style=color:#75715e></span>    at nodeModifyTable.c:<span style=color:#ae81ff>1058</span>
-<span style=color:#75715e>#6  0x000055d41e746203 in ExecModifyTable (pstate=0x55d41fd91958) at nodeModifyTable.c:3700
-</span><span style=color:#75715e>#7  0x000055d41e704dd8 in ExecProcNodeFirst (node=0x55d41fd91958) at execProcnode.c:463
-</span><span style=color:#75715e>#8  0x000055d41e6f85f1 in ExecProcNode (node=0x55d41fd91958) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
-</span><span style=color:#75715e>#9  0x000055d41e6fb2c9 in ExecutePlan (estate=0x55d41fd916e0, planstate=0x55d41fd91958, use_parallel_mode=false, operation=CMD_INSERT, sendTuples=false, numberTuples=0,
-</span><span style=color:#75715e></span>    direction<span style=color:#f92672>=</span>ForwardScanDirection, dest<span style=color:#f92672>=</span><span style=color:#ae81ff>0x55d41fd7a718</span>, execute_once<span style=color:#f92672>=</span>true) at execMain.c:<span style=color:#ae81ff>1636</span>
-<span style=color:#75715e>#10 0x000055d41e6f8ccb in standard_ExecutorRun (queryDesc=0x55d41fd742c0, direction=ForwardScanDirection, count=0, execute_once=true) at execMain.c:363
-</span><span style=color:#75715e>#11 0x000055d41e6f8ada in ExecutorRun (queryDesc=0x55d41fd742c0, direction=ForwardScanDirection, count=0, execute_once=true) at execMain.c:307
-</span><span style=color:#75715e>#12 0x000055d41e999ed0 in ProcessQuery (plan=0x55d41fd7a628, sourceText=0x55d41fc53e40 &#34;insert into t values(1);&#34;, params=0x0, queryEnv=0x0, dest=0x55d41fd7a718, qc=0x7ffeab8f7440)
-</span><span style=color:#75715e></span>    at pquery.c:<span style=color:#ae81ff>160</span>
-<span style=color:#75715e>#13 0x000055d41e99ba25 in PortalRunMulti (portal=0x55d41fcc1bb0, isTopLevel=true, setHoldSnapshot=false, dest=0x55d41fd7a718, altdest=0x55d41fd7a718, qc=0x7ffeab8f7440)
-</span><span style=color:#75715e></span>    at pquery.c:<span style=color:#ae81ff>1277</span>
-
-</code></pre></div><h2 id=smgr>
+<h2 id=smgr>
 SMGR
 <a href=#smgr class=h-anchor aria-hidden=true>#</a>
 </h2>

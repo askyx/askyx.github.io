@@ -59,6 +59,20 @@ My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
+<h1 class=post-title><a href=https://Esoye.github.io/posts/others/docker/>Docker</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-02-20
+</span>
+</div>
+<span class=post-tags>
+<a href=https://Esoye.github.io/tags/docker/>#Docker</a>&nbsp;
+</span>
+<div class=post-content>
+</div>
+<div><a class="read-more button" href=/posts/others/docker/>Read more →</a></div>
+</div>
+<div class="post on-list">
 <h1 class=post-title><a href=https://Esoye.github.io/posts/languange/cpp/>C++ Primer Plus</a></h1>
 <div class=post-meta>
 <span class=post-date>
@@ -101,16 +115,6 @@ make_new_qual_list需要使用表达式和分区信息构造新的表达式，�
 node_count = 2 Table "public.bmsql_new_order" Column | Type | Nullable | Storage | ---------+---------+----------+---------+ no_w_id | integer | not null | plain | no_d_id | integer | not null | plain | no_o_id | integer | not null | plain | Indexes: "bmsql_new_order_pkey" PRIMARY KEY, btree (no_w_id, no_d_id, no_o_id) Foreign-key constraints: "no_order_fkey" FOREIGN KEY (no_w_id, no_d_id, no_o_id) REFERENCES bmsql_oorder(o_w_id, o_d_id, o_id) DISTRIBUTE BY HASH(no_w_id) TO NODE(dn1, dn2) Access method: heap 数据分布 benchmarksql=# execute direct on (dn1) 'select distinct no_w_id from public.
 </div>
 <div><a class="read-more button" href=/posts/others/%E5%87%BD%E6%95%B0%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://Esoye.github.io/posts/others/%E5%8A%A8%E6%80%81%E8%AF%AD%E5%8F%A5/></a></h1>
-<div class=post-meta>
-</div>
-<div class=post-content>
-prepare s34(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc; explain verbose execute s34(4,1); prepare s35(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc for update; explain verbose execute s35(4,1);
-prepare s35(int, int) as select a.no_o_id from bmsql_new_order a join bmsql_new_order b on a.no_w_id = b.no_w_id and a.no_w_id = 4 order by no_o_id asc;
-</div>
-<div><a class="read-more button" href=/posts/others/%E5%8A%A8%E6%80%81%E8%AF%AD%E5%8F%A5/>Read more →</a></div>
 </div>
 <div class=pagination>
 <div class=pagination__buttons>

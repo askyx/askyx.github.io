@@ -11,17 +11,17 @@ Esoye — My note blog
 remote create path  benchmarksql=# explain verbose select * from t1 ; QUERY PLAN #  Data Node Scan on t1 &amp;ldquo;REMOTE_TABLE_QUERY&amp;rdquo; (cost=0.00..82037.50 rows=90005 width=12) Output: t1.c1, t1.c2, t1.c3 Primary node/s: dn1 Node/s: dn1, dn2 Remote query: SELECT c1, c2, c3 FROM ONLY public.">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
-<link rel=canonical href=https://Esoye.github.io/posts/postgres/cost/>
-<link rel=stylesheet href=https://Esoye.github.io/assets/style.css>
-<link rel=stylesheet href=https://Esoye.github.io/style.css>
-<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://Esoye.github.io/img/apple-touch-icon-144-precomposed.png>
-<link rel="shortcut icon" href=https://Esoye.github.io/img/favicon.png>
-<link href=https://Esoye.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link rel=canonical href=https://select1fromdual.github.io/posts/postgres/cost/>
+<link rel=stylesheet href=https://select1fromdual.github.io/assets/style.css>
+<link rel=stylesheet href=https://select1fromdual.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://select1fromdual.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://select1fromdual.github.io/img/favicon.png>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
 <meta name=twitter:card content="summary">
 <meta name=twitter:title content>
 <meta name=twitter:description content="Cost Estimation in Single-Table Query
@@ -32,7 +32,7 @@ remote create path  benchmarksql=# explain verbose select * from t1 ; QUERY PLAN
  FQS pgxc_FQS_create_remote_plan 没有计算代价，cost为0   Data Node Scan on &ldquo;REMOTE_FQS_QUERY&rdquo; (cost=0.00..0.00 rows=0 width=0) Primary node/s: dn1 Node/s: dn1, dn2 (3 rows)
 remote create path  benchmarksql=# explain verbose select * from t1 ; QUERY PLAN #  Data Node Scan on t1 &ldquo;REMOTE_TABLE_QUERY&rdquo; (cost=0.00..82037.50 rows=90005 width=12) Output: t1.c1, t1.c2, t1.c3 Primary node/s: dn1 Node/s: dn1, dn2 Remote query: SELECT c1, c2, c3 FROM ONLY public.">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://Esoye.github.io/posts/postgres/cost/"><meta property="article:section" content="posts">
+<meta property="og:url" content="https://select1fromdual.github.io/posts/postgres/cost/"><meta property="article:section" content="posts">
 <meta property="og:site_name" content="Esoye">
 </head>
 <body class=light-theme>
@@ -181,13 +181,13 @@ rqpath-&gt;path.total_cost = rqpath-&gt;path.startup_cost + rel-&gt;rows * pgxc_
 </div>
 <div class=pagination__buttons>
 <span class="button previous">
-<a href=https://Esoye.github.io/posts/others/%E9%9D%99%E6%80%81%E8%AF%AD%E5%8F%A5/>
+<a href=https://select1fromdual.github.io/posts/others/%E9%9D%99%E6%80%81%E8%AF%AD%E5%8F%A5/>
 <span class=button__icon>←</span>
 <span class=button__text></span>
 </a>
 </span>
 <span class="button next">
-<a href=https://Esoye.github.io/posts/postgres/postgres-xc/>
+<a href=https://select1fromdual.github.io/posts/postgres/postgres-xc/>
 <span class=button__text></span>
 <span class=button__icon>→</span>
 </a>
@@ -212,8 +212,8 @@ rqpath-&gt;path.total_cost = rqpath-&gt;path.startup_cost + rel-&gt;rows * pgxc_
 </div>
 </div>
 </footer>
-<script src=https://Esoye.github.io/assets/main.js></script>
-<script src=https://Esoye.github.io/assets/prism.js></script>
+<script src=https://select1fromdual.github.io/assets/main.js></script>
+<script src=https://select1fromdual.github.io/assets/prism.js></script>
 </div>
 </body>
 </html>

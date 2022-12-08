@@ -11,24 +11,24 @@ Esoye — My note blog
 gcc -DPGXC -Wall -Wmissing-prototypes -Wpointer-arith -Wdeclaration-after-statement -Werror=vla -Wendif-labels -Wmissing-format-attribute -Wimplicit-fallthrough=3 -Wcast-function-type -Wformat-security -fno-strict-aliasing -fwrapv -fexcess-precision=standard -Wno-format-truncation -Wno-stringop-truncation -g -I. -I. -I../../../src/include -D_GNU_SOURCE -c -o gram.o gram.c gram.y: In function ‘base_yyparse’: gram.y:9025:11: warning: implicit declaration of function ‘superuser’ [-Wimplicit-function-declaration] 9025 | if (!superuser()) | ^~~~~~~~~ scan.c: At top level: gram.c:68:25: error: conflicting types for ‘base_yylex’ 68 | #define yylex base_yylex | ^~~~~~~~~~ scan.c:9108:12: note: in expansion of macro ‘yylex’ 9108 | extern int yylex \ | ^~~~~ In file included from gram.">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
-<link rel=canonical href=https://Esoye.github.io/trash/postgres_xc_build/>
-<link rel=stylesheet href=https://Esoye.github.io/assets/style.css>
-<link rel=stylesheet href=https://Esoye.github.io/style.css>
-<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://Esoye.github.io/img/apple-touch-icon-144-precomposed.png>
-<link rel="shortcut icon" href=https://Esoye.github.io/img/favicon.png>
-<link href=https://Esoye.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link rel=canonical href=https://select1fromdual.github.io/trash/postgres_xc_build/>
+<link rel=stylesheet href=https://select1fromdual.github.io/assets/style.css>
+<link rel=stylesheet href=https://select1fromdual.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://select1fromdual.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://select1fromdual.github.io/img/favicon.png>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
 <meta name=twitter:card content="summary">
 <meta name=twitter:title content="Postgres_xc 源码编译及环境搭建">
 <meta name=twitter:description content="Postgres_xc 源码编译，集群环境搭建">
 <meta property="og:title" content="Postgres_xc 源码编译及环境搭建">
 <meta property="og:description" content="Postgres_xc 源码编译，集群环境搭建">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://Esoye.github.io/trash/postgres_xc_build/"><meta property="article:section" content="trash">
+<meta property="og:url" content="https://select1fromdual.github.io/trash/postgres_xc_build/"><meta property="article:section" content="trash">
 <meta property="article:published_time" content="2022-07-27T16:44:08+08:00">
 <meta property="article:modified_time" content="2022-07-27T16:44:08+08:00"><meta property="og:site_name" content="Esoye">
 </head>
@@ -687,8 +687,8 @@ alias mk<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;cd /hom
 </div>
 </div>
 </footer>
-<script src=https://Esoye.github.io/assets/main.js></script>
-<script src=https://Esoye.github.io/assets/prism.js></script>
+<script src=https://select1fromdual.github.io/assets/main.js></script>
+<script src=https://select1fromdual.github.io/assets/prism.js></script>
 </div>
 </body>
 </html>

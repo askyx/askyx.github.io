@@ -16,17 +16,17 @@ map reduce实现为简单的kv输出，其中map接受源数据，生成kv的中
   主节点">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
-<link rel=canonical href=https://Esoye.github.io/posts/course/6.824/mapreduce/>
-<link rel=stylesheet href=https://Esoye.github.io/assets/style.css>
-<link rel=stylesheet href=https://Esoye.github.io/style.css>
-<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://Esoye.github.io/img/apple-touch-icon-144-precomposed.png>
-<link rel="shortcut icon" href=https://Esoye.github.io/img/favicon.png>
-<link href=https://Esoye.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link rel=canonical href=https://select1fromdual.github.io/posts/course/6.824/mapreduce/>
+<link rel=stylesheet href=https://select1fromdual.github.io/assets/style.css>
+<link rel=stylesheet href=https://select1fromdual.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://select1fromdual.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://select1fromdual.github.io/img/favicon.png>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
 <meta name=twitter:card content="summary">
 <meta name=twitter:title content="Mapreduce">
 <meta name=twitter:description content="利用普通机器组成的大规模计算集群进行并行的,高容错,高性能的数据处理函数框架
@@ -47,7 +47,7 @@ map reduce实现为简单的kv输出，其中map接受源数据，生成kv的中
 // 输出单词以及出现的次数，map端输出1 map(String key,String value): // key: 文档名  // value: 文档内容  for each word w in value: EmitIntermediate(w,&#34;1&#34;); // 针对相同的key，次数+1 reduce(String key, Iterator values): // key: 一个单词  // value: 计数值列表  int result = 0; for each v in values: result += ParseInt(v); Emit(AsString(result));  执行过程    文件划分 主节点划分任务 按照划分的任务启动worker，执行map任务 worker节点的数据生成为中间结果，保存在本节点 所有map任务执行完成之后，reduce得到对应中间节点的文件路径，通过rpc读取文件，进行reduce任务 reduce任务完成之后，最终结果写入目标文件  一个mr任务完成之后，回得到n(reduce)个结果文件，可以按照需求处理文件，可以直接使用，或者继续作为其他mr的输入，mr任务是可以嵌套的。
   主节点">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://Esoye.github.io/posts/course/6.824/mapreduce/"><meta property="article:section" content="posts">
+<meta property="og:url" content="https://select1fromdual.github.io/posts/course/6.824/mapreduce/"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2022-05-29T21:05:46+08:00">
 <meta property="article:modified_time" content="2022-05-29T21:05:46+08:00"><meta property="og:site_name" content="Esoye">
 </head>
@@ -86,9 +86,9 @@ map reduce实现为简单的kv输出，其中map接受源数据，生成kv的中
 </span>
 </div>
 <span class=post-tags>
-<a href=https://Esoye.github.io/tags/%E8%AE%BA%E6%96%87/>#论文</a>&nbsp;
-<a href=https://Esoye.github.io/tags/mapreduce/>#Mapreduce</a>&nbsp;
-<a href=https://Esoye.github.io/tags/6.824/>#6.824</a>&nbsp;
+<a href=https://select1fromdual.github.io/tags/%E8%AE%BA%E6%96%87/>#论文</a>&nbsp;
+<a href=https://select1fromdual.github.io/tags/mapreduce/>#Mapreduce</a>&nbsp;
+<a href=https://select1fromdual.github.io/tags/6.824/>#6.824</a>&nbsp;
 </span>
 <div class=post-content>
 <p>利用普通机器组成的大规模计算集群进行并行的,高容错,高性能的数据处理函数框架</p>
@@ -337,13 +337,13 @@ master
 </div>
 <div class=pagination__buttons>
 <span class="button previous">
-<a href=https://Esoye.github.io/posts/course/6.824/gfs/>
+<a href=https://select1fromdual.github.io/posts/course/6.824/gfs/>
 <span class=button__icon>←</span>
 <span class=button__text>GFS</span>
 </a>
 </span>
 <span class="button next">
-<a href=https://Esoye.github.io/posts/languange/go_1/>
+<a href=https://select1fromdual.github.io/posts/languange/go_1/>
 <span class=button__text>A Tour of Go速通</span>
 <span class=button__icon>→</span>
 </a>
@@ -368,8 +368,8 @@ master
 </div>
 </div>
 </footer>
-<script src=https://Esoye.github.io/assets/main.js></script>
-<script src=https://Esoye.github.io/assets/prism.js></script>
+<script src=https://select1fromdual.github.io/assets/main.js></script>
+<script src=https://select1fromdual.github.io/assets/prism.js></script>
 </div>
 </body>
 </html>

@@ -14,24 +14,24 @@ Esoye — My note blog
 1.7 Bison Output: the Parser Implementation File The tokens come from a function called the lexical analyzer.">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
-<link rel=canonical href=https://Esoye.github.io/posts/postgres/parser/>
-<link rel=stylesheet href=https://Esoye.github.io/assets/style.css>
-<link rel=stylesheet href=https://Esoye.github.io/style.css>
-<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://Esoye.github.io/img/apple-touch-icon-144-precomposed.png>
-<link rel="shortcut icon" href=https://Esoye.github.io/img/favicon.png>
-<link href=https://Esoye.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link rel=canonical href=https://select1fromdual.github.io/posts/postgres/parser/>
+<link rel=stylesheet href=https://select1fromdual.github.io/assets/style.css>
+<link rel=stylesheet href=https://select1fromdual.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://select1fromdual.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://select1fromdual.github.io/img/favicon.png>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
 <meta name=twitter:card content="summary">
 <meta name=twitter:title content="postgres Parser">
 <meta name=twitter:description content="Postgres parser 模块解析，目的是为了学习parser实现机制。编译原理以及bison和flex的使用">
 <meta property="og:title" content="postgres Parser">
 <meta property="og:description" content="Postgres parser 模块解析，目的是为了学习parser实现机制。编译原理以及bison和flex的使用">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://Esoye.github.io/posts/postgres/parser/"><meta property="article:section" content="posts">
+<meta property="og:url" content="https://select1fromdual.github.io/posts/postgres/parser/"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2022-10-10T12:03:18+08:00">
 <meta property="article:modified_time" content="2022-10-10T12:03:18+08:00"><meta property="og:site_name" content="Esoye">
 </head>
@@ -70,10 +70,10 @@ Esoye — My note blog
 </span>
 </div>
 <span class=post-tags>
-<a href=https://Esoye.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
-<a href=https://Esoye.github.io/tags/postgres/>#Postgres</a>&nbsp;
-<a href=https://Esoye.github.io/tags/parser/>#Parser</a>&nbsp;
-<a href=https://Esoye.github.io/tags/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/>#编译原理</a>&nbsp;
+<a href=https://select1fromdual.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
+<a href=https://select1fromdual.github.io/tags/postgres/>#Postgres</a>&nbsp;
+<a href=https://select1fromdual.github.io/tags/parser/>#Parser</a>&nbsp;
+<a href=https://select1fromdual.github.io/tags/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/>#编译原理</a>&nbsp;
 </span>
 <div class=post-content>
 <h2>Table of Contents</h2>
@@ -160,13 +160,13 @@ stop here <code>Mon Nov 14 23:04:18 CST 2022</code>
 </div>
 <div class=pagination__buttons>
 <span class="button previous">
-<a href=https://Esoye.github.io/posts/readcode/rocksdb/>
+<a href=https://select1fromdual.github.io/posts/readcode/rocksdb/>
 <span class=button__icon>←</span>
 <span class=button__text>RocksDB源码分析</span>
 </a>
 </span>
 <span class="button next">
-<a href=https://Esoye.github.io/posts/postgres/locks/>
+<a href=https://select1fromdual.github.io/posts/postgres/locks/>
 <span class=button__text>Locks</span>
 <span class=button__icon>→</span>
 </a>
@@ -191,8 +191,8 @@ stop here <code>Mon Nov 14 23:04:18 CST 2022</code>
 </div>
 </div>
 </footer>
-<script src=https://Esoye.github.io/assets/main.js></script>
-<script src=https://Esoye.github.io/assets/prism.js></script>
+<script src=https://select1fromdual.github.io/assets/main.js></script>
+<script src=https://select1fromdual.github.io/assets/prism.js></script>
 </div>
 </body>
 </html>

@@ -9,24 +9,24 @@ Esoye — My note blog
 <meta name=description content="2022-08-12 02:47:03.470194 UTC,&amp;ldquo;vscode&amp;rdquo;,&amp;ldquo;benchmarksql&amp;rdquo;,p34893,th685154368,&amp;quot;[local]&amp;quot;,seg-1,,,,,&amp;ldquo;DEBUG1&amp;rdquo;,&amp;ldquo;00000&amp;rdquo;,&amp;ldquo;Message type Q received by from libpq, len = 45&amp;rdquo;,,,,,,,0,,&amp;ldquo;postgres.c&amp;rdquo;,5305, 2022-08-12 02:47:03.470253 UTC,&amp;ldquo;vscode&amp;rdquo;,&amp;ldquo;benchmarksql&amp;rdquo;,p34893,th685154368,&amp;quot;[local]&amp;quot;,seg-1,,,,sx1,&amp;ldquo;LOG&amp;rdquo;,&amp;ldquo;00000&amp;rdquo;,&amp;ldquo;statement: explain (verbose, analyze) execute s36(4,1);&amp;rdquo;,,,,,,&amp;ldquo;explain (verbose, analyze) execute s36(4,1);&amp;quot;,0,,&amp;ldquo;postgres.c&amp;rdquo;,1665, 2022-08-12 02:47:03.471695 UTC,&amp;ldquo;vscode&amp;rdquo;,&amp;ldquo;benchmarksql&amp;rdquo;,p34893,th685154368,&amp;quot;[local]&amp;quot;,seg-1,,,,sx1,&amp;ldquo;DEBUG1&amp;rdquo;,&amp;ldquo;00000&amp;rdquo;,&amp;ldquo;Query plan size to dispatch: 2KB&amp;rdquo;,,,,,,,0,,&amp;ldquo;cdbdisp_query.c&amp;rdquo;,618, 2022-08-12 02:47:04.744839 UTC,&amp;ldquo;vscode&amp;rdquo;,&amp;ldquo;benchmarksql&amp;rdquo;,p34893,th446375488,&amp;quot;[local]&amp;quot;,seg-1,,,,sx1,&amp;ldquo;LOG&amp;rdquo;,&amp;ldquo;00000&amp;rdquo;,&amp;ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 0&amp;rdquo;,,,,,,,0,,,, 2022-08-12 02:47:04.811827 UTC,&amp;ldquo;vscode&amp;rdquo;,&amp;ldquo;benchmarksql&amp;rdquo;,p34893,th446375488,&amp;quot;[local]&amp;quot;,seg-1,,,,sx1,&amp;ldquo;LOG&amp;rdquo;,&amp;ldquo;00000&amp;rdquo;,&amp;ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 1&amp;rdquo;,,,,,,,0,,,, 2022-08-12 02:47:04.812848 UTC,&amp;ldquo;vscode&amp;rdquo;,&amp;ldquo;benchmarksql&amp;rdquo;,p34893,th685154368,&amp;quot;[local]&amp;quot;,seg-1,,,,sx1,&amp;ldquo;DEBUG1&amp;rdquo;,&amp;ldquo;00000&amp;rdquo;,&amp;ldquo;Interconnect State: isSender 0 isReceiver 1 snd_queue_depth 2 recv_queue_depth 4 Gp_max_packet_size 8192 UNACK_QUEUE_RING_SLOTS_NUM 2000 TIMER_SPAN 5000 DEFAULT_RTT 20000 hasErrors 0, ic_instance_id 5 ic_id_last_teardown 0 snd_buffer_pool.">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
-<link rel=canonical href=https://Esoye.github.io/posts/postgres/xx/>
-<link rel=stylesheet href=https://Esoye.github.io/assets/style.css>
-<link rel=stylesheet href=https://Esoye.github.io/style.css>
-<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://Esoye.github.io/img/apple-touch-icon-144-precomposed.png>
-<link rel="shortcut icon" href=https://Esoye.github.io/img/favicon.png>
-<link href=https://Esoye.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://Esoye.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link rel=canonical href=https://select1fromdual.github.io/posts/postgres/xx/>
+<link rel=stylesheet href=https://select1fromdual.github.io/assets/style.css>
+<link rel=stylesheet href=https://select1fromdual.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://select1fromdual.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://select1fromdual.github.io/img/favicon.png>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://select1fromdual.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
 <meta name=twitter:card content="summary">
 <meta name=twitter:title content>
 <meta name=twitter:description content="2022-08-12 02:47:03.470194 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,&#34;[local]&#34;,seg-1,,,,,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Message type Q received by from libpq, len = 45&rdquo;,,,,,,,0,,&ldquo;postgres.c&rdquo;,5305, 2022-08-12 02:47:03.470253 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,&#34;[local]&#34;,seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;statement: explain (verbose, analyze) execute s36(4,1);&rdquo;,,,,,,&ldquo;explain (verbose, analyze) execute s36(4,1);&#34;,0,,&ldquo;postgres.c&rdquo;,1665, 2022-08-12 02:47:03.471695 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,&#34;[local]&#34;,seg-1,,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Query plan size to dispatch: 2KB&rdquo;,,,,,,,0,,&ldquo;cdbdisp_query.c&rdquo;,618, 2022-08-12 02:47:04.744839 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th446375488,&#34;[local]&#34;,seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 0&rdquo;,,,,,,,0,,,, 2022-08-12 02:47:04.811827 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th446375488,&#34;[local]&#34;,seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 1&rdquo;,,,,,,,0,,,, 2022-08-12 02:47:04.812848 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,&#34;[local]&#34;,seg-1,,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Interconnect State: isSender 0 isReceiver 1 snd_queue_depth 2 recv_queue_depth 4 Gp_max_packet_size 8192 UNACK_QUEUE_RING_SLOTS_NUM 2000 TIMER_SPAN 5000 DEFAULT_RTT 20000 hasErrors 0, ic_instance_id 5 ic_id_last_teardown 0 snd_buffer_pool.">
 <meta property="og:title" content>
 <meta property="og:description" content="2022-08-12 02:47:03.470194 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,&#34;[local]&#34;,seg-1,,,,,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Message type Q received by from libpq, len = 45&rdquo;,,,,,,,0,,&ldquo;postgres.c&rdquo;,5305, 2022-08-12 02:47:03.470253 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,&#34;[local]&#34;,seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;statement: explain (verbose, analyze) execute s36(4,1);&rdquo;,,,,,,&ldquo;explain (verbose, analyze) execute s36(4,1);&#34;,0,,&ldquo;postgres.c&rdquo;,1665, 2022-08-12 02:47:03.471695 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,&#34;[local]&#34;,seg-1,,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Query plan size to dispatch: 2KB&rdquo;,,,,,,,0,,&ldquo;cdbdisp_query.c&rdquo;,618, 2022-08-12 02:47:04.744839 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th446375488,&#34;[local]&#34;,seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 0&rdquo;,,,,,,,0,,,, 2022-08-12 02:47:04.811827 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th446375488,&#34;[local]&#34;,seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 1&rdquo;,,,,,,,0,,,, 2022-08-12 02:47:04.812848 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,&#34;[local]&#34;,seg-1,,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Interconnect State: isSender 0 isReceiver 1 snd_queue_depth 2 recv_queue_depth 4 Gp_max_packet_size 8192 UNACK_QUEUE_RING_SLOTS_NUM 2000 TIMER_SPAN 5000 DEFAULT_RTT 20000 hasErrors 0, ic_instance_id 5 ic_id_last_teardown 0 snd_buffer_pool.">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://Esoye.github.io/posts/postgres/xx/"><meta property="article:section" content="posts">
+<meta property="og:url" content="https://select1fromdual.github.io/posts/postgres/xx/"><meta property="article:section" content="posts">
 <meta property="og:site_name" content="Esoye">
 </head>
 <body class=light-theme>
@@ -1833,13 +1833,13 @@ sudo perf record <span style=color:#f92672>-</span>F <span style=color:#ae81ff>1
 </div>
 <div class=pagination__buttons>
 <span class="button previous">
-<a href=https://Esoye.github.io/posts/postgres/postgres-xc/>
+<a href=https://select1fromdual.github.io/posts/postgres/postgres-xc/>
 <span class=button__icon>←</span>
 <span class=button__text></span>
 </a>
 </span>
 <span class="button next">
-<a href=https://Esoye.github.io/posts/postgres/%E5%85%83%E6%95%B0%E6%8D%AE/>
+<a href=https://select1fromdual.github.io/posts/postgres/%E5%85%83%E6%95%B0%E6%8D%AE/>
 <span class=button__text></span>
 <span class=button__icon>→</span>
 </a>
@@ -1864,8 +1864,8 @@ sudo perf record <span style=color:#f92672>-</span>F <span style=color:#ae81ff>1
 </div>
 </div>
 </footer>
-<script src=https://Esoye.github.io/assets/main.js></script>
-<script src=https://Esoye.github.io/assets/prism.js></script>
+<script src=https://select1fromdual.github.io/assets/main.js></script>
+<script src=https://select1fromdual.github.io/assets/prism.js></script>
 </div>
 </body>
 </html>

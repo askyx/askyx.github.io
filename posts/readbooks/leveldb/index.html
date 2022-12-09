@@ -275,7 +275,7 @@ SkipList
   }
 }
 </code></pre></div><ol start=8>
-<li><code>std::atomic&lt;Node*> next_[1];</code>，不能是<code>next_[0]</code>，因为0的时候sizeof不计算这位，大小不对，不能是二级指针，因为此时next在后续的使用种，上层next_是nullptr，无法直接操作，只有使用数组提前占位，才可以设置node，自己手写的时候需要注意。也可以再insert的时候注意于head的相对关系。</li>
+<li><code>std::atomic&lt;Node*> next_[1];</code>，不能是<code>next_[0]</code>，因为0的时候sizeof不计算这位，大小不对，不能是二级指针，因为此时next在后续的使用中，上层next_是nullptr，无法直接操作，只有使用数组提前占位，才可以设置node，自己手写的时候需要注意。也可以再insert的时候注意于head的相对关系。</li>
 </ol>
 <h2 id=memtable>
 MemTable

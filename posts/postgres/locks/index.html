@@ -6,8 +6,7 @@ Esoye — My note blog
 </title>
 <meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
-<meta name=description content="https://www.jianshu.com/p/70069c663554?u_atoken=32991cbe-1955-40bc-9718-8d3a35665f89&amp;amp;u_asession=01c4OwPpzAFvgvxZm5PHV1hhBw4zAaxWLCjNLOUx1S0r65K5j_Co9qzK2QP3djrxxlX0KNBwm7Lovlpxjd_P_q4JsKWYrT3W_NKPr8w6oU7K8kc-sAmRM1ALm4x465txKiLDnIvqHhvwKBSiCA9W2pPWBkFo3NEHBv0PZUm6pbxQU&amp;amp;u_asig=05Y3_7uvSQPfeIm07fP1vQdkWeuCRx6EeGjwlKCyZv-3VFasqiGjJkIYokMAzoIY3OUnpfq31N9-YnXa7iZsAG0GGa_jplO472u1JsgaBhVgawWIt-WyU9QFJBdx-2l9l6Kh9xGFYxS8c7EmhEJD97Ui2KtWnr1tnaOIbJC5SZpuT9JS7q8ZD7Xtz2Ly-b0kmuyAKRFSVJkkdwVUnyHAIJzUMyz75HKVeBaK2YeP8Z-vshy4LDmw1kx2t7EvJMCe7BT6aHbewJv6RwWiEQAUeSSO3h9VXwMyh6PgyDIVSG1W8q4Tc-oNDe7qAOFBZNsoQ4TOybdtHlb3igdkDLY_odFR1XLKRTU_RDIFE8Sle2zKb4_cTkWcIdlnLWPTLKoE4CmWspDxyAEEo4kbsryBKb9Q&amp;amp;u_aref=4hkwpSZ%2B%2BpvZu6cQGg9n3Ljxk8g%3D
-SpinLock #  使用tas实现的自旋锁。
+<meta name=description content="SpinLock #  使用tas实现的自旋锁。
 while (TAS_SPIN(lock)) { perform_spin_delay(&amp;amp;delayStatus); } perform_spin_delay(SpinDelayStatus *status) { /* CPU-specific delay each time through the loop */ SPIN_DELAY(); /* Block the process every spins_per_delay tries */ if (++(status-&amp;gt;spins) &amp;gt;= spins_per_delay) { if (++(status-&amp;gt;delays) &amp;gt; NUM_DELAYS) s_lock_stuck(status-&amp;gt;file, status-&amp;gt;line, status-&amp;gt;func); if (status-&amp;gt;cur_delay == 0) /* first time to delay? */ status-&amp;gt;cur_delay = MIN_DELAY_USEC; pg_usleep(status-&amp;gt;cur_delay); /* increase delay by a random fraction between 1X and 2X */ status-&amp;gt;cur_delay += (int) (status-&amp;gt;cur_delay * pg_prng_double(&amp;amp;pg_global_prng_state) + 0.">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
@@ -80,7 +79,6 @@ while (TAS_SPIN(lock)) { perform_spin_delay(&amp;amp;delayStatus); } perform_spi
 <li><a href=#常规locks>常规Locks</a></li>
 </ul>
 </nav></aside>
-<p><a href="https://www.jianshu.com/p/70069c663554?u_atoken=32991cbe-1955-40bc-9718-8d3a35665f89&u_asession=01c4OwPpzAFvgvxZm5PHV1hhBw4zAaxWLCjNLOUx1S0r65K5j_Co9qzK2QP3djrxxlX0KNBwm7Lovlpxjd_P_q4JsKWYrT3W_NKPr8w6oU7K8kc-sAmRM1ALm4x465txKiLDnIvqHhvwKBSiCA9W2pPWBkFo3NEHBv0PZUm6pbxQU&u_asig=05Y3_7uvSQPfeIm07fP1vQdkWeuCRx6EeGjwlKCyZv-3VFasqiGjJkIYokMAzoIY3OUnpfq31N9-YnXa7iZsAG0GGa_jplO472u1JsgaBhVgawWIt-WyU9QFJBdx-2l9l6Kh9xGFYxS8c7EmhEJD97Ui2KtWnr1tnaOIbJC5SZpuT9JS7q8ZD7Xtz2Ly-b0kmuyAKRFSVJkkdwVUnyHAIJzUMyz75HKVeBaK2YeP8Z-vshy4LDmw1kx2t7EvJMCe7BT6aHbewJv6RwWiEQAUeSSO3h9VXwMyh6PgyDIVSG1W8q4Tc-oNDe7qAOFBZNsoQ4TOybdtHlb3igdkDLY_odFR1XLKRTU_RDIFE8Sle2zKb4_cTkWcIdlnLWPTLKoE4CmWspDxyAEEo4kbsryBKb9Q&u_aref=4hkwpSZ%2B%2BpvZu6cQGg9n3Ljxk8g%3D">https://www.jianshu.com/p/70069c663554?u_atoken=32991cbe-1955-40bc-9718-8d3a35665f89&u_asession=01c4OwPpzAFvgvxZm5PHV1hhBw4zAaxWLCjNLOUx1S0r65K5j_Co9qzK2QP3djrxxlX0KNBwm7Lovlpxjd_P_q4JsKWYrT3W_NKPr8w6oU7K8kc-sAmRM1ALm4x465txKiLDnIvqHhvwKBSiCA9W2pPWBkFo3NEHBv0PZUm6pbxQU&u_asig=05Y3_7uvSQPfeIm07fP1vQdkWeuCRx6EeGjwlKCyZv-3VFasqiGjJkIYokMAzoIY3OUnpfq31N9-YnXa7iZsAG0GGa_jplO472u1JsgaBhVgawWIt-WyU9QFJBdx-2l9l6Kh9xGFYxS8c7EmhEJD97Ui2KtWnr1tnaOIbJC5SZpuT9JS7q8ZD7Xtz2Ly-b0kmuyAKRFSVJkkdwVUnyHAIJzUMyz75HKVeBaK2YeP8Z-vshy4LDmw1kx2t7EvJMCe7BT6aHbewJv6RwWiEQAUeSSO3h9VXwMyh6PgyDIVSG1W8q4Tc-oNDe7qAOFBZNsoQ4TOybdtHlb3igdkDLY_odFR1XLKRTU_RDIFE8Sle2zKb4_cTkWcIdlnLWPTLKoE4CmWspDxyAEEo4kbsryBKb9Q&u_aref=4hkwpSZ%2B%2BpvZu6cQGg9n3Ljxk8g%3D</a></p>
 <h2 id=spinlock>
 SpinLock
 <a href=#spinlock class=h-anchor aria-hidden=true>#</a>
@@ -211,17 +209,13 @@ LWLock
 } LockTagType;
 </code></pre></div><p><a href=https://blog.csdn.net/hyman_c/article/details/119666570>https://blog.csdn.net/hyman_c/article/details/119666570</a></p>
 <ol>
-<li>
-<p>普通共享锁普通排他锁
-锁检测在LockAcquireExtended函数中</p>
-</li>
-<li>
-<p>访问共享锁访问排他锁</p>
-</li>
-<li></li>
-<li>
-<p>直接select 的时候会在analyze阶段对表加<code>AccessShareLock</code>，此时会进行bind操作，所以会open relation</p>
-</li>
+<li>普通共享锁普通排他锁
+锁检测在LockAcquireExtended函数中</li>
+<li>访问共享锁访问排他锁</li>
+</ol>
+<hr>
+<ol>
+<li>直接select 的时候会在analyze阶段对表加<code>AccessShareLock</code>，此时会进行bind操作，所以会open relation</li>
 </ol>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#75715e>#0  0x00005563f2c95ec4 in relation_openrv_extended (relation=0x5563f3738708, lockmode=1, missing_ok=true) at /home/esoye/postgres/src/backend/access/common/relation.c:186
 </span><span style=color:#75715e>#1  0x00005563f2d32f35 in table_openrv_extended (relation=0x5563f3738708, lockmode=1, missing_ok=true) at /home/esoye/postgres/src/backend/access/table/table.c:108

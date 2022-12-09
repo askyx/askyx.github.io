@@ -8,8 +8,8 @@ Esoye — My note blog
 <meta name=viewport content="width=device-width,initial-scale=1">
 <meta name=description content="执行器框架   DDL
 utility语句，下层实现具体的方法，更类似方法的调用 DML
-执行计划对应具体的树形结构的执行算子，火山模型，需要在初始化的时候从执行计划翻译到具体的执行树  主要运算节点   join scan  index seq   group windows sort  表达式计算方法   codegen  数据流动  执行器案例select * from a where a = $1 for update
---99.51%--PortalRun | --99.51%--PortalRunSelect | --99.50%--standard_ExecutorRun | --99.47%--ExecLockRows | --98.45%--ExecScan | |--55.88%--ExecInterpExpr | | | |--32.43%--slot_getsomeattrs_int | | | | | --29.48%--tts_buffer_heap_getsomeattrs | | | --3.54%--ExecEvalParamExtern | |--34.60%--SeqNext | | | --29.">
+执行计划对应具体的树形结构的执行算子，火山模型，需要在初始化的时候从执行计划翻译到具体的执行树  主要运算节点   join scan  index seq   group windows sort  表达式计算方法   codegen  数据流动  节点 #   控制节点 扫描节点 物化节点 链接节点  基类为plan，其余得节点从plan继承。具体位置为plannodes.h
+typedef struct Plan { pg_node_attr(abstract, no_equal) NodeTag type; /* * estimated execution costs for plan (see costsize.c for more info) */ Cost startup_cost; /* cost expended before fetching any tuples */ Cost total_cost; /* total cost (assuming all tuples fetched) */ /* * planner&amp;#39;s estimate of result size of this plan step */ Cardinality plan_rows; /* number of rows plan is expected to emit */ int plan_width; /* average row width in bytes */ /* * information needed for parallel query */ bool parallel_aware; /* engage parallel-aware logic?">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
 <link rel=canonical href=https://select1fromdual.github.io/posts/postgres/postgres_executor/>
@@ -76,6 +76,7 @@ utility语句，下层实现具体的方法，更类似方法的调用 DML
 <h2>Table of Contents</h2>
 <aside class=table-of-contents><nav id=TableOfContents>
 <ul>
+<li><a href=#节点>节点</a></li>
 <li><a href=#前端>前端</a></li>
 </ul>
 </nav></aside>
@@ -112,7 +113,105 @@ utility语句，下层实现具体的方法，更类似方法的调用</li>
 <ol start=4>
 <li>数据流动</li>
 </ol>
-<p>执行器案例<code>select * from a where a = $1 for update</code></p>
+<h2 id=节点>
+节点
+<a href=#%e8%8a%82%e7%82%b9 class=h-anchor aria-hidden=true>#</a>
+</h2>
+<ol>
+<li>控制节点</li>
+<li>扫描节点</li>
+<li>物化节点</li>
+<li>链接节点</li>
+</ol>
+<p>基类为plan，其余得节点从plan继承。具体位置为<code>plannodes.h</code></p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Plan</span>
+{
+    pg_node_attr(abstract, no_equal)
+    NodeTag        type;
+    <span style=color:#75715e>/*
+</span><span style=color:#75715e>     * estimated execution costs for plan (see costsize.c for more info)
+</span><span style=color:#75715e>     */</span>
+    Cost        startup_cost;    <span style=color:#75715e>/* cost expended before fetching any tuples */</span>
+    Cost        total_cost;        <span style=color:#75715e>/* total cost (assuming all tuples fetched) */</span>
+
+    <span style=color:#75715e>/*
+</span><span style=color:#75715e>     * planner&#39;s estimate of result size of this plan step
+</span><span style=color:#75715e>     */</span>
+    Cardinality     plan_rows;        <span style=color:#75715e>/* number of rows plan is expected to emit */</span>
+    <span style=color:#66d9ef>int</span>             plan_width;        <span style=color:#75715e>/* average row width in bytes */</span>
+
+    <span style=color:#75715e>/*
+</span><span style=color:#75715e>     * information needed for parallel query
+</span><span style=color:#75715e>     */</span>
+    <span style=color:#66d9ef>bool</span>        parallel_aware; <span style=color:#75715e>/* engage parallel-aware logic? */</span>
+    <span style=color:#66d9ef>bool</span>        parallel_safe;    <span style=color:#75715e>/* OK to use as part of parallel plan? */</span>
+
+    <span style=color:#75715e>/*
+</span><span style=color:#75715e>     * information needed for asynchronous execution
+</span><span style=color:#75715e>     */</span>
+    <span style=color:#66d9ef>bool</span>        async_capable;    <span style=color:#75715e>/* engage asynchronous-capable logic? */</span>
+
+    <span style=color:#75715e>/*
+</span><span style=color:#75715e>     * Common structural data for all Plan types.
+</span><span style=color:#75715e>     */</span>
+    <span style=color:#66d9ef>int</span>         plan_node_id;    <span style=color:#75715e>/* unique across entire final plan tree */</span>
+    List       <span style=color:#f92672>*</span>targetlist;        <span style=color:#75715e>/* target list to be computed at this node */</span>
+    List       <span style=color:#f92672>*</span>qual;            <span style=color:#75715e>/* implicitly-ANDed qual conditions */</span>
+    <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Plan</span> <span style=color:#f92672>*</span>lefttree;        <span style=color:#75715e>/* input plan tree(s) */</span>
+    <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Plan</span> <span style=color:#f92672>*</span>righttree;
+    List       <span style=color:#f92672>*</span>initPlan;        <span style=color:#75715e>/* Init Plan nodes (un-correlated expr * subselects) */</span>
+
+    <span style=color:#75715e>/*
+</span><span style=color:#75715e>     * Information for management of parameter-change-driven rescanning
+</span><span style=color:#75715e>     *
+</span><span style=color:#75715e>     * extParam includes the paramIDs of all external PARAM_EXEC params
+</span><span style=color:#75715e>     * affecting this plan node or its children.  setParam params from the
+</span><span style=color:#75715e>     * node&#39;s initPlans are not included, but their extParams are.
+</span><span style=color:#75715e>     *
+</span><span style=color:#75715e>     * allParam includes all the extParam paramIDs, plus the IDs of local
+</span><span style=color:#75715e>     * params that affect the node (i.e., the setParams of its initplans).
+</span><span style=color:#75715e>     * These are _all_ the PARAM_EXEC params that affect this node.
+</span><span style=color:#75715e>     */</span>
+    Bitmapset  <span style=color:#f92672>*</span>extParam;
+    Bitmapset  <span style=color:#f92672>*</span>allParam;
+} Plan;
+
+</code></pre></div><p>es_tupleTable 全局元组表，节点间传递数据</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>enum</span> <span style=color:#a6e22e>JoinType</span>
+{
+    <span style=color:#75715e>/*
+</span><span style=color:#75715e>     * The canonical kinds of joins according to the SQL JOIN syntax. Only
+</span><span style=color:#75715e>     * these codes can appear in parser output (e.g., JoinExpr nodes).
+</span><span style=color:#75715e>     */</span>
+    JOIN_INNER,                    <span style=color:#75715e>/* matching tuple pairs only */</span>
+    JOIN_LEFT,                    <span style=color:#75715e>/* pairs + unmatched LHS tuples */</span>
+    JOIN_FULL,                    <span style=color:#75715e>/* pairs + unmatched LHS + unmatched RHS */</span>
+    JOIN_RIGHT,                    <span style=color:#75715e>/* pairs + unmatched RHS tuples */</span>
+
+    <span style=color:#75715e>/*
+</span><span style=color:#75715e>     * Semijoins and anti-semijoins (as defined in relational theory) do not
+</span><span style=color:#75715e>     * appear in the SQL JOIN syntax, but there are standard idioms for
+</span><span style=color:#75715e>     * representing them (e.g., using EXISTS).  The planner recognizes these
+</span><span style=color:#75715e>     * cases and converts them to joins.  So the planner and executor must
+</span><span style=color:#75715e>     * support these codes.  NOTE: in JOIN_SEMI output, it is unspecified
+</span><span style=color:#75715e>     * which matching RHS row is joined to.  In JOIN_ANTI output, the row is
+</span><span style=color:#75715e>     * guaranteed to be null-extended.
+</span><span style=color:#75715e>     */</span>
+    JOIN_SEMI,                    <span style=color:#75715e>/* 1 copy of each LHS row that has match(es) */</span>
+    JOIN_ANTI,                    <span style=color:#75715e>/* 1 copy of each LHS row that has no match */</span>
+
+    <span style=color:#75715e>/*
+</span><span style=color:#75715e>     * These codes are used internally in the planner, but are not supported
+</span><span style=color:#75715e>     * by the executor (nor, indeed, by most of the planner).
+</span><span style=color:#75715e>     */</span>
+    JOIN_UNIQUE_OUTER,            <span style=color:#75715e>/* LHS path must be made unique */</span>
+    JOIN_UNIQUE_INNER            <span style=color:#75715e>/* RHS path must be made unique */</span>
+
+    <span style=color:#75715e>/*
+</span><span style=color:#75715e>     * We might need additional join types someday.
+</span><span style=color:#75715e>     */</span>
+} JoinType;
+</code></pre></div><p>执行器案例<code>select * from a where a = $1 for update</code></p>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++> <span style=color:#f92672>--</span><span style=color:#ae81ff>99.51</span><span style=color:#f92672>%--</span>PortalRun
            <span style=color:#f92672>|</span>
             <span style=color:#f92672>--</span><span style=color:#ae81ff>99.51</span><span style=color:#f92672>%--</span>PortalRunSelect
@@ -186,7 +285,30 @@ utility语句，下层实现具体的方法，更类似方法的调用</li>
 语句结束，释放资源</p>
 </li>
 </ol>
-<p>b8d7f053c5c2bf2a7e8734fe3327f6a8bc711755</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>esoye<span style=color:#f92672>=#</span>  <span style=color:#66d9ef>explain</span> (<span style=color:#66d9ef>verbose</span>, <span style=color:#66d9ef>analyze</span>) <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span>  <span style=color:#66d9ef>from</span> tb1 <span style=color:#66d9ef>where</span> c2 <span style=color:#66d9ef>in</span> (<span style=color:#66d9ef>select</span>  sheet_num <span style=color:#66d9ef>from</span> tb2,tb3 <span style=color:#66d9ef>where</span> sheet_num<span style=color:#f92672>=</span>order_no <span style=color:#66d9ef>and</span> c3<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;1&#39;</span>);
+                                                           QUERY PLAN
+<span style=color:#75715e>--------------------------------------------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> Seq Scan <span style=color:#66d9ef>on</span> <span style=color:#66d9ef>public</span>.tb1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>30</span>.<span style=color:#ae81ff>54</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>7</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>044</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>056</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>2</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+   <span style=color:#66d9ef>Output</span>: tb1.c1, tb1.c2, tb1.c3
+   Filter: (SubPlan <span style=color:#ae81ff>1</span>)
+   <span style=color:#66d9ef>Rows</span> Removed <span style=color:#66d9ef>by</span> Filter: <span style=color:#ae81ff>12</span>
+   SubPlan <span style=color:#ae81ff>1</span>
+     <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Result</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>32</span>..<span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>81</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>28</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>002</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>002</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>14</span>)
+           <span style=color:#66d9ef>Output</span>: tb2.sheet_num
+           One<span style=color:#f92672>-</span>Time Filter: ((tb1.c3)::text <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;1&#39;</span>::text)
+           <span style=color:#f92672>-&gt;</span>  Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>32</span>..<span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>81</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>28</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>013</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>014</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>3</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>)
+                 <span style=color:#66d9ef>Output</span>: tb2.sheet_num
+                 Hash Cond: ((tb2.sheet_num)::text <span style=color:#f92672>=</span> (tb3.order_no)::text)
+                 <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> <span style=color:#66d9ef>public</span>.tb2  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>14</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>14</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>003</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>003</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>2</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>)
+                       <span style=color:#66d9ef>Output</span>: tb2.c1, tb2.sheet_num
+                 <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>14</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>14</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>14</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>013</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>013</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>14</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+                       <span style=color:#66d9ef>Output</span>: tb3.order_no
+                       Buckets: <span style=color:#ae81ff>1024</span>  Batches: <span style=color:#ae81ff>1</span>  Memory <span style=color:#66d9ef>Usage</span>: <span style=color:#ae81ff>9</span>kB
+                       <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> <span style=color:#66d9ef>public</span>.tb3  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>14</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>14</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>005</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>007</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>14</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+                             <span style=color:#66d9ef>Output</span>: tb3.order_no
+ Planning Time: <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>192</span> ms
+ Execution Time: <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>083</span> ms
+</code></pre></div><p>b8d7f053c5c2bf2a7e8734fe3327f6a8bc711755</p>
 <p>exec_simple_query</p>
 <p>pg_parse_query</p>
 <p>pg_analyze_and_rewrite_fixedparams</p>
@@ -269,22 +391,22 @@ DEBUG CASE
 <a href=#debug-case class=h-anchor aria-hidden=true>#</a>
 </h1>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=color:#66d9ef>CREATE</span> <span style=color:#66d9ef>TABLE</span> tenk1 (
-	unique1		int4,
-	unique2		int4,
-	two			int4,
-	four		int4,
-	ten			int4,
-	twenty		int4,
-	hundred		int4,
-	thousand	int4,
-	twothousand	int4,
-	fivethous	int4,
-	tenthous	int4,
-	odd			int4,
-	even		int4,
-	stringu1	name,
-	stringu2	name,
-	string4		name
+    unique1        int4,
+    unique2        int4,
+    two            int4,
+    four        int4,
+    ten            int4,
+    twenty        int4,
+    hundred        int4,
+    thousand    int4,
+    twothousand    int4,
+    fivethous    int4,
+    tenthous    int4,
+    odd            int4,
+    even        int4,
+    stringu1    name,
+    stringu2    name,
+    string4        name
 );
 
 <span style=color:#75715e>-- 回歸測試文件

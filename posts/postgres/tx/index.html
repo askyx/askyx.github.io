@@ -6,15 +6,15 @@ Esoye — My note blog
 </title>
 <meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
-<meta name=description content="事务基础 #   ACID 事务演进 隔离级别 MVCC 2pl 主流数据库实现  PG事务 #  事务实现框架 #  快照 #  可见性与隔离级别 #  https://smartkeyerror.com/PostgreSQL-MVCC-01
-mvcc
-pg使用直接数据插入，使用快照判断数据的可见性
-快照 不同的隔离级别，获取事务快照的机制不一样 * RC每次都会重新获取，所以其他事务或者操作只要改变事务状态，都会被rc事务感知到， * RR之上的只会在开始的时候获取一次，所以其他事务在一定程度上对当前事务是不可见的， 可以设置不同的隔离级别，然后在事务内使用select txid_current_snapshot();观察快照信息 * 所以后端的事务可见性的判别机制是一样的，只需要限制快照信息即可 undo log mysql的innodb，oracle使用此机制
-http://postgres.cn/docs/14/pageinspect.html
-文章收藏 #  作者：henry liang 链接：https://www.zhihu.com/question/449949351/answer/2692285376 来源：知乎  数据库研究群体主要关注的是在单个主机的情况下，多个并发事务同时操作的情况下，如果保证数据库系统中数据项的一致性，包括：物理上数据不被破坏，数据的约束（唯一性约束，引用约束），或者业务约束（x + y == 10) 不被破坏。 分布式系统主要关注在跨网络相互连接，且数据有多副本复制的集群中，对于逻辑上单个数据项（可能有多个物理副本）的操作，能否和单机系统中对于单个数据项操作的效果一样，始终看到正确的符合操作顺序的数据结果。  https://www.cnblogs.com/three-fighter/p/15293310.html https://www.zhihu.com/question/449949351 分布式事务，理论与实践
-分布式一致性 #  https://jepsen.io/consistency
-事务的AICD和分布式的C是完全不一致的东西，事务的C要求的是事务的一致性约束不能被破坏，而分布式事务的C则是对系统整体正确性的描述，例如修改一个数据成功，且没有违背事务一致性，但是数据没有立刻同步到其他节点，导致分布式一致性被破坏
- 分布式数据库中多副本的同步，需要确保一致性，需要一定的约束规则，不用角度的约束规则，可以理解为不同程度的一致性  强一致性，任何读写都可以确保得到的是最新的数据，简而言之，所有的读写都是原子性，不存在中间状态 弱一致性  最终一致性，不能确保数据写下之后立刻得到最新的数据，但是保证一段时间之后，数据对所有节点是同步的，不过此时间不确定 读写一致性，在某节点写了数据，但是自己读的时候是从另一节点读取的，但是数据尚未同步，导致读到老的数据，此时应该限定读取节点，或者使用其他机制保证自己的读写是一致的 单调一致性，类似读写一致性，后面的读操作没有读到之前读的数据，可能是不同的节点读的结果 因果一致性，相同key的数据，应当保证顺序和实际的操作顺序是一致的，因为不同的操作之间，具有因果关系，     网络通信时间不一致，实际的执行发出时间，执行时间，和结果的接收时间不能单纯的确定先后，实际的事件存在重叠现象 主流分布式理论  CAP理论，一致性，可用性，分区容错性三者最多只能支持两个，且由于P问题的客观存在，所以不能一定确保P，最多只能在CA中二选一 BASE理论，BA为基本可用，S为软状态，即中间状态，E为最终一致性，他认为，强一致性无法达到的情况下的，可以在一定程度上允许最终一致性即可     强一制性是最终的追求，但是实际上可以进行一定的妥协，就像事务的不同隔离级别，大多数场景只要求可重复读即可">
+<meta name=description content="事务基础 #   ACID 事务演进 隔离级别 MVCC 2pl 主流数据库实现  PG事务 #  事务实现框架 #  快照 #  WAL #  数据写到buffer中时候，不会选择立刻刷盘，如果任何的数据改动都需要一次IO，则有性能损失，但是只是保留在磁盘中，在系统崩溃的时候，数据会丢失，所以一般都会使用wal保留一部分未刷盘的数据。
+  REDO log
+Redo log通常称为重做日志，在写入数据文件前，每个变更都会先行写入到Redo log中。其用途和意义在于存储数据库的所有修改历史，用于数据库故障恢复（Recovery）、增量备份（Incremental Backup）、PITR(Point In Time Recovery)和复制（Replication）。
+  WAL segment file
+为了便于管理，PG把事务日志文件划分为N个segment，每个segment称为WAL segment file，每个WAL segment file大小默认为16MB。
+pg最大可以管理64为地址的wal文件，当前默认wal文件大小为16M，然后文件名的组织格式代表了剩下的寻址空间，首先文件名称可以分为三部分，
+ 第一部分8位代表timelineId，和backup有关 第二部分是逻辑地址，可全部使用 第三是最后部分，只是低2位  此时地址的组织形式位 (8 * 4 + 2 * 4 + 24) = 64
+  XLOG Record
+这是一个逻辑概念，可以理解为PG中的每一个变更都对应一条XLOG Record，这些XLOG Record存储在WAL segment file中。PG读取这些XLOG Record进行故障恢复/PITR等操作。">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
 <link rel=canonical href=https://select1fromdual.github.io/posts/postgres/tx/>
@@ -97,7 +97,197 @@ PG事务
 快照
 <a href=#%e5%bf%ab%e7%85%a7 class=h-anchor aria-hidden=true>#</a>
 </h3>
-<h3 id=可见性与隔离级别>
+<h3 id=wal>
+WAL
+<a href=#wal class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>数据写到buffer中时候，不会选择立刻刷盘，如果任何的数据改动都需要一次IO，则有性能损失，但是只是保留在磁盘中，在系统崩溃的时候，数据会丢失，所以一般都会使用wal保留一部分未刷盘的数据。</p>
+<ol>
+<li>
+<p><code>REDO log</code><br>
+Redo log通常称为重做日志，在写入数据文件前，每个变更都会先行写入到Redo log中。其用途和意义在于存储数据库的所有修改历史，用于数据库故障恢复（Recovery）、增量备份（Incremental Backup）、PITR(Point In Time Recovery)和复制（Replication）。</p>
+</li>
+<li>
+<p><code>WAL segment file</code><br>
+为了便于管理，PG把事务日志文件划分为N个segment，每个segment称为<code>WAL segment file</code>，每个<code>WAL segment file</code>大小默认为16MB。</p>
+<p>pg最大可以管理64为地址的wal文件，当前默认wal文件大小为16M，然后文件名的组织格式代表了剩下的寻址空间，首先文件名称可以分为三部分，</p>
+<ul>
+<li>第一部分8位代表timelineId，和backup有关</li>
+<li>第二部分是逻辑地址，可全部使用</li>
+<li>第三是最后部分，只是低2位</li>
+</ul>
+<p>此时地址的组织形式位 (8 * 4 + 2 * 4 + 24) = 64</p>
+</li>
+<li>
+<p><code>XLOG Record</code><br>
+这是一个逻辑概念，可以理解为PG中的每一个变更都对应一条XLOG Record，这些<code>XLOG Record</code>存储在<code>WAL segment file</code>中。PG读取这些<code>XLOG Record</code>进行故障恢复/PITR等操作。</p>
+</li>
+<li>
+<p><code>WAL buffer</code><br>
+WA缓冲区，不管是<code>WAL segment file</code>的header还是XLOG Record都会先行写入到WAL缓冲区中，在"合适的时候"再通过<code>WAL writer</code>写入到<code>WAL segment file</code>中。</p>
+</li>
+<li>
+<p>LSN<br>
+LSN即日志序列号<code>Log Sequence Number</code>。表示XLOG record记录写入到事务日志中位置。LSN的值为无符号64位整型（uint64）。在事务日志中，LSN单调递增且唯一。</p>
+<p>前面说到WAL的64位地址，LSN就是一个变相的，映射wal文件的地址，首先<code>0/28BD908</code>为例，</p>
+<ul>
+<li>0代表的是逻辑地址</li>
+<li>后面的字符串中，6位之前的是物理文件编号</li>
+<li>后6位是文件内的偏移地址</li>
+</ul>
+<p>可以使用函数<code>pg_walfile_name</code>和<code>pg_walfile_name_offset</code>查看LSN的具体信息</p>
+</li>
+<li>
+<p><code>checkpointer</code><br>
+checkpointer是PG中的一个后台进程，该进程周期性地执行checkpoint。当执行checkpoint时，该进程会把包含checkpoint信息的<code>XLOG Record</code>写入到当前的<code>WAL segment file</code>中，该<code>XLOG Record</code>记录包含了最新Redo pint的位置。</p>
+</li>
+<li>
+<p><code>checkpoint</code><br>
+检查点checkpoint由<code>checkpointer</code>进程执行，主要的处理流程如下：</p>
+<p>a. 获取<code>Redo point</code>，构造包含此<code>Redo point</code>检查点（详细请参考Checkpoint结构体）信息的<code>XLOG Record</code>并写入到<code>WAL segment file</code>中；</p>
+<p>b. 刷新<code>Dirty Page</code>到磁盘上；</p>
+<p>c. 更新<code>Redo point</code>等信息到pg_control文件中。</p>
+</li>
+<li>
+<p>REDO point<br>
+REDO point是PG启动恢复的起始点，是最后一次checkpoint启动时事务日志文件的末尾亦即写入Checkpoint XLOG Record时的位置（这里的位置可以理解为事务日志文件中偏移量）。</p>
+</li>
+<li>
+<p>pg_control<br>
+pg_control是磁盘上的物理文件，保存检查点的基本信息，在数据库恢复中使用，可通过命令pg_controldata查看该文件中的内容。</p>
+</li>
+</ol>
+<ul>
+<li>The logical and physical structures of the WAL (transaction log)</li>
+<li>The internal layout of WAL data</li>
+<li>Writing of WAL data</li>
+<li>WAL writer process</li>
+<li>The checkpoint processing</li>
+<li>The database recovery processing</li>
+<li>Managing WAL segment files</li>
+<li>Continuous archiving</li>
+</ul>
+<p>rmgr: Standby len (rec/tot): 50/ 50, tx: 0, lsn: 0/018BD748, prev 0/018BD6D0, desc: RUNNING_XACTS nextXid 739 latestCompletedXid 738 oldestRunningXid 739
+rmgr: Heap len (rec/tot): 59/ 59, tx: 739, lsn: 0/018BD780, prev 0/018BD748, desc: INSERT+INIT off 1 flags 0x00, blkref #0: rel 1663/16384/16385 blk 0
+rmgr: Transaction len (rec/tot): 34/ 34, tx: 739, lsn: 0/018BD7C0, prev 0/018BD780, desc: COMMIT 2022-12-16 11:04:37.801054 CST
+rmgr: Standby len (rec/tot): 50/ 50, tx: 0, lsn: 0/018BD7E8, prev 0/018BD7C0, desc: RUNNING_XACTS nextXid 740 latestCompletedXid 739 oldestRunningXid 740
+rmgr: Standby len (rec/tot): 50/ 50, tx: 0, lsn: 0/018BD820, prev 0/018BD7E8, desc: RUNNING_XACTS nextXid 740 latestCompletedXid 739 oldestRunningXid 740
+rmgr: XLOG len (rec/tot): 114/ 114, tx: 0, lsn: 0/018BD858, prev 0/018BD820, desc: CHECKPOINT_ONLINE redo 0/18BD820; tli 1; prev tli 1; fpw true; xid 0:740; oid 24576; multi 1; offset 0; oldest xid 719 in DB 1; oldest multi 1 in DB 1; oldest/newest commit timestamp xid: 0/0; oldest running xid 740; online
+rmgr: Standby len (rec/tot): 50/ 50, tx: 0, lsn: 0/018BD8D0, prev 0/018BD858, desc: RUNNING_XACTS nextXid 740 latestCompletedXid 739 oldestRunningXid 740
+rmgr: Heap len (rec/tot): 54/ 150, tx: 740, lsn: 0/018BD908, prev 0/018BD8D0, desc: INSERT off 2 flags 0x00, blkref #0: rel 1663/16384/16385 blk 0 FPW
+rmgr: Standby len (rec/tot): 54/ 54, tx: 0, lsn: 0/018BD9A0, prev 0/018BD908, desc: RUNNING_XACTS nextXid 741 latestCompletedXid 739 oldestRunningXid 740; 1 xacts: 740
+rmgr: Transaction len (rec/tot): 34/ 34, tx: 740, lsn: 0/018BD9D8, prev 0/018BD9A0, desc: COMMIT 2022-12-16 14:54:24.989070 CST
+rmgr: Standby len (rec/tot): 50/ 50, tx: 0, lsn: 0/018BDA00, prev 0/018BD9D8, desc: RUNNING_XACTS nextXid 741 latestCompletedXid 740 oldestRunningXid 741</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
+<span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;math.h&gt;</span><span style=color:#75715e>
+</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
+</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;cstring&gt;</span><span style=color:#75715e>
+</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;queue&gt;</span><span style=color:#75715e>
+</span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;algorithm&gt;</span><span style=color:#75715e>
+</span><span style=color:#75715e></span><span style=color:#66d9ef>using</span> <span style=color:#66d9ef>namespace</span> std;
+
+<span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>()
+{
+
+  <span style=color:#66d9ef>constexpr</span> <span style=color:#66d9ef>int</span> SIZE <span style=color:#f92672>=</span> <span style=color:#ae81ff>6</span>;
+  <span style=color:#66d9ef>union</span> <span style=color:#a6e22e>nums</span>
+  {
+    <span style=color:#66d9ef>uint32_t</span> n;
+    <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>nn</span>
+    {
+      <span style=color:#66d9ef>uint16_t</span> n1;
+      <span style=color:#66d9ef>uint16_t</span> n2;
+    } nn;
+  };
+  <span style=color:#66d9ef>auto</span> muler <span style=color:#f92672>=</span> [<span style=color:#f92672>&amp;</span>](<span style=color:#66d9ef>int</span> x, <span style=color:#66d9ef>uint16_t</span> xx1[])
+  {
+    nums num;
+    xx1[<span style=color:#ae81ff>0</span>] <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>;
+    <span style=color:#66d9ef>while</span> (x <span style=color:#f92672>&gt;=</span> <span style=color:#ae81ff>1</span>)
+    {
+      num.n <span style=color:#f92672>=</span> xx1[<span style=color:#ae81ff>0</span>] <span style=color:#f92672>*</span> x;
+      <span style=color:#66d9ef>int</span> i <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+      <span style=color:#66d9ef>for</span> (i <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; i <span style=color:#f92672>&lt;</span> SIZE <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>; i<span style=color:#f92672>++</span>)
+      {
+        xx1[i] <span style=color:#f92672>=</span> num.nn.n1;
+        num.n <span style=color:#f92672>=</span> xx1[i <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>] <span style=color:#f92672>*</span> x <span style=color:#f92672>+</span> num.nn.n2;
+      }
+
+      x<span style=color:#f92672>--</span>;
+    }
+  };
+
+  <span style=color:#66d9ef>auto</span> adder <span style=color:#f92672>=</span> [](<span style=color:#66d9ef>uint16_t</span> x2[], <span style=color:#66d9ef>uint16_t</span> x1[], <span style=color:#66d9ef>uint16_t</span> re[])
+  {
+    <span style=color:#66d9ef>int</span> i <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+    nums num;
+    num.n <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+    <span style=color:#66d9ef>while</span> (i <span style=color:#f92672>&lt;</span> SIZE)
+    {
+      num.n <span style=color:#f92672>=</span> (<span style=color:#66d9ef>int</span>)x1[i] <span style=color:#f92672>+</span> (<span style=color:#66d9ef>int</span>)x2[i] <span style=color:#f92672>+</span> re[i] <span style=color:#f92672>+</span> num.nn.n2;
+      re[i] <span style=color:#f92672>=</span> num.nn.n1;
+      i<span style=color:#f92672>++</span>;
+    }
+  };
+
+  <span style=color:#66d9ef>auto</span> pp <span style=color:#f92672>=</span> [](<span style=color:#66d9ef>uint16_t</span> xx1[])
+  {
+    <span style=color:#75715e>// 64025 38609 2720 38833 8983 2944
+</span><span style=color:#75715e></span>    <span style=color:#66d9ef>auto</span> n <span style=color:#f92672>=</span> SIZE <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>;
+    <span style=color:#66d9ef>int</span> x1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+    <span style=color:#66d9ef>int</span> x2 <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; <span style=color:#75715e>//8643 26492 33460 0
+</span><span style=color:#75715e></span>    string s <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;&#34;</span>;
+    <span style=color:#66d9ef>bool</span> f <span style=color:#f92672>=</span> true;
+    <span style=color:#66d9ef>while</span> (n <span style=color:#f92672>&gt;=</span> <span style=color:#ae81ff>1</span>)
+    {
+      <span style=color:#66d9ef>if</span> (xx1[n] <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>&amp;&amp;</span> f)
+      {
+        n<span style=color:#f92672>--</span>;
+        <span style=color:#66d9ef>continue</span>;
+      }
+      f <span style=color:#f92672>=</span> false;
+      <span style=color:#66d9ef>auto</span> x <span style=color:#f92672>=</span> (<span style=color:#66d9ef>long</span>)xx1[n] <span style=color:#f92672>*</span> <span style=color:#ae81ff>65536</span> <span style=color:#f92672>+</span> x1;
+      x1 <span style=color:#f92672>=</span> x <span style=color:#f92672>%</span> <span style=color:#ae81ff>100000</span>;
+      x2 <span style=color:#f92672>=</span> x <span style=color:#f92672>/</span> <span style=color:#ae81ff>100000</span>;
+      s <span style=color:#f92672>+=</span> to_string(x2);
+      n<span style=color:#f92672>--</span>;
+    }
+    <span style=color:#66d9ef>auto</span> x <span style=color:#f92672>=</span> (<span style=color:#66d9ef>long</span>)xx1[n] <span style=color:#f92672>+</span> x1;
+    s <span style=color:#f92672>+=</span> to_string(x);
+    <span style=color:#66d9ef>return</span> s;
+  };
+
+  <span style=color:#66d9ef>int</span> n <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+  <span style=color:#75715e>// cin &gt;&gt; n;
+</span><span style=color:#75715e></span>
+  <span style=color:#66d9ef>uint16_t</span> x1[SIZE] <span style=color:#f92672>=</span> {<span style=color:#ae81ff>0</span>};
+  <span style=color:#66d9ef>uint16_t</span> x2[SIZE] <span style=color:#f92672>=</span> {<span style=color:#ae81ff>0</span>};
+  <span style=color:#66d9ef>uint16_t</span> re[SIZE] <span style=color:#f92672>=</span> {<span style=color:#ae81ff>0</span>};
+  <span style=color:#66d9ef>while</span> (n <span style=color:#f92672>&gt;=</span> <span style=color:#ae81ff>1</span>)
+  {
+    muler(n, x1);
+    <span style=color:#66d9ef>if</span> (n <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>1</span>)
+    {
+      n<span style=color:#f92672>--</span>;
+      muler(n, x2);
+      adder(x1, x2, re);
+      memset(x1, <span style=color:#ae81ff>0</span>, <span style=color:#66d9ef>sizeof</span>(<span style=color:#66d9ef>uint16_t</span>) <span style=color:#f92672>*</span> SIZE);
+      memset(x2, <span style=color:#ae81ff>0</span>, <span style=color:#66d9ef>sizeof</span>(<span style=color:#66d9ef>uint16_t</span>) <span style=color:#f92672>*</span> SIZE);
+    }
+    <span style=color:#66d9ef>else</span>
+    {
+      adder(x1, x2, re);
+      memset(x1, <span style=color:#ae81ff>0</span>, <span style=color:#66d9ef>sizeof</span>(<span style=color:#66d9ef>uint16_t</span>) <span style=color:#f92672>*</span> SIZE);
+    }
+    n<span style=color:#f92672>--</span>;
+  }
+  memset(re, <span style=color:#ae81ff>0</span>, <span style=color:#66d9ef>sizeof</span>(<span style=color:#66d9ef>uint16_t</span>) <span style=color:#f92672>*</span> SIZE);
+  muler(<span style=color:#ae81ff>20</span>, re);
+  cout <span style=color:#f92672>&lt;&lt;</span> pp(re) <span style=color:#f92672>&lt;&lt;</span> endl;
+
+  <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+}
+</code></pre></div><h3 id=可见性与隔离级别>
 可见性与隔离级别
 <a href=#%e5%8f%af%e8%a7%81%e6%80%a7%e4%b8%8e%e9%9a%94%e7%a6%bb%e7%ba%a7%e5%88%ab class=h-anchor aria-hidden=true>#</a>
 </h3>

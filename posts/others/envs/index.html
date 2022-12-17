@@ -186,10 +186,10 @@ Ubuntu换源
 <a href=#ubuntu%e6%8d%a2%e6%ba%90 class=h-anchor aria-hidden=true>#</a>
 </h2>
 <pre tabindex=0><code>cd /etc/apt/
-sudo cp sources.list sources.list.bak
-sudo vim sources.list
+sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
+sudo vim /etc/apt/sources.list
 
-sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list
+sudo sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list
 
 注意换源的版本
 

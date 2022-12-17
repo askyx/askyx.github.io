@@ -59,6 +59,22 @@ My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
+<h1 class=post-title><a href=https://select1fromdual.github.io/posts/postgres/postgres-xc/></a></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+exec_simple_query
+antdb parse_query_auto_gram 语法支持 SetForceObtainXidFromAGTM pg_analyze_and_rewrite_for_gram
+pg_plan_queries pgxc_try_planner pgxc SetForceXidFromGTM
+pg_plan_queries pgxc_planner pgxc_planner | pgxc_try_planner
+语句可以发送到 Datanode，而且只需要协调器作为代理-在这种情况下，它创建单个节点计划。 语句可以在协调器上完全计算-因此不涉及查询传送，并且调用 standard _ planner ()来计划语句 https://www.cnblogs.com/yyvv/p/4188980.html
+代码的整体质量不错，大部分的改动都有注释，注释可读性也很好，个别注释时效性有问题，但不影响理解代码。所有在pg代码中的改动都用idef做了有效隔离。理论上跟上PG的升级问题不大 postgresql xc修改了一些postgresql的代码，postgresql xl又把他们改了过来，然后又加了好多代码。注意区分#idef和#ifndef Postgresql-xc的原则是能下推到dataNode的就下推到dataNode，实在推不下去的就把所有的数据集中在在聚集节点做。而xl做了MPP。
+语句分析
+简单SQL没有执行RemoteQuery prepare s3(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc; explain verbose execute s3(1, 1); prepare s7(int, int, char(32)) as select c_id from bmsql_customer where c_w_id = $1 and c_d_id = $2 and c_last = $3 order by c_first; explain verbose execute s7(1, 1, 'OUGHTBARPRES'); prepare s19(int, int, int) as select ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_delivery_d from bmsql_order_line where ol_w_id = $1 and ol_d_id = $2 and ol_o_id = $3 order by ol_w_id, ol_d_id, ol_o_id, ol_number; explain verbose execute s19(1, 1, 1); 对比正常的简单SQL执行RemoteQuery ： prepare s1(int, int) as select d_tax, d_next_o_id from bmsql_district where d_w_id = $1 and d_id = $2 for update; explain verbose execute s1(1, 1); QUERY PLAN -------------------------------------------------------------------------------------------------------------------- Aggregate (cost=0.
+</div>
+<div><a class="read-more button" href=/posts/postgres/postgres-xc/>Read more →</a></div>
+</div>
+<div class="post on-list">
 <h1 class=post-title><a href=https://select1fromdual.github.io/posts/postgres/xx/></a></h1>
 <div class=post-meta>
 </div>
@@ -87,30 +103,18 @@ Column | Type | Collation | Nullable | Default | Storage | Description &mdash;&m
 </div>
 <div><a class="read-more button" href=/posts/postgres/%E9%85%8D%E7%BD%AE/>Read more →</a></div>
 </div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://select1fromdual.github.io/posts/static/mysql/></a></h1>
-<div class=post-meta>
-</div>
-<div class=post-content>
-[2018/08]
-AliSQL # AliSQL · 内核新特性 · 2020技术总结 [2020/12]
-AliSQL · 内核特性 · 快速 DDL [2020/07]
-AliSQL · 内核特性 · Binlog In Redo [2020/06]
-AliSQL · 引擎特性 · Fast Query Cache 介绍 [2020/05]
-AliSQL · 最佳实践 · Performance Agent [2020/03]
-AliSQL · 引擎特性 · Statement Queue [2019/09]
-AliSQL · 引擎特性 · Returning [2019/09]
-AliSQL · 引擎特性 · Recycle Bin [2019/08]
-AliSQL · 特性介绍 · 支持 Invisible Indexes [2017/07]
-</div>
-<div><a class="read-more button" href=/posts/static/mysql/>Read more →</a></div>
-</div>
 <div class=pagination>
 <div class=pagination__buttons>
 <span class="button previous">
 <a href=/page/9/>
 <span class=button__icon>←</span>
 <span class=button__text>Newer posts</span>
+</a>
+</span>
+<span class="button next">
+<a href=/page/11/>
+<span class=button__text>Older posts</span>
+<span class=button__icon>→</span>
 </a>
 </span>
 </div>

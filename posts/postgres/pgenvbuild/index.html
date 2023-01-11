@@ -766,7 +766,8 @@ mkdir -p /home/vscode/.confgp <span style=color:#ae81ff>\
 </span><span style=color:#ae81ff></span>         /home/vscode/build <span style=color:#ae81ff>\
 </span><span style=color:#ae81ff></span>         /home/vscode/data/master/seg_master <span style=color:#ae81ff>\
 </span><span style=color:#ae81ff></span>         /home/vscode/data/seg1 <span style=color:#ae81ff>\
-</span><span style=color:#ae81ff></span>         /home/vscode/data/seg2
+</span><span style=color:#ae81ff></span>         /home/vscode/data/seg2 <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span>         /home/vscode/data/seg3
 
 cd /home/vscode/.confgp
 
@@ -777,15 +778,15 @@ echo -e <span style=color:#ae81ff>\
 </span><span style=color:#e6db74>export MASTER_DATA_DIRECTORY=/home/vscode/data/master/seg_master&#34;</span> &gt; env.sh
 
 <span style=color:#75715e># 这里是histname，这里容器启动没有改，可以使用-h指定</span>
-echo -e <span style=color:#e6db74>&#34;a7aafc1f8630&#34;</span> &gt; hostfile 
+echo -e <span style=color:#e6db74>&#34;3e0a0531f01f&#34;</span> &gt; hostfile 
 
 echo -e <span style=color:#ae81ff>\
 </span><span style=color:#ae81ff></span><span style=color:#e6db74>&#34;ARRAY_NAME=\&#34;Open Source Greenplum\&#34;
 </span><span style=color:#e6db74>SEG_PREFIX=gpseg
 </span><span style=color:#e6db74>PORT_BASE=40000
 </span><span style=color:#e6db74># 配置几个路径，就有几个segment
-</span><span style=color:#e6db74>declare -a DATA_DIRECTORY=(/home/vscode/data/seg1 /home/vscode/data/seg2)
-</span><span style=color:#e6db74>MASTER_HOSTNAME=a7aafc1f8630
+</span><span style=color:#e6db74>declare -a DATA_DIRECTORY=(/home/vscode/data/seg1 /home/vscode/data/seg2 /home/vscode/data/seg3)
+</span><span style=color:#e6db74>MASTER_HOSTNAME=3e0a0531f01f
 </span><span style=color:#e6db74>MASTER_DIRECTORY=/home/vscode/data/master/seg_master
 </span><span style=color:#e6db74>MASTER_PORT=5432
 </span><span style=color:#e6db74>TRUSTED_SHELL=ssh
@@ -924,8 +925,8 @@ end
 </a>
 </span>
 <span class="button next">
-<a href=https://select1fromdual.github.io/posts/postgres/opt/>
-<span class=button__text>Postgres Optimizer</span>
+<a href=https://select1fromdual.github.io/posts/postgres/storage/>
+<span class=button__text>Postgres Storage</span>
 <span class=button__icon>→</span>
 </a>
 </span>
@@ -942,7 +943,7 @@ end
 <span class=logo__cursor></span>
 </a>
 <div class=copyright>
-<span>© 2022 Powered by
+<span>© 2023 Powered by
 <a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
 <span>Theme created by
 <a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>

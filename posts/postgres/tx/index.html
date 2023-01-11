@@ -1,7 +1,7 @@
 <!doctype html><html lang=en>
 <head>
 <title>
-Tx ::
+Postgres 事务相关记录 ::
 Esoye — My note blog
 </title>
 <meta charset=utf-8>
@@ -11,8 +11,8 @@ Esoye — My note blog
 Redo log通常称为重做日志，在写入数据文件前，每个变更都会先行写入到Redo log中。其用途和意义在于存储数据库的所有修改历史，用于数据库故障恢复（Recovery）、增量备份（Incremental Backup）、PITR(Point In Time Recovery)和复制（Replication）。
   WAL segment file
 为了便于管理，PG把事务日志文件划分为N个segment，每个segment称为WAL segment file，每个WAL segment file大小默认为16MB。
-pg最大可以管理64为地址的wal文件，当前默认wal文件大小为16M，然后文件名的组织格式代表了剩下的寻址空间，首先文件名称可以分为三部分，
- 第一部分8位代表timelineId，和backup有关 第二部分是逻辑地址，可全部使用 第三是最后部分，只是低2位  此时地址的组织形式位 (8 * 4 + 2 * 4 + 24) = 64
+pg最大可以管理64位地址的wal文件，当前默认wal文件大小为16M，然后文件名的组织格式代表了剩下的寻址空间，首先文件名称可以分为三部分，
+ 第一部分8位代表timelineId，和backup有关 第二部分是逻辑地址，可全部使用 第三是最后部分，只使用低2位  此时地址的组织形式位 (8 * 4 + 2 * 4 + 24) = 64
   XLOG Record
 这是一个逻辑概念，可以理解为PG中的每一个变更都对应一条XLOG Record，这些XLOG Record存储在WAL segment file中。PG读取这些XLOG Record进行故障恢复/PITR等操作。">
 <meta name=keywords content="数据库">
@@ -29,9 +29,9 @@ pg最大可以管理64为地址的wal文件，当前默认wal文件大小为16M�
 <link href=https://select1fromdual.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
 <link href=https://select1fromdual.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
 <meta name=twitter:card content="summary">
-<meta name=twitter:title content="Tx">
+<meta name=twitter:title content="Postgres 事务相关记录">
 <meta name=twitter:description content="事务分析记录">
-<meta property="og:title" content="Tx">
+<meta property="og:title" content="Postgres 事务相关记录">
 <meta property="og:description" content="事务分析记录">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://select1fromdual.github.io/posts/postgres/tx/"><meta property="article:section" content="posts">
@@ -66,7 +66,7 @@ pg最大可以管理64为地址的wal文件，当前默认wal文件大小为16M�
 </header>
 <div class=content>
 <div class=post>
-<h1 class=post-title>Tx</h1>
+<h1 class=post-title>Postgres 事务相关记录</h1>
 <div class=post-meta>
 <span class=post-date>
 2022-11-14
@@ -110,11 +110,11 @@ Redo log通常称为重做日志，在写入数据文件前，每个变更都会
 <li>
 <p><code>WAL segment file</code><br>
 为了便于管理，PG把事务日志文件划分为N个segment，每个segment称为<code>WAL segment file</code>，每个<code>WAL segment file</code>大小默认为16MB。</p>
-<p>pg最大可以管理64为地址的wal文件，当前默认wal文件大小为16M，然后文件名的组织格式代表了剩下的寻址空间，首先文件名称可以分为三部分，</p>
+<p>pg最大可以管理64位地址的wal文件，当前默认wal文件大小为16M，然后文件名的组织格式代表了剩下的寻址空间，首先文件名称可以分为三部分，</p>
 <ul>
 <li>第一部分8位代表timelineId，和backup有关</li>
 <li>第二部分是逻辑地址，可全部使用</li>
-<li>第三是最后部分，只是低2位</li>
+<li>第三是最后部分，只使用低2位</li>
 </ul>
 <p>此时地址的组织形式位 (8 * 4 + 2 * 4 + 24) = 64</p>
 </li>
@@ -135,8 +135,19 @@ LSN即日志序列号<code>Log Sequence Number</code>。表示XLOG record记录�
 <li>后面的字符串中，6位之前的是物理文件编号</li>
 <li>后6位是文件内的偏移地址</li>
 </ul>
-<p>可以使用函数<code>pg_walfile_name</code>和<code>pg_walfile_name_offset</code>查看LSN的具体信息</p>
-</li>
+<p>可以使用函数<code>pg_walfile_name</code>和<code>pg_walfile_name_offset</code>查看LSN的具体信息，例如下面的例子，9457712的16进制就是lsn的后六位<code>905030</code></p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>SELECT</span> pg_walfile_name_offset(<span style=color:#e6db74>&#39;0/1905030&#39;</span>);
+       pg_walfile_name_offset
+<span style=color:#75715e>------------------------------------
+</span><span style=color:#75715e></span> (<span style=color:#ae81ff>000000010000000000000001</span>,<span style=color:#ae81ff>9457712</span>)
+(<span style=color:#ae81ff>1</span> <span style=color:#66d9ef>row</span>)
+
+esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>SELECT</span> pg_walfile_name(<span style=color:#e6db74>&#39;0/1905030&#39;</span>);
+     pg_walfile_name
+<span style=color:#75715e>--------------------------
+</span><span style=color:#75715e></span> <span style=color:#ae81ff>000000010000000000000001</span>
+(<span style=color:#ae81ff>1</span> <span style=color:#66d9ef>row</span>)
+</code></pre></div></li>
 <li>
 <p><code>checkpointer</code><br>
 checkpointer是PG中的一个后台进程，该进程周期性地执行checkpoint。当执行checkpoint时，该进程会把包含checkpoint信息的<code>XLOG Record</code>写入到当前的<code>WAL segment file</code>中，该<code>XLOG Record</code>记录包含了最新Redo pint的位置。</p>
@@ -157,15 +168,95 @@ REDO point是PG启动恢复的起始点，是最后一次checkpoint启动时事�
 pg_control是磁盘上的物理文件，保存检查点的基本信息，在数据库恢复中使用，可通过命令pg_controldata查看该文件中的内容。</p>
 </li>
 </ol>
-<ul>
-<li>The logical and physical structures of the WAL (transaction log)</li>
-<li>The internal layout of WAL data</li>
-<li>Writing of WAL data</li>
-<li>WAL writer process</li>
-<li>The checkpoint processing</li>
-<li>The database recovery processing</li>
-<li>Managing WAL segment files</li>
-<li>Continuous archiving</li>
+<h4 id=test-pg_waldump调试和pg_walinspect插件>
+[test] <code>pg_waldump</code>调试和<code>pg_walinspect</code>插件
+<a href=#test-pg_waldump%e8%b0%83%e8%af%95%e5%92%8cpg_walinspect%e6%8f%92%e4%bb%b6 class=h-anchor aria-hidden=true>#</a>
+</h4>
+<p><code>pg_waldump</code>是一个读取wal文件结构的命令，<code>pg_walinspect</code>具有相同的作用，但是是SQL语句</p>
+<p>pg_walinspect
+pg_get_wal_record_info
+pg_get_wal_records_info
+pg_get_wal_records_info_till_end_of_wal
+pg_get_wal_stats
+pg_get_wal_stats_till_end_of_wal</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=color:#66d9ef>SELECT</span> pg_current_wal_lsn(),now();
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> ta <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>1</span>);
+<span style=color:#66d9ef>SELECT</span> pg_current_wal_lsn(),now();
+<span style=color:#66d9ef>select</span> start_lsn, end_lsn, prev_lsn, xid, resource_manager, record_type, record_length, main_data_length, fpi_length, description::varchar(<span style=color:#ae81ff>50</span>), block_ref <span style=color:#66d9ef>from</span> pg_get_wal_records_info_till_end_of_wal(<span style=color:#e6db74>&#39;0/1905030&#39;</span>) ;
+
+<span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> pg_get_wal_stats_till_end_of_wal(<span style=color:#e6db74>&#39;0/1905030&#39;</span>, <span style=color:#66d9ef>true</span>);
+</code></pre></div><p>可以调式<code>pg_get_wal_record_info</code>获取wal文件的格式信息</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>XLogPageHeaderData</span>
+{
+    uint16        xlp_magic;        <span style=color:#75715e>/* magic value for correctness checks */</span>
+    uint16        xlp_info;        <span style=color:#75715e>/* flag bits, see below */</span>
+    TimeLineID    xlp_tli;        <span style=color:#75715e>/* TimeLineID of first record on page */</span>
+    XLogRecPtr    xlp_pageaddr;    <span style=color:#75715e>/* XLOG address of this page */</span>
+
+    <span style=color:#75715e>/*
+</span><span style=color:#75715e>     * When there is not enough space on current page for whole record, we
+</span><span style=color:#75715e>     * continue on the next page.  xlp_rem_len is the number of bytes
+</span><span style=color:#75715e>     * remaining from a previous page; it tracks xl_tot_len in the initial
+</span><span style=color:#75715e>     * header.  Note that the continuation data isn&#39;t necessarily aligned.
+</span><span style=color:#75715e>     */</span>
+    uint32        xlp_rem_len;    <span style=color:#75715e>/* total len of remaining data for record */</span>
+} XLogPageHeaderData;
+
+<span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>XLogLongPageHeaderData</span>
+{
+    XLogPageHeaderData std;        <span style=color:#75715e>/* standard header fields */</span>
+    uint64        xlp_sysid;        <span style=color:#75715e>/* system identifier from pg_control */</span>
+    uint32        xlp_seg_size;    <span style=color:#75715e>/* just as a cross-check */</span>
+    uint32        xlp_xlog_blcksz;    <span style=color:#75715e>/* just as a cross-check */</span>
+} XLogLongPageHeaderData;
+
+<span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>XLogRecord</span>
+{
+    uint32        xl_tot_len;        <span style=color:#75715e>/* total len of entire record */</span>
+    TransactionId xl_xid;        <span style=color:#75715e>/* xact id */</span>
+    XLogRecPtr    xl_prev;        <span style=color:#75715e>/* ptr to previous record in log */</span>
+    uint8        xl_info;        <span style=color:#75715e>/* flag bits, see below */</span>
+    RmgrId        xl_rmid;        <span style=color:#75715e>/* resource manager for this record */</span>
+    <span style=color:#75715e>/* 2 bytes of padding here, initialize to zero */</span>
+    pg_crc32c    xl_crc;            <span style=color:#75715e>/* CRC for this record */</span>
+
+    <span style=color:#75715e>/* XLogRecordBlockHeaders and XLogRecordDataHeader follow, no padding */</span>
+
+} XLogRecord;
+
+</code></pre></div><ul>
+<li>
+<p>XLogLongPageHeaderData
+文件最开始的一个page的head，除了常规head之外，还记录sysis和其他配置信息，主要是为了检测wal文件和平台是否兼容</p>
+</li>
+<li>
+<p>XLogPageHeaderData
+常规header，记录page的位置以及page信息等</p>
+</li>
+<li>
+<p>The logical and physical structures of the WAL (transaction log)</p>
+</li>
+<li>
+<p>The internal layout of WAL data</p>
+</li>
+<li>
+<p>Writing of WAL data</p>
+</li>
+<li>
+<p>WAL writer process</p>
+</li>
+<li>
+<p>The checkpoint processing</p>
+</li>
+<li>
+<p>The database recovery processing</p>
+</li>
+<li>
+<p>Managing WAL segment files</p>
+</li>
+<li>
+<p>Continuous archiving</p>
+</li>
 </ul>
 <h3 id=可见性与隔离级别>
 可见性与隔离级别
@@ -272,7 +363,7 @@ CRDB能做到因果一致性，对于不相干的key，则无法保证事件顺�
 <span class=logo__cursor></span>
 </a>
 <div class=copyright>
-<span>© 2022 Powered by
+<span>© 2023 Powered by
 <a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
 <span>Theme created by
 <a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>

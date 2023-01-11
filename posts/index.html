@@ -72,7 +72,7 @@ bison 文档重点记录
 </div>
 </div>
 <div class="post on-list">
-<h1 class=post-title><a href=https://select1fromdual.github.io/posts/postgres/tx/>Tx</a></h1>
+<h1 class=post-title><a href=https://select1fromdual.github.io/posts/postgres/tx/>Postgres 事务相关记录</a></h1>
 <div class=post-meta>
 <span class=post-date>
 2022-11-14
@@ -97,20 +97,6 @@ libpqxx分析
 </div>
 <div>
 <a class="read-more button" href=/posts/readcode/libpqxx/>Read more →</a>
-</div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://select1fromdual.github.io/posts/optimizertips/>OptimizerTIPS</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-11-08
-</span>
-</div>
-<div class=post-content>
-文章要点简记
-</div>
-<div>
-<a class="read-more button" href=/posts/optimizertips/>Read more →</a>
 </div>
 </div>
 <div class="post on-list">
@@ -253,25 +239,6 @@ PG系数据库统一安装环境，使用Docker && VSCode on Ubuntu22搭建，�
 </div>
 <div>
 <a class="read-more button" href=/posts/postgres/pgenvbuild/>Read more →</a>
-</div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://select1fromdual.github.io/posts/postgres/opt/>Postgres Optimizer</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-07-22
-</span>
-</div>
-<span class=post-tags>
-<a href=https://select1fromdual.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
-<a href=https://select1fromdual.github.io/tags/postgres/>#Postgres</a>&nbsp;
-<a href=https://select1fromdual.github.io/tags/%E4%BC%98%E5%8C%96%E5%99%A8/>#优化器</a>&nbsp;
-</span>
-<div class=post-content>
-本文从源码级别进行优化器的分析，对Postgres优化器代码调研，具体包括他的数据结构，以及具体的代码架构实现以及核心算法等
-</div>
-<div>
-<a class="read-more button" href=/posts/postgres/opt/>Read more →</a>
 </div>
 </div>
 <div class="post on-list">
@@ -652,22 +619,6 @@ ranges https://zhuanlan.
 </div>
 </div>
 <div class="post on-list">
-<h1 class=post-title><a href=https://select1fromdual.github.io/posts/bigdata/%E7%AE%80%E5%8E%86/></a></h1>
-<div class=post-meta>
-</div>
-<div class=post-content>
-文磊 # 个人信息 # 性 别：男 年 龄：27 手 机：18705169510 邮 箱：404061090@qq.com
-工作及教育经历 # 湖南亚信安慧科技有限公司 2022.7~now AntDB-T SQL内核研发工程师
-主要负责优化器对分布式执行计划的优化 星环科技有限公司 2022.2~2022.3 基础架构部-研发工程师
-主要职责为负责ArgoDB数据库存储引擎的研发工作 易鲸捷信息技术有限公司 2019.7~2022.1 SQL内核研发工程师
-负责EsgynDB和Oracle的SQL兼容工作 负责BUG修复 负责一些需求开发 与交付同事一起排查项目现场问题，SQL语句优化等 南京邮电大学 2015.9~2019.6 软件工程-本科
-专业技能 # 编程语言 c++(熟悉)，Java(了解)，GO(了解) 数据库 工作开始就从事数据库内核开发，了解多种数据库内核，主要为trafodion和postgres。对其他数据库也有一定的理解，偶尔会去阅读一些开源的数据库源码 了解SQL优化器的实现原理，了解Cascades优化框架的原理，阅读过相关论文以及一些数据 库的源码，了解postgres优化技术，理解postgres优化器从单机到分布式的扩展方法 了解执行器的实现原理，了解执行器向量化，Codegen等技术，了解postgres执行器原理 了解存储引擎，对常规存储，例如postgres的存储细节。对于LSM架构类的存储，系统的阅读过levelDB源码 理解postgres的事务实现。且对分布式事务有一定的学习 有一些分布式基础，了解Raft原理，阅读过Raft论文 工作中常常进行BUG修复或者性能调优等，所以具备良好的问题定位，分析能力 操作系统 主要工作环境为Linux，掌握基础的Linux命令，掌握基础开发工具以及Linux下的调试工具的使用 了解操作系统的相关概念 掌握基础数据结构和算法 CET-6 项目经历 # AntDB
-</div>
-<div>
-<a class="read-more button" href=/posts/bigdata/%E7%AE%80%E5%8E%86/>Read more →</a>
-</div>
-</div>
-<div class="post on-list">
 <h1 class=post-title><a href=https://select1fromdual.github.io/posts/others/log/></a></h1>
 <div class=post-meta>
 </div>
@@ -717,6 +668,22 @@ benchmarksql=# explain verbose select no_o_id from bmsql_new_order where no_w_id
 </div>
 </div>
 <div class="post on-list">
+<h1 class=post-title><a href=https://select1fromdual.github.io/posts/personal/%E7%AE%80%E5%8E%86/></a></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+文磊 # 个人信息 # 性 别：男 年 龄：27 手 机：18705169510 邮 箱：404061090@qq.com
+工作及教育经历 # 湖南亚信安慧科技有限公司 2022.7~now AntDB-T SQL内核研发工程师
+主要负责优化器对分布式执行计划的优化 星环科技有限公司 2022.2~2022.3 基础架构部-研发工程师
+主要职责为负责ArgoDB数据库存储引擎的研发工作 易鲸捷信息技术有限公司 2019.7~2022.1 SQL内核研发工程师
+负责EsgynDB和Oracle的SQL兼容工作 负责BUG修复 负责一些需求开发 与交付同事一起排查项目现场问题，SQL语句优化等 南京邮电大学 2015.9~2019.6 软件工程-本科
+专业技能 # 编程语言 c++(熟悉)，Java(了解)，GO(了解) 数据库 工作开始就从事数据库内核开发，了解多种数据库内核，主要为trafodion和postgres。对其他数据库也有一定的理解，偶尔会去阅读一些开源的数据库源码 了解SQL优化器的实现原理，了解Cascades优化框架的原理，阅读过相关论文以及一些数据 库的源码，了解postgres优化技术，理解postgres优化器从单机到分布式的扩展方法 了解执行器的实现原理，了解执行器向量化，Codegen等技术，了解postgres执行器原理 了解存储引擎，对常规存储，例如postgres的存储细节。对于LSM架构类的存储，系统的阅读过levelDB源码 理解postgres的事务实现。且对分布式事务有一定的学习 有一些分布式基础，了解Raft原理，阅读过Raft论文 工作中常常进行BUG修复或者性能调优等，所以具备良好的问题定位，分析能力 操作系统 主要工作环境为Linux，掌握基础的Linux命令，掌握基础开发工具以及Linux下的调试工具的使用 了解操作系统的相关概念 掌握基础数据结构和算法 CET-6 项目经历 # AntDB
+</div>
+<div>
+<a class="read-more button" href=/posts/personal/%E7%AE%80%E5%8E%86/>Read more →</a>
+</div>
+</div>
+<div class="post on-list">
 <h1 class=post-title><a href=https://select1fromdual.github.io/posts/postgres/cost/></a></h1>
 <div class=post-meta>
 </div>
@@ -727,46 +694,6 @@ remote create path benchmarksql=# explain verbose select * from t1 ; QUERY PLAN 
 </div>
 <div>
 <a class="read-more button" href=/posts/postgres/cost/>Read more →</a>
-</div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://select1fromdual.github.io/posts/postgres/postgres-xc/></a></h1>
-<div class=post-meta>
-</div>
-<div class=post-content>
-exec_simple_query
-antdb parse_query_auto_gram 语法支持 SetForceObtainXidFromAGTM pg_analyze_and_rewrite_for_gram
-pg_plan_queries pgxc_try_planner pgxc SetForceXidFromGTM
-pg_plan_queries pgxc_planner pgxc_planner | pgxc_try_planner
-语句可以发送到 Datanode，而且只需要协调器作为代理-在这种情况下，它创建单个节点计划。 语句可以在协调器上完全计算-因此不涉及查询传送，并且调用 standard _ planner ()来计划语句 https://www.cnblogs.com/yyvv/p/4188980.html
-代码的整体质量不错，大部分的改动都有注释，注释可读性也很好，个别注释时效性有问题，但不影响理解代码。所有在pg代码中的改动都用idef做了有效隔离。理论上跟上PG的升级问题不大 postgresql xc修改了一些postgresql的代码，postgresql xl又把他们改了过来，然后又加了好多代码。注意区分#idef和#ifndef Postgresql-xc的原则是能下推到dataNode的就下推到dataNode，实在推不下去的就把所有的数据集中在在聚集节点做。而xl做了MPP。
-语句分析
-简单SQL没有执行RemoteQuery prepare s3(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc; explain verbose execute s3(1, 1); prepare s7(int, int, char(32)) as select c_id from bmsql_customer where c_w_id = $1 and c_d_id = $2 and c_last = $3 order by c_first; explain verbose execute s7(1, 1, 'OUGHTBARPRES'); prepare s19(int, int, int) as select ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_delivery_d from bmsql_order_line where ol_w_id = $1 and ol_d_id = $2 and ol_o_id = $3 order by ol_w_id, ol_d_id, ol_o_id, ol_number; explain verbose execute s19(1, 1, 1); 对比正常的简单SQL执行RemoteQuery ： prepare s1(int, int) as select d_tax, d_next_o_id from bmsql_district where d_w_id = $1 and d_id = $2 for update; explain verbose execute s1(1, 1); QUERY PLAN -------------------------------------------------------------------------------------------------------------------- Aggregate (cost=0.
-</div>
-<div>
-<a class="read-more button" href=/posts/postgres/postgres-xc/>Read more →</a>
-</div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://select1fromdual.github.io/posts/postgres/xx/></a></h1>
-<div class=post-meta>
-</div>
-<div class=post-content>
-2022-08-12 02:47:03.470194 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,"[local]",seg-1,,,,,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Message type Q received by from libpq, len = 45&rdquo;,,,,,,,0,,&ldquo;postgres.c&rdquo;,5305, 2022-08-12 02:47:03.470253 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,"[local]",seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;statement: explain (verbose, analyze) execute s36(4,1);&rdquo;,,,,,,&ldquo;explain (verbose, analyze) execute s36(4,1);",0,,&ldquo;postgres.c&rdquo;,1665, 2022-08-12 02:47:03.471695 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,"[local]",seg-1,,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Query plan size to dispatch: 2KB&rdquo;,,,,,,,0,,&ldquo;cdbdisp_query.c&rdquo;,618, 2022-08-12 02:47:04.744839 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th446375488,"[local]",seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 0&rdquo;,,,,,,,0,,,, 2022-08-12 02:47:04.811827 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th446375488,"[local]",seg-1,,,,sx1,&ldquo;LOG&rdquo;,&ldquo;00000&rdquo;,&ldquo;RX_THREAD: the packet with EOS flag is available for access in the queue for route 1&rdquo;,,,,,,,0,,,, 2022-08-12 02:47:04.812848 UTC,&ldquo;vscode&rdquo;,&ldquo;benchmarksql&rdquo;,p34893,th685154368,"[local]",seg-1,,,,sx1,&ldquo;DEBUG1&rdquo;,&ldquo;00000&rdquo;,&ldquo;Interconnect State: isSender 0 isReceiver 1 snd_queue_depth 2 recv_queue_depth 4 Gp_max_packet_size 8192 UNACK_QUEUE_RING_SLOTS_NUM 2000 TIMER_SPAN 5000 DEFAULT_RTT 20000 hasErrors 0, ic_instance_id 5 ic_id_last_teardown 0 snd_buffer_pool.
-</div>
-<div>
-<a class="read-more button" href=/posts/postgres/xx/>Read more →</a>
-</div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://select1fromdual.github.io/posts/postgres/%E5%85%83%E6%95%B0%E6%8D%AE/></a></h1>
-<div class=post-meta>
-</div>
-<div class=post-content>
-oid | 12179 rulename | pg_settings_n ev_class | 12175 ev_type | 2 ev_enabled | O is_instead | t ev_qual | &lt;> ev_action | ( {QUERY : commandType 6 : querySource 0 : canSetTag false : utilityStmt &lt;> : resultRelation 0 : hasAggs false : hasWindowFuncs false : hasTargetSRFs false : hasSubLinks false : hasDistinctOn false : hasRecursive false : hasModifyingCTE false : hasForUpdate false : hasRowSecurity false : cteList &lt;> : rtable ( {RTE : alias {ALIAS : aliasname old : colnames &lt;> } : eref {ALIAS : aliasname old : colnames (&ldquo;name&rdquo; &ldquo;setting&rdquo; &ldquo;unit&rdquo; &ldquo;category&rdquo; &ldquo;short_d &ldquo;extra_desc&rdquo; &ldquo;context&rdquo; &ldquo;vartype&rdquo; &ldquo;source&rdquo; &ldquo;min_val&rdquo; &ldquo;max_ &ldquo;enumvals&rdquo; &ldquo;boot_val&rdquo; &ldquo;reset_val&rdquo; &ldquo;sourcefile&rdquo; &ldquo;sourcel &ldquo;pending_restart&rdquo;) } : rtekind 0 : relname pg_settings : relid 12175 : relkind v : rellockmode 1 : tablesample &lt;> : lateral false : inh false : inFromCl false : requiredPerms 0 : checkAsUser 0 : selectedCols (b) : insertedCols (b) : updatedCols (b) : extraUpdatedCols (b) : securityQuals &lt;> } {RTE : alias {ALIAS : aliasname new : colnames &lt;> } : eref {ALIAS : aliasname new : colnames (&ldquo;name&rdquo; &ldquo;setting&rdquo; &ldquo;unit&rdquo; &ldquo;category&rdquo; &ldquo;short_desc&rdquo; &ldquo;extra_desc&rdquo; &ldquo;context&rdquo; &ldquo;vartype&rdquo; &ldquo;source&rdquo; &ldquo;min_val&rdquo; &ldquo;max_val&rdquo; &ldquo;enumvals&rdquo; &ldquo;boot_val&rdquo; &ldquo;reset_val&rdquo; &ldquo;sourcefile&rdquo; &ldquo;sourceline&rdquo; &ldquo;pending_restart&rdquo;) } : rtekind 0 : relname pg_settings : relid 12175 : relkind v : rellockmode 1 : tablesample &lt;> : lateral false : inh false : inFromCl false : requiredPerms 0 : checkAsUser 0 : selectedCols (b) : insertedCols (b) : updatedCols (b) : extraUpdatedCols (b) : securityQuals &lt;> } ) : jointree {FROMEXPR : fromlist &lt;> : quals &lt;> } : targetList &lt;> : override 0 : onConflict &lt;> : returningList &lt;> : groupClause &lt;> : groupingSets &lt;> : havingQual &lt;> : windowClause &lt;> : distinctClause &lt;> : sortClause &lt;> : limitOffset &lt;> : limitCount &lt;> : limitOption 0 : rowMarks &lt;> : setOperations &lt;> : constraintDeps &lt;> : withCheckOptions &lt;> : stmt_location 0 : stmt_len 0 : connect_by &lt;> } )
-</div>
-<div>
-<a class="read-more button" href=/posts/postgres/%E5%85%83%E6%95%B0%E6%8D%AE/>Read more →</a>
 </div>
 </div>
 <div class="post on-list">
@@ -823,7 +750,7 @@ AliSQL · 特性介绍 · 支持 Invisible Indexes [2017/07]
 <span class=logo__cursor></span>
 </a>
 <div class=copyright>
-<span>© 2022 Powered by
+<span>© 2023 Powered by
 <a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
 <span>Theme created by
 <a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>

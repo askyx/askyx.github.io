@@ -7,7 +7,7 @@ Esoye — My note blog
 <meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
 <meta name=description content="环境搭建 #  使用VScode，选择在容器中打开项目，选择open in container，然后这里选择Ubuntu22，其他的都不选
- 安装必须的依赖  # 换源升级 sudo sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list sudo sed -i s@/security.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list 或者 sudo sed -i &amp;#34;s@http://.*mirrors.aliyun.com@https://mirrors.tuna.tsinghua.edu.cn@g&amp;#34; /etc/apt/sources.list sudo sed -i &amp;#34;s@http://.*security.ubuntu.com@https://mirrors.tuna.tsinghua.edu.cn@g&amp;#34; /etc/apt/sources.list sudo apt-get update sudo apt-get upgrade sudo apt-get install flex bison g++ gcc gdb make \  libzstd-dev libxml2-dev libcurl4-openssl-dev vim \  libbz2-dev libperl-dev software-properties-common \  pkg-config libreadline-dev python3-dev libldap-dev \  zlib1g-dev openssh-server iputils-ping libxslt-dev \  libpam-dev libssl-dev libreadline6-dev libssh2-1-dev # 设置vscode 用户密码 sudo passwd vscode # 退出容器，重新启动下  使用docker的优点是资源隔离，完全不需要担心一个机器上多个相似开发环境的困扰">
+ 安装必须的依赖  # 换源升级 sudo sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list sudo sed -i s@/security.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list 或者 sudo sed -i &amp;#34;s@http://.*mirrors.aliyun.com@https://mirrors.tuna.tsinghua.edu.cn@g&amp;#34; /etc/apt/sources.list sudo sed -i &amp;#34;s@http://.*security.ubuntu.com@https://mirrors.tuna.tsinghua.edu.cn@g&amp;#34; /etc/apt/sources.list sudo apt-get update sudo apt-get upgrade sudo apt-get install flex bison g++ gcc gdb make \  libzstd-dev libxml2-dev libcurl4-openssl-dev vim \  libbz2-dev libperl-dev software-properties-common \  pkg-config libreadline-dev python3-dev libldap-dev \  zlib1g-dev openssh-server iputils-ping libxslt-dev \  libpam-dev libssl-dev libreadline6-dev libssh2-1-dev cmake ninja-build # 设置vscode 用户密码 sudo passwd vscode # 退出容器，重新启动下  使用docker的优点是资源隔离，完全不需要担心一个机器上多个相似开发环境的困扰">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
 <link rel=canonical href=https://select1fromdual.github.io/posts/postgres/pgenvbuild/>
@@ -91,6 +91,7 @@ Esoye — My note blog
 <ul>
 <li><a href=#多版本软件安装-ppahttpswwwsysgeekcnubuntu-ppa>多版本软件安装-<a href=https://www.sysgeek.cn/ubuntu-ppa/>PPA</a></a></li>
 <li><a href=#火焰图>火焰图</a></li>
+<li><a href=#mysql-源码编译>mysql 源码编译</a></li>
 </ul>
 </li>
 <li><a href=#end>end</a></li>
@@ -121,7 +122,7 @@ sudo apt-get install flex bison g++ gcc gdb make    <span style=color:#ae81ff>\
 </span><span style=color:#ae81ff></span> libbz2-dev libperl-dev software-properties-common  <span style=color:#ae81ff>\
 </span><span style=color:#ae81ff></span> pkg-config libreadline-dev python3-dev libldap-dev <span style=color:#ae81ff>\
 </span><span style=color:#ae81ff></span> zlib1g-dev openssh-server iputils-ping libxslt-dev <span style=color:#ae81ff>\
-</span><span style=color:#ae81ff></span> libpam-dev libssl-dev libreadline6-dev libssh2-1-dev
+</span><span style=color:#ae81ff></span> libpam-dev libssl-dev libreadline6-dev libssh2-1-dev cmake ninja-build 
 
 <span style=color:#75715e># 设置vscode 用户密码</span>
 sudo passwd vscode
@@ -906,7 +907,109 @@ https://www.catalog.update.microsoft.com/Search.aspx?q<span style=color:#f92672>
 uname -a 
 
 </code></pre></div><hr>
-<h2 id=end>
+<h3 id=mysql-源码编译>
+mysql 源码编译
+<a href=#mysql-%e6%ba%90%e7%a0%81%e7%bc%96%e8%af%91 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<ol>
+<li>
+<p>准备源码及docker 环境</p>
+</li>
+<li>
+<p>直接cmake <code>cmake -G Ninja -DWITH_DEBUG=1 -DDOWNLOAD_BOOST=1 -DWITH_BOOST=./boost ../</code> 编译，会报缺少boost，直接下载文件然后重新cmake 即可</p>
+</li>
+<li>
+<p><code>./mysqld --initialize</code> 初始化，其他路径等任何操作不用指定，默认会在build目录下建立data 目录</p>
+</li>
+<li>
+<p>/etc/my.cnf 添加 跳过密码条目，先 <code>./mysqld</code>启动数据库，然后 <code>./mysql</code> 登录，使用 <code>alter user 'root'@'localhost' identified by '123456';</code> 修改密码，没有其他操作的时候，应该只有root用户</p>
+</li>
+<li>
+<p>去掉 /etc/my.cnf 的跳过密码，然后使用 <code>./mysql -u root -p</code> 输入密码即可</p>
+</li>
+<li>
+<p>之后可以按个人需求定制修改了</p>
+</li>
+<li>
+<p>mysql 就是依托答辩，就登陆这几步，网上百度下可以有各种各样的问题，甚至大部分还不能用</p>
+</li>
+</ol>
+<ul>
+<li>tpch</li>
+</ul>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>database</span> tpch;
+use tpch;
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> nation  ( n_nationkey  integer <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                            n_name       char(<span style=color:#ae81ff>25</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                            n_regionkey  integer <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                            n_comment    varchar(<span style=color:#ae81ff>152</span>));
+
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> region  ( r_regionkey  integer <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                            r_name       char(<span style=color:#ae81ff>25</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                            r_comment    varchar(<span style=color:#ae81ff>152</span>));
+
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> part  ( p_partkey     integer <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                          p_name        varchar(<span style=color:#ae81ff>55</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                          p_mfgr        char(<span style=color:#ae81ff>25</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                          p_brand       char(<span style=color:#ae81ff>10</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                          p_type        varchar(<span style=color:#ae81ff>25</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                          p_size        integer <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                          p_container   char(<span style=color:#ae81ff>10</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                          p_retailprice decimal(<span style=color:#ae81ff>15</span>,<span style=color:#ae81ff>2</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                          p_comment     varchar(<span style=color:#ae81ff>23</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span> );
+
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> supplier ( s_suppkey     integer <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             s_name        char(<span style=color:#ae81ff>25</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             s_address     varchar(<span style=color:#ae81ff>40</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             s_nationkey   integer <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             s_phone       char(<span style=color:#ae81ff>15</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             s_acctbal     decimal(<span style=color:#ae81ff>15</span>,<span style=color:#ae81ff>2</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             s_comment     varchar(<span style=color:#ae81ff>101</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>);
+
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> partsupp ( ps_partkey     integer <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             ps_suppkey     integer <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             ps_availqty    integer <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             ps_supplycost  decimal(<span style=color:#ae81ff>15</span>,<span style=color:#ae81ff>2</span>)  <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             ps_comment     varchar(<span style=color:#ae81ff>199</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span> );
+
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> customer ( c_custkey     integer <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             c_name        varchar(<span style=color:#ae81ff>25</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             c_address     varchar(<span style=color:#ae81ff>40</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             c_nationkey   integer <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             c_phone       char(<span style=color:#ae81ff>15</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             c_acctbal     decimal(<span style=color:#ae81ff>15</span>,<span style=color:#ae81ff>2</span>)   <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             c_mktsegment  char(<span style=color:#ae81ff>10</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             c_comment     varchar(<span style=color:#ae81ff>117</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>);
+
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> orders  ( o_orderkey       integer <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                           o_custkey        integer <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                           o_orderstatus    char(<span style=color:#ae81ff>1</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                           o_totalprice     decimal(<span style=color:#ae81ff>15</span>,<span style=color:#ae81ff>2</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                           o_orderdate      date <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                           o_orderpriority  char(<span style=color:#ae81ff>15</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,  
+                           o_clerk          char(<span style=color:#ae81ff>15</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>, 
+                           o_shippriority   integer <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                           o_comment        varchar(<span style=color:#ae81ff>79</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>);
+
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> lineitem ( l_orderkey    integer <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             l_partkey     integer <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             l_suppkey     integer <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             l_linenumber  integer <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             l_quantity    decimal(<span style=color:#ae81ff>15</span>,<span style=color:#ae81ff>2</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             l_extendedprice  decimal(<span style=color:#ae81ff>15</span>,<span style=color:#ae81ff>2</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             l_discount    decimal(<span style=color:#ae81ff>15</span>,<span style=color:#ae81ff>2</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             l_tax         decimal(<span style=color:#ae81ff>15</span>,<span style=color:#ae81ff>2</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             l_returnflag  char(<span style=color:#ae81ff>1</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             l_linestatus  char(<span style=color:#ae81ff>1</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             l_shipdate    date <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             l_commitdate  date <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             l_receiptdate date <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             l_shipinstruct char(<span style=color:#ae81ff>25</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             l_shipmode     char(<span style=color:#ae81ff>10</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>,
+                             l_comment      varchar(<span style=color:#ae81ff>44</span>) <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span>);
+
+</code></pre></div><h2 id=end>
 end
 <a href=#end class=h-anchor aria-hidden=true>#</a>
 </h2>

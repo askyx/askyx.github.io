@@ -533,8 +533,8 @@ Distributed <span style=color:#66d9ef>by</span>: (c1)
 DISTRIBUTE <span style=color:#66d9ef>BY</span> HASH(c1) <span style=color:#66d9ef>TO</span> NODE(dn1, dn2)
 <span style=color:#66d9ef>Access</span> <span style=color:#66d9ef>method</span>: heap
 
-<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> t1 (c1 integer, c2 integer) DISTRIBUTE <span style=color:#66d9ef>BY</span> HASH(c1) <span style=color:#66d9ef>TO</span> NODE(dn1, dn2);  
-<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> t2 (c1 integer, c2 integer) DISTRIBUTE <span style=color:#66d9ef>BY</span> HASH(c1) <span style=color:#66d9ef>TO</span> NODE(dn1, dn2);  
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> t1 (c1 integer, c2 integer) DISTRIBUTE <span style=color:#66d9ef>BY</span> HASH(c1) ;  
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> t2 (c1 integer, c2 integer) DISTRIBUTE <span style=color:#66d9ef>BY</span> HASH(c1) ;  
 
 <span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> t1 <span style=color:#66d9ef>SELECT</span> <span style=color:#66d9ef>g</span> c1, <span style=color:#66d9ef>g</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span> <span style=color:#66d9ef>as</span> c2 <span style=color:#66d9ef>FROM</span> generate_series(<span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>3000</span>) <span style=color:#66d9ef>g</span> ;  
 <span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> t2 <span style=color:#66d9ef>SELECT</span> <span style=color:#66d9ef>g</span> c1, <span style=color:#66d9ef>g</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span> <span style=color:#66d9ef>as</span> c2 <span style=color:#66d9ef>FROM</span> generate_series(<span style=color:#ae81ff>500</span>, <span style=color:#ae81ff>3500</span>) <span style=color:#66d9ef>g</span> ;  

@@ -6,7 +6,8 @@ Esoye — My note blog
 </title>
 <meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
-<meta name=description content="slice #  和levelDB类似，无太大变化
+<meta name=description content="note1
+slice #  和levelDB类似，无太大变化
 PinnableSlice #  http://kernelmaker.github.io/Rocksdb_pinnableslice
 主要作用是延长数据生命周期，减少数据拷贝。PinnableSlice中记录数据的指针，使用的时候通过指针进行解引用。不需要从最底层进行数据的copy，数据的生命周期使用Reset和其析构函数确定，此时调用cleanup注册的cleanup函数对数据进行处理，
  这种思想在其他地方存在，例如trafodion的queue_entry，或者是向量化中的延迟物化技术，本质上都是避免直接进行数据拷贝，只进行指针传递，只是RocksDB中处理更进一步，添加了委托清理等逻辑  Status #  无变化，只是添加了些特殊状态
@@ -75,6 +76,7 @@ char* Arena::AllocateFromHugePage(size_t bytes) { #ifdef MAP_HUGETLB if (hugetlb
 <a href=https://select1fromdual.github.io/tags/%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/>#存储引擎</a>&nbsp;
 </span>
 <div class=post-content>
+<p><a href=http://alexstocks.github.io/html/rocksdb.html>note1</a></p>
 <h2 id=slice>
 slice
 <a href=#slice class=h-anchor aria-hidden=true>#</a>

@@ -465,7 +465,8 @@ SST
     encode <span style=color:#f92672>=</span> {<span style=color:#ae81ff>0</span> <span style=color:#ae81ff>4</span> <span style=color:#ae81ff>5</span> abcd vv1vv <span style=color:#f92672>|</span> <span style=color:#ae81ff>3</span> <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>5</span> e vv2vv <span style=color:#f92672>|</span> <span style=color:#ae81ff>2</span> <span style=color:#ae81ff>2</span> <span style=color:#ae81ff>5</span> xf vv3vv}
   }
 </code></pre></div><p>第一个记录不编码，第二个和第一个对比，编码存取，key抽取相同的前缀，记录长度，之后的数据都按前一个数据编码，如果数据太多，可能后面的key和之前的key差距比较大，查找的时候只能全部解码然后寻找key，所以设计可以控制每隔固定数量的key存一个完整的key，称为重启点，按重启点划分为不同的group，此时且记录key的偏移，此时查找的时候可以按照偏移取key然后使用二分查找等方式快速查寻。在持久化的时候，block末尾记录group的大小，再使用一个bit记录压缩格式，再使用4个bit记录crc。这就是block的基本格式
-除了footer使用单独的编码格式之外。其余的mata，index，data都使用block的格式编码数据，</p>
+除了footer使用单独的编码格式之外。其余的mata，index，data都使用block的格式编码数据，
+block 是一个读写单位，所以如果使用场景大量批量读写，则可以适当增加block size，如果单点读写比较多，则可以减少block size， 这要平衡</p>
 <ul>
 <li>写入流程</li>
 </ul>

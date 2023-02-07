@@ -6,10 +6,13 @@ Esoye — My note blog
 </title>
 <meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
-<meta name=description content="执行器框架   DDL
-utility语句，下层实现具体的方法，更类似方法的调用 DML
-执行计划对应具体的树形结构的执行算子，火山模型，需要在初始化的时候从执行计划翻译到具体的执行树  主要运算节点   join scan  index seq   group windows sort  表达式计算方法   codegen  数据流动  节点 #   控制节点 扫描节点 物化节点 链接节点  基类为plan，其余得节点从plan继承。具体位置为plannodes.h
-typedef struct Plan { pg_node_attr(abstract, no_equal) NodeTag type; /* * estimated execution costs for plan (see costsize.c for more info) */ Cost startup_cost; /* cost expended before fetching any tuples */ Cost total_cost; /* total cost (assuming all tuples fetched) */ /* * planner&amp;#39;s estimate of result size of this plan step */ Cardinality plan_rows; /* number of rows plan is expected to emit */ int plan_width; /* average row width in bytes */ /* * information needed for parallel query */ bool parallel_aware; /* engage parallel-aware logic?">
+<meta name=description content="Tue Feb 7 10:19:24 CST 2023 重构， 不想文章变成无用的流水线
+节点 #  https://zhuanlan.zhihu.com/p/407421928 https://blog.csdn.net/jackgo73/article/details/126604426
+执行方式分为两大类，一类是 utility 执行，用于ddl等，底层直接对接某个函数，一类是 dml 算子执行，按树的形式执行，这里关注 dml 算子
+总的四大类
+ 控制节点 扫描节点 物化节点 链接节点  每一个算子分为
+ 初始化
+对应函数以 ExecInitxxx 构造 state 结构体，执行时候使用，exestate 也是树形结构，和 plantree 一一对应，保存运行时的关键信息 打开表或者其他资源 初始化子节点 初始化表达式上下文 初始化表达式 初始化tuple type 初始化project   这里其他的都好理解，但是tuple相关的操作每个算子调用的函数看起来大同小异，但是不一样 一般 execstats 和 plan tree 是一一对应的，但是也是有例外的，分区裁剪的时候，确定不需要的分区，init 的时候直接不生成对应的子树的 state  执行 主要的执行逻辑，其中会涉及到表达式的执行 清理 清理资源，之前初始化的时候申请的空间   表达式 ExprState 表达式逻辑上应该也是树形结构，但是执行阶段是以数据形式组织的，主要原因为  树形结构的遍历代价大，且以数组形式组织表达式可以减少栈的深度，同时平铺形式，可以解释执行，也可以编译执行    Rescan command to reset a node and make it generate its output sequence over again.">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
 <link rel=canonical href=https://select1fromdual.github.io/posts/postgres/postgres_executor/>
@@ -76,143 +79,175 @@ typedef struct Plan { pg_node_attr(abstract, no_equal) NodeTag type; /* * estima
 <h2>Table of Contents</h2>
 <aside class=table-of-contents><nav id=TableOfContents>
 <ul>
-<li><a href=#节点>节点</a></li>
+<li><a href=#节点>节点</a>
+<ul>
+<li><a href=#表达式>表达式</a></li>
+</ul>
+</li>
 <li><a href=#前端>前端</a></li>
 </ul>
 </nav></aside>
-<ol>
-<li>执行器框架</li>
-</ol>
-<ul>
-<li>DDL<br>
-utility语句，下层实现具体的方法，更类似方法的调用</li>
-<li>DML<br>
-执行计划对应具体的树形结构的执行算子，火山模型，需要在初始化的时候从执行计划翻译到具体的执行树</li>
-</ul>
-<ol start=2>
-<li>主要运算节点</li>
-</ol>
-<ul>
-<li>join</li>
-<li>scan
-<ul>
-<li>index</li>
-<li>seq</li>
-</ul>
-</li>
-<li>group</li>
-<li>windows</li>
-<li>sort</li>
-</ul>
-<ol start=3>
-<li>表达式计算方法</li>
-</ol>
-<ul>
-<li>codegen</li>
-</ul>
-<ol start=4>
-<li>数据流动</li>
-</ol>
+<p>Tue Feb 7 10:19:24 CST 2023 重构， 不想文章变成无用的流水线</p>
 <h2 id=节点>
 节点
 <a href=#%e8%8a%82%e7%82%b9 class=h-anchor aria-hidden=true>#</a>
 </h2>
+<p><a href=https://zhuanlan.zhihu.com/p/407421928>https://zhuanlan.zhihu.com/p/407421928</a>
+<a href=https://blog.csdn.net/jackgo73/article/details/126604426>https://blog.csdn.net/jackgo73/article/details/126604426</a></p>
+<p>执行方式分为两大类，一类是 utility 执行，用于ddl等，底层直接对接某个函数，一类是 dml 算子执行，按树的形式执行，这里关注 dml 算子</p>
+<p>总的四大类</p>
 <ol>
 <li>控制节点</li>
 <li>扫描节点</li>
 <li>物化节点</li>
 <li>链接节点</li>
 </ol>
-<p>基类为plan，其余得节点从plan继承。具体位置为<code>plannodes.h</code></p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Plan</span>
-{
-    pg_node_attr(abstract, no_equal)
-    NodeTag        type;
-    <span style=color:#75715e>/*
-</span><span style=color:#75715e>     * estimated execution costs for plan (see costsize.c for more info)
-</span><span style=color:#75715e>     */</span>
-    Cost        startup_cost;    <span style=color:#75715e>/* cost expended before fetching any tuples */</span>
-    Cost        total_cost;        <span style=color:#75715e>/* total cost (assuming all tuples fetched) */</span>
+<p>每一个算子分为</p>
+<ol>
+<li>初始化<br>
+对应函数以 ExecInitxxx
+构造 state 结构体，执行时候使用，exestate 也是树形结构，和 plantree 一一对应，保存运行时的关键信息
+打开表或者其他资源
+初始化子节点
+初始化表达式上下文
+初始化表达式
+初始化tuple type
+初始化project</li>
+</ol>
+<ul>
+<li>这里其他的都好理解，但是tuple相关的操作每个算子调用的函数看起来大同小异，但是不一样</li>
+<li>一般 execstats 和 plan tree 是一一对应的，但是也是有例外的，分区裁剪的时候，确定不需要的分区，init 的时候直接不生成对应的子树的 state</li>
+</ul>
+<ol start=2>
+<li>执行
+主要的执行逻辑，其中会涉及到表达式的执行</li>
+<li>清理
+清理资源，之前初始化的时候申请的空间</li>
+</ol>
+<ul>
+<li>表达式
+ExprState
+表达式逻辑上应该也是树形结构，但是执行阶段是以数据形式组织的，主要原因为
+<ul>
+<li>树形结构的遍历代价大，且以数组形式组织表达式可以减少栈的深度，同时平铺形式，可以解释执行，也可以编译执行</li>
+</ul>
+</li>
+</ul>
+<p>Rescan command to reset a node and make it generate its output sequence over again.</p>
+<p><a href=https://www.cnblogs.com/opensource-db/p/15323425.html>https://www.cnblogs.com/opensource-db/p/15323425.html</a></p>
+<p>CreateQueryDesc</p>
+<p>ExecutorStart
+CreateExecutorState
+creates per-query context
+switch to per-query context to run ExecInitNode
+AfterTriggerBeginQuery
+ExecInitNode &mdash; recursively scans plan tree
+ExecInitNode
+recurse into subsidiary nodes
+CreateExprContext
+creates per-tuple context
+ExecInitExpr</p>
+<p>ExecutorRun
+ExecProcNode &mdash; recursively called in per-query context
+ExecEvalExpr &mdash; called in per-tuple context
+ResetExprContext &mdash; to free memory</p>
+<p>ExecutorFinish
+ExecPostprocessPlan &mdash; run any unfinished ModifyTable nodes
+AfterTriggerEndQuery</p>
+<p>ExecutorEnd
+ExecEndNode &mdash; recursively releases resources
+FreeExecutorState
+frees per-query context and child contexts</p>
+<p>FreeQueryDesc</p>
+<h3 id=表达式>
+表达式
+<a href=#%e8%a1%a8%e8%be%be%e5%bc%8f class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p><a href=https://blog.csdn.net/jackgo73/article/details/127282902>介绍了pg表达式的具体的运行机制</a>
+<a href=https://www.cnblogs.com/opensource-db/p/15323425.html>对比不同数据库中表达式机制的实现</a></p>
+<ol>
+<li>表达式按照数组的形式组织的</li>
+<li>表达式尽量在初始化的时候做完左右得准备工作，执行时候只需要执行即可</li>
+</ol>
+<ul>
+<li>重点函数和流程</li>
+</ul>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>  CreateExprContext  <span style=color:#f92672>--</span> or use GetPerTupleExprContext(estate)
+    creates per<span style=color:#f92672>-</span>tuple context
 
-    <span style=color:#75715e>/*
-</span><span style=color:#75715e>     * planner&#39;s estimate of result size of this plan step
-</span><span style=color:#75715e>     */</span>
-    Cardinality     plan_rows;        <span style=color:#75715e>/* number of rows plan is expected to emit */</span>
-    <span style=color:#66d9ef>int</span>             plan_width;        <span style=color:#75715e>/* average row width in bytes */</span>
+  ExecPrepareExpr
+    temporarily <span style=color:#66d9ef>switch</span> to per<span style=color:#f92672>-</span>query context
+    run the expression through expression_planner
+    ExecInitExpr
 
-    <span style=color:#75715e>/*
-</span><span style=color:#75715e>     * information needed for parallel query
-</span><span style=color:#75715e>     */</span>
-    <span style=color:#66d9ef>bool</span>        parallel_aware; <span style=color:#75715e>/* engage parallel-aware logic? */</span>
-    <span style=color:#66d9ef>bool</span>        parallel_safe;    <span style=color:#75715e>/* OK to use as part of parallel plan? */</span>
+  Repeatedly <span style=color:#66d9ef>do</span><span style=color:#f92672>:</span>
+    ExecEvalExprSwitchContext
+      ExecEvalExpr <span style=color:#f92672>---</span> called in per<span style=color:#f92672>-</span>tuple context
+    ResetExprContext <span style=color:#f92672>---</span> to free memory
 
-    <span style=color:#75715e>/*
-</span><span style=color:#75715e>     * information needed for asynchronous execution
-</span><span style=color:#75715e>     */</span>
-    <span style=color:#66d9ef>bool</span>        async_capable;    <span style=color:#75715e>/* engage asynchronous-capable logic? */</span>
+  FreeExecutorState
+    frees per<span style=color:#f92672>-</span>query context, as well as ExprContext
+    (a separate FreeExprContext call is not necessary)
 
-    <span style=color:#75715e>/*
-</span><span style=color:#75715e>     * Common structural data for all Plan types.
-</span><span style=color:#75715e>     */</span>
-    <span style=color:#66d9ef>int</span>         plan_node_id;    <span style=color:#75715e>/* unique across entire final plan tree */</span>
-    List       <span style=color:#f92672>*</span>targetlist;        <span style=color:#75715e>/* target list to be computed at this node */</span>
-    List       <span style=color:#f92672>*</span>qual;            <span style=color:#75715e>/* implicitly-ANDed qual conditions */</span>
-    <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Plan</span> <span style=color:#f92672>*</span>lefttree;        <span style=color:#75715e>/* input plan tree(s) */</span>
-    <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Plan</span> <span style=color:#f92672>*</span>righttree;
-    List       <span style=color:#f92672>*</span>initPlan;        <span style=color:#75715e>/* Init Plan nodes (un-correlated expr * subselects) */</span>
+<span style=color:#960050;background-color:#1e0010>其中函数</span>
+  ExecInitExpr <span style=color:#960050;background-color:#1e0010>用于初始化表达式，输出为</span> ExprState
+  ExecEvalExprSwitchContext <span style=color:#960050;background-color:#1e0010>用于</span> eval <span style=color:#960050;background-color:#1e0010>表达式，输入为</span> ExprState
+  <span style=color:#960050;background-color:#1e0010>表达式保存在</span> ExprState.ExprState <span style=color:#960050;background-color:#1e0010>中，使用</span> evalfunc <span style=color:#960050;background-color:#1e0010>执行，</span>evalfunc <span style=color:#960050;background-color:#1e0010>可以有解释和编译执行，当前大部分还是使用</span> ExecInterpExprStillValid <span style=color:#960050;background-color:#1e0010>解释执行</span>
 
-    <span style=color:#75715e>/*
-</span><span style=color:#75715e>     * Information for management of parameter-change-driven rescanning
-</span><span style=color:#75715e>     *
-</span><span style=color:#75715e>     * extParam includes the paramIDs of all external PARAM_EXEC params
-</span><span style=color:#75715e>     * affecting this plan node or its children.  setParam params from the
-</span><span style=color:#75715e>     * node&#39;s initPlans are not included, but their extParams are.
-</span><span style=color:#75715e>     *
-</span><span style=color:#75715e>     * allParam includes all the extParam paramIDs, plus the IDs of local
-</span><span style=color:#75715e>     * params that affect the node (i.e., the setParams of its initplans).
-</span><span style=color:#75715e>     * These are _all_ the PARAM_EXEC params that affect this node.
-</span><span style=color:#75715e>     */</span>
-    Bitmapset  <span style=color:#f92672>*</span>extParam;
-    Bitmapset  <span style=color:#f92672>*</span>allParam;
-} Plan;
 
-</code></pre></div><p>es_tupleTable 全局元组表，节点间传递数据</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>enum</span> <span style=color:#a6e22e>JoinType</span>
-{
-    <span style=color:#75715e>/*
-</span><span style=color:#75715e>     * The canonical kinds of joins according to the SQL JOIN syntax. Only
-</span><span style=color:#75715e>     * these codes can appear in parser output (e.g., JoinExpr nodes).
-</span><span style=color:#75715e>     */</span>
-    JOIN_INNER,                    <span style=color:#75715e>/* matching tuple pairs only */</span>
-    JOIN_LEFT,                    <span style=color:#75715e>/* pairs + unmatched LHS tuples */</span>
-    JOIN_FULL,                    <span style=color:#75715e>/* pairs + unmatched LHS + unmatched RHS */</span>
-    JOIN_RIGHT,                    <span style=color:#75715e>/* pairs + unmatched RHS tuples */</span>
+</code></pre></div><p>pg 的 表达式 运行机制有次大改，主要是从 dfs 转换到 bfs ，具体的修改的目的及有点如下， 这里记录下来，[熟记理解，然后在加上codegen和向量化，可以唬人]</p>
+<pre tabindex=0><code>Faster expression evaluation and targetlist projection.
+This replaces the old, recursive tree-walk based evaluation, with non-recursive, opcode dispatch based, expression evaluation. 
+Projection is now implemented as part of expression evaluation.
+This both leads to significant performance improvements, and makes future just-in-time compilation of expressions easier.
 
-    <span style=color:#75715e>/*
-</span><span style=color:#75715e>     * Semijoins and anti-semijoins (as defined in relational theory) do not
-</span><span style=color:#75715e>     * appear in the SQL JOIN syntax, but there are standard idioms for
-</span><span style=color:#75715e>     * representing them (e.g., using EXISTS).  The planner recognizes these
-</span><span style=color:#75715e>     * cases and converts them to joins.  So the planner and executor must
-</span><span style=color:#75715e>     * support these codes.  NOTE: in JOIN_SEMI output, it is unspecified
-</span><span style=color:#75715e>     * which matching RHS row is joined to.  In JOIN_ANTI output, the row is
-</span><span style=color:#75715e>     * guaranteed to be null-extended.
-</span><span style=color:#75715e>     */</span>
-    JOIN_SEMI,                    <span style=color:#75715e>/* 1 copy of each LHS row that has match(es) */</span>
-    JOIN_ANTI,                    <span style=color:#75715e>/* 1 copy of each LHS row that has no match */</span>
+更快的表达式评估和目标列表投影。
+这用非递归的、基于操作码分派的表达式求值取代了旧的、基于递归树遍历的求值。
+投影现在作为表达式评估的一部分实现。
+这既可以显着提高性能，也可以使将来的表达式即时编译变得更容易。
 
-    <span style=color:#75715e>/*
-</span><span style=color:#75715e>     * These codes are used internally in the planner, but are not supported
-</span><span style=color:#75715e>     * by the executor (nor, indeed, by most of the planner).
-</span><span style=color:#75715e>     */</span>
-    JOIN_UNIQUE_OUTER,            <span style=color:#75715e>/* LHS path must be made unique */</span>
-    JOIN_UNIQUE_INNER            <span style=color:#75715e>/* RHS path must be made unique */</span>
+The speed gains primarily come from:
+- non-recursive implementation reduces stack usage / overhead
+- simple sub-expressions are implemented with a single jump, without function calls
+- sharing some state between different sub-expressions
+- reduced amount of indirect/hard to predict memory accesses by laying out operation metadata sequentially; including the avoidance of nearly all of the previously used linked lists
+- more code has been moved to expression initialization, avoiding constant re-checks at evaluation time
 
-    <span style=color:#75715e>/*
-</span><span style=color:#75715e>     * We might need additional join types someday.
-</span><span style=color:#75715e>     */</span>
-} JoinType;
-</code></pre></div><p>执行器案例<code>select * from a where a = $1 for update</code></p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++> <span style=color:#f92672>--</span><span style=color:#ae81ff>99.51</span><span style=color:#f92672>%--</span>PortalRun
+速度增益主要来自：
+- 非递归实现减少堆栈使用/开销
+- 简单的子表达式通过单次跳转实现，无需函数调用
+- 在不同的子表达式之间共享一些状态
+- 通过按顺序排列操作元数据来减少间接/难以预测的内存访问量； 包括避免几乎所有以前使用的链表
+- 更多代码已移至表达式初始化，避免在评估时不断重新检查
+
+
+Future just-in-time compilation (JIT) has become easier, as demonstrated by released patches intended to be merged in a later release, for primarily two reasons: Firstly, due to a stricter split between expression initialization and evaluation, less code has to be handled by the JIT. Secondly, due to the non-recursive nature of the generated &quot;instructions&quot;, less performance-critical code-paths can easily be shared between interpreted and compiled evaluation.
+
+未来的即时编译 (JIT) 已经变得更加容易，正如旨在在以后的版本中合并的已发布补丁所证明的那样，主要有两个原因：首先，由于表达式初始化和评估之间的划分更加严格，因此需要更少的代码 由 JIT 处理。 其次，由于生成的“指令”的非递归性质，对性能不太重要的代码路径可以很容易地在解释和编译评估之间共享。
+
+
+The new framework allows for significant future optimizations. E.g.:
+- basic infrastructure for to later reduce the per executor-startup overhead of expression evaluation, by caching state in prepared statements.  That'd be helpful in OLTPish scenarios where initialization overhead is measurable.
+- optimizing the generated &quot;code&quot;. A number of proposals for potential work has already been made.
+- optimizing the interpreter. Similarly a number of proposals have been made here too.
+
+新框架允许在未来进行重大优化。 例如。：
+- 用于稍后通过在准备好的语句中缓存状态来减少表达式评估的每个执行程序启动开销的基本基础架构。 这在初始化开销是可测量的 OLTP 场景中很有帮助。
+- 优化生成的“代码”。 已经提出了一些关于潜在工作的建议。
+- 优化解释器。 同样，这里也提出了一些建议。
+
+
+The move of logic into the expression initialization step leads to some backward-incompatible changes:
+- Function permission checks are now done during expression initialization, whereas previously they were done during execution. In edge cases this can lead to errors being raised that previously wouldn't have been, e.g. a NULL array being coerced to a different array type previously didn't perform checks.
+- The set of domain constraints to be checked, is now evaluated once during expression initialization, previously it was re-built every time a domain check was evaluated. For normal queries this doesn't change much, but e.g. for plpgsql functions, which caches ExprStates, the old set could stick around longer.  The behavior around might still change.
+
+将逻辑转移到表达式初始化步骤会导致一些向后不兼容的更改：
+- 函数权限检查现在在表达式初始化期间完成，而以前它们是在执行期间完成的。 在边缘情况下，这可能会导致出现以前不会出现的错误，例如 一个 NULL 数组被强制转换为不同的数组类型，以前没有执行检查。
+- 要检查的域约束集现在在表达式初始化期间评估一次，以前每次评估域检查时都会重新构建。 对于普通查询，这并没有太大变化，但是例如 对于缓存 ExprStates 的 plpgsql 函数，旧集合可能会保留更长时间。 周围的行为可能仍然会改变。
+
+
+</code></pre><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>select <span style=color:#f92672>*</span> from a where a <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>1</span> <span style=color:#66d9ef>for</span> update
+ <span style=color:#f92672>--</span><span style=color:#ae81ff>99.51</span><span style=color:#f92672>%--</span>PortalRun
            <span style=color:#f92672>|</span>
             <span style=color:#f92672>--</span><span style=color:#ae81ff>99.51</span><span style=color:#f92672>%--</span>PortalRunSelect
                       <span style=color:#f92672>|</span>
@@ -254,6 +289,322 @@ utility语句，下层实现具体的方法，更类似方法的调用</li>
                                                        <span style=color:#f92672>|</span>
                                                         <span style=color:#f92672>--</span><span style=color:#ae81ff>0.50</span><span style=color:#f92672>%--</span>int4eq
 
+
+tpch q1 perf
+<span style=color:#960050;background-color:#1e0010>简要分析可以看出，大部分操作在</span>hash相关的运算上<span style=color:#960050;background-color:#1e0010>，</span>q1也确实有大量聚合运算<span style=color:#960050;background-color:#1e0010>，这里不知道使用</span> jit <span style=color:#960050;background-color:#1e0010>能否有一定的提升</span>
+
+<span style=color:#75715e># Total Lost Samples: 0
+</span><span style=color:#75715e>#
+</span><span style=color:#75715e># Samples: 99K of event &#39;cpu-clock:pppH&#39;
+</span><span style=color:#75715e># Event count (approx.): 100006005906
+</span><span style=color:#75715e>#
+</span><span style=color:#75715e># Children      Self  Command   Shared Object                                 Symbol                                                        
+</span><span style=color:#75715e># ........  ........  ........  ............................................  ..............................................................
+</span><span style=color:#75715e>#
+</span><span style=color:#75715e></span>   <span style=color:#ae81ff>100.00</span><span style=color:#f92672>%</span>     <span style=color:#ae81ff>0.00</span><span style=color:#f92672>%</span>  postgres  <span style=color:#f92672>/</span>usr<span style=color:#f92672>/</span>lib<span style=color:#f92672>/</span>x86_64<span style=color:#f92672>-</span>linux<span style=color:#f92672>-</span>gnu<span style=color:#f92672>/</span>libc<span style=color:#f92672>-</span><span style=color:#ae81ff>2.31</span>.so        <span style=color:#ae81ff>0x7fe4b684e083</span>     D [.] putenv
+            <span style=color:#f92672>|</span>
+            <span style=color:#f92672>---</span>putenv
+               startup_hacks
+               PostmasterMain
+               ServerLoop
+               BackendStartup
+               ExitPostmaster
+               PostgresMain
+               exec_simple_query
+               PortalRun
+               PortalRunSelect
+               ExecutorRun
+               standard_ExecutorRun
+               ExecutePlan
+               ExecProcNode
+               ExecProcNodeFirst
+               ExecSort
+               ExecProcNode
+               ExecProcNodeFirst
+               ExecAgg
+               <span style=color:#f92672>|</span>          
+                <span style=color:#f92672>--</span><span style=color:#ae81ff>99.98</span><span style=color:#f92672>%--</span>agg_fill_hash_table
+                          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|--</span><span style=color:#ae81ff>67.56</span><span style=color:#f92672>%--</span>advance_aggregates
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>67.35</span><span style=color:#f92672>%--</span>ExecEvalExprSwitchContext
+                          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>66.93</span><span style=color:#f92672>%--</span>ExecInterpExpr
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|--</span><span style=color:#ae81ff>26.72</span><span style=color:#f92672>%--</span>numeric_mul
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>23.48</span><span style=color:#f92672>%--</span>numeric_mul_opt_error
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>14.06</span><span style=color:#f92672>%--</span>mul_var
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>2.89</span><span style=color:#f92672>%--</span>pfree
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>1.63</span><span style=color:#f92672>%--</span>AllocSetFree
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>0.54</span><span style=color:#f92672>%--</span>__nss_database_lookup2
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>2.43</span><span style=color:#f92672>%--</span>alloc_var
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>1.82</span><span style=color:#f92672>%--</span>palloc
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>1.15</span><span style=color:#f92672>%--</span>AllocSetAlloc
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>1.98</span><span style=color:#f92672>%--</span>palloc0
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>1.14</span><span style=color:#f92672>%--</span>AllocSetAlloc
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>1.03</span><span style=color:#f92672>%--</span>round_var
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>0.85</span><span style=color:#f92672>%--</span>__nss_database_lookup2
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>0.51</span><span style=color:#f92672>%--</span>strip_var
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>3.57</span><span style=color:#f92672>%--</span>make_result_opt_error
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>1.80</span><span style=color:#f92672>%--</span>palloc
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>1.30</span><span style=color:#f92672>%--</span>AllocSetAlloc
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>3.34</span><span style=color:#f92672>%--</span>free_var
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>2.91</span><span style=color:#f92672>%--</span>pfree
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>1.74</span><span style=color:#f92672>%--</span>AllocSetFree
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                 <span style=color:#f92672>--</span><span style=color:#ae81ff>0.56</span><span style=color:#f92672>%--</span>__nss_database_lookup2
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>1.10</span><span style=color:#f92672>%--</span>__nss_database_lookup2
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>0.51</span><span style=color:#f92672>%--</span>__nss_disable_nscd
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>2.13</span><span style=color:#f92672>%--</span>pg_detoast_datum
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>1.67</span><span style=color:#f92672>%--</span>detoast_attr
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>1.13</span><span style=color:#f92672>%--</span>palloc
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                 <span style=color:#f92672>--</span><span style=color:#ae81ff>0.75</span><span style=color:#f92672>%--</span>AllocSetAlloc
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>0.61</span><span style=color:#f92672>%--</span>__nss_database_lookup2
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|--</span><span style=color:#ae81ff>13.61</span><span style=color:#f92672>%--</span>numeric_sub
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>10.80</span><span style=color:#f92672>%--</span>numeric_sub_opt_error
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>4.12</span><span style=color:#f92672>%--</span>sub_var
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>3.20</span><span style=color:#f92672>%--</span>sub_abs
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>1.26</span><span style=color:#f92672>%--</span>palloc
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                 <span style=color:#f92672>--</span><span style=color:#ae81ff>0.91</span><span style=color:#f92672>%--</span>AllocSetAlloc
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>2.76</span><span style=color:#f92672>%--</span>make_result_opt_error
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>1.43</span><span style=color:#f92672>%--</span>palloc
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>1.10</span><span style=color:#f92672>%--</span>AllocSetAlloc
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>2.29</span><span style=color:#f92672>%--</span>free_var
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>1.92</span><span style=color:#f92672>%--</span>pfree
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>1.25</span><span style=color:#f92672>%--</span>AllocSetFree
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>0.76</span><span style=color:#f92672>%--</span>__nss_database_lookup2
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>2.02</span><span style=color:#f92672>%--</span>pg_detoast_datum
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>1.55</span><span style=color:#f92672>%--</span>detoast_attr
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>                                 <span style=color:#f92672>--</span><span style=color:#ae81ff>1.05</span><span style=color:#f92672>%--</span>palloc
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>                                            <span style=color:#f92672>--</span><span style=color:#ae81ff>0.78</span><span style=color:#f92672>%--</span>AllocSetAlloc
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|--</span><span style=color:#ae81ff>13.50</span><span style=color:#f92672>%--</span>ExecAggPlainTransByVal
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>10.34</span><span style=color:#f92672>%--</span>numeric_avg_accum
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>5.83</span><span style=color:#f92672>%--</span>do_numeric_accum
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>2.07</span><span style=color:#f92672>%--</span>accum_sum_add
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>1.95</span><span style=color:#f92672>%--</span>__nss_database_lookup2
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>0.71</span><span style=color:#f92672>%--</span>__nss_disable_nscd
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>3.04</span><span style=color:#f92672>%--</span>pg_detoast_datum
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>2.46</span><span style=color:#f92672>%--</span>detoast_attr
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>1.62</span><span style=color:#f92672>%--</span>palloc
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                 <span style=color:#f92672>--</span><span style=color:#ae81ff>1.13</span><span style=color:#f92672>%--</span>AllocSetAlloc
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>0.58</span><span style=color:#f92672>%--</span>__nss_database_lookup2
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>1.10</span><span style=color:#f92672>%--</span>__nss_database_lookup2
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>0.58</span><span style=color:#f92672>%--</span>__nss_disable_nscd
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|--</span><span style=color:#ae81ff>6.32</span><span style=color:#f92672>%--</span>numeric_add
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>5.07</span><span style=color:#f92672>%--</span>numeric_add_opt_error
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>2.12</span><span style=color:#f92672>%--</span>add_var
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>1.96</span><span style=color:#f92672>%--</span>add_abs
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>0.70</span><span style=color:#f92672>%--</span>palloc
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                 <span style=color:#f92672>--</span><span style=color:#ae81ff>0.50</span><span style=color:#f92672>%--</span>AllocSetAlloc
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>1.21</span><span style=color:#f92672>%--</span>make_result_opt_error
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>0.57</span><span style=color:#f92672>%--</span>palloc
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>0.97</span><span style=color:#f92672>%--</span>free_var
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>0.86</span><span style=color:#f92672>%--</span>pfree
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                 <span style=color:#f92672>--</span><span style=color:#ae81ff>0.50</span><span style=color:#f92672>%--</span>AllocSetFree
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>0.91</span><span style=color:#f92672>%--</span>pg_detoast_datum
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>0.68</span><span style=color:#f92672>%--</span>detoast_attr
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|--</span><span style=color:#ae81ff>1.65</span><span style=color:#f92672>%--</span>__nss_database_lookup2
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                 <span style=color:#f92672>--</span><span style=color:#ae81ff>0.54</span><span style=color:#f92672>%--</span>__nss_disable_nscd
+                          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|--</span><span style=color:#ae81ff>18.34</span><span style=color:#f92672>%--</span>lookup_hash_entries
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>16.52</span><span style=color:#f92672>%--</span>LookupTupleHashEntry
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>8.86</span><span style=color:#f92672>%--</span>LookupTupleHashEntry_internal
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>8.70</span><span style=color:#f92672>%--</span>tuplehash_insert_hash
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>8.52</span><span style=color:#f92672>%--</span>tuplehash_insert_hash_internal
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                 <span style=color:#f92672>--</span><span style=color:#ae81ff>7.82</span><span style=color:#f92672>%--</span>TupleHashTableMatch
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|--</span><span style=color:#ae81ff>6.93</span><span style=color:#f92672>%--</span>ExecQualAndReset
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>6.54</span><span style=color:#f92672>%--</span>ExecQual
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>6.40</span><span style=color:#f92672>%--</span>ExecEvalExprSwitchContext
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                 <span style=color:#f92672>--</span><span style=color:#ae81ff>6.00</span><span style=color:#f92672>%--</span>ExecInterpExpr
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|--</span><span style=color:#ae81ff>2.58</span><span style=color:#f92672>%--</span>bpchareq
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>          <span style=color:#f92672>|--</span><span style=color:#ae81ff>0.83</span><span style=color:#f92672>%--</span>__nss_database_lookup2
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>0.79</span><span style=color:#f92672>%--</span>bcTruelen
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                            <span style=color:#f92672>--</span><span style=color:#ae81ff>1.31</span><span style=color:#f92672>%--</span>slot_getsomeattrs
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                                      <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                                       <span style=color:#f92672>--</span><span style=color:#ae81ff>1.15</span><span style=color:#f92672>%--</span>slot_getsomeattrs_int
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                                                 <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                                                  <span style=color:#f92672>--</span><span style=color:#ae81ff>0.94</span><span style=color:#f92672>%--</span>tts_minimal_getsomeattrs
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                                                            <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                                                             <span style=color:#f92672>--</span><span style=color:#ae81ff>0.80</span><span style=color:#f92672>%--</span>slot_deform_heap_tuple
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                                            <span style=color:#f92672>--</span><span style=color:#ae81ff>0.58</span><span style=color:#f92672>%--</span>ExecStoreMinimalTuple
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>6.96</span><span style=color:#f92672>%--</span>TupleHashTableHash_internal
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|--</span><span style=color:#ae81ff>4.98</span><span style=color:#f92672>%--</span>FunctionCall1Coll
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>4.42</span><span style=color:#f92672>%--</span>hashbpchar
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>                     <span style=color:#f92672>|--</span><span style=color:#ae81ff>2.26</span><span style=color:#f92672>%--</span>hash_any
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>1.97</span><span style=color:#f92672>%--</span>hash_bytes
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>0.73</span><span style=color:#f92672>%--</span>__nss_database_lookup2
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>0.73</span><span style=color:#f92672>%--</span>__nss_database_lookup2
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>0.52</span><span style=color:#f92672>%--</span>__nss_database_lookup2
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>1.22</span><span style=color:#f92672>%--</span>prepare_hash_slot
+                          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>0.53</span><span style=color:#f92672>%--</span>ExecClearTuple
+                          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|--</span><span style=color:#ae81ff>12.30</span><span style=color:#f92672>%--</span>fetch_input_tuple
+                          <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>12.10</span><span style=color:#f92672>%--</span>ExecProcNode
+                          <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>11.93</span><span style=color:#f92672>%--</span>ExecSeqScan
+                          <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                 <span style=color:#f92672>--</span><span style=color:#ae81ff>11.74</span><span style=color:#f92672>%--</span>ExecScan
+                          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|--</span><span style=color:#ae81ff>5.89</span><span style=color:#f92672>%--</span>ExecQual
+                          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>5.72</span><span style=color:#f92672>%--</span>ExecEvalExprSwitchContext
+                          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>5.29</span><span style=color:#f92672>%--</span>ExecInterpExpr
+                          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                <span style=color:#f92672>|--</span><span style=color:#ae81ff>3.57</span><span style=color:#f92672>%--</span>slot_getsomeattrs
+                          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>3.42</span><span style=color:#f92672>%--</span>slot_getsomeattrs_int
+                          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>3.13</span><span style=color:#f92672>%--</span>tts_buffer_heap_getsomeattrs
+                          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>                                 <span style=color:#f92672>--</span><span style=color:#ae81ff>2.97</span><span style=color:#f92672>%--</span>slot_deform_heap_tuple
+                          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>                                            <span style=color:#f92672>--</span><span style=color:#ae81ff>0.67</span><span style=color:#f92672>%--</span>__nss_database_lookup2
+                          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>                                 <span style=color:#f92672>--</span><span style=color:#ae81ff>0.59</span><span style=color:#f92672>%--</span>date_le_timestamp
+                          <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                            <span style=color:#f92672>--</span><span style=color:#ae81ff>5.34</span><span style=color:#f92672>%--</span>ExecScanFetch
+                          <span style=color:#f92672>|</span>                                                      <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                                       <span style=color:#f92672>--</span><span style=color:#ae81ff>5.18</span><span style=color:#f92672>%--</span>SeqNext
+                          <span style=color:#f92672>|</span>                                                                 <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                                                  <span style=color:#f92672>--</span><span style=color:#ae81ff>4.87</span><span style=color:#f92672>%--</span>table_scan_getnextslot
+                          <span style=color:#f92672>|</span>                                                                            <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                                                             <span style=color:#f92672>--</span><span style=color:#ae81ff>4.56</span><span style=color:#f92672>%--</span>heap_getnextslot
+                          <span style=color:#f92672>|</span>                                                                                       <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                                                                        <span style=color:#f92672>--</span><span style=color:#ae81ff>3.82</span><span style=color:#f92672>%--</span>heapgettup_pagemode
+                          <span style=color:#f92672>|</span>                                                                                                  <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                                                                                   <span style=color:#f92672>--</span><span style=color:#ae81ff>2.50</span><span style=color:#f92672>%--</span>heapgetpage
+                          <span style=color:#f92672>|</span>                                                                                                             <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                                                                                              <span style=color:#f92672>--</span><span style=color:#ae81ff>1.56</span><span style=color:#f92672>%--</span>ReadBufferExtended
+                          <span style=color:#f92672>|</span>                                                                                                                        <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                                                                                                         <span style=color:#f92672>--</span><span style=color:#ae81ff>1.55</span><span style=color:#f92672>%--</span>ReadBuffer_common
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|--</span><span style=color:#ae81ff>0.79</span><span style=color:#f92672>%--</span>smgrread
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>           <span style=color:#f92672>--</span><span style=color:#ae81ff>0.78</span><span style=color:#f92672>%--</span>mdread
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>                     <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>                      <span style=color:#f92672>--</span><span style=color:#ae81ff>0.75</span><span style=color:#f92672>%--</span>__libc_pread64
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>                                <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>                                 <span style=color:#f92672>--</span><span style=color:#ae81ff>0.74</span><span style=color:#f92672>%--</span>entry_SYSCALL_64_after_hwframe
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>                                           do_syscall_64
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>                                           <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>                                            <span style=color:#f92672>--</span><span style=color:#ae81ff>0.71</span><span style=color:#f92672>%--</span>ksys_pread64
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>                                                      <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>                                                       <span style=color:#f92672>--</span><span style=color:#ae81ff>0.69</span><span style=color:#f92672>%--</span>vfs_read
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>                                                                 <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>                                                                  <span style=color:#f92672>--</span><span style=color:#ae81ff>0.67</span><span style=color:#f92672>%--</span>new_sync_read
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>                                                                            <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>                                                                             <span style=color:#f92672>--</span><span style=color:#ae81ff>0.66</span><span style=color:#f92672>%--</span>filemap_read
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>                                                                                       <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>                                                                                        <span style=color:#f92672>--</span><span style=color:#ae81ff>0.52</span><span style=color:#f92672>%--</span>copy_page_to_iter
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>                                                                                                  <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>                                                                                                   <span style=color:#f92672>--</span><span style=color:#ae81ff>0.51</span><span style=color:#f92672>%--</span>copyout
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>                                                                                                             copy_user_enhanced_fast_string
+                          <span style=color:#f92672>|</span>                                                                                                                                   <span style=color:#f92672>|</span>          
+                          <span style=color:#f92672>|</span>                                                                                                                                    <span style=color:#f92672>--</span><span style=color:#ae81ff>0.65</span><span style=color:#f92672>%--</span>BufferAlloc
+                          <span style=color:#f92672>|</span>          
+                           <span style=color:#f92672>--</span><span style=color:#ae81ff>1.17</span><span style=color:#f92672>%--</span>MemoryContextReset
+                                     <span style=color:#f92672>|</span>          
+                                      <span style=color:#f92672>--</span><span style=color:#ae81ff>0.85</span><span style=color:#f92672>%--</span>MemoryContextResetOnly
+                                                <span style=color:#f92672>|</span>          
+                                                 <span style=color:#f92672>--</span><span style=color:#ae81ff>0.57</span><span style=color:#f92672>%--</span>AllocSetReset
+
 </code></pre></div><h2 id=前端>
 前端
 <a href=#%e5%89%8d%e7%ab%af class=h-anchor aria-hidden=true>#</a>
@@ -285,352 +636,6 @@ utility语句，下层实现具体的方法，更类似方法的调用</li>
 语句结束，释放资源</p>
 </li>
 </ol>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>esoye<span style=color:#f92672>=#</span>  <span style=color:#66d9ef>explain</span> (<span style=color:#66d9ef>verbose</span>, <span style=color:#66d9ef>analyze</span>) <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span>  <span style=color:#66d9ef>from</span> tb1 <span style=color:#66d9ef>where</span> c2 <span style=color:#66d9ef>in</span> (<span style=color:#66d9ef>select</span>  sheet_num <span style=color:#66d9ef>from</span> tb2,tb3 <span style=color:#66d9ef>where</span> sheet_num<span style=color:#f92672>=</span>order_no <span style=color:#66d9ef>and</span> c3<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;1&#39;</span>);
-                                                           QUERY PLAN
-<span style=color:#75715e>--------------------------------------------------------------------------------------------------------------------------------
-</span><span style=color:#75715e></span> Seq Scan <span style=color:#66d9ef>on</span> <span style=color:#66d9ef>public</span>.tb1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>30</span>.<span style=color:#ae81ff>54</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>7</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>044</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>056</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>2</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
-   <span style=color:#66d9ef>Output</span>: tb1.c1, tb1.c2, tb1.c3
-   Filter: (SubPlan <span style=color:#ae81ff>1</span>)
-   <span style=color:#66d9ef>Rows</span> Removed <span style=color:#66d9ef>by</span> Filter: <span style=color:#ae81ff>12</span>
-   SubPlan <span style=color:#ae81ff>1</span>
-     <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Result</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>32</span>..<span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>81</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>28</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>002</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>002</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>14</span>)
-           <span style=color:#66d9ef>Output</span>: tb2.sheet_num
-           One<span style=color:#f92672>-</span>Time Filter: ((tb1.c3)::text <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;1&#39;</span>::text)
-           <span style=color:#f92672>-&gt;</span>  Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>32</span>..<span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>81</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>28</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>013</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>014</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>3</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>)
-                 <span style=color:#66d9ef>Output</span>: tb2.sheet_num
-                 Hash Cond: ((tb2.sheet_num)::text <span style=color:#f92672>=</span> (tb3.order_no)::text)
-                 <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> <span style=color:#66d9ef>public</span>.tb2  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>14</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>14</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>003</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>003</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>2</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>)
-                       <span style=color:#66d9ef>Output</span>: tb2.c1, tb2.sheet_num
-                 <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>14</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>14</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>14</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>013</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>013</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>14</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
-                       <span style=color:#66d9ef>Output</span>: tb3.order_no
-                       Buckets: <span style=color:#ae81ff>1024</span>  Batches: <span style=color:#ae81ff>1</span>  Memory <span style=color:#66d9ef>Usage</span>: <span style=color:#ae81ff>9</span>kB
-                       <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> <span style=color:#66d9ef>public</span>.tb3  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>14</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>14</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>005</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>007</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>14</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
-                             <span style=color:#66d9ef>Output</span>: tb3.order_no
- Planning Time: <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>192</span> ms
- Execution Time: <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>083</span> ms
-</code></pre></div><p>b8d7f053c5c2bf2a7e8734fe3327f6a8bc711755</p>
-<p>exec_simple_query</p>
-<p>pg_parse_query</p>
-<p>pg_analyze_and_rewrite_fixedparams</p>
-<p>pg_plan_queries</p>
-<p>CreatePortal</p>
-<p>PortalDefineQuery</p>
-<p>PortalStart
-ChoosePortalStrategy
-PORTAL_ONE_SELECT
-CreateQueryDesc
-ExecutorStart
-standard_ExecutorStart
-PORTAL_ONE_MOD_WITH
-PORTAL_ONE_RETURNING
-ExecCleanTypeFromTL
-PORTAL_UTIL_SELECT
-UtilityTupleDescriptor</p>
-<p>PortalRun
-case PORTAL_ONE_SELECT:
-case PORTAL_ONE_RETURNING:
-case PORTAL_ONE_MOD_WITH:
-case PORTAL_UTIL_SELECT:
-FillPortalStore
-PortalRunSelect
-ExecutorRun
-standard_ExecutorRun &ndash; hook，可以使用其他执行器
-ExecutePlan
-ExecProcNode &ndash; 递归执行ExecProcNode
-case PORTAL_MULTI_QUERY:
-PortalRunMulti
-ProcessQuery
-CreateQueryDesc
-ExecutorStart
-ExecutorRun
-ExecutorFinish
-ExecutorEnd
-FreeQueryDesc
-PortalRunUtility
-ProcessUtility
-standard_ProcessUtility &ndash; 预留钩子</p>
-<p>PortalDrop
-PortalCleanup
-ExecutorFinish
-ExecutorEnd
-ExecEndNode
-FreeQueryDesc</p>
-<p>We have several execution strategies for Portals, depending on what query or queries are to be executed. (Note: in all cases, a Portal executes just a single source-SQL query, and thus produces just a single result from the user&rsquo;s viewpoint. However, the rule rewriter may expand the single source query to zero or many actual queries.)</p>
-<ul>
-<li>
-<p>PORTAL_ONE_SELECT
-the portal contains one single SELECT query. We run the Executor incrementally as results are demanded. This strategy also supports holdable cursors (the Executor results can be dumped into a tuplestore for access after transaction completion).
-查询操作，结果可以在原子操作之后缓存，用于游标访问</p>
-</li>
-<li>
-<p>PORTAL_ONE_RETURNING
-the portal contains a single INSERT/UPDATE/DELETE query with a RETURNING clause (plus possibly auxiliary queries added by rule rewriting). On first execution, we run the portal to completion and dump the primary query&rsquo;s results into the portal tuplestore; the results are then returned to the client as demanded. (We can&rsquo;t support suspension of the query partway through, because the AFTER TRIGGER code can&rsquo;t cope, and also because we don&rsquo;t want to risk failing to execute all the auxiliary queries.)</p>
-</li>
-<li>
-<p>PORTAL_ONE_MOD_WITH,</p>
-</li>
-<li>
-<p>PORTAL_UTIL_SELECT,</p>
-</li>
-<li>
-<p>PORTAL_MULTI_QUERY</p>
-</li>
-<li>
-<p>常规的DML语句，以节点树的形式表示</p>
-</li>
-<li>
-<p>非DML语句，utility，语句执行时一系列的过程</p>
-</li>
-<li>
-<p>其他子模块</p>
-</li>
-</ul>
-<p>&ndash;</p>
-<h1 id=debug-case>
-DEBUG CASE
-<a href=#debug-case class=h-anchor aria-hidden=true>#</a>
-</h1>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=color:#66d9ef>CREATE</span> <span style=color:#66d9ef>TABLE</span> tenk1 (
-    unique1        int4,
-    unique2        int4,
-    two            int4,
-    four        int4,
-    ten            int4,
-    twenty        int4,
-    hundred        int4,
-    thousand    int4,
-    twothousand    int4,
-    fivethous    int4,
-    tenthous    int4,
-    odd            int4,
-    even        int4,
-    stringu1    name,
-    stringu2    name,
-    string4        name
-);
-
-<span style=color:#75715e>-- 回歸測試文件
-</span><span style=color:#75715e></span><span style=color:#960050;background-color:#1e0010>\</span><span style=color:#66d9ef>set</span> filename :abs_srcdir <span style=color:#e6db74>&#39;/data/tenk.data&#39;</span>
-<span style=color:#66d9ef>COPY</span> tenk1 <span style=color:#66d9ef>FROM</span> :<span style=color:#e6db74>&#39;filename&#39;</span>;
-<span style=color:#66d9ef>VACUUM</span> <span style=color:#66d9ef>ANALYZE</span> tenk1;
-
-
-<span style=color:#66d9ef>select</span> <span style=color:#66d9ef>distinct</span> sub.unique1, stringu1
-<span style=color:#66d9ef>from</span> tenk1, <span style=color:#66d9ef>lateral</span> (<span style=color:#66d9ef>select</span> tenk1.unique1 <span style=color:#66d9ef>from</span> generate_series(<span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>1000</span>)) <span style=color:#66d9ef>as</span> sub;
-
-</code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
-postgres<span style=color:#f92672>=</span><span style=color:#960050;background-color:#1e0010>#</span> explain select distinct sub.unique1, stringu1
-from tenk1, lateral (select tenk1.unique1 from generate_series(<span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>1000</span>)) as sub;
-                                     QUERY PLAN                                     
-<span style=color:#f92672>------------------------------------------------------------------------------------</span>
- HashAggregate  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>175480.00</span>.<span style=color:#ae81ff>.175580.00</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>10000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>68</span>)
-   Group Key: tenk1.unique1, tenk1.stringu1
-   <span style=color:#f92672>-&gt;</span>  Nested Loop  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.125480.00</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>10000000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>68</span>)
-         <span style=color:#f92672>-&gt;</span>  Function Scan on generate_series  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.10.00</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>1000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
-         <span style=color:#f92672>-&gt;</span>  Materialize  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.495.00</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>10000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>68</span>)
-               <span style=color:#f92672>-&gt;</span>  Seq Scan on tenk1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.445.00</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>10000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>68</span>)
-(<span style=color:#ae81ff>6</span> rows)
-
-<span style=color:#75715e>#0  exec_simple_query (query_string=0x55ef2315fe40 &#34;select distinct sub.unique1, stringu1\nfrom tenk1, lateral (select tenk1.unique1 from generate_series(1, 1000)) as sub;&#34;)
-</span><span style=color:#75715e></span>    at postgres.c:<span style=color:#ae81ff>1243</span>
-<span style=color:#75715e>#1  0x000055ef22314d31 in PostgresMain (dbname=0x55ef2315c598 &#34;postgres&#34;, username=0x55ef2318c218 &#34;wen&#34;) at postgres.c:4482
-</span><span style=color:#75715e>#2  0x000055ef2223aaff in BackendRun (port=0x55ef23185110) at postmaster.c:4490
-</span><span style=color:#75715e>#3  0x000055ef2223a3e4 in BackendStartup (port=0x55ef23185110) at postmaster.c:4218
-</span><span style=color:#75715e>#4  0x000055ef222366da in ServerLoop () at postmaster.c:1808
-</span><span style=color:#75715e>#5  0x000055ef22235e73 in PostmasterMain (argc=3, argv=0x55ef2315a510) at postmaster.c:1480
-</span><span style=color:#75715e>#6  0x000055ef220fb9dd in main (argc=3, argv=0x55ef2315a510) at main.c:197
-</span><span style=color:#75715e></span>
-
-<span style=color:#75715e>#0  standard_ExecutorRun (queryDesc=0x55ef23184340, direction=ForwardScanDirection, count=0, execute_once=true) at execMain.c:321
-</span><span style=color:#75715e>#1  0x000055ef22074ada in ExecutorRun (queryDesc=0x55ef23184340, direction=ForwardScanDirection, count=0, execute_once=true) at execMain.c:307
-</span><span style=color:#75715e>#2  0x000055ef22317259 in PortalRunSelect (portal=0x55ef231d23d0, forward=true, count=0, dest=0x55ef23242a10) at pquery.c:924
-</span><span style=color:#75715e>#3  0x000055ef22316e8c in PortalRun (portal=0x55ef231d23d0, count=9223372036854775807, isTopLevel=true, run_once=true, dest=0x55ef23242a10, altdest=0x55ef23242a10, qc=0x7fffcc2f5d50)
-</span><span style=color:#75715e></span>    at pquery.c:<span style=color:#ae81ff>768</span>
-<span style=color:#75715e>#4  0x000055ef223101bb in exec_simple_query (
-</span><span style=color:#75715e></span>    query_string<span style=color:#f92672>=</span><span style=color:#ae81ff>0x55ef2315fe40</span> <span style=color:#e6db74>&#34;select distinct sub.unique1, stringu1</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>from tenk1, lateral (select tenk1.unique1 from generate_series(1, 1000)) as sub;&#34;</span>) at postgres.c:<span style=color:#ae81ff>1243</span>
-<span style=color:#75715e>#5  0x000055ef22314d31 in PostgresMain (dbname=0x55ef2315c598 &#34;postgres&#34;, username=0x55ef2318c218 &#34;wen&#34;) at postgres.c:4482
-</span><span style=color:#75715e>#6  0x000055ef2223aaff in BackendRun (port=0x55ef23185110) at postmaster.c:4490
-</span><span style=color:#75715e>#7  0x000055ef2223a3e4 in BackendStartup (port=0x55ef23185110) at postmaster.c:4218
-</span><span style=color:#75715e>#8  0x000055ef222366da in ServerLoop () at postmaster.c:1808
-</span><span style=color:#75715e>#9  0x000055ef22235e73 in PostmasterMain (argc=3, argv=0x55ef2315a510) at postmaster.c:1480
-</span><span style=color:#75715e>#10 0x000055ef220fb9dd in main (argc=3, argv=0x55ef2315a510) at main.c:197
-</span><span style=color:#75715e></span>
-<span style=color:#75715e>#0  ExecProcNodeFirst (node=0x55ef232386e0) at execProcnode.c:451
-</span><span style=color:#75715e>#1  0x000055ef220745f1 in ExecProcNode (node=0x55ef232386e0) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
-</span><span style=color:#75715e>#2  0x000055ef220772c9 in ExecutePlan (estate=0x55ef23238490, planstate=0x55ef232386e0, use_parallel_mode=false, operation=CMD_SELECT, sendTuples=true, numberTuples=0,
-</span><span style=color:#75715e></span>    direction<span style=color:#f92672>=</span>ForwardScanDirection, dest<span style=color:#f92672>=</span><span style=color:#ae81ff>0x55ef23242a10</span>, execute_once<span style=color:#f92672>=</span>true) at execMain.c:<span style=color:#ae81ff>1636</span>
-<span style=color:#75715e>#3  0x000055ef22074ccb in standard_ExecutorRun (queryDesc=0x55ef23184340, direction=ForwardScanDirection, count=0, execute_once=true) at execMain.c:363
-</span><span style=color:#75715e>#4  0x000055ef22074ada in ExecutorRun (queryDesc=0x55ef23184340, direction=ForwardScanDirection, count=0, execute_once=true) at execMain.c:307
-</span><span style=color:#75715e>#5  0x000055ef22317259 in PortalRunSelect (portal=0x55ef231d23d0, forward=true, count=0, dest=0x55ef23242a10) at pquery.c:924
-</span><span style=color:#75715e>#6  0x000055ef22316e8c in PortalRun (portal=0x55ef231d23d0, count=9223372036854775807, isTopLevel=true, run_once=true, dest=0x55ef23242a10, altdest=0x55ef23242a10, qc=0x7fffcc2f5d50)
-</span><span style=color:#75715e></span>    at pquery.c:<span style=color:#ae81ff>768</span>
-
-<span style=color:#75715e>#0  agg_retrieve_hash_table (aggstate=0x55ef232386e0) at nodeAgg.c:2730
-</span><span style=color:#75715e>#1  0x000055ef22093f1c in ExecAgg (pstate=0x55ef232386e0) at nodeAgg.c:2157
-</span><span style=color:#75715e>#2  0x000055ef22080dd8 in ExecProcNodeFirst (node=0x55ef232386e0) at execProcnode.c:463
-</span><span style=color:#75715e>#3  0x000055ef220745f1 in ExecProcNode (node=0x55ef232386e0) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
-</span><span style=color:#75715e>#4  0x000055ef220772c9 in ExecutePlan (estate=0x55ef23238490, planstate=0x55ef232386e0, use_parallel_mode=false, operation=CMD_SELECT, sendTuples=true, numberTuples=0,
-</span><span style=color:#75715e></span>    direction<span style=color:#f92672>=</span>ForwardScanDirection, dest<span style=color:#f92672>=</span><span style=color:#ae81ff>0x55ef23242a10</span>, execute_once<span style=color:#f92672>=</span>true) at execMain.c:<span style=color:#ae81ff>1636</span>
-<span style=color:#75715e>#5  0x000055ef22074ccb in standard_ExecutorRun (queryDesc=0x55ef23184340, direction=ForwardScanDirection, count=0, execute_once=true) at execMain.c:363
-</span><span style=color:#75715e>#6  0x000055ef22074ada in ExecutorRun (queryDesc=0x55ef23184340, direction=ForwardScanDirection, count=0, execute_once=true) at execMain.c:307
-</span><span style=color:#75715e>#7  0x000055ef22317259 in PortalRunSelect (portal=0x55ef231d23d0, forward=true, count=0, dest=0x55ef23242a10) at pquery.c:924
-</span><span style=color:#75715e>#8  0x000055ef22316e8c in PortalRun (portal=0x55ef231d23d0, count=9223372036854775807, isTopLevel=true, run_once=true, dest=0x55ef23242a10, altdest=0x55ef23242a10, qc=0x7fffcc2f5d50)
-</span><span style=color:#75715e></span>    at pquery.c:<span style=color:#ae81ff>768</span>
-
-
-<span style=color:#75715e>#0  ExecScan (node=0x55ef23238f80, accessMtd=0x55ef220a0171 &lt;FunctionNext&gt;, recheckMtd=0x55ef220a056d &lt;FunctionRecheck&gt;) at execScan.c:169
-</span><span style=color:#75715e>#1  0x000055ef220a05c3 in ExecFunctionScan (pstate=0x55ef23238f80) at nodeFunctionscan.c:270
-</span><span style=color:#75715e>#2  0x000055ef22080dd8 in ExecProcNodeFirst (node=0x55ef23238f80) at execProcnode.c:463
-</span><span style=color:#75715e>#3  0x000055ef220c4214 in ExecProcNode (node=0x55ef23238f80) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
-</span><span style=color:#75715e>#4  0x000055ef220c4497 in ExecNestLoop (pstate=0x55ef23238dd0) at nodeNestloop.c:109
-</span><span style=color:#75715e>#5  0x000055ef22080dd8 in ExecProcNodeFirst (node=0x55ef23238dd0) at execProcnode.c:463
-</span><span style=color:#75715e>#6  0x000055ef220909a0 in ExecProcNode (node=0x55ef23238dd0) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
-</span><span style=color:#75715e>#7  0x000055ef22090efa in fetch_input_tuple (aggstate=0x55ef232386e0) at nodeAgg.c:563
-</span><span style=color:#75715e>#8  0x000055ef220946d6 in agg_fill_hash_table (aggstate=0x55ef232386e0) at nodeAgg.c:2533
-</span><span style=color:#75715e>#9  0x000055ef22093f10 in ExecAgg (pstate=0x55ef232386e0) at nodeAgg.c:2154
-</span><span style=color:#75715e>#10 0x000055ef22080dd8 in ExecProcNodeFirst (node=0x55ef232386e0) at execProcnode.c:463
-</span><span style=color:#75715e></span>
-<span style=color:#75715e>#0  ExecEvalFuncArgs (fcinfo=0x55ef23257e30, argList=0x55ef23239868, econtext=0x55ef23239198) at execSRF.c:841
-</span><span style=color:#75715e>#1  0x000055ef22083604 in ExecMakeTableFunctionResult (setexpr=0x55ef23239320, econtext=0x55ef23239198, argContext=0x55ef23257d10, expectedDesc=0x55ef23239dc8, randomAccess=false)
-</span><span style=color:#75715e></span>    at execSRF.c:<span style=color:#ae81ff>181</span>
-<span style=color:#75715e>#2  0x000055ef220a0226 in FunctionNext (node=0x55ef23238f80) at nodeFunctionscan.c:95
-</span><span style=color:#75715e>#3  0x000055ef22085167 in ExecScanFetch (node=0x55ef23238f80, accessMtd=0x55ef220a0171 &lt;FunctionNext&gt;, recheckMtd=0x55ef220a056d &lt;FunctionRecheck&gt;) at execScan.c:133
-</span><span style=color:#75715e>#4  0x000055ef220851e0 in ExecScan (node=0x55ef23238f80, accessMtd=0x55ef220a0171 &lt;FunctionNext&gt;, recheckMtd=0x55ef220a056d &lt;FunctionRecheck&gt;) at execScan.c:182
-</span><span style=color:#75715e>#5  0x000055ef220a05c3 in ExecFunctionScan (pstate=0x55ef23238f80) at nodeFunctionscan.c:270
-</span><span style=color:#75715e>#6  0x000055ef22080dd8 in ExecProcNodeFirst (node=0x55ef23238f80) at execProcnode.c:463
-</span><span style=color:#75715e>#7  0x000055ef220c4214 in ExecProcNode (node=0x55ef23238f80) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
-</span><span style=color:#75715e>#8  0x000055ef220c4497 in ExecNestLoop (pstate=0x55ef23238dd0) at nodeNestloop.c:109
-</span><span style=color:#75715e>#9  0x000055ef22080dd8 in ExecProcNodeFirst (node=0x55ef23238dd0) at execProcnode.c:463
-</span><span style=color:#75715e>#10 0x000055ef220909a0 in ExecProcNode (node=0x55ef23238dd0) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
-</span><span style=color:#75715e>#11 0x000055ef22090efa in fetch_input_tuple (aggstate=0x55ef232386e0) at nodeAgg.c:563
-</span><span style=color:#75715e>#12 0x000055ef220946d6 in agg_fill_hash_table (aggstate=0x55ef232386e0) at nodeAgg.c:2533
-</span><span style=color:#75715e></span>
-<span style=color:#75715e>#0  ExecJustConst (state=0x55ef232393b8, econtext=0x55ef23239198, isnull=0x55ef23257e58) at execExprInterp.c:2209
-</span><span style=color:#75715e>#1  0x000055ef22069449 in ExecInterpExprStillValid (state=0x55ef232393b8, econtext=0x55ef23239198, isNull=0x55ef23257e58) at execExprInterp.c:1858
-</span><span style=color:#75715e>#2  0x000055ef220832e3 in ExecEvalExpr (state=0x55ef232393b8, econtext=0x55ef23239198, isNull=0x55ef23257e58) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:324</span><span style=color:#75715e>
-</span><span style=color:#75715e>#3  0x000055ef22084853 in ExecEvalFuncArgs (fcinfo=0x55ef23257e30, argList=0x55ef23239868, econtext=0x55ef23239198) at execSRF.c:846
-</span><span style=color:#75715e>#4  0x000055ef22083604 in ExecMakeTableFunctionResult (setexpr=0x55ef23239320, econtext=0x55ef23239198, argContext=0x55ef23257d10, expectedDesc=0x55ef23239dc8, randomAccess=false)
-</span><span style=color:#75715e></span>    at execSRF.c:<span style=color:#ae81ff>181</span>
-<span style=color:#75715e>#5  0x000055ef220a0226 in FunctionNext (node=0x55ef23238f80) at nodeFunctionscan.c:95
-</span><span style=color:#75715e>#6  0x000055ef22085167 in ExecScanFetch (node=0x55ef23238f80, accessMtd=0x55ef220a0171 &lt;FunctionNext&gt;, recheckMtd=0x55ef220a056d &lt;FunctionRecheck&gt;) at execScan.c:133
-</span><span style=color:#75715e>#7  0x000055ef220851e0 in ExecScan (node=0x55ef23238f80, accessMtd=0x55ef220a0171 &lt;FunctionNext&gt;, recheckMtd=0x55ef220a056d &lt;FunctionRecheck&gt;) at execScan.c:182
-</span><span style=color:#75715e>#8  0x000055ef220a05c3 in ExecFunctionScan (pstate=0x55ef23238f80) at nodeFunctionscan.c:270
-</span><span style=color:#75715e>#9  0x000055ef22080dd8 in ExecProcNodeFirst (node=0x55ef23238f80) at execProcnode.c:463
-</span><span style=color:#75715e>#10 0x000055ef220c4214 in ExecProcNode (node=0x55ef23238f80) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
-</span><span style=color:#75715e>#11 0x000055ef220c4497 in ExecNestLoop (pstate=0x55ef23238dd0) at nodeNestloop.c:109
-</span><span style=color:#75715e>#12 0x000055ef22080dd8 in ExecProcNodeFirst (node=0x55ef23238dd0) at execProcnode.c:463
-</span><span style=color:#75715e>#13 0x000055ef220909a0 in ExecProcNode (node=0x55ef23238dd0) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
-</span><span style=color:#75715e></span>
-<span style=color:#75715e>#0  heap_getnextslot (sscan=0x55ef232d29a0, direction=ForwardScanDirection, slot=0x55ef2322fb00) at heapam.c:1347
-</span><span style=color:#75715e>#1  0x000055ef220c7065 in table_scan_getnextslot (sscan=0x55ef232d29a0, direction=ForwardScanDirection, slot=0x55ef2322fb00) at ../../../src/include</span><span style=color:#75715e>/access/tableam.h:1046</span><span style=color:#75715e>
-</span><span style=color:#75715e>#2  0x000055ef220c7131 in SeqNext (node=0x55ef2322f950) at nodeSeqscan.c:80
-</span><span style=color:#75715e>#3  0x000055ef22085167 in ExecScanFetch (node=0x55ef2322f950, accessMtd=0x55ef220c7099 &lt;SeqNext&gt;, recheckMtd=0x55ef220c7142 &lt;SeqRecheck&gt;) at execScan.c:133
-</span><span style=color:#75715e>#4  0x000055ef2208520c in ExecScan (node=0x55ef2322f950, accessMtd=0x55ef220c7099 &lt;SeqNext&gt;, recheckMtd=0x55ef220c7142 &lt;SeqRecheck&gt;) at execScan.c:199
-</span><span style=color:#75715e>#5  0x000055ef220c7198 in ExecSeqScan (pstate=0x55ef2322f950) at nodeSeqscan.c:112
-</span><span style=color:#75715e>#6  0x000055ef220b53f1 in ExecProcNode (node=0x55ef2322f950) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
-</span><span style=color:#75715e>#7  0x000055ef220b5601 in ExecMaterial (pstate=0x55ef2323a200) at nodeMaterial.c:134
-</span><span style=color:#75715e>#8  0x000055ef220c4214 in ExecProcNode (node=0x55ef2323a200) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
-</span><span style=color:#75715e>#9  0x000055ef220c4673 in ExecNestLoop (pstate=0x55ef23238dd0) at nodeNestloop.c:160
-</span><span style=color:#75715e>#10 0x000055ef220909a0 in ExecProcNode (node=0x55ef23238dd0) at ../../../src/include</span><span style=color:#75715e>/executor/executor.h:259</span><span style=color:#75715e>
-</span><span style=color:#75715e>#11 0x000055ef22090efa in fetch_input_tuple (aggstate=0x55ef232386e0) at nodeAgg.c:563
-</span><span style=color:#75715e>#12 0x000055ef220946d6 in agg_fill_hash_table (aggstate=0x55ef232386e0) at nodeAgg.c:2533
-</span></code></pre></div><p>dml的执行，最后生成节点树，每个节点通过ExecProcNode来递归调用</p>
-<p>&ndash; ProcessQuery</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
-CreatePortal
-
-PortalDefineQuery
-
-PortalStart
-  CreateQueryDesc   
-  ExecutorStart
-    standard_ExecutorStart
-      CreateExecutorState
-        InitPlan
-          ExecInitNode  <span style=color:#960050;background-color:#1e0010>按类型执行</span>node的初始化<span style=color:#960050;background-color:#1e0010>，设置执行过程中的关键参数，比如函数指针</span>ExecProcNode<span style=color:#960050;background-color:#1e0010>。执行模型是火山模型，由于没有</span>c<span style=color:#f92672>++</span><span style=color:#960050;background-color:#1e0010>中的虚函数，所以</span>pg中大部分所有的算子都会设置ExecProcNe<span style=color:#960050;background-color:#1e0010>，以达到在后续的</span>ExecProcNode函数中<span style=color:#960050;background-color:#1e0010>，可以直接根据具体的节点类型递归的执行</span>tuple的拉取<span style=color:#960050;background-color:#1e0010>，后续的</span>run和end也是类似的思路
-
-PortalRun
-  ExecutorRun
-    standard_ExecutorRun
-      ExecutePlan
-        ExecProcNode
-
-PortalDrop
-  PortalCleanup
-    ExecutorFinish
-    ExecutorEnd
-      ExecEndNode
-    FreeQueryDesc
-
-</code></pre></div><p>大致的过程，ProcessQuery中有完整的过程，在exec_simple_query中是一个大的循环，和其他类型的语句揉在一起</p>
-<p>&ndash; case 2 ddl执行， utility语句，按照语句类型选择具体的执行函数，以函数为主体执行功能</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> course (
-  <span style=color:#66d9ef>no</span> serial,
-  name varchar,
-  credit int,
-  <span style=color:#66d9ef>constraint</span> cons <span style=color:#66d9ef>check</span> (credit <span style=color:#f92672>&gt;=</span> <span style=color:#ae81ff>0</span> <span style=color:#66d9ef>and</span> name <span style=color:#f92672>&lt;&gt;</span> <span style=color:#e6db74>&#39;&#39;</span>),
-  <span style=color:#66d9ef>primary</span> <span style=color:#66d9ef>key</span>(<span style=color:#66d9ef>no</span>)
-);
-</code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh>
-<span style=color:#75715e>#0  ProcessUtility (pstmt=0x55ef23161a28, queryString=0x55ef2315fe40 &#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;, readOnlyTree=false, context=PROCESS_UTILITY_TOPLEVEL, params=0x0, queryEnv=0x0, dest=0x55ef23161b18, qc=0x7fffcc2f5d50) at utility.c:525</span>
-<span style=color:#75715e>#1  0x000055ef2231785a in PortalRunUtility (portal=0x55ef231d23d0, pstmt=0x55ef23161a28, isTopLevel=true, setHoldSnapshot=false, dest=0x55ef23161b18, qc=0x7fffcc2f5d50) at pquery.c:1158</span>
-<span style=color:#75715e>#2  0x000055ef22317ad0 in PortalRunMulti (portal=0x55ef231d23d0, isTopLevel=true, setHoldSnapshot=false, dest=0x55ef23161b18, altdest=0x55ef23161b18, qc=0x7fffcc2f5d50) at pquery.c:1315</span>
-<span style=color:#75715e>#3  0x000055ef22316f3d in PortalRun (portal=0x55ef231d23d0, count=9223372036854775807, isTopLevel=true, run_once=true, dest=0x55ef23161b18, altdest=0x55ef23161b18, qc=0x7fffcc2f5d50) at pquery.c:791</span>
-<span style=color:#75715e>#4  0x000055ef223101bb in exec_simple_query (query_string=0x55ef2315fe40 &#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;) at postgres.c:1243</span>
-
-
-<span style=color:#75715e>#0  transformColumnDefinition (cxt=0x7fffcc2f54d0, column=0x55ef23160aa8) at parse_utilcmd.c:529</span>
-<span style=color:#75715e>#1  0x000055ef21f815b7 in transformCreateStmt (stmt=0x55ef23161678,</span>
-    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span><span style=color:#f92672>)</span>
-    at parse_utilcmd.c:270
-<span style=color:#75715e>#2  0x000055ef2231a04c in ProcessUtilitySlow (pstate=0x55ef23270be0, pstmt=0x55ef23161a28,</span>
-    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
-    context<span style=color:#f92672>=</span>PROCESS_UTILITY_TOPLEVEL, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef23161b18, qc<span style=color:#f92672>=</span>0x7fffcc2f5d50<span style=color:#f92672>)</span> at utility.c:1147
-
-
-<span style=color:#75715e>#0  ProcessUtilitySlow (pstate=0x55ef232cf220, pstmt=0x55ef232b0fa8,</span>
-    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
-    context<span style=color:#f92672>=</span>PROCESS_UTILITY_SUBCOMMAND, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef2282e060 &lt;donothingDR&gt;, qc<span style=color:#f92672>=</span>0x0<span style=color:#f92672>)</span> at utility.c:1660
-<span style=color:#75715e>#1  0x000055ef22319e3b in standard_ProcessUtility (pstmt=0x55ef232b0fa8,</span>
-    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
-    readOnlyTree<span style=color:#f92672>=</span>false, context<span style=color:#f92672>=</span>PROCESS_UTILITY_SUBCOMMAND, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef2282e060 &lt;donothingDR&gt;, qc<span style=color:#f92672>=</span>0x0<span style=color:#f92672>)</span> at utility.c:1074
-<span style=color:#75715e>#2  0x000055ef22318db1 in ProcessUtility (pstmt=0x55ef232b0fa8,</span>
-    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
-    readOnlyTree<span style=color:#f92672>=</span>false, context<span style=color:#f92672>=</span>PROCESS_UTILITY_SUBCOMMAND, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef2282e060 &lt;donothingDR&gt;, qc<span style=color:#f92672>=</span>0x0<span style=color:#f92672>)</span> at utility.c:530
-<span style=color:#75715e>#3  0x000055ef2231a3ae in ProcessUtilitySlow (pstate=0x55ef23270be0, pstmt=0x55ef23161a28,</span>
-    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
-    context<span style=color:#f92672>=</span>PROCESS_UTILITY_TOPLEVEL, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef23161b18, qc<span style=color:#f92672>=</span>0x7fffcc2f5d50<span style=color:#f92672>)</span> at utility.c:1252
-<span style=color:#75715e>#4  0x000055ef22319e3b in standard_ProcessUtility (pstmt=0x55ef23161a28,</span>
-    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
-    readOnlyTree<span style=color:#f92672>=</span>false, context<span style=color:#f92672>=</span>PROCESS_UTILITY_TOPLEVEL, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef23161b18, qc<span style=color:#f92672>=</span>0x7fffcc2f5d50<span style=color:#f92672>)</span> at utility.c:1074
-
-
-<span style=color:#75715e>#0  DefineSequence (pstate=0x55ef232cf220, seq=0x55ef232cf508) at sequence.c:221</span>
-<span style=color:#75715e>#1  0x000055ef2231b3c9 in ProcessUtilitySlow (pstate=0x55ef232cf220, pstmt=0x55ef232b0fa8,</span>
-    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
-    context<span style=color:#f92672>=</span>PROCESS_UTILITY_SUBCOMMAND, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef2282e060 &lt;donothingDR&gt;, qc<span style=color:#f92672>=</span>0x0<span style=color:#f92672>)</span> at utility.c:1660
-<span style=color:#75715e>#2  0x000055ef22319e3b in standard_ProcessUtility (pstmt=0x55ef232b0fa8,</span>
-    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
-    readOnlyTree<span style=color:#f92672>=</span>false, context<span style=color:#f92672>=</span>PROCESS_UTILITY_SUBCOMMAND, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef2282e060 &lt;donothingDR&gt;, qc<span style=color:#f92672>=</span>0x0<span style=color:#f92672>)</span> at utility.c:1074
-<span style=color:#75715e>#3  0x000055ef22318db1 in ProcessUtility (pstmt=0x55ef232b0fa8,</span>
-    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
-    readOnlyTree<span style=color:#f92672>=</span>false, context<span style=color:#f92672>=</span>PROCESS_UTILITY_SUBCOMMAND, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef2282e060 &lt;donothingDR&gt;, qc<span style=color:#f92672>=</span>0x0<span style=color:#f92672>)</span> at utility.c:530
-<span style=color:#75715e>#4  0x000055ef2231a3ae in ProcessUtilitySlow (pstate=0x55ef23270be0, pstmt=0x55ef23161a28,</span>
-    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
-    context<span style=color:#f92672>=</span>PROCESS_UTILITY_TOPLEVEL, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef23161b18, qc<span style=color:#f92672>=</span>0x7fffcc2f5d50<span style=color:#f92672>)</span> at utility.c:1252
-
-
-<span style=color:#75715e>#0  AlterSequence (pstate=0x55ef232b7df8, stmt=0x55ef232cf6a0) at sequence.c:484</span>
-<span style=color:#75715e>#1  0x000055ef2231b3ff in ProcessUtilitySlow (pstate=0x55ef232b7df8, pstmt=0x55ef232c0f18,</span>
-    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
-    context<span style=color:#f92672>=</span>PROCESS_UTILITY_SUBCOMMAND, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef2282e060 &lt;donothingDR&gt;, qc<span style=color:#f92672>=</span>0x0<span style=color:#f92672>)</span> at utility.c:1664
-<span style=color:#75715e>#2  0x000055ef22319e3b in standard_ProcessUtility (pstmt=0x55ef232c0f18,</span>
-    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
-    readOnlyTree<span style=color:#f92672>=</span>false, context<span style=color:#f92672>=</span>PROCESS_UTILITY_SUBCOMMAND, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef2282e060 &lt;donothingDR&gt;, qc<span style=color:#f92672>=</span>0x0<span style=color:#f92672>)</span> at utility.c:1074
-<span style=color:#75715e>#3  0x000055ef22318db1 in ProcessUtility (pstmt=0x55ef232c0f18,</span>
-    queryString<span style=color:#f92672>=</span>0x55ef2315fe40 <span style=color:#e6db74>&#34;create table course (\n  no serial,\n  name varchar,\n  credit int,\n  constraint cons check (credit &gt;= 0 and name &lt;&gt; &#39;&#39;),\n  primary key(no)\n);&#34;</span>,
-    readOnlyTree<span style=color:#f92672>=</span>false, context<span style=color:#f92672>=</span>PROCESS_UTILITY_SUBCOMMAND, params<span style=color:#f92672>=</span>0x0, queryEnv<span style=color:#f92672>=</span>0x0, dest<span style=color:#f92672>=</span>0x55ef2282e060 &lt;donothingDR&gt;, qc<span style=color:#f92672>=</span>0x0<span style=color:#f92672>)</span> at utility.c:530
-</code></pre></div>
 </div>
 <div class=pagination>
 <div class=pagination__title>

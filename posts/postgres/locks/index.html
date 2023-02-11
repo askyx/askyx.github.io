@@ -10,24 +10,24 @@ Esoye — My note blog
 while (TAS_SPIN(lock)) { perform_spin_delay(&amp;amp;delayStatus); } perform_spin_delay(SpinDelayStatus *status) { /* CPU-specific delay each time through the loop */ SPIN_DELAY(); /* Block the process every spins_per_delay tries */ if (++(status-&amp;gt;spins) &amp;gt;= spins_per_delay) { if (++(status-&amp;gt;delays) &amp;gt; NUM_DELAYS) s_lock_stuck(status-&amp;gt;file, status-&amp;gt;line, status-&amp;gt;func); if (status-&amp;gt;cur_delay == 0) /* first time to delay? */ status-&amp;gt;cur_delay = MIN_DELAY_USEC; pg_usleep(status-&amp;gt;cur_delay); /* increase delay by a random fraction between 1X and 2X */ status-&amp;gt;cur_delay += (int) (status-&amp;gt;cur_delay * pg_prng_double(&amp;amp;pg_global_prng_state) + 0.">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
-<link rel=canonical href=https://select1fromdual.github.io/posts/postgres/locks/>
-<link rel=stylesheet href=https://select1fromdual.github.io/assets/style.css>
-<link rel=stylesheet href=https://select1fromdual.github.io/style.css>
-<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://select1fromdual.github.io/img/apple-touch-icon-144-precomposed.png>
-<link rel="shortcut icon" href=https://select1fromdual.github.io/img/favicon.png>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link rel=canonical href=https://askyx.github.io/posts/postgres/locks/>
+<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
+<link rel=stylesheet href=https://askyx.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://askyx.github.io/img/favicon.png>
+<link href=https://askyx.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
 <meta name=twitter:card content="summary">
 <meta name=twitter:title content="Locks">
 <meta name=twitter:description content="PG 中锁的分析">
 <meta property="og:title" content="Locks">
 <meta property="og:description" content="PG 中锁的分析">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://select1fromdual.github.io/posts/postgres/locks/"><meta property="article:section" content="posts">
+<meta property="og:url" content="https://askyx.github.io/posts/postgres/locks/"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2022-09-28T15:42:18+08:00">
 <meta property="article:modified_time" content="2022-09-28T15:42:18+08:00"><meta property="og:site_name" content="Esoye">
 </head>
@@ -66,9 +66,9 @@ while (TAS_SPIN(lock)) { perform_spin_delay(&amp;amp;delayStatus); } perform_spi
 </span>
 </div>
 <span class=post-tags>
-<a href=https://select1fromdual.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
-<a href=https://select1fromdual.github.io/tags/postgres/>#Postgres</a>&nbsp;
-<a href=https://select1fromdual.github.io/tags/lock/>#LOCK</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
+<a href=https://askyx.github.io/tags/postgres/>#Postgres</a>&nbsp;
+<a href=https://askyx.github.io/tags/lock/>#LOCK</a>&nbsp;
 </span>
 <div class=post-content>
 <h2>Table of Contents</h2>
@@ -241,13 +241,13 @@ LWLock
 </div>
 <div class=pagination__buttons>
 <span class="button previous">
-<a href=https://select1fromdual.github.io/posts/postgres/parser/>
+<a href=https://askyx.github.io/posts/postgres/parser/>
 <span class=button__icon>←</span>
 <span class=button__text>postgres Parser</span>
 </a>
 </span>
 <span class="button next">
-<a href=https://select1fromdual.github.io/posts/postgres/vacuum/>
+<a href=https://askyx.github.io/posts/postgres/vacuum/>
 <span class=button__text>vacuum 和 analyze 过程分析</span>
 <span class=button__icon>→</span>
 </a>
@@ -272,8 +272,8 @@ LWLock
 </div>
 </div>
 </footer>
-<script src=https://select1fromdual.github.io/assets/main.js></script>
-<script src=https://select1fromdual.github.io/assets/prism.js></script>
+<script src=https://askyx.github.io/assets/main.js></script>
+<script src=https://askyx.github.io/assets/prism.js></script>
 </div>
 </body>
 </html>

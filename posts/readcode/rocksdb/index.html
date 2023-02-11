@@ -15,24 +15,24 @@ Arena #  在levelDB的基础上，添加了大空间的支持，对于huge_block
 char* Arena::AllocateFromHugePage(size_t bytes) { #ifdef MAP_HUGETLB if (hugetlb_size_ == 0) { return nullptr; } // Reserve space in `huge_blocks_` before calling `mmap`. // Use `emplace_back()` instead of `reserve()` to let std::vector manage its // own memory and do fewer reallocations. // // - If `emplace_back` throws, no memory leaks because we haven&amp;#39;t called // `mmap` yet.">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
-<link rel=canonical href=https://select1fromdual.github.io/posts/readcode/rocksdb/>
-<link rel=stylesheet href=https://select1fromdual.github.io/assets/style.css>
-<link rel=stylesheet href=https://select1fromdual.github.io/style.css>
-<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://select1fromdual.github.io/img/apple-touch-icon-144-precomposed.png>
-<link rel="shortcut icon" href=https://select1fromdual.github.io/img/favicon.png>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link rel=canonical href=https://askyx.github.io/posts/readcode/rocksdb/>
+<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
+<link rel=stylesheet href=https://askyx.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://askyx.github.io/img/favicon.png>
+<link href=https://askyx.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
 <meta name=twitter:card content="summary">
 <meta name=twitter:title content="RocksDB源码分析">
 <meta name=twitter:description content="RocksDB 源码总结分析">
 <meta property="og:title" content="RocksDB源码分析">
 <meta property="og:description" content="RocksDB 源码总结分析">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://select1fromdual.github.io/posts/readcode/rocksdb/"><meta property="article:section" content="posts">
+<meta property="og:url" content="https://askyx.github.io/posts/readcode/rocksdb/"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2022-10-21T16:38:26+08:00">
 <meta property="article:modified_time" content="2022-10-21T16:38:26+08:00"><meta property="og:site_name" content="Esoye">
 </head>
@@ -71,9 +71,9 @@ char* Arena::AllocateFromHugePage(size_t bytes) { #ifdef MAP_HUGETLB if (hugetlb
 </span>
 </div>
 <span class=post-tags>
-<a href=https://select1fromdual.github.io/tags/%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/>#源码阅读</a>&nbsp;
-<a href=https://select1fromdual.github.io/tags/rocksdb/>#RocksDB</a>&nbsp;
-<a href=https://select1fromdual.github.io/tags/%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/>#存储引擎</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/>#源码阅读</a>&nbsp;
+<a href=https://askyx.github.io/tags/rocksdb/>#RocksDB</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/>#存储引擎</a>&nbsp;
 </span>
 <div class=post-content>
 <p><a href=http://alexstocks.github.io/html/rocksdb.html>note1</a></p>
@@ -185,13 +185,13 @@ MemTable
 </div>
 <div class=pagination__buttons>
 <span class="button previous">
-<a href=https://select1fromdual.github.io/posts/postgres/memctx/>
+<a href=https://askyx.github.io/posts/postgres/memctx/>
 <span class=button__icon>←</span>
 <span class=button__text>内存管理</span>
 </a>
 </span>
 <span class="button next">
-<a href=https://select1fromdual.github.io/posts/postgres/parser/>
+<a href=https://askyx.github.io/posts/postgres/parser/>
 <span class=button__text>postgres Parser</span>
 <span class=button__icon>→</span>
 </a>
@@ -216,8 +216,8 @@ MemTable
 </div>
 </div>
 </footer>
-<script src=https://select1fromdual.github.io/assets/main.js></script>
-<script src=https://select1fromdual.github.io/assets/prism.js></script>
+<script src=https://askyx.github.io/assets/main.js></script>
+<script src=https://askyx.github.io/assets/prism.js></script>
 </div>
 </body>
 </html>

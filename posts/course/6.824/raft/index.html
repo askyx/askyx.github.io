@@ -23,17 +23,17 @@ Esoye — My note blog
 在 Raft 中安全性的关键是在图 3 中展示的状态机安全：如果有任何的服务器节点已经应用了一个确定的日志条目到它的状态机中，那么其他服务器节点不能在同一个日志索引位置应用一个不同的指令  可以在这个网站查看实例">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
-<link rel=canonical href=https://select1fromdual.github.io/posts/course/6.824/raft/>
-<link rel=stylesheet href=https://select1fromdual.github.io/assets/style.css>
-<link rel=stylesheet href=https://select1fromdual.github.io/style.css>
-<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://select1fromdual.github.io/img/apple-touch-icon-144-precomposed.png>
-<link rel="shortcut icon" href=https://select1fromdual.github.io/img/favicon.png>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link rel=canonical href=https://askyx.github.io/posts/course/6.824/raft/>
+<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
+<link rel=stylesheet href=https://askyx.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://askyx.github.io/img/favicon.png>
+<link href=https://askyx.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
 <meta name=twitter:card content="summary">
 <meta name=twitter:title content="Raft">
 <meta name=twitter:description content="译文 原文 有用的飞书文档    和其他的算法相比  Strong leader
@@ -68,7 +68,7 @@ Esoye — My note blog
 领导人必须从客户端接收日志然后复制到集群中的其他节点，并且强制要求其他节点的日志保持和自己相同 安全性
 在 Raft 中安全性的关键是在图 3 中展示的状态机安全：如果有任何的服务器节点已经应用了一个确定的日志条目到它的状态机中，那么其他服务器节点不能在同一个日志索引位置应用一个不同的指令  可以在这个网站查看实例">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://select1fromdual.github.io/posts/course/6.824/raft/"><meta property="article:section" content="posts">
+<meta property="og:url" content="https://askyx.github.io/posts/course/6.824/raft/"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2022-05-30T18:51:02+08:00">
 <meta property="article:modified_time" content="2022-05-30T18:51:02+08:00"><meta property="og:site_name" content="Esoye">
 </head>
@@ -107,9 +107,9 @@ Esoye — My note blog
 </span>
 </div>
 <span class=post-tags>
-<a href=https://select1fromdual.github.io/tags/%E8%AE%BA%E6%96%87/>#论文</a>&nbsp;
-<a href=https://select1fromdual.github.io/tags/raft/>#Raft</a>&nbsp;
-<a href=https://select1fromdual.github.io/tags/6.824/>#6.824</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E8%AE%BA%E6%96%87/>#论文</a>&nbsp;
+<a href=https://askyx.github.io/tags/raft/>#Raft</a>&nbsp;
+<a href=https://askyx.github.io/tags/6.824/>#6.824</a>&nbsp;
 </span>
 <div class=post-content>
 <blockquote>
@@ -468,13 +468,13 @@ Raft 通过比较两份日志中最后一条日志条目的索引值和任期号
 </div>
 <div class=pagination__buttons>
 <span class="button previous">
-<a href=https://select1fromdual.github.io/posts/course/15445/note/>
+<a href=https://askyx.github.io/posts/course/15445/note/>
 <span class=button__icon>←</span>
 <span class=button__text>15445课程笔记</span>
 </a>
 </span>
 <span class="button next">
-<a href=https://select1fromdual.github.io/posts/course/6.824/gfs/>
+<a href=https://askyx.github.io/posts/course/6.824/gfs/>
 <span class=button__text>GFS</span>
 <span class=button__icon>→</span>
 </a>
@@ -499,8 +499,8 @@ Raft 通过比较两份日志中最后一条日志条目的索引值和任期号
 </div>
 </div>
 </footer>
-<script src=https://select1fromdual.github.io/assets/main.js></script>
-<script src=https://select1fromdual.github.io/assets/prism.js></script>
+<script src=https://askyx.github.io/assets/main.js></script>
+<script src=https://askyx.github.io/assets/prism.js></script>
 </div>
 </body>
 </html>

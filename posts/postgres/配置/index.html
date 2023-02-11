@@ -11,17 +11,17 @@ http://www.postgres.cn/docs/12/view-pg-settings.html
  Column | Type | Collation | Nullable | Default | Storage | Description  &amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;ndash;+&amp;mdash;&amp;mdash;&amp;mdash;+&amp;mdash;&amp;mdash;&amp;mdash;&amp;ndash;+&amp;mdash;&amp;mdash;&amp;mdash;-+&amp;mdash;&amp;mdash;&amp;mdash;+&amp;mdash;&amp;mdash;&amp;mdash;-+&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;- name | text | | | | extended | 名称 setting | text | | | | extended | 配置 unit | text | | | | extended | 单位 category | text | | | | extended | 分类 short_desc | text | | | | extended | 描述 extra_desc | text | | | | extended | 附加描述 context | text | | | | extended | 上下文 vartype | text | | | | extended | 参数类型 source | text | | | | extended | 来源 min_val | text | | | | extended | 最小值 max_val | text | | | | extended | 最大值 enumvals | text[] | | | | extended | 枚举的允许值 boot_val | text | | | | extended | 默认值 reset_val | text | | | | extended | 当前session中reset 之后会设置的值 sourcefile | text | | | | extended | 设置文件 sourceline | integer | | | | plain | 文件行号 pending_restart | boolean | | | | plain | 修改文件是否需要重启生效 select name, setting, boot_val, reset_val, sourcefile, sourceline, pending_restart from pg_settings ; View definition: SELECT a.">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
-<link rel=canonical href=https://select1fromdual.github.io/posts/postgres/%E9%85%8D%E7%BD%AE/>
-<link rel=stylesheet href=https://select1fromdual.github.io/assets/style.css>
-<link rel=stylesheet href=https://select1fromdual.github.io/style.css>
-<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://select1fromdual.github.io/img/apple-touch-icon-144-precomposed.png>
-<link rel="shortcut icon" href=https://select1fromdual.github.io/img/favicon.png>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link rel=canonical href=https://askyx.github.io/posts/postgres/%E9%85%8D%E7%BD%AE/>
+<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
+<link rel=stylesheet href=https://askyx.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://askyx.github.io/img/favicon.png>
+<link href=https://askyx.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
 <meta name=twitter:card content="summary">
 <meta name=twitter:title content>
 <meta name=twitter:description content="配置文件guc.c
@@ -32,7 +32,7 @@ http://www.postgres.cn/docs/12/view-pg-settings.html
 http://www.postgres.cn/docs/12/view-pg-settings.html
  Column | Type | Collation | Nullable | Default | Storage | Description  &mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+&mdash;&mdash;&mdash;+&mdash;&mdash;&mdash;&ndash;+&mdash;&mdash;&mdash;-+&mdash;&mdash;&mdash;+&mdash;&mdash;&mdash;-+&mdash;&mdash;&mdash;&mdash;- name | text | | | | extended | 名称 setting | text | | | | extended | 配置 unit | text | | | | extended | 单位 category | text | | | | extended | 分类 short_desc | text | | | | extended | 描述 extra_desc | text | | | | extended | 附加描述 context | text | | | | extended | 上下文 vartype | text | | | | extended | 参数类型 source | text | | | | extended | 来源 min_val | text | | | | extended | 最小值 max_val | text | | | | extended | 最大值 enumvals | text[] | | | | extended | 枚举的允许值 boot_val | text | | | | extended | 默认值 reset_val | text | | | | extended | 当前session中reset 之后会设置的值 sourcefile | text | | | | extended | 设置文件 sourceline | integer | | | | plain | 文件行号 pending_restart | boolean | | | | plain | 修改文件是否需要重启生效 select name, setting, boot_val, reset_val, sourcefile, sourceline, pending_restart from pg_settings ; View definition: SELECT a.">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://select1fromdual.github.io/posts/postgres/%E9%85%8D%E7%BD%AE/"><meta property="article:section" content="posts">
+<meta property="og:url" content="https://askyx.github.io/posts/postgres/%E9%85%8D%E7%BD%AE/"><meta property="article:section" content="posts">
 <meta property="og:site_name" content="Esoye">
 </head>
 <body class=light-theme>
@@ -226,13 +226,13 @@ PGC_USERSET 任何人都可以在随意设置
 </div>
 <div class=pagination__buttons>
 <span class="button previous">
-<a href=https://select1fromdual.github.io/posts/postgres/cost/>
+<a href=https://askyx.github.io/posts/postgres/cost/>
 <span class=button__icon>←</span>
 <span class=button__text></span>
 </a>
 </span>
 <span class="button next">
-<a href=https://select1fromdual.github.io/posts/static/mysql/>
+<a href=https://askyx.github.io/posts/static/mysql/>
 <span class=button__text></span>
 <span class=button__icon>→</span>
 </a>
@@ -257,8 +257,8 @@ PGC_USERSET 任何人都可以在随意设置
 </div>
 </div>
 </footer>
-<script src=https://select1fromdual.github.io/assets/main.js></script>
-<script src=https://select1fromdual.github.io/assets/prism.js></script>
+<script src=https://askyx.github.io/assets/main.js></script>
+<script src=https://askyx.github.io/assets/prism.js></script>
 </div>
 </body>
 </html>

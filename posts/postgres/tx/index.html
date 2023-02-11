@@ -16,24 +16,24 @@ pg最大可以管理64位地址的wal文件，当前默认wal文件大小为16M�
  第一部分8位代表timelineId，和backup有关 第二部分是逻辑地址，可全部使用 第三是最后部分，只使用低2位  此时地址的组织形式位 (8 * 4 + 2 * 4 + 24) = 64">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
-<link rel=canonical href=https://select1fromdual.github.io/posts/postgres/tx/>
-<link rel=stylesheet href=https://select1fromdual.github.io/assets/style.css>
-<link rel=stylesheet href=https://select1fromdual.github.io/style.css>
-<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://select1fromdual.github.io/img/apple-touch-icon-144-precomposed.png>
-<link rel="shortcut icon" href=https://select1fromdual.github.io/img/favicon.png>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link rel=canonical href=https://askyx.github.io/posts/postgres/tx/>
+<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
+<link rel=stylesheet href=https://askyx.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://askyx.github.io/img/favicon.png>
+<link href=https://askyx.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
 <meta name=twitter:card content="summary">
 <meta name=twitter:title content="Postgres 事务相关记录">
 <meta name=twitter:description content="事务分析记录">
 <meta property="og:title" content="Postgres 事务相关记录">
 <meta property="og:description" content="事务分析记录">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://select1fromdual.github.io/posts/postgres/tx/"><meta property="article:section" content="posts">
+<meta property="og:url" content="https://askyx.github.io/posts/postgres/tx/"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2022-11-14T09:58:09+08:00">
 <meta property="article:modified_time" content="2022-11-14T09:58:09+08:00"><meta property="og:site_name" content="Esoye">
 </head>
@@ -346,13 +346,13 @@ CRDB能做到因果一致性，对于不相干的key，则无法保证事件顺�
 </div>
 <div class=pagination__buttons>
 <span class="button previous">
-<a href=https://select1fromdual.github.io/posts/course/15441/note/>
+<a href=https://askyx.github.io/posts/course/15441/note/>
 <span class=button__icon>←</span>
 <span class=button__text>Bison Note</span>
 </a>
 </span>
 <span class="button next">
-<a href=https://select1fromdual.github.io/posts/readcode/libpqxx/>
+<a href=https://askyx.github.io/posts/readcode/libpqxx/>
 <span class=button__text>Libpqxx</span>
 <span class=button__icon>→</span>
 </a>
@@ -377,8 +377,8 @@ CRDB能做到因果一致性，对于不相干的key，则无法保证事件顺�
 </div>
 </div>
 </footer>
-<script src=https://select1fromdual.github.io/assets/main.js></script>
-<script src=https://select1fromdual.github.io/assets/prism.js></script>
+<script src=https://askyx.github.io/assets/main.js></script>
+<script src=https://askyx.github.io/assets/prism.js></script>
 </div>
 </body>
 </html>

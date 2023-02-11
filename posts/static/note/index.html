@@ -9,24 +9,24 @@ Esoye — My note blog
 <meta name=description content="爬虫 #  import requests from bs4 import BeautifulSoup prefix = &amp;#39;http://mysql.taobao.org&amp;#39; # 获取文章名和url（文章名,url） def query_name_url(url: str): resp = requests.get(url) soup = BeautifulSoup(resp.content.decode(&amp;#39;utf-8&amp;#39;), &amp;#34;html.parser&amp;#34;) tags = soup.findAll(&amp;#39;a&amp;#39;, {&amp;#39;target&amp;#39;: {&amp;#39;_blank&amp;#39;}}) urls = [v for v in tags if v[&amp;#39;href&amp;#39;].find(&amp;#39;/monthly/&amp;#39;) != -1] return [(str(v.string).strip(), prefix + v[&amp;#39;href&amp;#39;]) for v in urls] # 获取所有月报链接（月报名,url） def query_monthly_url(): resp = requests.get(&amp;#39;http://mysql.taobao.org/monthly/&amp;#39;) soup = BeautifulSoup(resp.content.decode(&amp;#39;utf-8&amp;#39;), &amp;#34;html.parser&amp;#34;) tags = soup.findAll(&amp;#39;a&amp;#39;, {&amp;#39;class&amp;#39;: {&amp;#39;main&amp;#39;}}) urls = [v for v in tags if v[&amp;#39;href&amp;#39;].">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
-<link rel=canonical href=https://select1fromdual.github.io/posts/static/note/>
-<link rel=stylesheet href=https://select1fromdual.github.io/assets/style.css>
-<link rel=stylesheet href=https://select1fromdual.github.io/style.css>
-<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://select1fromdual.github.io/img/apple-touch-icon-144-precomposed.png>
-<link rel="shortcut icon" href=https://select1fromdual.github.io/img/favicon.png>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link rel=canonical href=https://askyx.github.io/posts/static/note/>
+<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
+<link rel=stylesheet href=https://askyx.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://askyx.github.io/img/favicon.png>
+<link href=https://askyx.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
 <meta name=twitter:card content="summary">
 <meta name=twitter:title content="数据库文章资源汇总">
 <meta name=twitter:description content="爬虫 #  import requests from bs4 import BeautifulSoup prefix = 'http://mysql.taobao.org' # 获取文章名和url（文章名,url） def query_name_url(url: str): resp = requests.get(url) soup = BeautifulSoup(resp.content.decode('utf-8'), &#34;html.parser&#34;) tags = soup.findAll('a', {'target': {'_blank'}}) urls = [v for v in tags if v['href'].find('/monthly/') != -1] return [(str(v.string).strip(), prefix + v['href']) for v in urls] # 获取所有月报链接（月报名,url） def query_monthly_url(): resp = requests.get('http://mysql.taobao.org/monthly/') soup = BeautifulSoup(resp.content.decode('utf-8'), &#34;html.parser&#34;) tags = soup.findAll('a', {'class': {'main'}}) urls = [v for v in tags if v['href'].">
 <meta property="og:title" content="数据库文章资源汇总">
 <meta property="og:description" content="爬虫 #  import requests from bs4 import BeautifulSoup prefix = 'http://mysql.taobao.org' # 获取文章名和url（文章名,url） def query_name_url(url: str): resp = requests.get(url) soup = BeautifulSoup(resp.content.decode('utf-8'), &#34;html.parser&#34;) tags = soup.findAll('a', {'target': {'_blank'}}) urls = [v for v in tags if v['href'].find('/monthly/') != -1] return [(str(v.string).strip(), prefix + v['href']) for v in urls] # 获取所有月报链接（月报名,url） def query_monthly_url(): resp = requests.get('http://mysql.taobao.org/monthly/') soup = BeautifulSoup(resp.content.decode('utf-8'), &#34;html.parser&#34;) tags = soup.findAll('a', {'class': {'main'}}) urls = [v for v in tags if v['href'].">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://select1fromdual.github.io/posts/static/note/"><meta property="article:section" content="posts">
+<meta property="og:url" content="https://askyx.github.io/posts/static/note/"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2022-07-20T17:44:29+08:00">
 <meta property="article:modified_time" content="2022-07-20T17:44:29+08:00"><meta property="og:site_name" content="Esoye">
 </head>
@@ -65,8 +65,8 @@ Esoye — My note blog
 </span>
 </div>
 <span class=post-tags>
-<a href=https://select1fromdual.github.io/tags/%E8%B5%84%E6%BA%90/>#资源</a>&nbsp;
-<a href=https://select1fromdual.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E8%B5%84%E6%BA%90/>#资源</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
 </span>
 <div class=post-content>
 <h2 id=爬虫>
@@ -1073,13 +1073,13 @@ X-Engine
 </div>
 <div class=pagination__buttons>
 <span class="button previous">
-<a href=https://select1fromdual.github.io/posts/postgres/env/>
+<a href=https://askyx.github.io/posts/postgres/env/>
 <span class=button__icon>←</span>
 <span class=button__text>Postgres源码编译及调试</span>
 </a>
 </span>
 <span class="button next">
-<a href=https://select1fromdual.github.io/posts/postgres/postgres_executor/>
+<a href=https://askyx.github.io/posts/postgres/postgres_executor/>
 <span class=button__text>Postgres Executor</span>
 <span class=button__icon>→</span>
 </a>
@@ -1104,8 +1104,8 @@ X-Engine
 </div>
 </div>
 </footer>
-<script src=https://select1fromdual.github.io/assets/main.js></script>
-<script src=https://select1fromdual.github.io/assets/prism.js></script>
+<script src=https://askyx.github.io/assets/main.js></script>
+<script src=https://askyx.github.io/assets/prism.js></script>
 </div>
 </body>
 </html>

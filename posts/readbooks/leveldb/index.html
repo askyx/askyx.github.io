@@ -9,24 +9,24 @@ Esoye — My note blog
 <meta name=description content="LevelDB: version 1.23 Date: Thu Oct 20 15:32:47 2022 CPU: 16 * AMD Ryzen 9 5900HS with Radeon Graphics CPUCache: 512 KB Keys: 16 bytes each Values: 100 bytes each (50 bytes after compression) Entries: 1000000 RawSize: 110.6 MB (estimated) FileSize: 62.9 MB (estimated) ------------------------------------------------ fillseq : 1.394 micros/op; 79.3 MB/s fillsync : 1208.178 micros/op; 0.1 MB/s (1000 ops) fillrandom : 1.948 micros/op; 56.8 MB/s overwrite : 2.448 micros/op; 45.">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
-<link rel=canonical href=https://select1fromdual.github.io/posts/readbooks/leveldb/>
-<link rel=stylesheet href=https://select1fromdual.github.io/assets/style.css>
-<link rel=stylesheet href=https://select1fromdual.github.io/style.css>
-<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://select1fromdual.github.io/img/apple-touch-icon-144-precomposed.png>
-<link rel="shortcut icon" href=https://select1fromdual.github.io/img/favicon.png>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link rel=canonical href=https://askyx.github.io/posts/readbooks/leveldb/>
+<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
+<link rel=stylesheet href=https://askyx.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://askyx.github.io/img/favicon.png>
+<link href=https://askyx.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
 <meta name=twitter:card content="summary">
 <meta name=twitter:title content="LevelDB源码阅读">
 <meta name=twitter:description content="leveldb 源码总结分析">
 <meta property="og:title" content="LevelDB源码阅读">
 <meta property="og:description" content="leveldb 源码总结分析">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://select1fromdual.github.io/posts/readbooks/leveldb/"><meta property="article:section" content="posts">
+<meta property="og:url" content="https://askyx.github.io/posts/readbooks/leveldb/"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2022-05-15T21:59:53+08:00">
 <meta property="article:modified_time" content="2022-05-15T21:59:53+08:00"><meta property="og:site_name" content="Esoye">
 </head>
@@ -65,9 +65,9 @@ Esoye — My note blog
 </span>
 </div>
 <span class=post-tags>
-<a href=https://select1fromdual.github.io/tags/%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/>#源码阅读</a>&nbsp;
-<a href=https://select1fromdual.github.io/tags/leveldb/>#LevelDB</a>&nbsp;
-<a href=https://select1fromdual.github.io/tags/%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/>#存储引擎</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/>#源码阅读</a>&nbsp;
+<a href=https://askyx.github.io/tags/leveldb/>#LevelDB</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/>#存储引擎</a>&nbsp;
 </span>
 <div class=post-content>
 <hr>
@@ -669,13 +669,13 @@ sst之间向下合并，其会把相同key的不同版本的数据合并，可�
 </div>
 <div class=pagination__buttons>
 <span class="button previous">
-<a href=https://select1fromdual.github.io/posts/course/6.824/coursenote/>
+<a href=https://askyx.github.io/posts/course/6.824/coursenote/>
 <span class=button__icon>←</span>
 <span class=button__text>Coursenote</span>
 </a>
 </span>
 <span class="button next">
-<a href=https://select1fromdual.github.io/posts/readbooks/volcanooptimizer/>
+<a href=https://askyx.github.io/posts/readbooks/volcanooptimizer/>
 <span class=button__text>VolcanoOptimizer</span>
 <span class=button__icon>→</span>
 </a>
@@ -700,8 +700,8 @@ sst之间向下合并，其会把相同key的不同版本的数据合并，可�
 </div>
 </div>
 </footer>
-<script src=https://select1fromdual.github.io/assets/main.js></script>
-<script src=https://select1fromdual.github.io/assets/prism.js></script>
+<script src=https://askyx.github.io/assets/main.js></script>
+<script src=https://askyx.github.io/assets/prism.js></script>
 </div>
 </body>
 </html>

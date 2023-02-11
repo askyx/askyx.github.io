@@ -10,24 +10,24 @@ Esoye — My note blog
  安装必须的依赖  # 换源升级 sudo sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list sudo sed -i s@/security.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list 或者 sudo sed -i &amp;#34;s@http://.*mirrors.aliyun.com@https://mirrors.tuna.tsinghua.edu.cn@g&amp;#34; /etc/apt/sources.list sudo sed -i &amp;#34;s@http://.*security.ubuntu.com@https://mirrors.tuna.tsinghua.edu.cn@g&amp;#34; /etc/apt/sources.list sudo apt-get update sudo apt-get upgrade sudo apt-get install flex bison g++ gcc gdb make \  libzstd-dev libxml2-dev libcurl4-openssl-dev vim \  libbz2-dev libperl-dev software-properties-common \  pkg-config libreadline-dev python3-dev libldap-dev \  zlib1g-dev openssh-server iputils-ping libxslt-dev \  libpam-dev libssl-dev libreadline6-dev libssh2-1-dev cmake ninja-build # 设置vscode 用户密码 sudo passwd vscode # 退出容器，重新启动下  使用docker的优点是资源隔离，完全不需要担心一个机器上多个相似开发环境的困扰">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
-<link rel=canonical href=https://select1fromdual.github.io/posts/postgres/pgenvbuild/>
-<link rel=stylesheet href=https://select1fromdual.github.io/assets/style.css>
-<link rel=stylesheet href=https://select1fromdual.github.io/style.css>
-<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://select1fromdual.github.io/img/apple-touch-icon-144-precomposed.png>
-<link rel="shortcut icon" href=https://select1fromdual.github.io/img/favicon.png>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
-<link href=https://select1fromdual.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link rel=canonical href=https://askyx.github.io/posts/postgres/pgenvbuild/>
+<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
+<link rel=stylesheet href=https://askyx.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://askyx.github.io/img/favicon.png>
+<link href=https://askyx.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
 <meta name=twitter:card content="summary">
 <meta name=twitter:title content="Postgres 系列数据库搭建">
 <meta name=twitter:description content="PG系数据库统一安装环境，使用Docker && VSCode on Ubuntu22搭建，这里总结整理，后续PG系得数据库安装方法统一在这里总结">
 <meta property="og:title" content="Postgres 系列数据库搭建">
 <meta property="og:description" content="PG系数据库统一安装环境，使用Docker && VSCode on Ubuntu22搭建，这里总结整理，后续PG系得数据库安装方法统一在这里总结">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://select1fromdual.github.io/posts/postgres/pgenvbuild/"><meta property="article:section" content="posts">
+<meta property="og:url" content="https://askyx.github.io/posts/postgres/pgenvbuild/"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2022-07-29T14:00:48+08:00">
 <meta property="article:modified_time" content="2022-07-29T14:00:48+08:00"><meta property="og:site_name" content="Esoye">
 </head>
@@ -66,9 +66,9 @@ Esoye — My note blog
 </span>
 </div>
 <span class=post-tags>
-<a href=https://select1fromdual.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
-<a href=https://select1fromdual.github.io/tags/postgres/>#Postgres</a>&nbsp;
-<a href=https://select1fromdual.github.io/tags/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/>#环境搭建</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
+<a href=https://askyx.github.io/tags/postgres/>#Postgres</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/>#环境搭建</a>&nbsp;
 </span>
 <div class=post-content>
 <h2>Table of Contents</h2>
@@ -696,7 +696,7 @@ index 5abb74f..2e363c2 100644
 <p>再或者revert掉我的提交，使用原作之前的centos的那个版本，配置路径直接<code>docker-compose up</code>然后坐等即可，那个我没有失败过</p>
 </li>
 </ol>
-<p>这里只写这一点，因为所有的坑已经在<a href=https://select1fromdual.github.io/trash/postgres_xc_build/>这里</a> 踩过了，如果在上述的过程中遇到问题，可以再<a href=https://select1fromdual.github.io/trash/postgres_xc_build/>这里面</a> 找答案</p>
+<p>这里只写这一点，因为所有的坑已经在<a href=https://askyx.github.io/trash/postgres_xc_build/>这里</a> 踩过了，如果在上述的过程中遇到问题，可以再<a href=https://askyx.github.io/trash/postgres_xc_build/>这里面</a> 找答案</p>
 <h2 id=greenplum>
 GreenPlum
 <a href=#greenplum class=h-anchor aria-hidden=true>#</a>
@@ -1022,13 +1022,13 @@ end
 </div>
 <div class=pagination__buttons>
 <span class="button previous">
-<a href=https://select1fromdual.github.io/posts/postgres/greenplum/>
+<a href=https://askyx.github.io/posts/postgres/greenplum/>
 <span class=button__icon>←</span>
 <span class=button__text>Greenplum</span>
 </a>
 </span>
 <span class="button next">
-<a href=https://select1fromdual.github.io/posts/postgres/storage/>
+<a href=https://askyx.github.io/posts/postgres/storage/>
 <span class=button__text>Postgres Storage</span>
 <span class=button__icon>→</span>
 </a>
@@ -1053,8 +1053,8 @@ end
 </div>
 </div>
 </footer>
-<script src=https://select1fromdual.github.io/assets/main.js></script>
-<script src=https://select1fromdual.github.io/assets/prism.js></script>
+<script src=https://askyx.github.io/assets/main.js></script>
+<script src=https://askyx.github.io/assets/prism.js></script>
 </div>
 </body>
 </html>

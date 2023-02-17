@@ -1,19 +1,15 @@
 <!doctype html><html lang=en>
 <head>
 <title>
-Postgres 事务相关记录 ::
+事务知识简记 ::
 Esoye — My note blog
 </title>
 <meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
-<meta name=description content="事务基础 #   ACID 事务演进 隔离级别 MVCC 2pl 主流数据库实现  PG事务 #  pg高链接数导致tps下降 简单总结
- 更新xmin的ping-pong问题，缓存失效，之前的结构设计不合理，xid存放位置不连续，且xmin每次都需要从 pgxact 中获取，此值会被频繁修改 修改 事务相关的组织格式，xids 现在单独存放在数组中 使用 xactCompletionCount 进行事务计算，快照原则上只要没有变化，则不需要重新获取，所以在事务提交或者事务abort的时候，进行自增，只有检测到 xactCompletionCount 变化了才重新获取 快照  事务实现框架 #  快照 #  WAL #  数据写到buffer中时候，不会选择立刻刷盘，如果任何的数据改动都需要一次IO，则有性能损失，但是只是保留在磁盘中，在系统崩溃的时候，数据会丢失，所以一般都会使用wal保留一部分未刷盘的数据。
-  REDO log
-Redo log通常称为重做日志，在写入数据文件前，每个变更都会先行写入到Redo log中。其用途和意义在于存储数据库的所有修改历史，用于数据库故障恢复（Recovery）、增量备份（Incremental Backup）、PITR(Point In Time Recovery)和复制（Replication）。
-  WAL segment file
-为了便于管理，PG把事务日志文件划分为N个segment，每个segment称为WAL segment file，每个WAL segment file大小默认为16MB。
-pg最大可以管理64位地址的wal文件，当前默认wal文件大小为16M，然后文件名的组织格式代表了剩下的寻址空间，首先文件名称可以分为三部分，
- 第一部分8位代表timelineId，和backup有关 第二部分是逻辑地址，可全部使用 第三是最后部分，只使用低2位  此时地址的组织形式位 (8 * 4 + 2 * 4 + 24) = 64">
+<meta name=description content="事务基础 #   ACID 事务演进 隔离级别 MVCC 2pl 主流数据库实现  PG事务 #  pg高链接数导致tps下降 1|2 #  简单总结
+ 更新xmin的ping-pong问题，缓存失效，之前的结构设计不合理，xid存放位置不连续，且xmin每次都需要从 pgxact 中获取，此值会被频繁修改 修改 事务相关的组织格式，xids 现在单独存放在数组中 使用 xactCompletionCount 进行事务计算，快照原则上只要没有变化，则不需要重新获取，所以在事务提交或者事务abort的时候，进行自增，只有检测到 xactCompletionCount 变化了才重新获取快照 之前需要 xmin 用于vacuum ，现在使用新机制判断，现在在循环中遍历 xids 取 min ， 不对立刻同步其他的 min， 所以这是一个粗略值，在之后可以简单进行判断，如果在之后获得了比 min 更大的值，才进行精确判断，且更新 min  无锁算法提交事务，减少proc加锁时间，提升并发 #  无锁算法是利用CPU的原子操作实现的数据结构和算法来解决原来只能用锁才能解决的并发控制问题
+ CAS Fetch-and-add Test-and-set  内存屏障 #  内存屏障相关函数，包括 compiler barrier 和 read/write barrier 语义上的布尔值（PG代码里叫flag，具体实现上可能映射到一个字节，或一个整数）的原子操作，包括：
+ pg_atomic_init_flag，初始化一个flag pg_atomic_test_set_flag, Test-And-Set，这也是flag的唯一支持的原子 操作函数 pg_atomic_unlocked_test_flag，检查flag是否没有被设置 pg_atomic_clear_flag，清除已设置的flag  32位无符号整数的原子操作，包括：">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
 <link rel=canonical href=https://askyx.github.io/posts/postgres/tx/>
@@ -28,14 +24,14 @@ pg最大可以管理64位地址的wal文件，当前默认wal文件大小为16M�
 <link href=https://askyx.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
 <link href=https://askyx.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
 <meta name=twitter:card content="summary">
-<meta name=twitter:title content="Postgres 事务相关记录">
-<meta name=twitter:description content="事务分析记录">
-<meta property="og:title" content="Postgres 事务相关记录">
-<meta property="og:description" content="事务分析记录">
+<meta name=twitter:title content="事务知识简记">
+<meta name=twitter:description content="事务分析记录，源码分析，关键技术点简记，唬人专用">
+<meta property="og:title" content="事务知识简记">
+<meta property="og:description" content="事务分析记录，源码分析，关键技术点简记，唬人专用">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://askyx.github.io/posts/postgres/tx/"><meta property="article:section" content="posts">
-<meta property="article:published_time" content="2022-11-14T09:58:09+08:00">
-<meta property="article:modified_time" content="2022-11-14T09:58:09+08:00"><meta property="og:site_name" content="Esoye">
+<meta property="article:published_time" content="2023-02-08T09:58:09+08:00">
+<meta property="article:modified_time" content="2023-02-08T09:58:09+08:00"><meta property="og:site_name" content="Esoye">
 </head>
 <body class=light-theme>
 <div class=container>
@@ -65,10 +61,10 @@ pg最大可以管理64位地址的wal文件，当前默认wal文件大小为16M�
 </header>
 <div class=content>
 <div class=post>
-<h1 class=post-title>Postgres 事务相关记录</h1>
+<h1 class=post-title>事务知识简记</h1>
 <div class=post-meta>
 <span class=post-date>
-2022-11-14
+2023-02-08
 </span>
 </div>
 <div class=post-content>
@@ -88,14 +84,114 @@ pg最大可以管理64位地址的wal文件，当前默认wal文件大小为16M�
 PG事务
 <a href=#pg%e4%ba%8b%e5%8a%a1 class=h-anchor aria-hidden=true>#</a>
 </h2>
-<p><a href=https://mingjie.blog.csdn.net/article/details/125931881>pg高链接数导致tps下降</a>
-简单总结</p>
+<h3 id=pg高链接数导致tps下降-1httpsmingjieblogcsdnnetarticledetails1259318812httpsmingjieblogcsdnnetarticledetails125935699>
+pg高链接数导致tps下降 <a href=https://mingjie.blog.csdn.net/article/details/125931881>1</a>|<a href=https://mingjie.blog.csdn.net/article/details/125935699>2</a>
+<a href=#pg%e9%ab%98%e9%93%be%e6%8e%a5%e6%95%b0%e5%af%bc%e8%87%b4tps%e4%b8%8b%e9%99%8d-1httpsmingjieblogcsdnnetarticledetails1259318812httpsmingjieblogcsdnnetarticledetails125935699 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>简单总结</p>
 <ul>
 <li>更新xmin的ping-pong问题，缓存失效，之前的结构设计不合理，xid存放位置不连续，且xmin每次都需要从 pgxact 中获取，此值会被频繁修改</li>
 <li>修改 事务相关的组织格式，xids 现在单独存放在数组中</li>
-<li>使用 xactCompletionCount 进行事务计算，快照原则上只要没有变化，则不需要重新获取，所以在事务提交或者事务abort的时候，进行自增，只有检测到 xactCompletionCount 变化了才重新获取 快照</li>
+<li>使用 xactCompletionCount 进行事务计算，快照原则上只要没有变化，则不需要重新获取，所以在事务提交或者事务abort的时候，进行自增，只有检测到 xactCompletionCount 变化了才重新获取快照</li>
+<li>之前需要 xmin 用于vacuum ，现在使用新机制判断，现在在循环中遍历 xids 取 min ， 不对立刻同步其他的 min， 所以这是一个粗略值，在之后可以简单进行判断，如果在之后获得了比 min 更大的值，才进行精确判断，且更新 min</li>
 </ul>
-<h3 id=事务实现框架>
+<h3 id=无锁算法提交事务减少proc加锁时间提升并发httpswwwbookstackcnreadaliyun-rds-corec3e73d0a666188d4md>
+<a href=https://www.bookstack.cn/read/aliyun-rds-core/c3e73d0a666188d4.md>无锁算法提交事务，减少proc加锁时间，提升并发</a>
+<a href=#%e6%97%a0%e9%94%81%e7%ae%97%e6%b3%95%e6%8f%90%e4%ba%a4%e4%ba%8b%e5%8a%a1%e5%87%8f%e5%b0%91proc%e5%8a%a0%e9%94%81%e6%97%b6%e9%97%b4%e6%8f%90%e5%8d%87%e5%b9%b6%e5%8f%91httpswwwbookstackcnreadaliyun-rds-corec3e73d0a666188d4md class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>无锁算法是利用CPU的原子操作实现的数据结构和算法来解决原来只能用锁才能解决的并发控制问题</p>
+<ul>
+<li>CAS</li>
+<li>Fetch-and-add</li>
+<li>Test-and-set</li>
+</ul>
+<h4 id=内存屏障>
+内存屏障
+<a href=#%e5%86%85%e5%ad%98%e5%b1%8f%e9%9a%9c class=h-anchor aria-hidden=true>#</a>
+</h4>
+<p>内存屏障相关函数，包括 <code>compiler barrier</code> 和 <code>read/write barrier</code> <br>
+语义上的布尔值（PG代码里叫flag，具体实现上可能映射到一个字节，或一个整数）的原子操作，包括：</p>
+<pre><code>  pg_atomic_init_flag，初始化一个flag
+  pg_atomic_test_set_flag, Test-And-Set，这也是flag的唯一支持的原子 操作函数
+  pg_atomic_unlocked_test_flag，检查flag是否没有被设置
+  pg_atomic_clear_flag，清除已设置的flag
+</code></pre>
+<p>32位无符号整数的原子操作，包括：</p>
+<pre><code>  pg_atomic_init_u32, pg_atomic_read_u32, pg_atomic_write_u32，初始化、读、写操作
+  pg_atomic_exchange_u32，给原子变量赋值并返回原值
+  pg_atomic_compare_exchange_u32, 32位无符号整数的CAS操作，比较原子变量和另一个变量的值， 如果相等就赋一个新值到原子变量里，返回一个布尔值标识是否进行了赋值操作
+  pg_atomic_fetch_add_u32, pg_atomic_fetch_sub_u32, pg_atomic_fetch_and_u32, pg_atomic_fetch_or_u32 对某个原子变量进行加、减、与、或操作，并返回变量改变之前的值
+  pg_atomic_add_fetch_u32, pg_atomic_sub_fetch_u32 对某个原子变量进行加、减操作，并返回变量改变之后的值
+</code></pre>
+<p>64位无符号整数的原子操作，与32位的实现的操作函数相似，只是实现的是64位版本，这里需要注意的是， 64位版本并不保证所有平台的都支持，目前在PostgreSQL的源代码中还没有被使用。</p>
+<h4 id=实际案例>
+实际案例：
+<a href=#%e5%ae%9e%e9%99%85%e6%a1%88%e4%be%8b class=h-anchor aria-hidden=true>#</a>
+</h4>
+<p>pg中事务在结束之后，需要设置 PGPROC 中的事务信息，确保其他 session 中再次获取 snapshot 的时候，完成事务不会在活跃列表中。此时会使用 ProcArrayLock 尝试对 ProcArray 加排他锁，此时锁竞争严重，后来对此进行优化，使用无锁编程技术，批量进行xid的重置，具体函数为 <code>ProcArrayEndTransaction</code></p>
+<pre><code>ProcArrayGroupClearXid
+  大意为:
+        如果竞争锁失败，则把 xid 加入一个数组中，有 leader 进行此数组的 xid  的重置工作，此过程没有加锁，全部使用原子操作
+* [v] 主要知道 PGPROC 的具体的组织结构
+* [v] 需要只要事务结束的操作函数 ProcArrayEndTransactionInternal 的大致原因
+* [v] 需要知道无锁编程带来的收益以及大致的无锁编程技术，以及锁实现
+</code></pre>
+<ul>
+<li>
+<p><a href=https://blog.csdn.net/jackgo73/article/details/121628739>PGPROC数据结构</a></p>
+<p>PGPROC 在共享内存中以 数组的形式组织，ProcArrayStruct 中 pgprocnos 字段记录映射关系，对应 PGPROC 中的 pgprocno 字段</p>
+</li>
+</ul>
+<pre tabindex=0><code>(gdb) p * arrayP
+$35 = {
+  numProcs = 3,
+  maxProcs = 122,
+  maxKnownAssignedXids = 7930,
+  numKnownAssignedXids = 0,
+  tailKnownAssignedXids = 0,
+  headKnownAssignedXids = 0,
+  known_assigned_xids_lck = 0 '\000',
+  lastOverflowedXid = 0,
+  replication_slot_xmin = 0,
+  replication_slot_catalog_xmin = 0,
+  pgprocnos = 0x7fe4b541c928
+}
+(gdb) p  arrayP-&gt;pgprocnos[0]
+$36 = 99
+(gdb) p  arrayP-&gt;pgprocnos[1]
+$37 = 103
+(gdb) p  arrayP-&gt;pgprocnos[2]
+$38 = 111
+(gdb) p allProcs[99]
+$40 = {
+  links = {
+    prev = 0x0,
+    next = 0x0
+  },
+  procgloballist = 0x7fe4b5400fa8,
+  sem = 0x7fe4ac86d1b8,
+  waitStatus = PROC_WAIT_STATUS_OK,
+  procLatch = {
+    is_set = 0,
+    maybe_sleeping = 0,
+    is_shared = true,
+    owner_pid = 6629
+  },
+  xid = 0,
+  xmin = 0,
+  lxid = 92,
+  pid = 6629,
+  pgxactoff = 0,
+  pgprocno = 99,
+  backendId = 3,
+  databaseId = 16384,
+  roleId = 10,
+  tempNamespaceId = 0,
+  isBackgroundWorker = false,
+  recoveryConflictPending = false,
+  lwWaiting = false,
+  lwWaitMode = 0 '\000',
+</code></pre><h3 id=事务实现框架>
 事务实现框架
 <a href=#%e4%ba%8b%e5%8a%a1%e5%ae%9e%e7%8e%b0%e6%a1%86%e6%9e%b6 class=h-anchor aria-hidden=true>#</a>
 </h3>
@@ -346,14 +442,14 @@ CRDB能做到因果一致性，对于不相干的key，则无法保证事件顺�
 </div>
 <div class=pagination__buttons>
 <span class="button previous">
-<a href=https://askyx.github.io/posts/course/15441/note/>
+<a href=https://askyx.github.io/posts/postgres/postgres_executor/>
 <span class=button__icon>←</span>
-<span class=button__text>Bison Note</span>
+<span class=button__text>Postgres Executor</span>
 </a>
 </span>
 <span class="button next">
-<a href=https://askyx.github.io/posts/readcode/libpqxx/>
-<span class=button__text>Libpqxx</span>
+<a href=https://askyx.github.io/posts/course/15441/note/>
+<span class=button__text>Bison Note</span>
 <span class=button__icon>→</span>
 </a>
 </span>

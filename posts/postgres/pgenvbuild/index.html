@@ -7,7 +7,7 @@ Esoye — My note blog
 <meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
 <meta name=description content="环境搭建 #  使用VScode，选择在容器中打开项目，选择open in container，然后这里选择Ubuntu22，其他的都不选
- 安装必须的依赖  # 换源升级 sudo sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list sudo sed -i s@/security.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list 或者 sudo sed -i &amp;#34;s@http://.*mirrors.aliyun.com@https://mirrors.tuna.tsinghua.edu.cn@g&amp;#34; /etc/apt/sources.list sudo sed -i &amp;#34;s@http://.*security.ubuntu.com@https://mirrors.tuna.tsinghua.edu.cn@g&amp;#34; /etc/apt/sources.list sudo apt-get update sudo apt-get upgrade sudo apt-get install flex bison g++ gcc gdb make \  libzstd-dev libxml2-dev libcurl4-openssl-dev vim \  libbz2-dev libperl-dev software-properties-common \  pkg-config libreadline-dev python3-dev libldap-dev \  zlib1g-dev openssh-server iputils-ping libxslt-dev \  libpam-dev libssl-dev libreadline6-dev libssh2-1-dev cmake ninja-build # 设置vscode 用户密码 sudo passwd vscode # 退出容器，重新启动下  使用docker的优点是资源隔离，完全不需要担心一个机器上多个相似开发环境的困扰">
+ 安装必须的依赖  # 换源升级 sudo sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list sudo sed -i s@/security.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list 或者 sudo sed -i &amp;#34;s@http://.*mirrors.aliyun.com@https://mirrors.tuna.tsinghua.edu.cn@g&amp;#34; /etc/apt/sources.list sudo sed -i &amp;#34;s@http://.*security.ubuntu.com@https://mirrors.tuna.tsinghua.edu.cn@g&amp;#34; /etc/apt/sources.list sudo apt-get update sudo apt-get upgrade sudo apt-get install flex bison g++ gcc gdb make \  libzstd-dev libxml2-dev libcurl4-openssl-dev vim \  libbz2-dev libperl-dev software-properties-common \  pkg-config libreadline-dev python3-dev libldap-dev \  zlib1g-dev openssh-server iputils-ping libxslt-dev \  libpam-dev libssl-dev libreadline6-dev libssh2-1-dev cmake ninja-build # 设置vscode 用户密码 sudo passwd vscode # 退出容器，重新启动下  github clone 加速">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
 <link rel=canonical href=https://askyx.github.io/posts/postgres/pgenvbuild/>
@@ -128,7 +128,11 @@ sudo apt-get install flex bison g++ gcc gdb make    <span style=color:#ae81ff>\
 sudo passwd vscode
 
 <span style=color:#75715e># 退出容器，重新启动下</span>
-</code></pre></div><blockquote>
+</code></pre></div><ul>
+<li>github clone 加速<br>
+使用 ghproxy.com/ 转换网址， 手动替换如 <code>https://github.com/gabime/spdlog.git</code> 替换为 <code>https://ghproxy.com/github.com/gabime/spdlog.git</code>，使用 <code>git insteadof</code> 全局替换网址 <code>git config --global url.https://github.com.insteadOf https://ghproxy.com/github.com</code></li>
+</ul>
+<blockquote>
 <p>使用docker的优点是资源隔离，完全不需要担心一个机器上多个相似开发环境的困扰</p>
 </blockquote>
 <h2 id=源码编译pg>

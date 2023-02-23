@@ -59,6 +59,16 @@ My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/others/%E9%9D%99%E6%80%81%E8%AF%AD%E5%8F%A5/></a></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+explain verbose select no_o_id from bmsql_new_order where no_w_id = 4 and no_d_id = 1 order by no_o_id asc;
+benchmarksql=# explain verbose select no_o_id from bmsql_new_order where no_w_id = 4 and no_d_id = 1 order by no_o_id asc; QUERY PLAN # Data Node Scan on &ldquo;REMOTE_FQS_QUERY&rdquo; (cost=0.00..0.00 rows=0 width=0) Output: bmsql_new_order.no_o_id Node/s: dn2 Remote query: SELECT no_o_id FROM public.bmsql_new_order bmsql_new_order WHERE ((no_w_id = 4) AND (no_d_id = 1)) ORDER BY no_o_id (4 rows)
+</div>
+<div><a class="read-more button" href=/posts/others/%E9%9D%99%E6%80%81%E8%AF%AD%E5%8F%A5/>Read more →</a></div>
+</div>
+<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/personal/%E7%AE%80%E5%8E%86/></a></h1>
 <div class=post-meta>
 </div>
@@ -99,30 +109,18 @@ Column | Type | Collation | Nullable | Default | Storage | Description &mdash;&m
 </div>
 <div><a class="read-more button" href=/posts/postgres/%E9%85%8D%E7%BD%AE/>Read more →</a></div>
 </div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/static/mysql/></a></h1>
-<div class=post-meta>
-</div>
-<div class=post-content>
-[2018/08]
-AliSQL # AliSQL · 内核新特性 · 2020技术总结 [2020/12]
-AliSQL · 内核特性 · 快速 DDL [2020/07]
-AliSQL · 内核特性 · Binlog In Redo [2020/06]
-AliSQL · 引擎特性 · Fast Query Cache 介绍 [2020/05]
-AliSQL · 最佳实践 · Performance Agent [2020/03]
-AliSQL · 引擎特性 · Statement Queue [2019/09]
-AliSQL · 引擎特性 · Returning [2019/09]
-AliSQL · 引擎特性 · Recycle Bin [2019/08]
-AliSQL · 特性介绍 · 支持 Invisible Indexes [2017/07]
-</div>
-<div><a class="read-more button" href=/posts/static/mysql/>Read more →</a></div>
-</div>
 <div class=pagination>
 <div class=pagination__buttons>
 <span class="button previous">
 <a href=/page/8/>
 <span class=button__icon>←</span>
 <span class=button__text>Newer posts</span>
+</a>
+</span>
+<span class="button next">
+<a href=/page/10/>
+<span class=button__text>Older posts</span>
+<span class=button__icon>→</span>
 </a>
 </span>
 </div>

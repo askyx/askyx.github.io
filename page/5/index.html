@@ -59,6 +59,28 @@ My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/course/15445/note/>15445课程笔记</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-06-10
+</span>
+</div>
+<span class=post-tags>
+<a href=https://askyx.github.io/tags/%E8%AF%BE%E7%A8%8B/>#课程</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
+<a href=https://askyx.github.io/tags/15445/>#15445</a>&nbsp;
+</span>
+<div class=post-content>
+https://15445.courses.cs.cmu.edu/fall2021/notes/02-advancedsql.pdf
+output control 控制输出结果，例如order，limit等 窗口函数 CTE Common Table Expressions，把一个语句的输出视为一张临时表参与下面的语句的运算 WITH cte1 (col1) AS (SELECT 1), cte2 (col2) AS (SELECT 2) SELECT * FROM cte1, cte2; Database Storage # 数据库的存储介质当前还是磁盘，IO慢 数据库存储要点之一是使用缓存维护数据在磁盘和内存之间的数据交换，以实现数据的快速读写 顺序读写和随机读写 顺序读写的意思是需要定位到读写的位置才能操作，例如链表。 随机读写的意思是可以直接定位到读写的位置，例如数组。 由于磁盘上随机读写速度不如顺序读写，所以当前数据库还是需要想办法使用顺序读写，例如LSM，GFS等架构都是因为这个原因导致的 磁盘和内存中数据的组织格式 # 数据全部在磁盘上，按page组织数据，内存中使用buffer pool维护缓存，磁盘中有一个page专门维护page的位置信息，使用的时候先读取此page到内存，然后 然后读取其他page到buffer pool，使用buffer pool维护page的置换情况，例如LRU，或者其他算法
+可以参考lab1和slide，还是比较明显的
+buffer pool中的page可以用于上层的数据运算
+使用mmap可以完成类似的操作，但是实际上在使用中，如果在发生缺页中断的时候，mmap需要进行置换操作，所以会阻碍程序进程。且mmap是通用的组件，所以没有对数据库 的使用场景进行一些优化，
+You never want to use mmap in your DBMS if you need to write.
+</div>
+<div><a class="read-more button" href=/posts/course/15445/note/>Read more →</a></div>
+</div>
+<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/course/6.824/raft/>Raft</a></h1>
 <div class=post-meta>
 <span class=post-date>
@@ -128,24 +150,6 @@ map reduce实现为简单的kv输出，其中map接受源数据，生成kv的中
 主节点
 </div>
 <div><a class="read-more button" href=/posts/course/6.824/mapreduce/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/languange/go_1/>A Tour of Go速通</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-05-17
-</span>
-</div>
-<div class=post-content>
-2022-05-17 基础语法 2022-05-24 复合类型，goroutine，channel 基础语法 # Packages # go使用Packages维护模块，使用import导入模块，import最后一个元素才是需要导入的模块
-import ( "fmt" "math/rand" ) import 可以单独一个导入一个模块，也可以批量导入， 与之对应的是export，go不显示声明export，首字母大写的变量或方法自动export，外部只能使用导出的变量或者方法，类似c++中类的私有和共有的概念。
-Functions # 与c++或者Java或者其他语言不同的是，go的函数签名格式为func func_name(parm1 [type], parm2 [type]....) retype {}，先声明名字，再声明变量的类型，参数列表中有多个参数且类型一致的时候，前面的参数类型可以省略，只需要保留之后一个
-func add(x, y int) int { return x + y } 且go可以很轻易的实现多返回值的功能，如下
-func swap(x, y string) (string, string) { return y, x } func main() { a, b := swap("hello", "world") fmt.Println(a, b) } 上面的功能在c++中需要使用结构体或者tuple或者Paris才能实现。
-go的return还可以使用不带参数的 &ldquo;naked&rdquo; return，此时要求函数签名中的return参数必须有名字，且在函数体中必须为参数赋值，此时使用return直接返回，参数可以直接传递到外部，但是需要注意的时候，如果函数体过于庞大且有多个出口，不建议使用，难于阅读
-func split(sum int) (x, y int) { x = sum * 4 / 9 y = sum - x return } 变量 # 使用var声明变量，声明多个变量的时候可以类似参数列表中的参数，前面参数不需要声明类型。初始化的时候按顺序初始化，且初始化的参数个数必须前后一致
-</div>
-<div><a class="read-more button" href=/posts/languange/go_1/>Read more →</a></div>
 </div>
 <div class=pagination>
 <div class=pagination__buttons>

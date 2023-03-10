@@ -1,15 +1,48 @@
 
+
+## envs
+
+```
+
+create database tpch;
+\c tpch
+\i /home/vscode/adb_tools/TPCH/TPCH/dbgen/dss.ddl
+ALTER TABLE REGION ADD PRIMARY KEY (R_REGIONKEY);
+ALTER TABLE NATION ADD PRIMARY KEY (N_NATIONKEY);
+ALTER TABLE PART ADD PRIMARY KEY (P_PARTKEY);
+ALTER TABLE SUPPLIER ADD PRIMARY KEY (S_SUPPKEY);
+ALTER TABLE PARTSUPP ADD PRIMARY KEY (PS_PARTKEY,PS_SUPPKEY);
+ALTER TABLE CUSTOMER ADD PRIMARY KEY (C_CUSTKEY);
+ALTER TABLE LINEITEM ADD PRIMARY KEY (L_ORDERKEY,L_LINENUMBER);
+ALTER TABLE ORDERS ADD PRIMARY KEY (O_ORDERKEY);
+
+
+./dbgen -s 1000 
+
+\copy supplier from '/home/vscode/adb_tools/TPCH/TPCH/dbgen/supplier.tbl' with (format csv,encoding utf8,DELIMITER '|');
+\copy region from '/home/vscode/adb_tools/TPCH/TPCH/dbgen/region.tbl' with (format csv,encoding utf8,DELIMITER '|');
+\copy partsupp from '/home/vscode/adb_tools/TPCH/TPCH/dbgen/partsupp.tbl' with (format csv,encoding utf8,DELIMITER '|');
+\copy part from '/home/vscode/adb_tools/TPCH/TPCH/dbgen/part.tbl' with (format csv,encoding utf8,DELIMITER '|');
+\copy orders from '/home/vscode/adb_tools/TPCH/TPCH/dbgen/orders.tbl' with (format csv,encoding utf8,DELIMITER '|');
+\copy nation from '/home/vscode/adb_tools/TPCH/TPCH/dbgen/nation.tbl' with (format csv,encoding utf8,DELIMITER '|');
+\copy lineitem from '/home/vscode/adb_tools/TPCH/TPCH/dbgen/lineitem.tbl' with (format csv,encoding utf8,DELIMITER '|');
+\copy customer from '/home/vscode/adb_tools/TPCH/TPCH/dbgen/customer.tbl' with (format csv,encoding utf8,DELIMITER '|');
+
+
+```
+
+
                             List of relations
  Schema |   Name   | Type  | Owner | Persistence |  Size   | Description 
 --------+----------+-------+-------+-------------+---------+-------------
- public | customer | table | maoxp | permanent   | 2800 MB | 
- public | lineitem | table | maoxp | permanent   | 86 GB   | 
- public | nation   | table | maoxp | permanent   | 40 kB   | 
- public | orders   | table | maoxp | permanent   | 20 GB   | 
- public | part     | table | maoxp | permanent   | 3201 MB | 
- public | partsupp | table | maoxp | permanent   | 13 GB   | 
- public | region   | table | maoxp | permanent   | 40 kB   | 
- public | supplier | table | maoxp | permanent   | 173 MB  | 
+ public | customer | table | maoxp | permanent   | 2800 MB | 15000000
+ public | lineitem | table | maoxp | permanent   | 86 GB   | 600037902
+ public | nation   | table | maoxp | permanent   | 40 kB   | 25
+ public | orders   | table | maoxp | permanent   | 20 GB   | 150000000
+ public | part     | table | maoxp | permanent   | 3201 MB | 20000000
+ public | partsupp | table | maoxp | permanent   | 13 GB   | 80000000
+ public | region   | table | maoxp | permanent   | 40 kB   | 5
+ public | supplier | table | maoxp | permanent   | 173 MB  | 1000000
 (8 rows)
 
 
@@ -66,9 +99,41 @@ set hash_mem_multiplier = 5;
   Q22 |   15751.630 ms    |
   all | 2666114.301 ms
 
-1. 大部分语句使用并发，但是并发度低，加大并发，加大hash相关的设置，后面需要仔细调研hash算子和并发机制，提升更大的设置
-2. Q2，Q17没有使用并发
-3. Reduce Scan 没有进行谓词下推，导致下层节点会全表扫描，且数据会全量传输
+
+
+Q1
+  lineitem 使用条件过滤之后做聚合，过滤之后数据量为 591599349 ，约为总数据的 98.6% 大小为 84 G， 使用条件直接查询表 30DOP 时最短时间约为 2.5s ，但是个节点时间不一样， 最大时间为 4.5s, 再加上HashAggregate的时间，时间最小为7s
+
+Q2
+  subplan不需要进行reduce，但是当前会对查询进行最后加上reduce
+
+Q8
+  lineitem 和 orders 进行join，然后join的结果做reduce，之后上层还有两次reduce，导致时间增加， join 的结果集为182318228行，数据大小为 7609218190 ，做一次reduce，时间增加二十多秒
+  执行计划个人觉得不正确，第一次 reduce 的 lineitem 和 orders 的结果集，然后和 supplier 和 nayion join 的结果集hashjoin，这里应该reduce 小表，上面的reduce也是类似的问题
+
+Q9
+  lineitem 需要全表扫然后join，时间是慢慢累加的，执行计划正确
+
+Q13
+  执行计划不正确，应该 reduce customer
+
+Q17
+  reduce 整个 lineitem
+
+Q18
+  两次scan lineitem， 且还reduce 一次， 执行计划应该能优化
+
+Q20 
+  Q8类似问题，reduce 大表
+
+Q21
+  多次扫描 lineitem，没有物化
+
+
+1. 大部分语句使用并发，但是并发度低，且并发量不是线性增长的，ob使用256并发扫描，pg当前测试30并发之后性能不再增长，语句中进行scan和hash运算等应该都能使用hash加速的
+2. 部分语句没有启用并发
+3. 部分语句执行计划不正确，会进行大表reduce
+4. 执行计划不确定，上面的结论是我之前记录的执行计划得出的，但是后面再测试时，部分执行计划发生变化。所以需要对语句单独设置参数
 
 \timing on
 set grammar to oracle;
@@ -89,7 +154,7 @@ select
 from
   lineitem
 where
-  l_shipdate <= date '1998-12-01' - interval '90' day (3)
+  l_shipdate <= date '1998-12-01' - interval '90' day
 group by
   l_returnflag,
   l_linestatus
@@ -2185,20 +2250,16 @@ group by
 order by
   o_year;
 
-                                                                                                                                                                                                                           QUERY PLAN                                
-                                                                                                                                                                                           
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                                                                                                                                                                                                           QUERY PLAN                                                                                                                                                                                                                           
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  Finalize GroupAggregate  (cost=18708615.69..18708616.09 rows=1 width=40) (actual time=80033.082..80033.106 rows=2 loops=1)
-   Output: (date_part('year'::text, (orders.o_orderdate)::timestamp without time zone)), ((sum(CASE WHEN (n2.n_name = 'BRAZIL'::bpchar) THEN int4((lineitem.l_extendedprice * ('1'::numeric - lineitem.l_discount))) ELSE 0 END))::numeric / sum((lineitem.l_extended
-price * ('1'::numeric - lineitem.l_discount))))
+   Output: (date_part('year'::text, (orders.o_orderdate)::timestamp without time zone)), ((sum(CASE WHEN (n2.n_name = 'BRAZIL'::bpchar) THEN int4((lineitem.l_extendedprice * ('1'::numeric - lineitem.l_discount))) ELSE 0 END))::numeric / sum((lineitem.l_extendedprice * ('1'::numeric - lineitem.l_discount))))
    Group Key: (date_part('year'::text, (orders.o_orderdate)::timestamp without time zone))
    ->  Cluster Merge Gather  (cost=18708615.69..18708615.97 rows=10 width=40) (actual time=80033.048..80033.060 rows=30 loops=1)
          Remote node: 16387,16388,16389,16390,16391
          Sort Key: (date_part('year'::text, (orders.o_orderdate)::timestamp without time zone))
          ->  Gather Merge  (cost=18707615.49..18707615.77 rows=2 width=48) (actual time=0.304..0.308 rows=0 loops=1)
-               Output: (date_part('year'::text, (orders.o_orderdate)::timestamp without time zone)), (PARTIAL sum(CASE WHEN (n2.n_name = 'BRAZIL'::bpchar) THEN int4((lineitem.l_extendedprice * ('1'::numeric - lineitem.l_discount))) ELSE 0 END)), (PARTIAL sum((l
-ineitem.l_extendedprice * ('1'::numeric - lineitem.l_discount))))
+               Output: (date_part('year'::text, (orders.o_orderdate)::timestamp without time zone)), (PARTIAL sum(CASE WHEN (n2.n_name = 'BRAZIL'::bpchar) THEN int4((lineitem.l_extendedprice * ('1'::numeric - lineitem.l_discount))) ELSE 0 END)), (PARTIAL sum((lineitem.l_extendedprice * ('1'::numeric - lineitem.l_discount))))
                Workers Planned: 2
                Workers Launched: 0
                Node 16390: (actual time=78443.694..79796.481 rows=6 loops=1)
@@ -2207,8 +2268,7 @@ ineitem.l_extendedprice * ('1'::numeric - lineitem.l_discount))))
                Node 16388: (actual time=78498.753..79613.320 rows=6 loops=1)
                Node 16389: (actual time=78505.000..80032.530 rows=6 loops=1)
                ->  Partial GroupAggregate  (cost=18706615.47..18706615.51 rows=1 width=48) (actual time=0.303..0.306 rows=0 loops=1)
-                     Output: (date_part('year'::text, (orders.o_orderdate)::timestamp without time zone)), PARTIAL sum(CASE WHEN (n2.n_name = 'BRAZIL'::bpchar) THEN int4((lineitem.l_extendedprice * ('1'::numeric - lineitem.l_discount))) ELSE 0 END), PARTIAL sum
-((lineitem.l_extendedprice * ('1'::numeric - lineitem.l_discount)))
+                     Output: (date_part('year'::text, (orders.o_orderdate)::timestamp without time zone)), PARTIAL sum(CASE WHEN (n2.n_name = 'BRAZIL'::bpchar) THEN int4((lineitem.l_extendedprice * ('1'::numeric - lineitem.l_discount))) ELSE 0 END), PARTIAL sum((lineitem.l_extendedprice * ('1'::numeric - lineitem.l_discount)))
                      Group Key: (date_part('year'::text, (orders.o_orderdate)::timestamp without time zone))
                      Node 16390: (actual time=78439.899..78445.088 rows=2 loops=3)
                        Worker 0: actual time=78438.568..78443.446 rows=2 loops=1
@@ -2513,8 +2573,7 @@ ineitem.l_extendedprice * ('1'::numeric - lineitem.l_discount))))
                                                                                          Worker 0: actual time=23304.696..37036.891 rows=11063072 loops=1
                                                                                          Worker 1: actual time=23324.235..40296.210 rows=13966474 loops=1
                                                                                        ->  Parallel Seq Scan on public.lineitem  (cost=0.00..13749196.87 rows=50002358 width=24) (never executed)
-                                                                                             Output: lineitem.l_orderkey, lineitem.l_partkey, lineitem.l_suppkey, lineitem.l_linenumber, lineitem.l_quantity, lineitem.l_extendedprice, lineitem.l_discount, lineitem
-.l_tax, lineitem.l_returnflag, lineitem.l_linestatus, lineitem.l_shipdate, lineitem.l_commitdate, lineitem.l_receiptdate, lineitem.l_shipinstruct, lineitem.l_shipmode, lineitem.l_comment
+                                                                                             Output: lineitem.l_orderkey, lineitem.l_partkey, lineitem.l_suppkey, lineitem.l_linenumber, lineitem.l_quantity, lineitem.l_extendedprice, lineitem.l_discount, lineitem.l_tax, lineitem.l_returnflag, lineitem.l_linestatus, lineitem.l_shipdate, lineitem.l_commitdate, lineitem.l_receiptdate, lineitem.l_shipinstruct, lineitem.l_shipmode, lineitem.l_comment
                                                                                              Remote node: 16389,16387,16390,16388,16391
                                                                                              Node 16390: (actual time=0.044..7259.188 rows=40003653 loops=3)
                                                                                                Worker 0: actual time=0.054..6923.664 rows=38653590 loops=1
@@ -2550,8 +2609,7 @@ ineitem.l_extendedprice * ('1'::numeric - lineitem.l_discount))))
                                                                                                Worker 1: actual time=3869.415..3869.416 rows=3058962 loops=1
                                                                                              ->  Parallel Seq Scan on public.orders  (cost=0.00..3859226.27 rows=62500 width=12) (never executed)
                                                                                                    Output: orders.o_orderdate, orders.o_orderkey, orders.o_custkey
-                                                                                                   Filter: (((orders.o_orderdate)::timestamp without time zone >= '1995-01-01 00:00:00'::timestamp without time zone) AND ((orders.o_orderdate)::timestamp without ti
-me zone <= '1996-12-31 00:00:00'::timestamp without time zone))
+                                                                                                   Filter: (((orders.o_orderdate)::timestamp without time zone >= '1995-01-01 00:00:00'::timestamp without time zone) AND ((orders.o_orderdate)::timestamp without time zone <= '1996-12-31 00:00:00'::timestamp without time zone))
                                                                                                    Remote node: 16389,16387,16390,16388,16391
                                                                                                    Node 16390: (actual time=0.033..2633.411 rows=3037277 loops=3)
                                                                                                      Worker 0: actual time=0.036..2620.448 rows=3104522 loops=1

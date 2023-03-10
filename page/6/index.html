@@ -59,6 +59,46 @@ My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/course/6.824/gfs/>GFS</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-05-30
+</span>
+</div>
+<span class=post-tags>
+<a href=https://askyx.github.io/tags/%E8%AE%BA%E6%96%87/>#论文</a>&nbsp;
+<a href=https://askyx.github.io/tags/gfs/>#GFS</a>&nbsp;
+<a href=https://askyx.github.io/tags/6.824/>#6.824</a>&nbsp;
+</span>
+<div class=post-content>
+</div>
+<div><a class="read-more button" href=/posts/course/6.824/gfs/>Read more →</a></div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/course/6.824/mapreduce/>Mapreduce</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-05-29
+</span>
+</div>
+<span class=post-tags>
+<a href=https://askyx.github.io/tags/%E8%AE%BA%E6%96%87/>#论文</a>&nbsp;
+<a href=https://askyx.github.io/tags/mapreduce/>#Mapreduce</a>&nbsp;
+<a href=https://askyx.github.io/tags/6.824/>#6.824</a>&nbsp;
+</span>
+<div class=post-content>
+利用普通机器组成的大规模计算集群进行并行的,高容错,高性能的数据处理函数框架
+原始论文点这里,论文翻译点这里，有时间的话，自行对比翻译和原文
+最终实现的目标是&ndash;实现一个分布式系统，对程序员隐藏底层分布式细节，程序员只需要定义map和reduce 函数即可。
+map reduce实现为简单的kv输出，其中map接受源数据，生成kv的中间结果，中间结果保存在worker节点上。 reduce负责处理map产生的中间结果的kv数据，只是简单的数据处理过程.
+他最先是受到lisp中map和reduce原语的启发，再加上当时Google现实的处理大量数据的需求，从他们现有的系统抽象而来的。
+在论文中，使用了一个单词统计的案例，此时实现map函数用来分割文本，切分出最基本的单词。然后再使用reduce进行聚合操作，
+// 输出单词以及出现的次数，map端输出1 map(String key,String value): // key: 文档名 // value: 文档内容 for each word w in value: EmitIntermediate(w,"1"); // 针对相同的key，次数+1 reduce(String key, Iterator values): // key: 一个单词 // value: 计数值列表 int result = 0; for each v in values: result += ParseInt(v); Emit(AsString(result)); 执行过程 文件划分 主节点划分任务 按照划分的任务启动worker，执行map任务 worker节点的数据生成为中间结果，保存在本节点 所有map任务执行完成之后，reduce得到对应中间节点的文件路径，通过rpc读取文件，进行reduce任务 reduce任务完成之后，最终结果写入目标文件 一个mr任务完成之后，回得到n(reduce)个结果文件，可以按照需求处理文件，可以直接使用，或者继续作为其他mr的输入，mr任务是可以嵌套的。
+主节点
+</div>
+<div><a class="read-more button" href=/posts/course/6.824/mapreduce/>Read more →</a></div>
+</div>
+<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/languange/go_1/>A Tour of Go速通</a></h1>
 <div class=post-meta>
 <span class=post-date>
@@ -90,51 +130,6 @@ func split(sum int) (x, y int) { x = sum * 4 / 9 y = sum - x return } 变量 # �
 A big goal: hide the complexity of distribution from applications.
 </div>
 <div><a class="read-more button" href=/posts/course/6.824/coursenote/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/readbooks/leveldb/>LevelDB源码阅读</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-05-15
-</span>
-</div>
-<span class=post-tags>
-<a href=https://askyx.github.io/tags/%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/>#源码阅读</a>&nbsp;
-<a href=https://askyx.github.io/tags/leveldb/>#LevelDB</a>&nbsp;
-<a href=https://askyx.github.io/tags/%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/>#存储引擎</a>&nbsp;
-</span>
-<div class=post-content>
-leveldb 源码总结分析
-</div>
-<div><a class="read-more button" href=/posts/readbooks/leveldb/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/readbooks/volcanooptimizer/>VolcanoOptimizer</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-04-04
-</span>
-</div>
-<div class=post-content>
-NOTE # 论文阅读笔记The Volcano Optimizer Generator: Extensibility and Efficient Search
-可扩展
-面向对象
-自顶向下
-剪枝
-原型是EXODUS， Volcano是对他的改进
-可以单独使用的优化器 优化搜索时间和搜索空间 可扩展 可以使用启发式算法和有效的代价模型来扩展和减少搜索空间，【剪枝】 灵活的成本计算模型 一个框架，优化器生成器，可以由“optimizer implementor”自行实现关键函数，整个优化器框架的输入是AST，输出是一个执行计划，算子的集合
-SQL是基于关系代数，Volcano把关系表达式分为逻辑表达式和物理表达式，逻辑表达式之间使用transformation进行转换，物理表达式使用基于代价的implementation和逻辑表达式映射的，关系不一定是意义对应的，例如scan可以同时一起实现projection
-在表达式进行转换的时候可以使用condition进行模式判断，满足条件的时候可以进行变换
-表达式使用特征描述输出，
-enforcers会强制添加某属性，用于指导优化器进行优化，例如指定表的scan方式
-Logical Operator
-Operator set，也就是可以描述在目标data model上可以执行的代数运算合
-Transformation rules + Condition，对每条等价变换规则，在满足condition时才可以应用
-Logical properties : 逻辑属性，用来描述代数运算的输出所具有的一些特征，这些特征与运算的具体执行方式无关，是逻辑的，例如输出的行数，结果集的schema等
-Physical Operator
-Algorithm + Enforcer set，即可应用的物理实现算法 + 可添加的Enforcer集合
-</div>
-<div><a class="read-more button" href=/posts/readbooks/volcanooptimizer/>Read more →</a></div>
 </div>
 <div class=pagination>
 <div class=pagination__buttons>

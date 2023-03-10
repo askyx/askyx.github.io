@@ -84,36 +84,36 @@ SpinLock
 <a href=#spinlock class=h-anchor aria-hidden=true>#</a>
 </h2>
 <p>使用tas实现的自旋锁。</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>	<span style=color:#66d9ef>while</span> (TAS_SPIN(lock))
-	{
-		perform_spin_delay(<span style=color:#f92672>&amp;</span>delayStatus);
-	}
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>  <span style=color:#66d9ef>while</span> (TAS_SPIN(lock))
+  {
+    perform_spin_delay(<span style=color:#f92672>&amp;</span>delayStatus);
+  }
 
 perform_spin_delay(SpinDelayStatus <span style=color:#f92672>*</span>status)
 {
-	<span style=color:#75715e>/* CPU-specific delay each time through the loop */</span>
-	SPIN_DELAY();
+  <span style=color:#75715e>/* CPU-specific delay each time through the loop */</span>
+  SPIN_DELAY();
 
-	<span style=color:#75715e>/* Block the process every spins_per_delay tries */</span>
-	<span style=color:#66d9ef>if</span> (<span style=color:#f92672>++</span>(status<span style=color:#f92672>-&gt;</span>spins) <span style=color:#f92672>&gt;=</span> spins_per_delay)
-	{
-		<span style=color:#66d9ef>if</span> (<span style=color:#f92672>++</span>(status<span style=color:#f92672>-&gt;</span>delays) <span style=color:#f92672>&gt;</span> NUM_DELAYS)
-			s_lock_stuck(status<span style=color:#f92672>-&gt;</span>file, status<span style=color:#f92672>-&gt;</span>line, status<span style=color:#f92672>-&gt;</span>func);
+  <span style=color:#75715e>/* Block the process every spins_per_delay tries */</span>
+  <span style=color:#66d9ef>if</span> (<span style=color:#f92672>++</span>(status<span style=color:#f92672>-&gt;</span>spins) <span style=color:#f92672>&gt;=</span> spins_per_delay)
+  {
+    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>++</span>(status<span style=color:#f92672>-&gt;</span>delays) <span style=color:#f92672>&gt;</span> NUM_DELAYS)
+      s_lock_stuck(status<span style=color:#f92672>-&gt;</span>file, status<span style=color:#f92672>-&gt;</span>line, status<span style=color:#f92672>-&gt;</span>func);
 
-		<span style=color:#66d9ef>if</span> (status<span style=color:#f92672>-&gt;</span>cur_delay <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>) <span style=color:#75715e>/* first time to delay? */</span>
-			status<span style=color:#f92672>-&gt;</span>cur_delay <span style=color:#f92672>=</span> MIN_DELAY_USEC;
+    <span style=color:#66d9ef>if</span> (status<span style=color:#f92672>-&gt;</span>cur_delay <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>) <span style=color:#75715e>/* first time to delay? */</span>
+      status<span style=color:#f92672>-&gt;</span>cur_delay <span style=color:#f92672>=</span> MIN_DELAY_USEC;
 
-		pg_usleep(status<span style=color:#f92672>-&gt;</span>cur_delay);
+    pg_usleep(status<span style=color:#f92672>-&gt;</span>cur_delay);
 
-		<span style=color:#75715e>/* increase delay by a random fraction between 1X and 2X */</span>
-		status<span style=color:#f92672>-&gt;</span>cur_delay <span style=color:#f92672>+=</span> (<span style=color:#66d9ef>int</span>) (status<span style=color:#f92672>-&gt;</span>cur_delay <span style=color:#f92672>*</span>
-									pg_prng_double(<span style=color:#f92672>&amp;</span>pg_global_prng_state) <span style=color:#f92672>+</span> <span style=color:#ae81ff>0.5</span>);
-		<span style=color:#75715e>/* wrap back to minimum delay when max is exceeded */</span>
-		<span style=color:#66d9ef>if</span> (status<span style=color:#f92672>-&gt;</span>cur_delay <span style=color:#f92672>&gt;</span> MAX_DELAY_USEC)
-			status<span style=color:#f92672>-&gt;</span>cur_delay <span style=color:#f92672>=</span> MIN_DELAY_USEC;
+    <span style=color:#75715e>/* increase delay by a random fraction between 1X and 2X */</span>
+    status<span style=color:#f92672>-&gt;</span>cur_delay <span style=color:#f92672>+=</span> (<span style=color:#66d9ef>int</span>) (status<span style=color:#f92672>-&gt;</span>cur_delay <span style=color:#f92672>*</span>
+                  pg_prng_double(<span style=color:#f92672>&amp;</span>pg_global_prng_state) <span style=color:#f92672>+</span> <span style=color:#ae81ff>0.5</span>);
+    <span style=color:#75715e>/* wrap back to minimum delay when max is exceeded */</span>
+    <span style=color:#66d9ef>if</span> (status<span style=color:#f92672>-&gt;</span>cur_delay <span style=color:#f92672>&gt;</span> MAX_DELAY_USEC)
+      status<span style=color:#f92672>-&gt;</span>cur_delay <span style=color:#f92672>=</span> MIN_DELAY_USEC;
 
-		status<span style=color:#f92672>-&gt;</span>spins <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
-	}
+    status<span style=color:#f92672>-&gt;</span>spins <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+  }
 }
 
 </code></pre></div><p>如果没有tas，则使用信号量实现，属于最底层的锁</p>
@@ -142,55 +142,55 @@ LWLock
 </span><span style=color:#75715e>#1  0x00005563f316862d in ConditionalLockRelationOid (relid=16385, lockmode=5) at /home/esoye/postgres/src/backend/storage/lmgr/lmgr.c:160
 </span><span style=color:#75715e>#2  0x00005563f2da006e in RangeVarGetRelidExtended (relation=0x5563f3738618, lockmode=5, flags=2, callback=0x5563f2e9ae66 &lt;RangeVarCallbackForLockTable&gt;, callback_arg=0x5563f37386b8) at /home/esoye/postgres/src/backend/catalog/namespace.c:390
 </span><span style=color:#75715e>#3  0x00005563f2e9adb6 in LockTableCommand (lockstmt=0x5563f37386a8) at /home/esoye/postgres/src/backend/commands/lockcmds.c:55
-</span><span style=color:#75715e>#4  0x00005563f3190b97 in standard_ProcessUtility (pstmt=0x5563f3738998,
+</span><span style=color:#75715e>#4  0x00005563f3190b97 in standard_ProcessUtility
 </span><span style=color:#75715e></span>
 
-<span style=color:#75715e>#define AccessShareLock				1	</span><span style=color:#75715e>/* SELECT */</span><span style=color:#75715e>																	</span><span style=color:#75715e>// 可以正常访问，除非删表等操作才会阻塞，其他操作不阻塞，需要调研事务细节
-</span><span style=color:#75715e></span><span style=color:#75715e>#define RowShareLock				2	</span><span style=color:#75715e>/* SELECT FOR UPDATE/FOR SHARE */</span><span style=color:#75715e>												</span><span style=color:#75715e>// for share，意向锁，实际上是锁tuple，只是为了避免某些操作可能需要遍历全表时对表加锁，目的是提前检测
-</span><span style=color:#75715e></span><span style=color:#75715e>#define RowExclusiveLock			3	</span><span style=color:#75715e>/* INSERT, UPDATE, DELETE */</span><span style=color:#75715e>													</span><span style=color:#75715e>// 意向排他锁，正常数据变动会加这个锁。
-</span><span style=color:#75715e></span><span style=color:#75715e>#define ShareUpdateExclusiveLock	4	</span><span style=color:#75715e>/* VACUUM (non-FULL), ANALYZE, CREATE INDEX CONCURRENTLY */</span><span style=color:#75715e>						
-</span><span style=color:#75715e>#define ShareLock					5	</span><span style=color:#75715e>/* CREATE INDEX (WITHOUT CONCURRENTLY) */</span><span style=color:#75715e>
-</span><span style=color:#75715e>#define ShareRowExclusiveLock		6	</span><span style=color:#75715e>/* like EXCLUSIVE MODE, but allows ROW SHARE */</span><span style=color:#75715e>
-</span><span style=color:#75715e>#define ExclusiveLock				7	</span><span style=color:#75715e>/* blocks ROW SHARE/SELECT...FOR UPDATE */</span><span style=color:#75715e>
-</span><span style=color:#75715e>#define AccessExclusiveLock			8	</span><span style=color:#75715e>/* ALTER TABLE, DROP TABLE, VACUUM FULL, and unqualified LOCK TABLE */</span><span style=color:#75715e>
+<span style=color:#75715e>#define AccessShareLock         1  </span><span style=color:#75715e>/* SELECT */</span><span style=color:#75715e>                            </span><span style=color:#75715e>// 可以正常访问，除非删表等操作才会阻塞，其他操作不阻塞，需要调研事务细节
+</span><span style=color:#75715e></span><span style=color:#75715e>#define RowShareLock            2  </span><span style=color:#75715e>/* SELECT FOR UPDATE/FOR SHARE */</span><span style=color:#75715e>       </span><span style=color:#75715e>// for share，意向锁，实际上是锁tuple，只是为了避免某些操作可能需要遍历全表时对表加锁，目的是提前检测
+</span><span style=color:#75715e></span><span style=color:#75715e>#define RowExclusiveLock        3  </span><span style=color:#75715e>/* INSERT, UPDATE, DELETE */</span><span style=color:#75715e>            </span><span style=color:#75715e>// 意向排他锁，正常数据变动会加这个锁。
+</span><span style=color:#75715e></span><span style=color:#75715e>#define ShareUpdateExclusiveLock  4  </span><span style=color:#75715e>/* VACUUM (non-FULL), ANALYZE, CREATE INDEX CONCURRENTLY */</span><span style=color:#75715e>            
+</span><span style=color:#75715e>#define ShareLock               5  </span><span style=color:#75715e>/* CREATE INDEX (WITHOUT CONCURRENTLY) */</span><span style=color:#75715e>
+</span><span style=color:#75715e>#define ShareRowExclusiveLock   6  </span><span style=color:#75715e>/* like EXCLUSIVE MODE, but allows ROW SHARE */</span><span style=color:#75715e>
+</span><span style=color:#75715e>#define ExclusiveLock           7  </span><span style=color:#75715e>/* blocks ROW SHARE/SELECT...FOR UPDATE */</span><span style=color:#75715e>
+</span><span style=color:#75715e>#define AccessExclusiveLock     8  </span><span style=color:#75715e>/* ALTER TABLE, DROP TABLE, VACUUM FULL, and unqualified LOCK TABLE */</span><span style=color:#75715e>
 </span><span style=color:#75715e></span>
 
 <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>const</span> LOCKMASK LockConflicts[] <span style=color:#f92672>=</span> {
-	<span style=color:#ae81ff>0</span>,
+  <span style=color:#ae81ff>0</span>,
 
-	<span style=color:#75715e>/* AccessShareLock */</span>
-	LOCKBIT_ON(AccessExclusiveLock),
+  <span style=color:#75715e>/* AccessShareLock */</span>
+  LOCKBIT_ON(AccessExclusiveLock),
 
-	<span style=color:#75715e>/* RowShareLock */</span>
-	LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock),
+  <span style=color:#75715e>/* RowShareLock */</span>
+  LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock),
 
-	<span style=color:#75715e>/* RowExclusiveLock */</span>
-	LOCKBIT_ON(ShareLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareRowExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock),
+  <span style=color:#75715e>/* RowExclusiveLock */</span>
+  LOCKBIT_ON(ShareLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareRowExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock),
 
-	<span style=color:#75715e>/* ShareUpdateExclusiveLock */</span>
-	LOCKBIT_ON(ShareUpdateExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareRowExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock),
+  <span style=color:#75715e>/* ShareUpdateExclusiveLock */</span>
+  LOCKBIT_ON(ShareUpdateExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareRowExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock),
 
-	<span style=color:#75715e>/* ShareLock */</span>
-	LOCKBIT_ON(RowExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareUpdateExclusiveLock) <span style=color:#f92672>|</span>
-	LOCKBIT_ON(ShareRowExclusiveLock) <span style=color:#f92672>|</span>
-	LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock),
+  <span style=color:#75715e>/* ShareLock */</span>
+  LOCKBIT_ON(RowExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareUpdateExclusiveLock) <span style=color:#f92672>|</span>
+  LOCKBIT_ON(ShareRowExclusiveLock) <span style=color:#f92672>|</span>
+  LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock),
 
-	<span style=color:#75715e>/* ShareRowExclusiveLock */</span>
-	LOCKBIT_ON(RowExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareUpdateExclusiveLock) <span style=color:#f92672>|</span>
-	LOCKBIT_ON(ShareLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareRowExclusiveLock) <span style=color:#f92672>|</span>
-	LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock),
+  <span style=color:#75715e>/* ShareRowExclusiveLock */</span>
+  LOCKBIT_ON(RowExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareUpdateExclusiveLock) <span style=color:#f92672>|</span>
+  LOCKBIT_ON(ShareLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareRowExclusiveLock) <span style=color:#f92672>|</span>
+  LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock),
 
-	<span style=color:#75715e>/* ExclusiveLock */</span>
-	LOCKBIT_ON(RowShareLock) <span style=color:#f92672>|</span>
-	LOCKBIT_ON(RowExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareUpdateExclusiveLock) <span style=color:#f92672>|</span>
-	LOCKBIT_ON(ShareLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareRowExclusiveLock) <span style=color:#f92672>|</span>
-	LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock),
+  <span style=color:#75715e>/* ExclusiveLock */</span>
+  LOCKBIT_ON(RowShareLock) <span style=color:#f92672>|</span>
+  LOCKBIT_ON(RowExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareUpdateExclusiveLock) <span style=color:#f92672>|</span>
+  LOCKBIT_ON(ShareLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareRowExclusiveLock) <span style=color:#f92672>|</span>
+  LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock),
 
-	<span style=color:#75715e>/* AccessExclusiveLock */</span>
-	LOCKBIT_ON(AccessShareLock) <span style=color:#f92672>|</span> LOCKBIT_ON(RowShareLock) <span style=color:#f92672>|</span>
-	LOCKBIT_ON(RowExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareUpdateExclusiveLock) <span style=color:#f92672>|</span>
-	LOCKBIT_ON(ShareLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareRowExclusiveLock) <span style=color:#f92672>|</span>
-	LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock)
+  <span style=color:#75715e>/* AccessExclusiveLock */</span>
+  LOCKBIT_ON(AccessShareLock) <span style=color:#f92672>|</span> LOCKBIT_ON(RowShareLock) <span style=color:#f92672>|</span>
+  LOCKBIT_ON(RowExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareUpdateExclusiveLock) <span style=color:#f92672>|</span>
+  LOCKBIT_ON(ShareLock) <span style=color:#f92672>|</span> LOCKBIT_ON(ShareRowExclusiveLock) <span style=color:#f92672>|</span>
+  LOCKBIT_ON(ExclusiveLock) <span style=color:#f92672>|</span> LOCKBIT_ON(AccessExclusiveLock)
 
 };
 

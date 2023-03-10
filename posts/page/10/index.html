@@ -77,6 +77,20 @@ Esoye — My note blog
 </div>
 </div>
 <div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/cost/>执行计划代价计算规则梳理</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2023-02-17
+</span>
+</div>
+<div class=post-content>
+pg中各个算子的代价计算
+</div>
+<div>
+<a class="read-more button" href=/posts/postgres/cost/>Read more →</a>
+</div>
+</div>
+<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/postgres/postgres_executor/>Postgres Executor</a></h1>
 <div class=post-meta>
 <span class=post-date>
@@ -277,6 +291,25 @@ PG系数据库统一安装环境，使用Docker && VSCode on Ubuntu22搭建，�
 </div>
 <div>
 <a class="read-more button" href=/posts/postgres/pgenvbuild/>Read more →</a>
+</div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/opt/>Postgres Optimizer</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-07-22
+</span>
+</div>
+<span class=post-tags>
+<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
+<a href=https://askyx.github.io/tags/postgres/>#Postgres</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E4%BC%98%E5%8C%96%E5%99%A8/>#优化器</a>&nbsp;
+</span>
+<div class=post-content>
+本文从源码级别进行优化器的分析，对Postgres优化器代码调研，具体包括他的数据结构，以及具体的代码架构实现以及核心算法等
+</div>
+<div>
+<a class="read-more button" href=/posts/postgres/opt/>Read more →</a>
 </div>
 </div>
 <div class="post on-list">
@@ -547,6 +580,23 @@ Algorithm + Enforcer set，即可应用的物理实现算法 + 可添加的Enfor
 </div>
 </div>
 <div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/personal/log/>面试</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-03-24
+</span>
+</div>
+<div class=post-content>
+面试 # 只是一个技术汇总
+C++基础 [2 days] [课程- https://github.com/parallel101/course.git]
+内存 内存结构 [https://segmentfault.com/a/1190000039348996]
+c++ 编译出来的是可执行文件，是ELF格式的，他本来就有一些格式上的划分，C++在他的基础上进行了更细的划分，分为五个部分，从高地址到底地址依次为： 1. 内核虚拟内存 进程的虚拟印象 2. 栈 程序自动控制，具体为程序的函数调用，保存局部变量，有大小，可以使用ulimit -s 查看，也可以自行设置，但是建议系统默认即可 * 函数调用机制 调用的时候是一个一个的栈帧，函数参数会在调用者的栈帧中开辟空间，从右到左，所以函数列表的默认值必须从右到左的初始化， 可能和这个有关系，然后被调用者构造栈帧，依次执行 3. 共享库的内存印象 3. 堆 空间有程序员自行维护，向上增长(TIPS: 由于C的历史原因，C++的内存结构还是说堆区，但是在区别new/malloc 和delete/free 的时候，他们的差别之一可能会在内存上有点区别 C的malloc/free可能会说是在堆上分配空间，但是对于C++可能会说的是在自由存储区上分配，自由存储区和堆是不同的概念，堆是操作系统上的概念，但是自由存储区是一个抽象概念 一般new可以是在堆上分配空间，但是可能存在在其他情况，例如在栈上使用new，所以他们不是一个概念，面试的时候说到这里，可以装逼😎) 4. 可写/全局区 对应elf中data段和bss段，data段保存的是已初始化的全局变量或者静态变量，bss保存的是未初始化的数据 5. 只读区/代码段 text段，保存编译之后的指令，不可变 6. 常量区 保存全局变量，不可变，rodata段，记得使用其他手段去尝试修改常量的时候会报错。 TIPS: const修饰的参数不一定是常量，例如他修饰一个函数的参数的时候，参数还是只是在栈中，只是约定不能修改。 7.
+</div>
+<div>
+<a class="read-more button" href=/posts/personal/log/>Read more →</a>
+</div>
+</div>
+<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/readbooks/%E7%8E%B0%E4%BB%A3c++%E7%99%BD%E7%9A%AE%E4%B9%A6/>现代C++白皮书</a></h1>
 <div class=post-meta>
 <span class=post-date>
@@ -705,19 +755,6 @@ benchmarksql=# explain verbose select no_o_id from bmsql_new_order where no_w_id
 </div>
 <div>
 <a class="read-more button" href=/posts/personal/%E7%AE%80%E5%8E%86/>Read more →</a>
-</div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/cost/></a></h1>
-<div class=post-meta>
-</div>
-<div class=post-content>
-Cost Estimation in Single-Table Query
-FQS pgxc_FQS_create_remote_plan 没有计算代价，cost为0 Data Node Scan on &ldquo;REMOTE_FQS_QUERY&rdquo; (cost=0.00..0.00 rows=0 width=0) Primary node/s: dn1 Node/s: dn1, dn2 (3 rows)
-remote create path benchmarksql=# explain verbose select * from t1 ; QUERY PLAN # Data Node Scan on t1 &ldquo;REMOTE_TABLE_QUERY&rdquo; (cost=0.00..82037.50 rows=90005 width=12) Output: t1.c1, t1.c2, t1.c3 Primary node/s: dn1 Node/s: dn1, dn2 Remote query: SELECT c1, c2, c3 FROM ONLY public.
-</div>
-<div>
-<a class="read-more button" href=/posts/postgres/cost/>Read more →</a>
 </div>
 </div>
 <div class="post on-list">

@@ -1,0 +1,1837 @@
+<!doctype html><html lang=en>
+<head>
+<title>
+Postgres Optimizer ::
+Esoye — My note blog
+</title>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="Postgres Optimizer Extend #  对文章的技术性验证
+These directories take the Query structure returned by the parser, and generate a plan used by the executor. The /plan directory generates the actual output plan, the /path code generates all possible ways to join the tables, and /prep handles various preprocessing steps for special cases. /util is utility stuff. /geqo is the separate &amp;ldquo;genetic optimization&amp;rdquo; planner &amp;mdash; it does a semi-random search through the join tree space, rather than exhaustively considering all possible join trees.">
+<meta name=keywords content="数据库">
+<meta name=robots content="noodp">
+<link rel=canonical href=https://askyx.github.io/posts/postgres/opt/>
+<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
+<link rel=stylesheet href=https://askyx.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://askyx.github.io/img/favicon.png>
+<link href=https://askyx.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Postgres Optimizer">
+<meta name=twitter:description content="本文从源码级别进行优化器的分析，对Postgres优化器代码调研，具体包括他的数据结构，以及具体的代码架构实现以及核心算法等">
+<meta property="og:title" content="Postgres Optimizer">
+<meta property="og:description" content="本文从源码级别进行优化器的分析，对Postgres优化器代码调研，具体包括他的数据结构，以及具体的代码架构实现以及核心算法等">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://askyx.github.io/posts/postgres/opt/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2022-07-22T09:24:24+08:00">
+<meta property="article:modified_time" content="2022-07-22T09:24:24+08:00"><meta property="og:site_name" content="Esoye">
+</head>
+<body class=light-theme>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archive>Archive</a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archive>Archive</a></li>
+</ul>
+</nav>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class=post>
+<h1 class=post-title>Postgres Optimizer</h1>
+<div class=post-meta>
+<span class=post-date>
+2022-07-22
+</span>
+</div>
+<span class=post-tags>
+<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
+<a href=https://askyx.github.io/tags/postgres/>#Postgres</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E4%BC%98%E5%8C%96%E5%99%A8/>#优化器</a>&nbsp;
+</span>
+<div class=post-content>
+<h1 id=postgres-optimizer-extend>
+Postgres Optimizer Extend
+<a href=#postgres-optimizer-extend class=h-anchor aria-hidden=true>#</a>
+</h1>
+<p>对文章的技术性验证</p>
+<p>These directories take the Query structure returned by the parser, and
+generate a plan used by the executor. The /plan directory generates the
+actual output plan, the /path code generates all possible ways to join the
+tables, and /prep handles various preprocessing steps for special cases.
+/util is utility stuff. /geqo is the separate &ldquo;genetic optimization&rdquo; planner
+&mdash; it does a semi-random search through the join tree space, rather than
+exhaustively considering all possible join trees. (But each join considered
+by /geqo is given to /path to create paths for, so we consider all possible
+implementation paths for each specific join pair even in GEQO mode.)</p>
+<ul>
+<li>/plan directory generates the actual output plan</li>
+<li>/path code generates all possible ways to join the tables</li>
+<li>/prep handles various preprocessing steps for special cases</li>
+<li>/util is utility stuff</li>
+<li>/geqo is the separate &ldquo;genetic optimization&rdquo; planner</li>
+</ul>
+<h2 id=paths-and-join-pairs>
+Paths and Join Pairs
+<a href=#paths-and-join-pairs class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>During the planning/optimizing process, we build &ldquo;Path&rdquo; trees representing
+the different ways of doing a query. We select the cheapest Path that
+generates the desired relation and turn it into a Plan to pass to the
+executor. (There is pretty nearly a one-to-one correspondence between the
+Path and Plan trees, but Path nodes omit info that won&rsquo;t be needed during
+planning, and include info needed for planning that won&rsquo;t be needed by the
+executor.)</p>
+<ul>
+<li>path 最终指导生成 具体的 执行算子</li>
+</ul>
+<p>The optimizer builds a RelOptInfo structure for each base relation used in
+the query. Base rels are either primitive tables, or subquery subselects
+that are planned via a separate recursive invocation of the planner. A
+RelOptInfo is also built for each join relation that is considered during
+planning. A join rel is simply a combination of base rels. There is only
+one join RelOptInfo for any given set of baserels &mdash; for example, the join
+<code>{A B C}</code> is represented by the same RelOptInfo no matter whether we build it
+by joining A and B first and then adding C, or joining B and C first and
+then adding A, etc. These different means of building the joinrel are
+represented as Paths. For each RelOptInfo we build a list of Paths that
+represent plausible ways to implement the scan or join of that relation.
+Once we&rsquo;ve considered all the plausible Paths for a rel, we select the one
+that is cheapest according to the planner&rsquo;s cost estimates. The final plan
+is derived from the cheapest Path for the RelOptInfo that includes all the
+base rels of the query.</p>
+<ul>
+<li>RelOptInfo 基础的优化单位，SPJ 优化的最终目的就是优化出一个 RelOptInfo ， 它包含一个 path list ，且其最优 path 在优化过程中已经计算完成，后续还会对
+此 path 进行剩下的一些聚合优化等操作</li>
+</ul>
+<p>Possible Paths for a primitive table relation include plain old sequential
+scan, plus index scans for any indexes that exist on the table, plus bitmap
+index scans using one or more indexes. Specialized RTE types, such as
+function RTEs, may have only one possible Path.</p>
+<p>Joins always occur using two RelOptInfos. One is outer, the other inner.
+Outers drive lookups of values in the inner. In a nested loop, lookups of
+values in the inner occur by scanning the inner path once per outer tuple
+to find each matching inner row. In a mergejoin, inner and outer rows are
+ordered, and are accessed in order, so only one scan is required to perform
+the entire join: both inner and outer paths are scanned in-sync. (There&rsquo;s
+not a lot of difference between inner and outer in a mergejoin&mldr;) In a
+hashjoin, the inner is scanned first and all its rows are entered in a
+hashtable, then the outer is scanned and for each row we lookup the join
+key in the hashtable.</p>
+<ul>
+<li>nest loop join<br>
+小表驱动大表，小表为外表，大表为内表，外表的每一行都会导致内表被驱动一次，代价简单描述为 n*m + n，可以使用物化或者 index scan 加速</li>
+<li>merge join
+要求左右输入有序，优化中如果输入无序，则会构造 pathkey ，计算代价的时候会判断是否需要加上 sort 算子，如果需要，代价会加上 sort 的代价，后面 create plan 的时候构造 sort path</li>
+<li>hash join<br>
+外表作为驱动表，构造hash表，然后对内表扫描三后probe|探测构造的 hash table 。代价主要是两个表的full scan和hash表的内存以及建立hash 的时间</li>
+</ul>
+<p>A Path for a join relation is actually a tree structure, with the topmost
+Path node representing the last-applied join method. It has left and right
+subpaths that represent the scan or join methods used for the two input
+relations.</p>
+<h2 id=join-tree-construction>
+Join Tree Construction
+<a href=#join-tree-construction class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>The optimizer generates optimal query plans by doing a more-or-less
+exhaustive search through the ways of executing the query. The best Path
+tree is found by a recursive process:</p>
+<p>Take each base relation in the query, and make a RelOptInfo structure
+for it. Find each potentially useful way of accessing the relation,
+including sequential and index scans, and make Paths representing those
+ways. All the Paths made for a given relation are placed in its
+RelOptInfo.pathlist. (Actually, we discard Paths that are obviously
+inferior alternatives before they ever get into the pathlist &mdash; what
+ends up in the pathlist is the cheapest way of generating each potentially
+useful sort ordering and parameterization of the relation.) Also create a
+RelOptInfo.joininfo list including all the join clauses that involve this
+relation. For example, the WHERE clause <code>tab1.col1 = tab2.col1</code> generates
+entries in both tab1 and tab2&rsquo;s joininfo lists.</p>
+<p>If we have only a single base relation in the query, we are done.
+Otherwise we have to figure out how to join the base relations into a
+single join relation.</p>
+<ul>
+<li>构造基表的 path ，此时已经开始优化，代价较高的 path 在此过程中会被淘汰掉</li>
+</ul>
+<p>Normally, any explicit JOIN clauses are &ldquo;flattened&rdquo; so that we just
+have a list of relations to join. However, FULL OUTER JOIN clauses are
+never flattened, and other kinds of JOIN might not be either, if the
+flattening process is stopped by join_collapse_limit or from_collapse_limit
+restrictions. Therefore, we end up with a planning problem that contains
+lists of relations to be joined in any order, where any individual item
+might be a sub-list that has to be joined together before we can consider
+joining it to its siblings. We process these sub-problems recursively,
+bottom up. Note that the join list structure constrains the possible join
+orders, but it doesn&rsquo;t constrain the join implementation method at each
+join (nestloop, merge, hash), nor does it say which rel is considered outer
+or inner at each join. We consider all these possibilities in building
+Paths. We generate a Path for each feasible join method, and select the
+cheapest Path.</p>
+<p>For each planning problem, therefore, we will have a list of relations
+that are either base rels or joinrels constructed per sub-join-lists.
+We can join these rels together in any order the planner sees fit.
+The standard (non-GEQO) planner does this as follows:</p>
+<p>Consider joining each RelOptInfo to each other RelOptInfo for which there
+is a usable joinclause, and generate a Path for each possible join method
+for each such pair. (If we have a RelOptInfo with no join clauses, we have
+no choice but to generate a clauseless Cartesian-product join; so we
+consider joining that rel to each other available rel. But in the presence
+of join clauses we will only consider joins that use available join
+clauses. Note that join-order restrictions induced by outer joins and
+IN/EXISTS clauses are also checked, to ensure that we find a workable join
+order in cases where those restrictions force a clauseless join to be done.)</p>
+<p>If we only had two relations in the list, we are done: we just pick
+the cheapest path for the join RelOptInfo. If we had more than two, we now
+need to consider ways of joining join RelOptInfos to each other to make
+join RelOptInfos that represent more than two list items.</p>
+<p>The join tree is constructed using a &ldquo;dynamic programming&rdquo; algorithm:
+in the first pass (already described) we consider ways to create join rels
+representing exactly two list items. The second pass considers ways
+to make join rels that represent exactly three list items; the next pass,
+four items, etc. The last pass considers how to make the final join
+relation that includes all list items &mdash; obviously there can be only one
+join rel at this top level, whereas there can be more than one join rel
+at lower levels. At each level we use joins that follow available join
+clauses, if possible, just as described for the first level.</p>
+<p>For example:</p>
+<pre><code>SELECT  *
+FROM    tab1, tab2, tab3, tab4
+WHERE   tab1.col = tab2.col AND
+    tab2.col = tab3.col AND
+    tab3.col = tab4.col
+
+Tables 1, 2, 3, and 4 are joined as:
+{1 2},{2 3},{3 4}
+{1 2 3},{2 3 4}
+{1 2 3 4}
+(other possibilities will be excluded for lack of join clauses)
+
+SELECT  *
+FROM    tab1, tab2, tab3, tab4
+WHERE   tab1.col = tab2.col AND
+    tab1.col = tab3.col AND
+    tab1.col = tab4.col
+
+Tables 1, 2, 3, and 4 are joined as:
+{1 2},{1 3},{1 4}
+{1 2 3},{1 3 4},{1 2 4}
+{1 2 3 4}
+</code></pre>
+<p>We consider left-handed plans (the outer rel of an upper join is a joinrel,
+but the inner is always a single list item); right-handed plans (outer rel
+is always a single item); and bushy plans (both inner and outer can be
+joins themselves). For example, when building <code>{1 2 3 4}</code> we consider
+joining <code>{1 2 3}</code> to <code>{4}</code> (left-handed), <code>{4}</code> to <code>{1 2 3}</code> (right-handed), and
+<code>{1 2}</code> to <code>{3 4}</code> (bushy), among other choices. Although the jointree
+scanning code produces these potential join combinations one at a time,
+all the ways to produce the same set of joined base rels will share the
+same RelOptInfo, so the paths produced from different join combinations
+that produce equivalent joinrels will compete in add_path().</p>
+<p>The dynamic-programming approach has an important property that&rsquo;s not
+immediately obvious: we will finish constructing all paths for a given
+relation before we construct any paths for relations containing that rel.
+This means that we can reliably identify the &ldquo;cheapest path&rdquo; for each rel
+before higher-level relations need to know that. Also, we can safely
+discard a path when we find that another path for the same rel is better,
+without worrying that maybe there is already a reference to that path in
+some higher-level join path. Without this, memory management for paths
+would be much more complicated.</p>
+<p>Once we have built the final join rel, we use either the cheapest path
+for it or the cheapest path with the desired ordering (if that&rsquo;s cheaper
+than applying a sort to the cheapest other path).</p>
+<p>If the query contains one-sided outer joins (LEFT or RIGHT joins), or
+IN or EXISTS WHERE clauses that were converted to semijoins or antijoins,
+then some of the possible join orders may be illegal. These are excluded
+by having join_is_legal consult a side list of such &ldquo;special&rdquo; joins to see
+whether a proposed join is illegal. (The same consultation allows it to
+see which join style should be applied for a valid join, ie, JOIN_INNER,
+JOIN_LEFT, etc.)</p>
+<h2 id=valid-outer-join-optimizations>
+Valid OUTER JOIN Optimizations
+<a href=#valid-outer-join-optimizations class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>The planner&rsquo;s treatment of outer join reordering is based on the following
+identities:</p>
+<ol>
+<li>(A leftjoin B on (Pab)) innerjoin C on (Pac)
+= (A innerjoin C on (Pac)) leftjoin B on (Pab)</li>
+</ol>
+<p>where Pac is a predicate referencing A and C, etc (in this case, clearly
+Pac cannot reference B, or the transformation is nonsensical).</p>
+<ol start=2>
+<li>
+<p>(A leftjoin B on (Pab)) leftjoin C on (Pac)
+= (A leftjoin C on (Pac)) leftjoin B on (Pab)</p>
+</li>
+<li>
+<p>(A leftjoin B on (Pab)) leftjoin C on (Pbc)
+= A leftjoin (B leftjoin C on (Pbc)) on (Pab)</p>
+</li>
+</ol>
+<p>Identity 3 only holds if predicate Pbc must fail for all-null B rows
+(that is, Pbc is strict for at least one column of B). If Pbc is not
+strict, the first form might produce some rows with nonnull C columns
+where the second form would make those entries null.</p>
+<ul>
+<li>假设 B 在 Pbc 上的条件下没有输出，在 Pab 下有输出，在 语句 3.1 下 AjB 的输出可能在 Pbc 会输出部分 C</li>
+<li>但是语句 3.2 此时 BjC 是完全无输出，最终的结果中不存在任何 C，所以此时要求 Pbc 严格显示必须有输出</li>
+<li><a href=https://blog.csdn.net/gp_community/article/details/106860699>外连接消除</a></li>
+</ul>
+<p>RIGHT JOIN is equivalent to LEFT JOIN after switching the two input
+tables, so the same identities work for right joins.</p>
+<p>An example of a case that does <em>not</em> work is moving an innerjoin into or
+out of the nullable side of an outer join:</p>
+<pre><code>A leftjoin (B join C on (Pbc)) on (Pab)
+!= (A leftjoin B on (Pab)) join C on (Pbc)
+</code></pre>
+<p>SEMI joins work a little bit differently. A semijoin can be reassociated
+into or out of the lefthand side of another semijoin, left join, or
+antijoin, but not into or out of the righthand side. Likewise, an inner
+join, left join, or antijoin can be reassociated into or out of the
+lefthand side of a semijoin, but not into or out of the righthand side.</p>
+<p>ANTI joins work approximately like LEFT joins, except that identity 3
+fails if the join to C is an antijoin (even if Pbc is strict, and in
+both the cases where the other join is a leftjoin and where it is an
+antijoin). So we can&rsquo;t reorder antijoins into or out of the RHS of a
+leftjoin or antijoin, even if the relevant clause is strict.</p>
+<p>The current code does not attempt to re-order FULL JOINs at all.
+FULL JOIN ordering is enforced by not collapsing FULL JOIN nodes when
+translating the jointree to &ldquo;joinlist&rdquo; representation. Other types of
+JOIN nodes are normally collapsed so that they participate fully in the
+join order search. To avoid generating illegal join orders, the planner
+creates a SpecialJoinInfo node for each non-inner join, and join_is_legal
+checks this list to decide if a proposed join is legal.</p>
+<p>What we store in SpecialJoinInfo nodes are the minimum sets of Relids
+required on each side of the join to form the outer join. Note that
+these are minimums; there&rsquo;s no explicit maximum, since joining other
+rels to the OJ&rsquo;s syntactic rels may be legal. Per identities 1 and 2,
+non-FULL joins can be freely associated into the lefthand side of an
+OJ, but in some cases they can&rsquo;t be associated into the righthand side.
+So the restriction enforced by join_is_legal is that a proposed join
+can&rsquo;t join a rel within or partly within an RHS boundary to one outside
+the boundary, unless the proposed join is a LEFT join that can associate
+into the SpecialJoinInfo&rsquo;s RHS using identity 3.</p>
+<p>The use of minimum Relid sets has some pitfalls; consider a query like</p>
+<pre><code>A leftjoin (B leftjoin (C innerjoin D) on (Pbcd)) on Pa
+</code></pre>
+<p>where Pa doesn&rsquo;t mention B/C/D at all. In this case a naive computation
+would give the upper leftjoin&rsquo;s min LHS as {A} and min RHS as {C,D} (since
+we know that the innerjoin can&rsquo;t associate out of the leftjoin&rsquo;s RHS, and
+enforce that by including its relids in the leftjoin&rsquo;s min RHS). And the
+lower leftjoin has min LHS of {B} and min RHS of {C,D}. Given such
+information, join_is_legal would think it&rsquo;s okay to associate the upper
+join into the lower join&rsquo;s RHS, transforming the query to</p>
+<pre><code>B leftjoin (A leftjoin (C innerjoin D) on Pa) on (Pbcd)
+</code></pre>
+<p>which yields totally wrong answers. We prevent that by forcing the min RHS
+for the upper join to include B. This is perhaps overly restrictive, but
+such cases don&rsquo;t arise often so it&rsquo;s not clear that it&rsquo;s worth developing a
+more complicated system.</p>
+<h2 id=pulling-up-subqueries>
+Pulling Up Subqueries
+<a href=#pulling-up-subqueries class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>As we described above, a subquery appearing in the range table is planned
+independently and treated as a &ldquo;black box&rdquo; during planning of the outer
+query. This is necessary when the subquery uses features such as
+aggregates, GROUP, or DISTINCT. But if the subquery is just a simple
+scan or join, treating the subquery as a black box may produce a poor plan
+compared to considering it as part of the entire plan search space.
+Therefore, at the start of the planning process the planner looks for
+simple subqueries and pulls them up into the main query&rsquo;s jointree.</p>
+<p>Pulling up a subquery may result in FROM-list joins appearing below the top
+of the join tree. Each FROM-list is planned using the dynamic-programming
+search method described above.</p>
+<p>If pulling up a subquery produces a FROM-list as a direct child of another
+FROM-list, then we can merge the two FROM-lists together. Once that&rsquo;s
+done, the subquery is an absolutely integral part of the outer query and
+will not constrain the join tree search space at all. However, that could
+result in unpleasant growth of planning time, since the dynamic-programming
+search has runtime exponential in the number of FROM-items considered.
+Therefore, we don&rsquo;t merge FROM-lists if the result would have too many
+FROM-items in one list.</p>
+<h2 id=optimizer-functions>
+Optimizer Functions
+<a href=#optimizer-functions class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>The primary entry point is planner().</p>
+<p>planner()
+set up for recursive handling of subqueries
+-subquery_planner()
+pull up sublinks and subqueries from rangetable, if possible
+canonicalize qual
+Attempt to simplify WHERE clause to the most useful form; this includes
+flattening nested AND/ORs and detecting clauses that are duplicated in
+different branches of an OR.
+simplify constant expressions
+process sublinks
+convert Vars of outer query levels into Params
+&ndash;grouping_planner()
+preprocess target list for non-SELECT queries
+handle UNION/INTERSECT/EXCEPT, GROUP BY, HAVING, aggregates,
+ORDER BY, DISTINCT, LIMIT
+&mdash;query_planner()
+make list of base relations used in query
+split up the qual into restrictions (a=1) and joins (b=c)
+find qual clauses that enable merge and hash joins
+&mdash;-make_one_rel()
+set_base_rel_pathlists()
+find seqscan and all index paths for each base relation
+find selectivity of columns used in joins
+make_rel_from_joinlist()
+hand off join subproblems to a plugin, GEQO, or standard_join_search()
+&mdash;&mdash;standard_join_search()
+call join_search_one_level() for each level of join tree needed
+join_search_one_level():
+For each joinrel of the prior level, do make_rels_by_clause_joins()
+if it has join clauses, or make_rels_by_clauseless_joins() if not.
+Also generate &ldquo;bushy plan&rdquo; joins between joinrels of lower levels.
+Back at standard_join_search(), generate gather paths if needed for
+each newly constructed joinrel, then apply set_cheapest() to extract
+the cheapest path for it.
+Loop back if this wasn&rsquo;t the top join level.
+Back at grouping_planner:
+do grouping (GROUP BY) and aggregation
+do window functions
+make unique (DISTINCT)
+do sorting (ORDER BY)
+do limit (LIMIT/OFFSET)
+Back at planner():
+convert finished Path tree into a Plan tree
+do final cleanup after planning</p>
+<h2 id=optimizer-data-structures>
+Optimizer Data Structures
+<a href=#optimizer-data-structures class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>PlannerGlobal - global information for a single planner invocation</p>
+<p>PlannerInfo - information for planning a particular Query (we make
+a separate PlannerInfo node for each sub-Query)</p>
+<p>RelOptInfo - a relation or joined relations</p>
+<p>RestrictInfo - WHERE clauses, like &ldquo;x = 3&rdquo; or &ldquo;y = z&rdquo;
+(note the same structure is used for restriction and
+join clauses)</p>
+<p>Path - every way to generate a RelOptInfo(sequential,index,joins)
+A plain Path node can represent several simple plans, per its pathtype:
+T_SeqScan - sequential scan
+T_SampleScan - tablesample scan
+T_FunctionScan - function-in-FROM scan
+T_TableFuncScan - table function scan
+T_ValuesScan - VALUES scan
+T_CteScan - CTE (WITH) scan
+T_NamedTuplestoreScan - ENR scan
+T_WorkTableScan - scan worktable of a recursive CTE
+T_Result - childless Result plan node (used for FROM-less SELECT)
+IndexPath - index scan
+BitmapHeapPath - top of a bitmapped index scan
+TidPath - scan by CTID
+TidRangePath - scan a contiguous range of CTIDs
+SubqueryScanPath - scan a subquery-in-FROM
+ForeignPath - scan a foreign table, foreign join or foreign upper-relation
+CustomPath - for custom scan providers
+AppendPath - append multiple subpaths together
+MergeAppendPath - merge multiple subpaths, preserving their common sort order
+GroupResultPath - childless Result plan node (used for degenerate grouping)
+MaterialPath - a Material plan node
+MemoizePath - a Memoize plan node for caching tuples from sub-paths
+UniquePath - remove duplicate rows (either by hashing or sorting)
+GatherPath - collect the results of parallel workers
+GatherMergePath - collect parallel results, preserving their common sort order
+ProjectionPath - a Result plan node with child (used for projection)
+ProjectSetPath - a ProjectSet plan node applied to some sub-path
+SortPath - a Sort plan node applied to some sub-path
+IncrementalSortPath - an IncrementalSort plan node applied to some sub-path
+GroupPath - a Group plan node applied to some sub-path
+UpperUniquePath - a Unique plan node applied to some sub-path
+AggPath - an Agg plan node applied to some sub-path
+GroupingSetsPath - an Agg plan node used to implement GROUPING SETS
+MinMaxAggPath - a Result plan node with subplans performing MIN/MAX
+WindowAggPath - a WindowAgg plan node applied to some sub-path
+SetOpPath - a SetOp plan node applied to some sub-path
+RecursiveUnionPath - a RecursiveUnion plan node applied to two sub-paths
+LockRowsPath - a LockRows plan node applied to some sub-path
+ModifyTablePath - a ModifyTable plan node applied to some sub-path(s)
+LimitPath - a Limit plan node applied to some sub-path
+NestPath - nested-loop joins
+MergePath - merge joins
+HashPath - hash joins</p>
+<p>EquivalenceClass - a data structure representing a set of values known equal</p>
+<p>PathKey - a data structure representing the sort ordering of a path</p>
+<p>The optimizer spends a good deal of its time worrying about the ordering
+of the tuples returned by a path. The reason this is useful is that by
+knowing the sort ordering of a path, we may be able to use that path as
+the left or right input of a mergejoin and avoid an explicit sort step.
+Nestloops and hash joins don&rsquo;t really care what the order of their inputs
+is, but mergejoin needs suitably ordered inputs. Therefore, all paths
+generated during the optimization process are marked with their sort order
+(to the extent that it is known) for possible use by a higher-level merge.</p>
+<p>It is also possible to avoid an explicit sort step to implement a user&rsquo;s
+ORDER BY clause if the final path has the right ordering already, so the
+sort ordering is of interest even at the top level. grouping_planner() will
+look for the cheapest path with a sort order matching the desired order,
+then compare its cost to the cost of using the cheapest-overall path and
+doing an explicit sort on that.</p>
+<p>When we are generating paths for a particular RelOptInfo, we discard a path
+if it is more expensive than another known path that has the same or better
+sort order. We will never discard a path that is the only known way to
+achieve a given sort order (without an explicit sort, that is). In this
+way, the next level up will have the maximum freedom to build mergejoins
+without sorting, since it can pick from any of the paths retained for its
+inputs.</p>
+<h2 id=equivalenceclasses>
+EquivalenceClasses
+<a href=#equivalenceclasses class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>During the deconstruct_jointree() scan of the query&rsquo;s qual clauses, we look
+for mergejoinable equality clauses A = B whose applicability is not delayed
+by an outer join; these are called &ldquo;equivalence clauses&rdquo;. When we find
+one, we create an EquivalenceClass containing the expressions A and B to
+record this knowledge. If we later find another equivalence clause B = C,
+we add C to the existing EquivalenceClass for {A B}; this may require
+merging two existing EquivalenceClasses. At the end of the scan, we have
+sets of values that are known all transitively equal to each other. We can
+therefore use a comparison of any pair of the values as a restriction or
+join clause (when these values are available at the scan or join, of
+course); furthermore, we need test only one such comparison, not all of
+them. Therefore, equivalence clauses are removed from the standard qual
+distribution process. Instead, when preparing a restriction or join clause
+list, we examine each EquivalenceClass to see if it can contribute a
+clause, and if so we select an appropriate pair of values to compare. For
+example, if we are trying to join A&rsquo;s relation to C&rsquo;s, we can generate the
+clause A = C, even though this appeared nowhere explicitly in the original
+query. This may allow us to explore join paths that otherwise would have
+been rejected as requiring Cartesian-product joins.</p>
+<p>Sometimes an EquivalenceClass may contain a pseudo-constant expression
+(i.e., one not containing Vars or Aggs of the current query level, nor
+volatile functions). In this case we do not follow the policy of
+dynamically generating join clauses: instead, we dynamically generate
+restriction clauses &ldquo;var = const&rdquo; wherever one of the variable members of
+the class can first be computed. For example, if we have A = B and B = 42,
+we effectively generate the restriction clauses A = 42 and B = 42, and then
+we need not bother with explicitly testing the join clause A = B when the
+relations are joined. In effect, all the class members can be tested at
+relation-scan level and there&rsquo;s never a need for join tests.</p>
+<p>The precise technical interpretation of an EquivalenceClass is that it
+asserts that at any plan node where more than one of its member values
+can be computed, output rows in which the values are not all equal may
+be discarded without affecting the query result. (We require all levels
+of the plan to enforce EquivalenceClasses, hence a join need not recheck
+equality of values that were computable by one of its children.) For an
+ordinary EquivalenceClass that is &ldquo;valid everywhere&rdquo;, we can further infer
+that the values are all non-null, because all mergejoinable operators are
+strict. However, we also allow equivalence clauses that appear below the
+nullable side of an outer join to form EquivalenceClasses; for these
+classes, the interpretation is that either all the values are equal, or
+all (except pseudo-constants) have gone to null. (This requires a
+limitation that non-constant members be strict, else they might not go
+to null when the other members do.) Consider for example</p>
+<pre><code>SELECT *
+  FROM a LEFT JOIN
+       (SELECT * FROM b JOIN c ON b.y = c.z WHERE b.y = 10) ss
+       ON a.x = ss.y
+  WHERE a.x = 42;
+</code></pre>
+<p>We can form the below-outer-join EquivalenceClass {b.y c.z 10} and thereby
+apply c.z = 10 while scanning c. (The reason we disallow outerjoin-delayed
+clauses from forming EquivalenceClasses is exactly that we want to be able
+to push any derived clauses as far down as possible.) But once above the
+outer join it&rsquo;s no longer necessarily the case that b.y = 10, and thus we
+cannot use such EquivalenceClasses to conclude that sorting is unnecessary
+(see discussion of PathKeys below).</p>
+<p>In this example, notice also that a.x = ss.y (really a.x = b.y) is not an
+equivalence clause because its applicability to b is delayed by the outer
+join; thus we do not try to insert b.y into the equivalence class {a.x 42}.
+But since we see that a.x has been equated to 42 above the outer join, we
+are able to form a below-outer-join class {b.y 42}; this restriction can be
+added because no b/c row not having b.y = 42 can contribute to the result
+of the outer join, and so we need not compute such rows. Now this class
+will get merged with {b.y c.z 10}, leading to the contradiction 10 = 42,
+which lets the planner deduce that the b/c join need not be computed at all
+because none of its rows can contribute to the outer join. (This gets
+implemented as a gating Result filter, since more usually the potential
+contradiction involves Param values rather than just Consts, and thus has
+to be checked at runtime.)</p>
+<p>To aid in determining the sort ordering(s) that can work with a mergejoin,
+we mark each mergejoinable clause with the EquivalenceClasses of its left
+and right inputs. For an equivalence clause, these are of course the same
+EquivalenceClass. For a non-equivalence mergejoinable clause (such as an
+outer-join qualification), we generate two separate EquivalenceClasses for
+the left and right inputs. This may result in creating single-item
+equivalence &ldquo;classes&rdquo;, though of course these are still subject to merging
+if other equivalence clauses are later found to bear on the same
+expressions.</p>
+<p>Another way that we may form a single-item EquivalenceClass is in creation
+of a PathKey to represent a desired sort order (see below). This is a bit
+different from the above cases because such an EquivalenceClass might
+contain an aggregate function or volatile expression. (A clause containing
+a volatile function will never be considered mergejoinable, even if its top
+operator is mergejoinable, so there is no way for a volatile expression to
+get into EquivalenceClasses otherwise. Aggregates are disallowed in WHERE
+altogether, so will never be found in a mergejoinable clause.) This is just
+a convenience to maintain a uniform PathKey representation: such an
+EquivalenceClass will never be merged with any other. Note in particular
+that a single-item EquivalenceClass {a.x} is <em>not</em> meant to imply an
+assertion that a.x = a.x; the practical effect of this is that a.x could
+be NULL.</p>
+<p>An EquivalenceClass also contains a list of btree opfamily OIDs, which
+determines what the equalities it represents actually &ldquo;mean&rdquo;. All the
+equivalence clauses that contribute to an EquivalenceClass must have
+equality operators that belong to the same set of opfamilies. (Note: most
+of the time, a particular equality operator belongs to only one family, but
+it&rsquo;s possible that it belongs to more than one. We keep track of all the
+families to ensure that we can make use of an index belonging to any one of
+the families for mergejoin purposes.)</p>
+<p>An EquivalenceClass can contain &ldquo;em_is_child&rdquo; members, which are copies
+of members that contain appendrel parent relation Vars, transposed to
+contain the equivalent child-relation variables or expressions. These
+members are <em>not</em> full-fledged members of the EquivalenceClass and do not
+affect the class&rsquo;s overall properties at all. They are kept only to
+simplify matching of child-relation expressions to EquivalenceClasses.
+Most operations on EquivalenceClasses should ignore child members.</p>
+<h2 id=pathkeys>
+PathKeys
+<a href=#pathkeys class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>The PathKeys data structure represents what is known about the sort order
+of the tuples generated by a particular Path. A path&rsquo;s pathkeys field is a
+list of PathKey nodes, where the n&rsquo;th item represents the n&rsquo;th sort key of
+the result. Each PathKey contains these fields:</p>
+<pre><code>* a reference to an EquivalenceClass
+* a btree opfamily OID (must match one of those in the EC)
+* a sort direction (ascending or descending)
+* a nulls-first-or-last flag
+</code></pre>
+<p>The EquivalenceClass represents the value being sorted on. Since the
+various members of an EquivalenceClass are known equal according to the
+opfamily, we can consider a path sorted by any one of them to be sorted by
+any other too; this is what justifies referencing the whole
+EquivalenceClass rather than just one member of it.</p>
+<p>In single/base relation RelOptInfo&rsquo;s, the Paths represent various ways
+of scanning the relation and the resulting ordering of the tuples.
+Sequential scan Paths have NIL pathkeys, indicating no known ordering.
+Index scans have Path.pathkeys that represent the chosen index&rsquo;s ordering,
+if any. A single-key index would create a single-PathKey list, while a
+multi-column index generates a list with one element per key index column.
+Non-key columns specified in the INCLUDE clause of covering indexes don&rsquo;t
+have corresponding PathKeys in the list, because the have no influence on
+index ordering. (Actually, since an index can be scanned either forward or
+backward, there are two possible sort orders and two possible PathKey lists
+it can generate.)</p>
+<p>Note that a bitmap scan has NIL pathkeys since we can say nothing about
+the overall order of its result. Also, an indexscan on an unordered type
+of index generates NIL pathkeys. However, we can always create a pathkey
+by doing an explicit sort. The pathkeys for a Sort plan&rsquo;s output just
+represent the sort key fields and the ordering operators used.</p>
+<p>Things get more interesting when we consider joins. Suppose we do a
+mergejoin between A and B using the mergeclause A.X = B.Y. The output
+of the mergejoin is sorted by X &mdash; but it is also sorted by Y. Again,
+this can be represented by a PathKey referencing an EquivalenceClass
+containing both X and Y.</p>
+<p>With a little further thought, it becomes apparent that nestloop joins
+can also produce sorted output. For example, if we do a nestloop join
+between outer relation A and inner relation B, then any pathkeys relevant
+to A are still valid for the join result: we have not altered the order of
+the tuples from A. Even more interesting, if there was an equivalence clause
+A.X=B.Y, and A.X was a pathkey for the outer relation A, then we can assert
+that B.Y is a pathkey for the join result; X was ordered before and still
+is, and the joined values of Y are equal to the joined values of X, so Y
+must now be ordered too. This is true even though we used neither an
+explicit sort nor a mergejoin on Y. (Note: hash joins cannot be counted
+on to preserve the order of their outer relation, because the executor
+might decide to &ldquo;batch&rdquo; the join, so we always set pathkeys to NIL for
+a hashjoin path.) Exception: a RIGHT or FULL join doesn&rsquo;t preserve the
+ordering of its outer relation, because it might insert nulls at random
+points in the ordering.</p>
+<p>In general, we can justify using EquivalenceClasses as the basis for
+pathkeys because, whenever we scan a relation containing multiple
+EquivalenceClass members or join two relations each containing
+EquivalenceClass members, we apply restriction or join clauses derived from
+the EquivalenceClass. This guarantees that any two values listed in the
+EquivalenceClass are in fact equal in all tuples emitted by the scan or
+join, and therefore that if the tuples are sorted by one of the values,
+they can be considered sorted by any other as well. It does not matter
+whether the test clause is used as a mergeclause, or merely enforced
+after-the-fact as a qpqual filter.</p>
+<p>Note that there is no particular difficulty in labeling a path&rsquo;s sort
+order with a PathKey referencing an EquivalenceClass that contains
+variables not yet joined into the path&rsquo;s output. We can simply ignore
+such entries as not being relevant (yet). This makes it possible to
+use the same EquivalenceClasses throughout the join planning process.
+In fact, by being careful not to generate multiple identical PathKey
+objects, we can reduce comparison of EquivalenceClasses and PathKeys
+to simple pointer comparison, which is a huge savings because add_path
+has to make a large number of PathKey comparisons in deciding whether
+competing Paths are equivalently sorted.</p>
+<p>Pathkeys are also useful to represent an ordering that we wish to achieve,
+since they are easily compared to the pathkeys of a potential candidate
+path. So, SortGroupClause lists are turned into pathkeys lists for use
+inside the optimizer.</p>
+<p>An additional refinement we can make is to insist that canonical pathkey
+lists (sort orderings) do not mention the same EquivalenceClass more than
+once. For example, in all these cases the second sort column is redundant,
+because it cannot distinguish values that are the same according to the
+first sort column:
+SELECT &mldr; ORDER BY x, x
+SELECT &mldr; ORDER BY x, x DESC
+SELECT &mldr; WHERE x = y ORDER BY x, y
+Although a user probably wouldn&rsquo;t write &ldquo;ORDER BY x,x&rdquo; directly, such
+redundancies are more probable once equivalence classes have been
+considered. Also, the system may generate redundant pathkey lists when
+computing the sort ordering needed for a mergejoin. By eliminating the
+redundancy, we save time and improve planning, since the planner will more
+easily recognize equivalent orderings as being equivalent.</p>
+<p>Another interesting property is that if the underlying EquivalenceClass
+contains a constant and is not below an outer join, then the pathkey is
+completely redundant and need not be sorted by at all! Every row must
+contain the same constant value, so there&rsquo;s no need to sort. (If the EC is
+below an outer join, we still have to sort, since some of the rows might
+have gone to null and others not. In this case we must be careful to pick
+a non-const member to sort by. The assumption that all the non-const
+members go to null at the same plan level is critical here, else they might
+not produce the same sort order.) This might seem pointless because users
+are unlikely to write &ldquo;&mldr; WHERE x = 42 ORDER BY x&rdquo;, but it allows us to
+recognize when particular index columns are irrelevant to the sort order:
+if we have &ldquo;&mldr; WHERE x = 42 ORDER BY y&rdquo;, scanning an index on (x,y)
+produces correctly ordered data without a sort step. We used to have very
+ugly ad-hoc code to recognize that in limited contexts, but discarding
+constant ECs from pathkeys makes it happen cleanly and automatically.</p>
+<p>You might object that a below-outer-join EquivalenceClass doesn&rsquo;t always
+represent the same values at every level of the join tree, and so using
+it to uniquely identify a sort order is dubious. This is true, but we
+can avoid dealing with the fact explicitly because we always consider that
+an outer join destroys any ordering of its nullable inputs. Thus, even
+if a path was sorted by {a.x} below an outer join, we&rsquo;ll re-sort if that
+sort ordering was important; and so using the same PathKey for both sort
+orderings doesn&rsquo;t create any real problem.</p>
+<h2 id=order-of-processing-for-equivalenceclasses-and-pathkeys>
+Order of processing for EquivalenceClasses and PathKeys
+<a href=#order-of-processing-for-equivalenceclasses-and-pathkeys class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>As alluded to above, there is a specific sequence of phases in the
+processing of EquivalenceClasses and PathKeys during planning. During the
+initial scanning of the query&rsquo;s quals (deconstruct_jointree followed by
+reconsider_outer_join_clauses), we construct EquivalenceClasses based on
+mergejoinable clauses found in the quals. At the end of this process,
+we know all we can know about equivalence of different variables, so
+subsequently there will be no further merging of EquivalenceClasses.
+At that point it is possible to consider the EquivalenceClasses as
+&ldquo;canonical&rdquo; and build canonical PathKeys that reference them. At this
+time we construct PathKeys for the query&rsquo;s ORDER BY and related clauses.
+(Any ordering expressions that do not appear elsewhere will result in
+the creation of new EquivalenceClasses, but this cannot result in merging
+existing classes, so canonical-ness is not lost.)</p>
+<p>Because all the EquivalenceClasses are known before we begin path
+generation, we can use them as a guide to which indexes are of interest:
+if an index&rsquo;s column is not mentioned in any EquivalenceClass then that
+index&rsquo;s sort order cannot possibly be helpful for the query. This allows
+short-circuiting of much of the processing of create_index_paths() for
+irrelevant indexes.</p>
+<p>There are some cases where planner.c constructs additional
+EquivalenceClasses and PathKeys after query_planner has completed.
+In these cases, the extra ECs/PKs are needed to represent sort orders
+that were not considered during query_planner. Such situations should be
+minimized since it is impossible for query_planner to return a plan
+producing such a sort order, meaning an explicit sort will always be needed.
+Currently this happens only for queries involving multiple window functions
+with different orderings, for which extra sorts are needed anyway.</p>
+<h2 id=parameterized-paths>
+Parameterized Paths
+<a href=#parameterized-paths class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>The naive way to join two relations using a clause like WHERE A.X = B.Y
+is to generate a nestloop plan like this:</p>
+<pre><code>NestLoop
+	Filter: A.X = B.Y
+	-&gt; Seq Scan on A
+	-&gt; Seq Scan on B
+</code></pre>
+<p>We can make this better by using a merge or hash join, but it still
+requires scanning all of both input relations. If A is very small and B is
+very large, but there is an index on B.Y, it can be enormously better to do
+something like this:</p>
+<pre><code>NestLoop
+	-&gt; Seq Scan on A
+	-&gt; Index Scan using B_Y_IDX on B
+		Index Condition: B.Y = A.X
+</code></pre>
+<p>Here, we are expecting that for each row scanned from A, the nestloop
+plan node will pass down the current value of A.X into the scan of B.
+That allows the indexscan to treat A.X as a constant for any one
+invocation, and thereby use it as an index key. This is the only plan type
+that can avoid fetching all of B, and for small numbers of rows coming from
+A, that will dominate every other consideration. (As A gets larger, this
+gets less attractive, and eventually a merge or hash join will win instead.
+So we have to cost out all the alternatives to decide what to do.)</p>
+<p>It can be useful for the parameter value to be passed down through
+intermediate layers of joins, for example:</p>
+<pre><code>NestLoop
+	-&gt; Seq Scan on A
+	Hash Join
+		Join Condition: B.Y = C.W
+		-&gt; Seq Scan on B
+		-&gt; Index Scan using C_Z_IDX on C
+			Index Condition: C.Z = A.X
+</code></pre>
+<p>If all joins are plain inner joins then this is usually unnecessary,
+because it&rsquo;s possible to reorder the joins so that a parameter is used
+immediately below the nestloop node that provides it. But in the
+presence of outer joins, such join reordering may not be possible.</p>
+<p>Also, the bottom-level scan might require parameters from more than one
+other relation. In principle we could join the other relations first
+so that all the parameters are supplied from a single nestloop level.
+But if those other relations have no join clause in common (which is
+common in star-schema queries for instance), the planner won&rsquo;t consider
+joining them directly to each other. In such a case we need to be able
+to create a plan like</p>
+<pre><code>NestLoop
+    -&gt; Seq Scan on SmallTable1 A
+    NestLoop
+        -&gt; Seq Scan on SmallTable2 B
+        -&gt; Index Scan using XYIndex on LargeTable C
+             Index Condition: C.X = A.AID and C.Y = B.BID
+</code></pre>
+<p>so we should be willing to pass down A.AID through a join even though
+there is no join order constraint forcing the plan to look like this.</p>
+<p>Before version 9.2, Postgres used ad-hoc methods for planning and
+executing nestloop queries of this kind, and those methods could not
+handle passing parameters down through multiple join levels.</p>
+<p>To plan such queries, we now use a notion of a &ldquo;parameterized path&rdquo;,
+which is a path that makes use of a join clause to a relation that&rsquo;s not
+scanned by the path. In the example two above, we would construct a
+path representing the possibility of doing this:</p>
+<pre><code>-&gt; Index Scan using C_Z_IDX on C
+	Index Condition: C.Z = A.X
+</code></pre>
+<p>This path will be marked as being parameterized by relation A. (Note that
+this is only one of the possible access paths for C; we&rsquo;d still have a
+plain unparameterized seqscan, and perhaps other possibilities.) The
+parameterization marker does not prevent joining the path to B, so one of
+the paths generated for the joinrel {B C} will represent</p>
+<pre><code>Hash Join
+	Join Condition: B.Y = C.W
+	-&gt; Seq Scan on B
+	-&gt; Index Scan using C_Z_IDX on C
+		Index Condition: C.Z = A.X
+</code></pre>
+<p>This path is still marked as being parameterized by A. When we attempt to
+join {B C} to A to form the complete join tree, such a path can only be
+used as the inner side of a nestloop join: it will be ignored for other
+possible join types. So we will form a join path representing the query
+plan shown above, and it will compete in the usual way with paths built
+from non-parameterized scans.</p>
+<p>While all ordinary paths for a particular relation generate the same set
+of rows (since they must all apply the same set of restriction clauses),
+parameterized paths typically generate fewer rows than less-parameterized
+paths, since they have additional clauses to work with. This means we
+must consider the number of rows generated as an additional figure of
+merit. A path that costs more than another, but generates fewer rows,
+must be kept since the smaller number of rows might save work at some
+intermediate join level. (It would not save anything if joined
+immediately to the source of the parameters.)</p>
+<p>To keep cost estimation rules relatively simple, we make an implementation
+restriction that all paths for a given relation of the same parameterization
+(i.e., the same set of outer relations supplying parameters) must have the
+same rowcount estimate. This is justified by insisting that each such path
+apply <em>all</em> join clauses that are available with the named outer relations.
+Different paths might, for instance, choose different join clauses to use
+as index clauses; but they must then apply any other join clauses available
+from the same outer relations as filter conditions, so that the set of rows
+returned is held constant. This restriction doesn&rsquo;t degrade the quality of
+the finished plan: it amounts to saying that we should always push down
+movable join clauses to the lowest possible evaluation level, which is a
+good thing anyway. The restriction is useful in particular to support
+pre-filtering of join paths in add_path_precheck. Without this rule we
+could never reject a parameterized path in advance of computing its rowcount
+estimate, which would greatly reduce the value of the pre-filter mechanism.</p>
+<p>To limit planning time, we have to avoid generating an unreasonably large
+number of parameterized paths. We do this by only generating parameterized
+relation scan paths for index scans, and then only for indexes for which
+suitable join clauses are available. There are also heuristics in join
+planning that try to limit the number of parameterized paths considered.</p>
+<p>In particular, there&rsquo;s been a deliberate policy decision to favor hash
+joins over merge joins for parameterized join steps (those occurring below
+a nestloop that provides parameters to the lower join&rsquo;s inputs). While we
+do not ignore merge joins entirely, joinpath.c does not fully explore the
+space of potential merge joins with parameterized inputs. Also, add_path
+treats parameterized paths as having no pathkeys, so that they compete
+only on cost and rowcount; they don&rsquo;t get preference for producing a
+special sort order. This creates additional bias against merge joins,
+since we might discard a path that could have been useful for performing
+a merge without an explicit sort step. Since a parameterized path must
+ultimately be used on the inside of a nestloop, where its sort order is
+uninteresting, these choices do not affect any requirement for the final
+output order of a query &mdash; they only make it harder to use a merge join
+at a lower level. The savings in planning work justifies that.</p>
+<p>Similarly, parameterized paths do not normally get preference in add_path
+for having cheap startup cost; that&rsquo;s seldom of much value when on the
+inside of a nestloop, so it seems not worth keeping extra paths solely for
+that. An exception occurs for parameterized paths for the RHS relation of
+a SEMI or ANTI join: in those cases, we can stop the inner scan after the
+first match, so it&rsquo;s primarily startup not total cost that we care about.</p>
+<h2 id=lateral-subqueries>
+LATERAL subqueries
+<a href=#lateral-subqueries class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>As of 9.3 we support SQL-standard LATERAL references from subqueries in
+FROM (and also functions in FROM). The planner implements these by
+generating parameterized paths for any RTE that contains lateral
+references. In such cases, <em>all</em> paths for that relation will be
+parameterized by at least the set of relations used in its lateral
+references. (And in turn, join relations including such a subquery might
+not have any unparameterized paths.) All the other comments made above for
+parameterized paths still apply, though; in particular, each such path is
+still expected to enforce any join clauses that can be pushed down to it,
+so that all paths of the same parameterization have the same rowcount.</p>
+<p>We also allow LATERAL subqueries to be flattened (pulled up into the parent
+query) by the optimizer, but only when this does not introduce lateral
+references into JOIN/ON quals that would refer to relations outside the
+lowest outer join at/above that qual. The semantics of such a qual would
+be unclear. Note that even with this restriction, pullup of a LATERAL
+subquery can result in creating PlaceHolderVars that contain lateral
+references to relations outside their syntactic scope. We still evaluate
+such PHVs at their syntactic location or lower, but the presence of such a
+PHV in the quals or targetlist of a plan node requires that node to appear
+on the inside of a nestloop join relative to the rel(s) supplying the
+lateral reference. (Perhaps now that that stuff works, we could relax the
+pullup restriction?)</p>
+<h2 id=security-level-constraints-on-qual-clauses>
+Security-level constraints on qual clauses
+<a href=#security-level-constraints-on-qual-clauses class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>To support row-level security and security-barrier views efficiently,
+we mark qual clauses (RestrictInfo nodes) with a &ldquo;security_level&rdquo; field.
+The basic concept is that a qual with a lower security_level must be
+evaluated before one with a higher security_level. This ensures that
+&ldquo;leaky&rdquo; quals that might expose sensitive data are not evaluated until
+after the security barrier quals that are supposed to filter out
+security-sensitive rows. However, many qual conditions are &ldquo;leakproof&rdquo;,
+that is we trust the functions they use to not expose data. To avoid
+unnecessarily inefficient plans, a leakproof qual is not delayed by
+security-level considerations, even if it has a higher syntactic
+security_level than another qual.</p>
+<p>In a query that contains no use of RLS or security-barrier views, all
+quals will have security_level zero, so that none of these restrictions
+kick in; we don&rsquo;t even need to check leakproofness of qual conditions.</p>
+<p>If there are security-barrier quals, they get security_level zero (and
+possibly higher, if there are multiple layers of barriers). Regular quals
+coming from the query text get a security_level one more than the highest
+level used for barrier quals.</p>
+<p>When new qual clauses are generated by EquivalenceClass processing,
+they must be assigned a security_level. This is trickier than it seems.
+One&rsquo;s first instinct is that it would be safe to use the largest level
+found among the source quals for the EquivalenceClass, but that isn&rsquo;t
+safe at all, because it allows unwanted delays of security-barrier quals.
+Consider a barrier qual &ldquo;t.x = t.y&rdquo; plus a query qual &ldquo;t.x = constant&rdquo;,
+and suppose there is another query qual &ldquo;leaky_function(t.z)&rdquo; that
+we mustn&rsquo;t evaluate before the barrier qual has been checked.
+We will have an EC {t.x, t.y, constant} which will lead us to replace
+the EC quals with &ldquo;t.x = constant AND t.y = constant&rdquo;. (We do not want
+to give up that behavior, either, since the latter condition could allow
+use of an index on t.y, which we would never discover from the original
+quals.) If these generated quals are assigned the same security_level as
+the query quals, then it&rsquo;s possible for the leaky_function qual to be
+evaluated first, allowing leaky_function to see data from rows that
+possibly don&rsquo;t pass the barrier condition.</p>
+<p>Instead, our handling of security levels with ECs works like this:</p>
+<ul>
+<li>Quals are not accepted as source clauses for ECs in the first place
+unless they are leakproof or have security_level zero.</li>
+<li>EC-derived quals are assigned the minimum (not maximum) security_level
+found among the EC&rsquo;s source clauses.</li>
+<li>If the maximum security_level found among the EC&rsquo;s source clauses is
+above zero, then the equality operators selected for derived quals must
+be leakproof. When no such operator can be found, the EC is treated as
+&ldquo;broken&rdquo; and we fall back to emitting its source clauses without any
+additional derived quals.</li>
+</ul>
+<p>These rules together ensure that an untrusted qual clause (one with
+security_level above zero) cannot cause an EC to generate a leaky derived
+clause. This makes it safe to use the minimum not maximum security_level
+for derived clauses. The rules could result in poor plans due to not
+being able to generate derived clauses at all, but the risk of that is
+small in practice because most btree equality operators are leakproof.
+Also, by making exceptions for level-zero quals, we ensure that there is
+no plan degradation when no barrier quals are present.</p>
+<p>Once we have security levels assigned to all clauses, enforcement
+of barrier-qual ordering restrictions boils down to two rules:</p>
+<ul>
+<li>
+<p>Table scan plan nodes must not select quals for early execution
+(for example, use them as index qualifiers in an indexscan) unless
+they are leakproof or have security_level no higher than any other
+qual that is due to be executed at the same plan node. (Use the
+utility function restriction_is_securely_promotable() to check
+whether it&rsquo;s okay to select a qual for early execution.)</p>
+</li>
+<li>
+<p>Normal execution of a list of quals must execute them in an order
+that satisfies the same security rule, ie higher security_levels must
+be evaluated later unless leakproof. (This is handled in a single place
+by order_qual_clauses() in createplan.c.)</p>
+</li>
+</ul>
+<p>order_qual_clauses() uses a heuristic to decide exactly what to do with
+leakproof clauses. Normally it sorts clauses by security_level then cost,
+being careful that the sort is stable so that we don&rsquo;t reorder clauses
+without a clear reason. But this could result in a very expensive qual
+being done before a cheaper one that is of higher security_level.
+If the cheaper qual is leaky we have no choice, but if it is leakproof
+we could put it first. We choose to sort leakproof quals as if they
+have security_level zero, but only when their cost is less than 10X
+cpu_operator_cost; that restriction alleviates the opposite problem of
+doing expensive quals first just because they&rsquo;re leakproof.</p>
+<p>Additional rules will be needed to support safe handling of join quals
+when there is a mix of security levels among join quals; for example, it
+will be necessary to prevent leaky higher-security-level quals from being
+evaluated at a lower join level than other quals of lower security level.
+Currently there is no need to consider that since security-prioritized
+quals can only be single-table restriction quals coming from RLS policies
+or security-barrier views, and security-barrier view subqueries are never
+flattened into the parent query. Hence enforcement of security-prioritized
+quals only happens at the table scan level. With extra rules for safe
+handling of security levels among join quals, it should be possible to let
+security-barrier views be flattened into the parent query, allowing more
+flexibility of planning while still preserving required ordering of qual
+evaluation. But that will come later.</p>
+<h2 id=post-scanjoin-planning>
+Post scan/join planning
+<a href=#post-scanjoin-planning class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>So far we have discussed only scan/join planning, that is, implementation
+of the FROM and WHERE clauses of a SQL query. But the planner must also
+determine how to deal with GROUP BY, aggregation, and other higher-level
+features of queries; and in many cases there are multiple ways to do these
+steps and thus opportunities for optimization choices. These steps, like
+scan/join planning, are handled by constructing Paths representing the
+different ways to do a step, then choosing the cheapest Path.</p>
+<p>Since all Paths require a RelOptInfo as &ldquo;parent&rdquo;, we create RelOptInfos
+representing the outputs of these upper-level processing steps. These
+RelOptInfos are mostly dummy, but their pathlist lists hold all the Paths
+considered useful for each step. Currently, we may create these types of
+additional RelOptInfos during upper-level planning:</p>
+<p>UPPERREL_SETOP result of UNION/INTERSECT/EXCEPT, if any
+UPPERREL_PARTIAL_GROUP_AGG result of partial grouping/aggregation, if any
+UPPERREL_GROUP_AGG result of grouping/aggregation, if any
+UPPERREL_WINDOW result of window functions, if any
+UPPERREL_PARTIAL_DISTINCT result of partial &ldquo;SELECT DISTINCT&rdquo;, if any
+UPPERREL_DISTINCT result of &ldquo;SELECT DISTINCT&rdquo;, if any
+UPPERREL_ORDERED result of ORDER BY, if any
+UPPERREL_FINAL result of any remaining top-level actions</p>
+<p>UPPERREL_FINAL is used to represent any final processing steps, currently
+LockRows (SELECT FOR UPDATE), LIMIT/OFFSET, and ModifyTable. There is no
+flexibility about the order in which these steps are done, and thus no need
+to subdivide this stage more finely.</p>
+<p>These &ldquo;upper relations&rdquo; are identified by the UPPERREL enum values shown
+above, plus a relids set, which allows there to be more than one upperrel
+of the same kind. We use NULL for the relids if there&rsquo;s no need for more
+than one upperrel of the same kind. Currently, in fact, the relids set
+is vestigial because it&rsquo;s always NULL, but that&rsquo;s expected to change in
+the future. For example, in planning set operations, we might need the
+relids to denote which subset of the leaf SELECTs has been combined in a
+particular group of Paths that are competing with each other.</p>
+<p>The result of subquery_planner() is always returned as a set of Paths
+stored in the UPPERREL_FINAL rel with NULL relids. The other types of
+upperrels are created only if needed for the particular query.</p>
+<h2 id=parallel-query-and-partial-paths>
+Parallel Query and Partial Paths
+<a href=#parallel-query-and-partial-paths class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>Parallel query involves dividing up the work that needs to be performed
+either by an entire query or some portion of the query in such a way that
+some of that work can be done by one or more worker processes, which are
+called parallel workers. Parallel workers are a subtype of dynamic
+background workers; see src/backend/access/transam/README.parallel for a
+fuller description. The academic literature on parallel query suggests
+that parallel execution strategies can be divided into essentially two
+categories: pipelined parallelism, where the execution of the query is
+divided into multiple stages and each stage is handled by a separate
+process; and partitioning parallelism, where the data is split between
+multiple processes and each process handles a subset of it. The
+literature, however, suggests that gains from pipeline parallelism are
+often very limited due to the difficulty of avoiding pipeline stalls.
+Consequently, we do not currently attempt to generate query plans that
+use this technique.</p>
+<p>Instead, we focus on partitioning parallelism, which does not require
+that the underlying table be partitioned. It only requires that (1)
+there is some method of dividing the data from at least one of the base
+tables involved in the relation across multiple processes, (2) allowing
+each process to handle its own portion of the data, and then (3)
+collecting the results. Requirements (2) and (3) are satisfied by the
+executor node Gather (or GatherMerge), which launches any number of worker
+processes and executes its single child plan in all of them, and perhaps
+in the leader also, if the children aren&rsquo;t generating enough data to keep
+the leader busy. Requirement (1) is handled by the table scan node: when
+invoked with parallel_aware = true, this node will, in effect, partition
+the table on a block by block basis, returning a subset of the tuples from
+the relation in each worker where that scan node is executed.</p>
+<p>Just as we do for non-parallel access methods, we build Paths to
+represent access strategies that can be used in a parallel plan. These
+are, in essence, the same strategies that are available in the
+non-parallel plan, but there is an important difference: a path that
+will run beneath a Gather node returns only a subset of the query
+results in each worker, not all of them. To form a path that can
+actually be executed, the (rather large) cost of the Gather node must be
+accounted for. For this reason among others, paths intended to run
+beneath a Gather node - which we call &ldquo;partial&rdquo; paths since they return
+only a subset of the results in each worker - must be kept separate from
+ordinary paths (see RelOptInfo&rsquo;s partial_pathlist and the function
+add_partial_path).</p>
+<p>One of the keys to making parallel query effective is to run as much of
+the query in parallel as possible. Therefore, we expect it to generally
+be desirable to postpone the Gather stage until as near to the top of the
+plan as possible. Expanding the range of cases in which more work can be
+pushed below the Gather (and costing them accurately) is likely to keep us
+busy for a long time to come.</p>
+<h2 id=partitionwise-joins>
+Partitionwise joins
+<a href=#partitionwise-joins class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>A join between two similarly partitioned tables can be broken down into joins
+between their matching partitions if there exists an equi-join condition
+between the partition keys of the joining tables. The equi-join between
+partition keys implies that all join partners for a given row in one
+partitioned table must be in the corresponding partition of the other
+partitioned table. Because of this the join between partitioned tables to be
+broken into joins between the matching partitions. The resultant join is
+partitioned in the same way as the joining relations, thus allowing an N-way
+join between similarly partitioned tables having equi-join condition between
+their partition keys to be broken down into N-way joins between their matching
+partitions. This technique of breaking down a join between partitioned tables
+into joins between their partitions is called partitionwise join. We will use
+term &ldquo;partitioned relation&rdquo; for either a partitioned table or a join between
+compatibly partitioned tables.</p>
+<p>Even if the joining relations don&rsquo;t have exactly the same partition bounds,
+partitionwise join can still be applied by using an advanced
+partition-matching algorithm. For both the joining relations, the algorithm
+checks whether every partition of one joining relation only matches one
+partition of the other joining relation at most. In such a case the join
+between the joining relations can be broken down into joins between the
+matching partitions. The join relation can then be considered partitioned.
+The algorithm produces the pairs of the matching partitions, plus the
+partition bounds for the join relation, to allow partitionwise join for
+computing the join. The algorithm is implemented in partition_bounds_merge().
+For an N-way join relation considered partitioned this way, not every pair of
+joining relations can use partitionwise join. For example:</p>
+<pre><code>(A leftjoin B on (Pab)) innerjoin C on (Pac)
+</code></pre>
+<p>where A, B, and C are partitioned tables, and A has an extra partition
+compared to B and C. When considering partitionwise join for the join {A B},
+the extra partition of A doesn&rsquo;t have a matching partition on the nullable
+side, which is the case that the current implementation of partitionwise join
+can&rsquo;t handle. So {A B} is not considered partitioned, and the pair of {A B}
+and C considered for the 3-way join can&rsquo;t use partitionwise join. On the
+other hand, the pair of {A C} and B can use partitionwise join because {A C}
+is considered partitioned by eliminating the extra partition (see identity 1
+on outer join reordering). Whether an N-way join can use partitionwise join
+is determined based on the first pair of joining relations that are both
+partitioned and can use partitionwise join.</p>
+<p>The partitioning properties of a partitioned relation are stored in its
+RelOptInfo. The information about data types of partition keys are stored in
+PartitionSchemeData structure. The planner maintains a list of canonical
+partition schemes (distinct PartitionSchemeData objects) so that RelOptInfo of
+any two partitioned relations with same partitioning scheme point to the same
+PartitionSchemeData object. This reduces memory consumed by
+PartitionSchemeData objects and makes it easy to compare the partition schemes
+of joining relations.</p>
+<h2 id=partitionwise-aggregatesgrouping>
+Partitionwise aggregates/grouping
+<a href=#partitionwise-aggregatesgrouping class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>If the GROUP BY clause contains all of the partition keys, all the rows
+that belong to a given group must come from a single partition; therefore,
+aggregation can be done completely separately for each partition. Otherwise,
+partial aggregates can be computed for each partition, and then finalized
+after appending the results from the individual partitions. This technique of
+breaking down aggregation or grouping over a partitioned relation into
+aggregation or grouping over its partitions is called partitionwise
+aggregation. Especially when the partition keys match the GROUP BY clause,
+this can be significantly faster than the regular method.</p>
+<p>但是从今天的视角，PostgreSQL 优化器不是一个好的实现</p>
+<ol>
+<li>它用C语言实现，所以扩展性不好</li>
+<li>它不是 Volcano 优化模型的，所以灵活性不好</li>
+<li>它的很多优化复杂度很高（例如Join重排是System R风格的动态规划算法），所以性能不好</li>
+</ol>
+<p><a href=https://www.cnblogs.com/xiaohuizhenyoucai/p/10983783.html>Nested Loop，Hash Join，Merge Join</a></p>
+<pre tabindex=0><code>pg_plan_query 执行计划入口
+
+planner 实际执行计划调用
+  这里提供一个planner_hook，以供自定义执行计划使用
+
+standard_planner 默认planner hook
+  入口处，判断SQL是否是可以并行查询的
+    判断条件
+    (cursorOptions &amp; CURSOR_OPT_PARALLEL_OK) != 0 &amp;&amp; 当前游标允许并行查询
+    IsUnderPostmaster &amp;&amp; 当前是直接调用的用户进程（postmaster的子进程），
+    parse-&gt;commandType == CMD_SELECT &amp;&amp; 当前是select
+    !parse-&gt;hasModifyingCTE &amp;&amp; 当前CTE是不可变集合
+    max_parallel_workers_per_gather &gt; 0 &amp;&amp; parallel worker 设置大于0
+    !IsParallelWorker() 当前不是worker的执行进程
+
+    之后判定 glob-&gt;parallelModeNeeded = glob-&gt;parallelModeOK &amp;&amp;
+    (force_parallel_mode != FORCE_PARALLEL_OFF);
+    如果启用了force_parallel_mode，但查询不支持并行查询，则依然不使用并行查询
+    如果使用了CURSOR_OPT_FAST_PLAN
+      处理 tuple_fraction
+      如果tuple_fraction&gt;= 1 则设置为0
+      如果tuple_fraction &lt;=0 设置为 1e-10;
+    否则 tuple_fraction=0
+
+    之后执行subquery_planner 获取执行计划
+
+    fetch_upper_rel 获取上层releation
+    get_cheapest_fractional_path  选取最佳执行路径
+    create_plan 创建执行计划
+
+    对于CURSOR_OPT_SCROLL
+      如果不支持后台执行ExecSupportsBackwardScan
+      则附加一个物化查询计划 materialize_finished_plan
+
+    对于可以并行的查询，这里处理gather进行可行性测试（不实际执行，但需要验证gather可以创建）
+      创建gather
+        执行列表
+        worker数量
+        并行执行计划
+        gather-&gt;plan.startup_cost = top_plan-&gt;startup_cost + parallel_setup_cost;
+        gather-&gt;plan.total_cost = top_plan-&gt;total_cost + parallel_setup_cost + parallel_tuple_cost * top_plan-&gt;plan_rows;
+        执行代价计算
+    最后执行一系列赋值，完成plan
+
+  subquery_planner
+    子查询计划，所有查询都是子查询迭代，这个函数处理实际的plan
+    
+    如果存在cte定义，则设置入SS_process_ctes
+    如果没有from定义，使用replace_empty_jointree设置一个空值
+    对于ANY以及 EXISTS ，执行pull_up_sublinks，也就是执行查询而非下推到子查询
+    对于可以预先处理的函数，执行inline_set_returning_functions 设置为inline状态
+    检查并合并所有可以合并的子查询pull_up_subqueries
+    对于union all，执行flatten_simple_union_all合并到append rel。
+
+    处理join的情况，逐个表进行迭代，根据rtekind进行判断
+      RTE_RELATION
+        如果设置了inh，检查是否为有子查询的项目，如果没有，清理inh标记
+      RTE_JOIN
+        如果是外查询，则设置外查询标记
+      RTE_RESULT
+        如果是结果，设置hasResultRTEs为true，这是执行计划全局设置
+      如果设了lateral，则hasLateralRTEs为true
+      
+      最后设置安全查询级别
+
+    执行RowMark的前置任务 preprocess_rowmarks
+
+    如果设置了having 设置hasHavingQual标记
+
+    清理hasPseudoConstantQuals标记，
+      
+    处理preprocess_expression表达式
+
+    对于hasTargetSRFs默认为true(函数会返回一组返回值的情况），通过expression_returns_set计算得到其实际是否存在
+
+    对于使用了WITH CHECK OPTION的情况，使用WithCheckOption处理所有表达式的qual到withCheckOptions
+
+    计算returningList的返回情况，确定其返回单值还是list
+
+    preprocess_qual_conditions逐个计算所有子查询的qual（约束）
+
+    preprocess_expression计算当前查询的havingQual
+
+    对于所有的windows调用
+      设置windows起点
+      设置window终点
+    
+    设置limit的offset和count
+
+    对于设置了onConflict的情况
+      处理设定的可能冲突的参数，冲突where条件，set操作，以及set关联的where条件
+
+    初始化append_rel_list（根据当前append_rel_list预计算计算表达式）
+
+    处理所有子表的RTE表达式
+      RTE_RELATION 对象是表 设置为简单表查询
+      RTE_SUBQUERY 对象是子查询 处理子查询的别名问题
+      RTE_FUNCTION 对象是函数 直接调用preprocess_expression处理
+      RTE_TABLEFUNC 对象是表函数（列的列表）直接调用preprocess_expression处理
+      RTE_VALUES 对象是values列表，使用preprocess_expression处理
+      
+      最后处理安全设置rte-&gt;securityQuals
+
+    对于存在hasJoinRTEs的情况，清理掉所有joinaliasvars（前面已经通过表达式预处理处理掉了别名的情况）
+
+    尝试处理having操作到where条件里面
+      对于
+        包含子查询
+        存在group set
+        存在函数计算
+        存在统计计算
+      的条件，不处理
+      对于没有group set的情况，处理having条件到where 
+      其他条件having和where都复制一份
+    
+    去掉不必要的grouping列 remove_useless_groupby_columns
+
+    reduce_outer_joins尝试去掉外查询，变成内联查询
+    remove_useless_result_rtes 尝试删除没有被用到的结果表达式
+
+    对于继承表执行inheritance_planner
+    默认执行grouping_planner
+    
+    SS_identify_outer_params 找到所需要外层传入的参数
+
+    SS_charge_for_initplans 修改init计划
+      重新计算initplan_cost： 每个子查询的initsubplan-&gt;startup_cost + initsubplan-&gt;per_call_cost;
+      当前path-&gt;startup_cost，path-&gt;total_cost都会加上initplan_cost
+    set_cheapest 最终确认当前是最优执行计划
+      逐个检查所有执行路径，比较选择出来最小代价path
+  
+  grouping_planner 实际执行planner的内部
+    设置limit和offset，对于offset没有设置的话，默认为0
+    对于UNION/INTERSECT/EXCEPT 
+      对于sortClause 存在sort的情况，设置tuple_fraction=0.0
+
+      plan_set_operations
+        使用最左（第一个）查询的列作为顺序
+        对于递归union
+          生成递归路径 generate_recursion_path ？ 
+        默认执行 recurse_set_operations？
+      检查是否可以并行is_parallel_safe(root, (Node *) final_target-&gt;exprs);
+      这里再次检查不允许使用for update，for share关键字（语法层已经检查，这里再检查一遍）
+      最后设置排序的顺序make_pathkeys_for_sortclauses
+    对于grouping设置了sets的情况
+      执行preprocess_grouping_sets预先处理
+    否则正常处理group语法 preprocess_groupclause
+
+    设置查询目标列表，方便上层使用 preprocess_targetlist
+
+    处理执行代价
+      get_agg_clause_costs
+
+    对于windows函数
+      find_window_functions找到所有函数，之后select_active_windows设置到activeWindows
+
+    对于max，min计算，执行preprocess_minmax_aggregates （这里代码与query_planner重复，如果需要变更min、max逻辑，则需要两边一起改）
+
+    确认是否有写死的limit_tuples以及非例外，如果有，采用写死的limit_tuples（例外为这些： group，group set，distinct，aggregation（聚合操作），windows函数，having条件，函数调用     设置root-&gt;limit_tuples = -1.0）
+
+    设置windows回调activeWindows以及group回调groupClause，包括rollups
+
+    执行query_planner standard_qp_callback 处理执行路径，并处理sort，distinct的情况
+
+    转换processed_tlist到final_target create_pathtarget
+
+    对于order by判断是否可以跳过排序阶段 make_sort_input_target
+      比如distinct，union的情况
+    对于windows函数，判断是否可以跳过group聚合操作 make_window_input_target
+      如果已经有预先的处理
+    对于having group（包括having，group，聚合函数，group set的情况）
+      规划是否需要计算
+    对于返回集合的函数 SRF set-returning functions
+      切割出来stfs split_pathtarget_at_srfs
+        final_target
+        sort_input_target
+        grouping_target
+        scanjoin_target
+    apply_scanjoin_target_to_paths 处理所有scan，join 表，并遍历其子代生成最终的扫描目标
+
+    保存对象信息
+      root-&gt;upper_targets[UPPERREL_FINAL] = final_target;
+      root-&gt;upper_targets[UPPERREL_ORDERED] = final_target;
+      root-&gt;upper_targets[UPPERREL_DISTINCT] = sort_input_target;
+      root-&gt;upper_targets[UPPERREL_WINDOW] = sort_input_target;
+      root-&gt;upper_targets[UPPERREL_GROUP_AGG] = grouping_target;
+    
+    create_grouping_paths创建grouping路径，对于SRF单独处理adjust_paths_for_srfs
+
+    create_window_paths创建windows执行路径，对于SRF单独处理adjust_paths_for_srfs
+
+    create_distinct_paths创建distinct执行路径，对于srf单独处理adjust_paths_for_srfs
+
+    create_ordered_paths创建order by执行路径，对于srf单独处理adjust_paths_for_srfs
+
+    获取上层rel fetch_upper_rel
+      如果上层允许并行，则此处允许并行
+      final_rel-&gt;consider_parallel = true;
+    开始处理最终查询 遍历当前所有path
+      对于for update，share 创建create_lockrows_path
+      设置limit create_limit_path
+      对于非select（insert，update，delete）新增ModifyTable节点 parse-&gt;commandType != CMD_SELECT &amp;&amp; !inheritance_update
+        使用索引
+        检查check option withCheckOptionLists
+        返回列表 returningLists
+        行标记（加锁） rowMarks
+        对于分区表单独标记 rootRelation
+
+        创建create_modifytable_path 新增ModifyTable节点
+
+        新增到执行path
+    处理partial add_partial_path
+      对于并行查询认为并不安全，单独处理
+    
+    记录额外信息
+      extra.limit_needed = limit_needed(parse);
+      extra.limit_tuples = limit_tuples;
+      extra.count_est = count_est;
+      extra.offset_est = offset_est;
+    
+    对于fdw
+      GetForeignUpperPaths 新增fdw执行路径
+
+    create_upper_paths_hook
+      最后执行其他hook
+
+
+
+  is_parallel_safe 并行是否安全
+    对于参数来源为本查询，或者上层查询的情况，认为可以并行查询
+    max_parallel_hazard_walker
+      调用函数是自己节点上的，安全
+      对于max min来说，并行查询是安全的
+      proparallel
+        PROPARALLEL_SAFE：false
+        PROPARALLEL_RESTRICTED 返回 context-&gt;max_interesting == proparallel 
+        PROPARALLEL_UNSAFE false context-&gt;max_hazard = proparallel;
+      CoerceToDomain允许并行 domain类型不建议使用不可并行化的函数
+      对于获取序列下一个号的情况，认为不安全
+      windows函数认为是安全的
+      SubLink（any之类）安全 //目前应该不会有这个执行路径
+      对于子查询，只有安全的子查询才会被标记为可并行
+      参数来自本查询，认为安全，如果是不可控，认为不安全
+      for update、share 认为不安全
+      如果以上情况都未命中，迭代检查子查询，以及参数
+
+
+  apply_scanjoin_target_to_paths
+    处理所有scan，join 表，并遍历其子代生成最终的扫描目标
+    对于分区表，重新生成扫描对象
+    对于不可以并行的查询，关闭并行查询
+    逐个处理不涉及SRF的扫描
+      对于tlist_same_exprs（表达式应用于当前对象）
+        仅增加sort group 避免额外的执行计划创建代价
+        否则 create_projection_path
+          创建一个预测执行path，
+    对于partial进行同样处理
+    对于srf，逐个处理adjust_paths_for_srfs
+    设置当前对象为最终的scan/join目标（即便是SRF）
+    
+    对于分区表
+      生成Append scan、join发生在append下而非其上，最终聚合到单独的result处理
+      逐个分区遍历
+        把每个分区的扫描路径设置为分区路径而非表路径
+          PathTarget *target = lfirst_node(PathTarget, lc);
+          target = copy_pathtarget(target);
+        附加扫描点到child_scanjoin_targets
+        apply_scanjoin_target_to_paths替换原先的执行路径
+        add_paths_to_append_rel新增执行路径
+        apply_scanjoin_target_to_paths此处向内迭代
+        live_children 仅处理实际存在的子分区（有可能是dummy对象）
+    对于可以并行的查询（对象不是外查询对象）
+      generate_gather_paths生成并行查询计划
+        create_gather_path生成simple_gather_path
+        对于每个path内的列表
+          生成create_gather_merge_path
+    最后重新选取代价最低的执行计划
+      set_cheapest
+
+  query_planner
+    处理执行路径
+  create_pathtarget
+    创建执行路径
+  get_agg_clause_costs 计算聚合代价
+  create_projection_path 创建执行预测path
+  make_sort_input_target 判断是否可以跳过sort
+  make_window_input_target 判断是否可以跳过grouping操作    
+</code></pre><h3 id=paths-and-join-pairs-1>
+Paths and Join Pairs
+<a href=#paths-and-join-pairs-1 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<ul>
+<li>优化中生成的具体的执行计划的具体结构，只包含执行器的必要信息，和逻辑算子一一对应</li>
+<li>优化过程中对表或者join，自查询生成 reloptinfo 结构体，是一个高层次的抽象结构，包含基础的 reloptinfo 的组合，还会生成包含的 reloptinfo 的path，最终会输出 代价最小的 path</li>
+<li>一个 reloptinfo 可能包含多条 path</li>
+<li>A Path for a join relation is actually a tree structure</li>
+</ul>
+<h3 id=join-tree-construction-1>
+Join Tree Construction
+<a href=#join-tree-construction-1 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>当前看下来，他的主要流程是先使用prep中的方法对query先进行预处理，执行常规的基于规则的优化，之后使用path中的方法，对处理之后的语法树进行处理，找到代价最小的path。
+对于path的，如果没有join，则直接查找table的path即可，如果有多表join的场景，则需要进行path的组合，使用一定的搜索策略来进行路径搜索，
+当前有三种主流的优化方法</p>
+<ol>
+<li>system-R</li>
+<li>cascades</li>
+<li>gen
+pg使用自底向上的动态规划算法和基因算法，默认表数量大于12的时候，使用基因算法，所以这里我只关注system-R算法</li>
+</ol>
+<h3 id=优化器代码细节>
+优化器代码细节
+<a href=#%e4%bc%98%e5%8c%96%e5%99%a8%e4%bb%a3%e7%a0%81%e7%bb%86%e8%8a%82 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>具体的代码入口在exec_simple_query中，接受语句使用pg_parse_query编译，输出是一个list，具体的例子可以查看下面的语句，gdb中使用 <code>p pprint(parsetree_list)</code>可以打印list，对于具体的内部的数据结构，例如List,Node等，可以gdb调试pprint，可以查看他们之间的结构关系</p>
+<p>parser出来是list，在打印的时候，使用pprint，在内部判断list类型，取出实际的数据，然后按照NodeTag进行转换，NodeTag在几乎所有的数据结构中都在第一位，目的是为了便捷eider进行转换，以select为例<br>
+在语法文件中，selectstmt是一个结构体，具体生成如下，</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>simple_select:
+      SELECT opt_all_clause opt_target_list
+      into_clause from_clause where_clause
+      group_clause having_clause window_clause
+        {
+          SelectStmt <span style=color:#f92672>*</span>n <span style=color:#f92672>=</span> makeNode(SelectStmt);
+
+          n<span style=color:#f92672>-&gt;</span>targetList <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>3</span>;
+          n<span style=color:#f92672>-&gt;</span>intoClause <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>4</span>;
+          n<span style=color:#f92672>-&gt;</span>fromClause <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>5</span>;
+          n<span style=color:#f92672>-&gt;</span>whereClause <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>6</span>;
+          n<span style=color:#f92672>-&gt;</span>groupClause <span style=color:#f92672>=</span> (<span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>7</span>)<span style=color:#f92672>-&gt;</span>list;
+          n<span style=color:#f92672>-&gt;</span>groupDistinct <span style=color:#f92672>=</span> (<span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>7</span>)<span style=color:#f92672>-&gt;</span>distinct;
+          n<span style=color:#f92672>-&gt;</span>havingClause <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>8</span>;
+          n<span style=color:#f92672>-&gt;</span>windowClause <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>9</span>;
+          <span style=color:#960050;background-color:#1e0010>$$</span> <span style=color:#f92672>=</span> (Node <span style=color:#f92672>*</span>) n;
+        }
+
+<span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>SelectStmt</span>
+{
+  NodeTag    type;
+
+  <span style=color:#75715e>/*
+</span><span style=color:#75715e>   * These fields are used only in &#34;leaf&#34; SelectStmts.
+</span><span style=color:#75715e>   */</span>
+  List     <span style=color:#f92672>*</span>distinctClause; <span style=color:#75715e>/* NULL, list of DISTINCT ON exprs, or
+</span><span style=color:#75715e>                 * lcons(NIL,NIL) for all (SELECT DISTINCT) */</span>
+  IntoClause <span style=color:#f92672>*</span>intoClause;    <span style=color:#75715e>/* target for SELECT INTO */</span>
+  List     <span style=color:#f92672>*</span>targetList;    <span style=color:#75715e>/* the target list (of ResTarget) */</span>
+  List     <span style=color:#f92672>*</span>fromClause;    <span style=color:#75715e>/* the FROM clause */</span>
+  Node     <span style=color:#f92672>*</span>whereClause;  <span style=color:#75715e>/* WHERE qualification */</span>
+  List     <span style=color:#f92672>*</span>groupClause;  <span style=color:#75715e>/* GROUP BY clauses */</span>
+  <span style=color:#66d9ef>bool</span>    groupDistinct;  <span style=color:#75715e>/* Is this GROUP BY DISTINCT? */</span>
+  Node     <span style=color:#f92672>*</span>havingClause;  <span style=color:#75715e>/* HAVING conditional-expression */</span>
+  List     <span style=color:#f92672>*</span>windowClause;  <span style=color:#75715e>/* WINDOW window_name AS (...), ... */</span>
+
+  <span style=color:#75715e>/*
+</span><span style=color:#75715e>   * In a &#34;leaf&#34; node representing a VALUES list, the above fields are all
+</span><span style=color:#75715e>   * null, and instead this field is set.  Note that the elements of the
+</span><span style=color:#75715e>   * sublists are just expressions, without ResTarget decoration. Also note
+</span><span style=color:#75715e>   * that a list element can be DEFAULT (represented as a SetToDefault
+</span><span style=color:#75715e>   * node), regardless of the context of the VALUES list. It&#39;s up to parse
+</span><span style=color:#75715e>   * analysis to reject that where not valid.
+</span><span style=color:#75715e>   */</span>
+  List     <span style=color:#f92672>*</span>valuesLists;  <span style=color:#75715e>/* untransformed list of expression lists */</span>
+
+  <span style=color:#75715e>/*
+</span><span style=color:#75715e>   * These fields are used in both &#34;leaf&#34; SelectStmts and upper-level
+</span><span style=color:#75715e>   * SelectStmts.
+</span><span style=color:#75715e>   */</span>
+  List     <span style=color:#f92672>*</span>sortClause;    <span style=color:#75715e>/* sort clause (a list of SortBy&#39;s) */</span>
+  Node     <span style=color:#f92672>*</span>limitOffset;  <span style=color:#75715e>/* # of result tuples to skip */</span>
+  Node     <span style=color:#f92672>*</span>limitCount;    <span style=color:#75715e>/* # of result tuples to return */</span>
+  LimitOption limitOption;  <span style=color:#75715e>/* limit type */</span>
+  List     <span style=color:#f92672>*</span>lockingClause;  <span style=color:#75715e>/* FOR UPDATE (list of LockingClause&#39;s) */</span>
+  WithClause <span style=color:#f92672>*</span>withClause;    <span style=color:#75715e>/* WITH clause */</span>
+
+  <span style=color:#75715e>/*
+</span><span style=color:#75715e>   * These fields are used only in upper-level SelectStmts.
+</span><span style=color:#75715e>   */</span>
+  SetOperation op;      <span style=color:#75715e>/* type of set op */</span>
+  <span style=color:#66d9ef>bool</span>    all;      <span style=color:#75715e>/* ALL specified? */</span>
+  <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>SelectStmt</span> <span style=color:#f92672>*</span>larg;  <span style=color:#75715e>/* left child */</span>
+  <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>SelectStmt</span> <span style=color:#f92672>*</span>rarg;  <span style=color:#75715e>/* right child */</span>
+  <span style=color:#75715e>/* Eventually add fields for CORRESPONDING spec here */</span>
+} SelectStmt;
+
+</code></pre></div><p>之后进行传递的时候使用的是list或者node类型，在print的时候，使用<code>switch (nodeTag(obj))</code>判断类型，最后选择<code>case T_SelectStmt:</code>分支，执行<code>_outSelectStmt</code>方法，具体方法如下，最终解析各个clause</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#66d9ef>static</span> <span style=color:#66d9ef>void</span>
+<span style=color:#a6e22e>_outSelectStmt</span>(StringInfo str, <span style=color:#66d9ef>const</span> SelectStmt <span style=color:#f92672>*</span>node)
+{
+  WRITE_NODE_TYPE(<span style=color:#e6db74>&#34;SELECTSTMT&#34;</span>);
+
+  WRITE_NODE_FIELD(distinctClause);
+  WRITE_NODE_FIELD(intoClause);
+  WRITE_NODE_FIELD(targetList);
+  WRITE_NODE_FIELD(fromClause);
+  WRITE_NODE_FIELD(whereClause);
+  WRITE_NODE_FIELD(groupClause);
+  WRITE_BOOL_FIELD(groupDistinct);
+  WRITE_NODE_FIELD(havingClause);
+  WRITE_NODE_FIELD(windowClause);
+  WRITE_NODE_FIELD(valuesLists);
+  WRITE_NODE_FIELD(sortClause);
+  WRITE_NODE_FIELD(limitOffset);
+  WRITE_NODE_FIELD(limitCount);
+  WRITE_ENUM_FIELD(limitOption, LimitOption);
+  WRITE_NODE_FIELD(lockingClause);
+  WRITE_NODE_FIELD(withClause);
+  WRITE_ENUM_FIELD(op, SetOperation);
+  WRITE_BOOL_FIELD(all);
+  WRITE_NODE_FIELD(larg);
+  WRITE_NODE_FIELD(rarg);
+}
+
+</code></pre></div><blockquote>
+<p>以前阅读过oceanbase以及tidb的代码，现在想来也是似曾相识，他们的做法都是类似的，在parser阶段，语法按照stmt组织结构，现在只是暂时接触pg，尚不清楚优点是什么，后续有深入的了解之后再详细探究</p>
+</blockquote>
+<p>stmt是特定的数据结构，后续的处理需要统一的数据结构query，所以需要进行转换，入口为<code>parse_analyze_fixedparams</code></p>
+<ol>
+<li>先处理select into ，转换为create table as ,处理函数再transformOptionalSelectInto，主要是建立CreateTableAsStmt，然后把into上拉到CreateTableAsStmt中</li>
+<li>之后使用transformStmt处理stmt，<code>switch (nodeTag(parseTree))</code>选择合适的分支，这里以select为例子</li>
+<li>进入transformSelectStmt分支</li>
+<li>先转换transformWithClause</li>
+<li>转换transformFromClause
+&mldr;</li>
+</ol>
+<p>最终得到一个query，一个完整的结构体，包含语句的所有信息，后续进行rewrite，
+对于rewrite。貌似是和之前了解的不太一杨，之前的理解是进行基于规则的重写，但是这里好像是使用自定义的rule重写，类似于触发器，其他数据库中，只有sql server有类似的实现，但是已经声明在之后的版本中会移除这个东西，所以在代码中占据相当一部分分量的功能是否是必要的，</p>
+<p>TODO: 后续我自身会进行调研，如果确定是上述的东西，或许可以尝试移除这个功能</p>
+<p>之后结构为query，会参与到pg_plan_queries中</p>
+<h3 id=优化>
+优化
+<a href=#%e4%bc%98%e5%8c%96 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>对于utility语句，直接跳过，他只是代码函数的集合，对于DML，进行pg_plan_query优化，分为几个步骤</p>
+<ol>
+<li>基于规则的优化</li>
+<li>join 路径优化</li>
+</ol>
+<p>standard_planner
+subquery_planner
+SS_process_ctes
+transform_MERGE_to_join
+replace_empty_jointree
+pull_up_sublinks
+preprocess_function_rtes
+pull_up_subqueries
+flatten_simple_union_all
+preprocess_rowmarks
+preprocess_expression
+preprocess_qual_conditions
+remove_useless_groupby_columns
+reduce_outer_joins
+remove_useless_result_rtes
+grouping_planner
+query_planner
+SS_identify_outer_params
+fetch_upper_rel
+get_cheapest_fractional_path
+create_plan</p>
+<ul>
+<li>
+<p>subquery_planner<br>
+使用一些规则对树进行变换，调整为规则上更优的执行计划，这里处理的数据结构主要是Query，使用PlannerInfo包装Query，保存一些上下文信息，所以他的处理还是过程式的，按照具体的语句场景进行处理，对于不是太熟悉的他数据结构的人来说，需要大量的记忆时间，个人看来，这种优化方式不是太友好，如果想要进行一些扩展，对人员的要求很高</p>
+</li>
+<li>
+<p>path <br>
+make_one_rel <br>
+set_base_rel_pathlists
+make_rel_from_joinlist
+standard_join_search
+自底向上的动态规划，先生成基础表的path，path是当前局部最优的，会考虑启动最优，总代价最优，最好的排序结果，其他代价较大的path直接丢弃，这类似动态规划的第一层，然后进行组合，生成join的path，使用后的是make_rel_from_joinlist，</p>
+</li>
+<li>
+<p>get_cheapest_fractional_path<br>
+使用选择率tuple_fraction，对RelOptInfo->cheapest_total_path进行二次调整</p>
+</li>
+<li>
+<p>create_plan<br>
+按照Path，使用PlannerInfo生成plan，plan的结构是二叉树的形式，执行的时候按照节点依次执行</p>
+</li>
+<li>
+<p><code>SS_process_ctes</code>
+太丑不看，大致是把with语句视为一个initplan，嵌入到执行计划中</p>
+</li>
+<li>
+<p><code>pull_up_sublinks</code>
+子链接上拉，子链接和子查询的区别是子链接是出现在表达式中的子查询，会上拉为半连接，还是属于子查询得一种，pg中进行区分，目的是为了便于优化</p>
+</li>
+</ul>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>
+<span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span>
+  s_name,
+  s_address
+<span style=color:#66d9ef>from</span>
+  supplier,
+  nation
+<span style=color:#66d9ef>where</span>
+  s_suppkey <span style=color:#66d9ef>in</span> (
+    <span style=color:#66d9ef>select</span>
+      ps_suppkey
+    <span style=color:#66d9ef>from</span>
+      partsupp
+    <span style=color:#66d9ef>where</span>
+      ps_partkey <span style=color:#66d9ef>in</span> ( <span style=color:#66d9ef>select</span> p_partkey <span style=color:#66d9ef>from</span> part <span style=color:#66d9ef>where</span> p_name <span style=color:#66d9ef>like</span> <span style=color:#e6db74>&#39;forest%&#39;</span> )
+      <span style=color:#66d9ef>and</span> ps_availqty <span style=color:#f92672>&gt;</span> (
+        <span style=color:#66d9ef>select</span>
+          <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>5</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>sum</span>(l_quantity)
+        <span style=color:#66d9ef>from</span>
+          lineitem
+        <span style=color:#66d9ef>where</span>
+          l_partkey <span style=color:#f92672>=</span> ps_partkey
+          <span style=color:#66d9ef>and</span> l_suppkey <span style=color:#f92672>=</span> ps_suppkey
+          <span style=color:#66d9ef>and</span> l_shipdate <span style=color:#f92672>&gt;=</span> date <span style=color:#e6db74>&#39;1994-01-01&#39;</span>
+          <span style=color:#66d9ef>and</span> l_shipdate <span style=color:#f92672>&lt;</span> date <span style=color:#e6db74>&#39;1994-01-01&#39;</span> <span style=color:#f92672>+</span> interval <span style=color:#e6db74>&#39;1&#39;</span> <span style=color:#66d9ef>year</span>
+      )
+  )
+  <span style=color:#66d9ef>and</span> s_nationkey <span style=color:#f92672>=</span> n_nationkey
+  <span style=color:#66d9ef>and</span> n_name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;CANADA&#39;</span>
+<span style=color:#66d9ef>order</span> <span style=color:#66d9ef>by</span>
+  s_name;
+
+                                                                                                                     QUERY PLAN
+ Sort  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2431</span>.<span style=color:#ae81ff>82</span>..<span style=color:#ae81ff>2431</span>.<span style=color:#ae81ff>82</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>202</span>)
+   Sort <span style=color:#66d9ef>Key</span>: supplier.s_name
+   <span style=color:#f92672>-&gt;</span>  Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2419</span>.<span style=color:#ae81ff>62</span>..<span style=color:#ae81ff>2431</span>.<span style=color:#ae81ff>76</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>202</span>)
+         Hash Cond: (nation.n_nationkey <span style=color:#f92672>=</span> supplier.s_nationkey)
+         <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> nation  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>12</span>.<span style=color:#ae81ff>12</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+               Filter: (n_name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;CANADA&#39;</span>::bpchar)
+         <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2419</span>.<span style=color:#ae81ff>60</span>..<span style=color:#ae81ff>2419</span>.<span style=color:#ae81ff>60</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>206</span>)
+               <span style=color:#f92672>-&gt;</span>  Hash Semi <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2407</span>.<span style=color:#ae81ff>70</span>..<span style=color:#ae81ff>2419</span>.<span style=color:#ae81ff>60</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>206</span>)
+                     Hash Cond: (supplier.s_suppkey <span style=color:#f92672>=</span> partsupp.ps_suppkey)
+                     <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> supplier  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>11</span>.<span style=color:#ae81ff>50</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>150</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>210</span>)
+                     <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2407</span>.<span style=color:#ae81ff>69</span>..<span style=color:#ae81ff>2407</span>.<span style=color:#ae81ff>69</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+                           <span style=color:#f92672>-&gt;</span>  Hash Semi <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>.<span style=color:#ae81ff>01</span>..<span style=color:#ae81ff>2407</span>.<span style=color:#ae81ff>69</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+                                 Hash Cond: (partsupp.ps_partkey <span style=color:#f92672>=</span> part.p_partkey)
+                                 <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> partsupp  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>2395</span>.<span style=color:#ae81ff>52</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>57</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
+                                       Filter: ((ps_availqty)::numeric <span style=color:#f92672>&gt;</span> (SubPlan <span style=color:#ae81ff>1</span>))
+                                       SubPlan <span style=color:#ae81ff>1</span>
+                                         <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Aggregate</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>14</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>14</span>.<span style=color:#ae81ff>02</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>32</span>)
+                                               <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> lineitem  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>14</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>18</span>)
+                                                     Filter: ((l_shipdate <span style=color:#f92672>&gt;=</span> <span style=color:#e6db74>&#39;1994-01-01&#39;</span>::date) <span style=color:#66d9ef>AND</span> (l_shipdate <span style=color:#f92672>&lt;</span> <span style=color:#e6db74>&#39;1995-01-01 00:00:00&#39;</span>::<span style=color:#66d9ef>timestamp</span> <span style=color:#66d9ef>without</span> time <span style=color:#66d9ef>zone</span>) <span style=color:#66d9ef>AND</span> (l_partkey <span style=color:#f92672>=</span> partsupp.ps_partkey) <span style=color:#66d9ef>AND</span> (l_suppkey <span style=color:#f92672>=</span> partsupp.ps_suppkey))
+                                 <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>12</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+                                       <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> part  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>12</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+                                             Filter: ((p_name)::text <span style=color:#f92672>~~</span> <span style=color:#e6db74>&#39;forest%&#39;</span>::text)
+(<span style=color:#ae81ff>22</span> <span style=color:#66d9ef>rows</span>)
+
+<span style=color:#f92672>-&gt;</span> Sort: supplier.s_name
+    <span style=color:#f92672>-&gt;</span> Stream results  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>05</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+        <span style=color:#f92672>-&gt;</span> Nested loop semijoin  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>05</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+            <span style=color:#f92672>-&gt;</span> <span style=color:#66d9ef>Inner</span> hash <span style=color:#66d9ef>join</span> (nation.n_nationkey <span style=color:#f92672>=</span> supplier.s_nationkey)  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>70</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+                <span style=color:#f92672>-&gt;</span> Filter: (nation.n_name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;CANADA&#39;</span>)  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>35</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+                    <span style=color:#f92672>-&gt;</span> <span style=color:#66d9ef>Table</span> scan <span style=color:#66d9ef>on</span> nation  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>35</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+                <span style=color:#f92672>-&gt;</span> Hash
+                    <span style=color:#f92672>-&gt;</span> <span style=color:#66d9ef>Table</span> scan <span style=color:#66d9ef>on</span> supplier  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>35</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+            <span style=color:#f92672>-&gt;</span> Nested loop <span style=color:#66d9ef>inner</span> <span style=color:#66d9ef>join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>70</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+                <span style=color:#f92672>-&gt;</span> Filter: ((partsupp.ps_suppkey <span style=color:#f92672>=</span> supplier.s_suppkey) <span style=color:#66d9ef>and</span> (partsupp.ps_availqty <span style=color:#f92672>&gt;</span> (<span style=color:#66d9ef>select</span> <span style=color:#f92672>#</span><span style=color:#ae81ff>4</span>)))  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>35</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+                    <span style=color:#f92672>-&gt;</span> <span style=color:#66d9ef>Table</span> scan <span style=color:#66d9ef>on</span> partsupp  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>35</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+                    <span style=color:#f92672>-&gt;</span> <span style=color:#66d9ef>Select</span> <span style=color:#f92672>#</span><span style=color:#ae81ff>4</span> (subquery <span style=color:#66d9ef>in</span> condition; dependent)
+                        <span style=color:#f92672>-&gt;</span> <span style=color:#66d9ef>Aggregate</span>: <span style=color:#66d9ef>sum</span>(lineitem.l_quantity)  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>45</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+                            <span style=color:#f92672>-&gt;</span> Filter: ((lineitem.l_partkey <span style=color:#f92672>=</span> partsupp.ps_partkey) <span style=color:#66d9ef>and</span> (lineitem.l_suppkey <span style=color:#f92672>=</span> partsupp.ps_suppkey) <span style=color:#66d9ef>and</span> (lineitem.l_shipdate <span style=color:#f92672>&gt;=</span> DATE<span style=color:#e6db74>&#39;1994-01-01&#39;</span>) <span style=color:#66d9ef>and</span> (lineitem.l_shipdate <span style=color:#f92672>&lt;</span> <span style=color:#f92672>&lt;</span><span style=color:#66d9ef>cache</span><span style=color:#f92672>&gt;</span>((DATE<span style=color:#e6db74>&#39;1994-01-01&#39;</span> <span style=color:#f92672>+</span> interval <span style=color:#e6db74>&#39;1&#39;</span> <span style=color:#66d9ef>year</span>))))  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>35</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+                                <span style=color:#f92672>-&gt;</span> <span style=color:#66d9ef>Table</span> scan <span style=color:#66d9ef>on</span> lineitem  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>35</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+                <span style=color:#f92672>-&gt;</span> Filter: ((part.p_partkey <span style=color:#f92672>=</span> partsupp.ps_partkey) <span style=color:#66d9ef>and</span> (part.p_name <span style=color:#66d9ef>like</span> <span style=color:#e6db74>&#39;forest%&#39;</span>))  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>35</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+                    <span style=color:#f92672>-&gt;</span> <span style=color:#66d9ef>Table</span> scan <span style=color:#66d9ef>on</span> part  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>35</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+
+</code></pre></div><p>重点还是需要区分关联子查询和非关联子查询，非关联子查询直接查询物化即可，但是关联子查询由于执行模式类似nest loop join，执行效率不高，所以需要进行特殊处理，当前pg中有两个函数</p>
+<ol>
+<li>子链接的上拉</li>
+<li>子查询的上拉</li>
+</ol>
+<p>文章参考
+<a href=https://zhuanlan.zhihu.com/p/60380557>1</a>
+<a href=https://developer.aliyun.com/article/802290#slide-1>2</a>
+<a href=https://blog.csdn.net/yunqiinsight/article/details/115323435>3</a></p>
+<blockquote>
+<p>planner_hook使用cascade实现的可行性分析</p>
+</blockquote>
+<hr>
+<ul>
+<li>输入
+<ul>
+<li>Query</li>
+<li>const char *</li>
+<li>int</li>
+<li>ParamListInfo</li>
+</ul>
+</li>
+<li>输出
+<ul>
+<li>PlannedStmt</li>
+</ul>
+</li>
+<li>功能点
+<ul>
+<li>实现SQL优化，输入为query类型的数据结构，输出为树形结构的plan，</li>
+</ul>
+</li>
+<li>数据结构</li>
+</ul>
+<p>cascade
+group
+expression
+node
+cost
+mem</p>
+<hr>
+<p>语法树的表示</p>
+<ol>
+<li>node</li>
+<li>var</li>
+<li>rangetableentry</li>
+<li>rangetableref</li>
+<li>joinexpr</li>
+<li>fromexpr</li>
+<li>query
+从上述的表和对应的打印的数据结构，分析具体的结构体的实际操作方法</li>
+</ol>
+<p>语法树的遍历
+1.</p>
+</div>
+<div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>Read other posts</span>
+<hr>
+</div>
+<div class=pagination__buttons>
+<span class="button previous">
+<a href=https://askyx.github.io/posts/postgres/pgenvbuild/>
+<span class=button__icon>←</span>
+<span class=button__text>Postgres 系列数据库搭建</span>
+</a>
+</span>
+<span class="button next">
+<a href=https://askyx.github.io/posts/postgres/storage/>
+<span class=button__text>Postgres Storage</span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<div class=copyright>
+<span>© 2023 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
+</div>
+</div>
+</footer>
+<script src=https://askyx.github.io/assets/main.js></script>
+<script src=https://askyx.github.io/assets/prism.js></script>
+</div>
+</body>
+</html>

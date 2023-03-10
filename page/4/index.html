@@ -59,6 +59,23 @@ My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/greenplum/>Greenplum</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-08-10
+</span>
+</div>
+<span class=post-tags>
+<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
+<a href=https://askyx.github.io/tags/postgres/>#Postgres</a>&nbsp;
+<a href=https://askyx.github.io/tags/greenplum/>#GreenPlum</a>&nbsp;
+</span>
+<div class=post-content>
+GreenPlum优化器和执行器的源码调研
+</div>
+<div><a class="read-more button" href=/posts/postgres/greenplum/>Read more →</a></div>
+</div>
+<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/postgres/pgenvbuild/>Postgres 系列数据库搭建</a></h1>
 <div class=post-meta>
 <span class=post-date>
@@ -74,6 +91,23 @@ My note blog
 PG系数据库统一安装环境，使用Docker && VSCode on Ubuntu22搭建，这里总结整理，后续PG系得数据库安装方法统一在这里总结
 </div>
 <div><a class="read-more button" href=/posts/postgres/pgenvbuild/>Read more →</a></div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/opt/>Postgres Optimizer</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-07-22
+</span>
+</div>
+<span class=post-tags>
+<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
+<a href=https://askyx.github.io/tags/postgres/>#Postgres</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E4%BC%98%E5%8C%96%E5%99%A8/>#优化器</a>&nbsp;
+</span>
+<div class=post-content>
+本文从源码级别进行优化器的分析，对Postgres优化器代码调研，具体包括他的数据结构，以及具体的代码架构实现以及核心算法等
+</div>
+<div><a class="read-more button" href=/posts/postgres/opt/>Read more →</a></div>
 </div>
 <div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/postgres/storage/>Postgres Storage</a></h1>
@@ -107,34 +141,6 @@ VFD
 FSM
 </div>
 <div><a class="read-more button" href=/posts/postgres/storage/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/env/>Postgres源码编译及调试</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-07-20
-</span>
-</div>
-<div class=post-content>
-Postges 源码环境搭建，Ubuntu22，VSCode，docker
-</div>
-<div><a class="read-more button" href=/posts/postgres/env/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/static/note/>数据库文章资源汇总</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-07-20
-</span>
-</div>
-<span class=post-tags>
-<a href=https://askyx.github.io/tags/%E8%B5%84%E6%BA%90/>#资源</a>&nbsp;
-<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
-</span>
-<div class=post-content>
-爬虫 # import requests from bs4 import BeautifulSoup prefix = 'http://mysql.taobao.org' # 获取文章名和url（文章名,url） def query_name_url(url: str): resp = requests.get(url) soup = BeautifulSoup(resp.content.decode('utf-8'), "html.parser") tags = soup.findAll('a', {'target': {'_blank'}}) urls = [v for v in tags if v['href'].find('/monthly/') != -1] return [(str(v.string).strip(), prefix + v['href']) for v in urls] # 获取所有月报链接（月报名,url） def query_monthly_url(): resp = requests.get('http://mysql.taobao.org/monthly/') soup = BeautifulSoup(resp.content.decode('utf-8'), "html.parser") tags = soup.findAll('a', {'class': {'main'}}) urls = [v for v in tags if v['href'].
-</div>
-<div><a class="read-more button" href=/posts/static/note/>Read more →</a></div>
 </div>
 <div class=pagination>
 <div class=pagination__buttons>

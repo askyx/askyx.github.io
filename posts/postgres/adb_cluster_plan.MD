@@ -522,7 +522,7 @@ https://www.bookstack.cn/read/aliyun-rds-core/c3e73d0a666188d4.md
 
 [PGPROC数据结构](https://blog.csdn.net/jackgo73/article/details/121628739)
 
-PGPROC 在共享内存中以 数组的形式组织，ProcArrayStruct 中 pgprocnos 字段记录映射关系，对应 PGPROC 中的 pgprocno 字段
+https://github.com/xitu/gold-miner/blob/master/TODO/postgres-atomicity.md
 
 ```
 (gdb) p * arrayP
@@ -578,5 +578,11 @@ $40 = {
 
 
 
-https://github.com/xitu/gold-miner/blob/master/TODO/postgres-atomicity.md
+https://www.modb.pro/db/91753
 
+
+1. 源码编译安装
+2. apt yum 等直接安装
+3. dep rpm 等安装
+4. opengause 和 pg 官网 使用源码安装，没有找到已经编译好的包
+5. mysql 使用安装包安装

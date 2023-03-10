@@ -186,7 +186,7 @@ sudo passwd vscode
     }
   ]
 }
-</code></pre></div><p>编译完成之后先使用<code>init db</code> task初始化，再使用<code>pg_start</code>和<code>pg_stop</code>打开或者关闭数据库，配置<code>alias psql="/home/vscode/build/bin/psql"</code>到<code>.bashrc</code>中，使用psql正常使用数据库</p>
+</code></pre></div><p>编译完成之后先使用<code>initdb</code> task初始化，再使用<code>pg_start</code>和<code>pg_stop</code>打开或者关闭数据库，配置<code>alias psql="/home/vscode/build/bin/psql"</code>到<code>.bashrc</code>中，使用psql正常使用数据库</p>
 <p>路径是统一的，完全自动，不需要自己额外操作</p>
 <h2 id=安装antdb>
 安装AntDB
@@ -1032,8 +1032,8 @@ end
 </a>
 </span>
 <span class="button next">
-<a href=https://askyx.github.io/posts/postgres/storage/>
-<span class=button__text>Postgres Storage</span>
+<a href=https://askyx.github.io/posts/postgres/opt/>
+<span class=button__text>Postgres Optimizer</span>
 <span class=button__icon>→</span>
 </a>
 </span>

@@ -242,20 +242,6 @@ AntDB VACUUM 流程
 </div>
 </div>
 <div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/remotequery/>Postgres RemoteQuery 扩展</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-08-26
-</span>
-</div>
-<div class=post-content>
-如何把单机postgres实现为mpp数据库
-</div>
-<div>
-<a class="read-more button" href=/posts/postgres/remotequery/>Read more →</a>
-</div>
-</div>
-<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/postgres/greenplum/>Greenplum</a></h1>
 <div class=post-meta>
 <span class=post-date>
@@ -688,6 +674,22 @@ ranges https://zhuanlan.
 </div>
 </div>
 <div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/others/adbplan/></a></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+issues # 1490 # 1921 # 1699 # http://10.20.16.216:9090/ADB/AntDB/-/issues/1490 http://10.20.16.216:9090/ADB/AntDB/-/issues/1921 http://10.20.16.216:9090/ADB/AntDB/-/issues/1699
+问题 # 使用到reduce的地方（包括查询）偶现以下错误，再次执行sql就正常；
+ERROR: remote node 16389 closed socket CONTEXT: dynamic reduce 复现方法 # 使用修改分布方式的方式去复现问题，过程如下： 创建100张表，然后并发100，不停执行下面的语句，5分钟之内会出现报错：
+alter table xxx distribute by replication; alter table xxx distribute by random; 无法直接复现 1799 # http://10.20.16.216:9090/ADB/AntDB/-/issues/1779
+问题 # 执行计划不正确导致dyreduce执行出错
+复现方法 # create table tb1( c1 int,c2 varchar(100),c3 varchar(100)); create table tb2(c1 int,sheet_num varchar(100)); create table tb3(c1 int,order_no varchar(100)); explain select count(distinct c2) from tb1 where c2 in (select distinct sheet_num from tb2,tb3 where sheet_num=order_no and c3='1'); 1875 # http://10.
+</div>
+<div>
+<a class="read-more button" href=/posts/others/adbplan/>Read more →</a>
+</div>
+</div>
+<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/others/log/></a></h1>
 <div class=post-meta>
 </div>
@@ -741,17 +743,17 @@ benchmarksql=# explain verbose select no_o_id from bmsql_new_order where no_w_id
 <div class=post-meta>
 </div>
 <div class=post-content>
-文磊 # 个人信息 # 性 别：男 年 龄：27 手 机：18705169510 邮 箱：404061090@qq.com
+文磊 # 个人信息 # 性 别：男 年 龄：28 手 机：18705169510 邮 箱：404061090@qq.com
 工作及教育经历 # 湖南亚信安慧科技有限公司 2022.7~now AntDB-T SQL内核研发工程师
-主要负责优化器对分布式执行计划的优化 星环科技有限公司 2022.2~2022.3 基础架构部-研发工程师
+主要负责优化器对分布式执行计划的优化 星环科技有限公司 2022.2~2022.3 基础架构部-数据库研发工程师
 主要职责为负责ArgoDB数据库存储引擎的研发工作 易鲸捷信息技术有限公司 2019.7~2022.1 SQL内核研发工程师
 负责EsgynDB和Oracle的SQL兼容工作 负责BUG修复 负责一些需求开发 与交付同事一起排查项目现场问题，SQL语句优化等 南京邮电大学 2015.9~2019.6 软件工程-本科
 专业技能 # 编程语言 c++(熟悉)，Java(了解)，GO(了解)
 数据库
 工作开始就从事数据库内核开发，有一定的数据库基础，曾系统学习过相关课程
-熟悉多种数据库内核，主要为trafodion和postgres。对其他pg类数据库也有一定的理解，
+熟悉多种数据库内核实现原理，主要为trafodion和postgres。对其他pg类数据库也有一定的理解，
 如greenplum，opengause等
-了解SQL优化器的实现原理，了解通用优化器框架，如Cascades和System-R等
+了解SQL优化器的原理，了解常用逻辑优化规则及代价优化规则等
 </div>
 <div>
 <a class="read-more button" href=/posts/personal/%E7%AE%80%E5%8E%86/>Read more →</a>
@@ -775,16 +777,6 @@ Column | Type | Collation | Nullable | Default | Storage | Description &mdash;&m
 <div class=post-meta>
 </div>
 <div class=post-content>
-[2018/08]
-AliSQL # AliSQL · 内核新特性 · 2020技术总结 [2020/12]
-AliSQL · 内核特性 · 快速 DDL [2020/07]
-AliSQL · 内核特性 · Binlog In Redo [2020/06]
-AliSQL · 引擎特性 · Fast Query Cache 介绍 [2020/05]
-AliSQL · 最佳实践 · Performance Agent [2020/03]
-AliSQL · 引擎特性 · Statement Queue [2019/09]
-AliSQL · 引擎特性 · Returning [2019/09]
-AliSQL · 引擎特性 · Recycle Bin [2019/08]
-AliSQL · 特性介绍 · 支持 Invisible Indexes [2017/07]
 </div>
 <div>
 <a class="read-more button" href=/posts/static/mysql/>Read more →</a>

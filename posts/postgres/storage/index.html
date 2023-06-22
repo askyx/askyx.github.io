@@ -195,12 +195,15 @@ Esoye — My note blog
 <p>FSM</p>
 </li>
 </ul>
+<p>select * from pg_relation_filepath(&lsquo;idx&rsquo;);</p>
 <h4 id=page-结构>
 Page 结构
 <a href=#page-%e7%bb%93%e6%9e%84 class=h-anchor aria-hidden=true>#</a>
 </h4>
 <p>工具汇总说明</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>get_raw_page(relname text, fork text, blkno <span style=color:#66d9ef>int</span>)
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>create extension pageinspect;
+
+get_raw_page(relname text, fork text, blkno <span style=color:#66d9ef>int</span>)
 <span style=color:#960050;background-color:#1e0010>返回执行表的</span>page<span style=color:#960050;background-color:#1e0010>，</span>text指定类型<span style=color:#960050;background-color:#1e0010>，默认是</span>main<span style=color:#960050;background-color:#1e0010>，代表普通</span>page<span style=color:#960050;background-color:#1e0010>，使用</span>fsm或者vm查看其他类型<span style=color:#960050;background-color:#1e0010>，可以省略</span>
 
 page_header(page bytea)
@@ -208,6 +211,7 @@ page_header(page bytea)
 
 fsm_page_contents(page bytea) returns text
 <span style=color:#960050;background-color:#1e0010>查看</span>fsm页面结构
+SELECT fsm_page_contents(get_raw_page(<span style=color:#960050;background-color:#1e0010>&#39;</span>t1<span style=color:#960050;background-color:#1e0010>&#39;</span>, <span style=color:#960050;background-color:#1e0010>&#39;</span>fsm<span style=color:#960050;background-color:#1e0010>&#39;</span>, <span style=color:#ae81ff>0</span>));
 
 <span style=color:#f92672>===</span> HEAP相关
 heap_page_items(page bytea)
@@ -233,10 +237,6 @@ bt_page_stats(relname text, blkno <span style=color:#66d9ef>int</span>)
 
 bt_page_items(relname text, blkno <span style=color:#66d9ef>int</span>) <span style=color:#960050;background-color:#1e0010>或者</span> bt_page_items(page bytea) returns setof record
 <span style=color:#960050;background-color:#1e0010>查看具体的信息，可以指定</span>index或者直接使用page byte
-
-
-
-
 
 </code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
 <span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>PageHeaderData</span>
@@ -273,7 +273,7 @@ bt_page_items(relname text, blkno <span style=color:#66d9ef>int</span>) <span st
   PageSetPageSizeAndVersion(page, pageSize, PG_PAGE_LAYOUT_VERSION);
   <span style=color:#75715e>/* p-&gt;pd_prune_xid = InvalidTransactionId;    done by above MemSet */</span>
 }
-</code></pre></div><p>大小为pageSize，默认为8k，最开始是PageHeader，</p>
+</code></pre></div><p>大小为 pageSize，默认为8k，最开始是PageHeader，</p>
 <ul>
 <li>数据的变动以page为单位，不直接和存储交互，先把数据块读到缓存，然后在进行insert或者update或者delete，具体的函数有
 <ul>
@@ -316,7 +316,7 @@ bt_page_items(relname text, blkno <span style=color:#66d9ef>int</span>) <span st
 
   <span style=color:#75715e>/* MORE DATA FOLLOWS AT END OF STRUCT */</span>
 };
-</code></pre></div><p>page具体的操作代码在<code>storage/page</code>目录下，建议进行15445的实验，可以更好的理解page相关的操作，这里page的操作总体类似，主要是具体的数据结构和某些特定的方法需要时间进行记忆，但是大的方向上似曾相识。</p>
+</code></pre></div><p>page具体的操作代码在<code>storage/page</code>目录下，建议进行 15445 的实验，可以更好的理解page相关的操作，这里page的操作总体类似，主要是具体的数据结构和某些特定的方法需要时间进行记忆，但是大的方向上似曾相识。</p>
 <p>RelationPutHeapTuple insert tuple到page中，根据head中的信息，计算insert的位置，其中page中的数据从首位向中心靠齐，尾部为数据，前面为offset，使用pd_lower和pd_upper进行管理，最后为柔性数组，数据在最后，
 在内存总操作的时候，使用偏移可以直接定位到数据，具体使用<code>pageinspect</code>插件查看</p>
 <p>调试<code>heap_page_items</code>函数，结合<a href=http://www.postgres.cn/docs/12/storage-page-layout.html>官网</a>和源码熟悉数据的组织结构</p>
@@ -886,6 +886,65 @@ vm是简单的bit位，0代表有数据变动，</p>
 </h2>
 <p>内存上下文，简单的理解就是一定范围内的内存池？</p>
 <p><a href=https://smartkeyerror.com/PostgreSQL-MemoryContext>https://smartkeyerror.com/PostgreSQL-MemoryContext</a></p>
+<h2 id=insert>
+insert
+<a href=#insert class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>堆表insert操作</p>
+<ol>
+<li>对应函数为heap_insert
+1. heap_prepare_insert 设置 tuple header
+2. RelationGetBufferForTuple 获取可用buffer
+3. RelationPutHeapTuple 进行 insert
+4. 设置 xlog 信息</li>
+</ol>
+<p>insert 中可能会有 page 看见不足等问题，需要进行扩展，主要在 RelationGetBufferForTuple 函数中</p>
+<pre><code>RelationGetBufferForTuple:
+  1. insert 会优先使用上次 insert 操作的 page
+    如果空间足够，则
+      LockBuffer(buffer, BUFFER_LOCK_EXCLUSIVE);
+      pageFreeSpace = PageGetHeapFreeSpace(page);
+      if (targetFreeSpace &lt;= pageFreeSpace)
+        RelationSetTargetBlock(relation, targetBlock);
+        return buffer;
+    否则从 FSM 中寻找一个空间足够的页面
+      LockBuffer(buffer, BUFFER_LOCK_EXCLUSIVE);
+      pageFreeSpace = PageGetHeapFreeSpace(page);
+      if (targetFreeSpace &lt;= pageFreeSpace) // false
+      LockBuffer(buffer, BUFFER_LOCK_UNLOCK);
+      targetBlock = RecordAndGetPageWithFreeSpace()
+    如果 FSM 中没有，则进行扩展，扩展时区分并发和非并发，没有并发的时候
+      LockBuffer(buffer, BUFFER_LOCK_EXCLUSIVE);
+      pageFreeSpace = PageGetHeapFreeSpace(page);
+      if (targetFreeSpace &lt;= pageFreeSpace) // false
+      LockBuffer(buffer, BUFFER_LOCK_UNLOCK);
+      targetBlock = RecordAndGetPageWithFreeSpace()
+      if (!ConditionalLockRelationForExtension(relation, ExclusiveLock)) // 表加排他锁成功
+      buffer = ReadBufferBI(relation, P_NEW, RBM_ZERO_AND_LOCK, bistate);// 扩展
+      page = BufferGetPage(buffer);
+      PageInit(page, BufferGetPageSize(buffer), 0);
+      MarkBufferDirty(buffer);
+      RelationSetTargetBlock(relation, BufferGetBlockNumber(buffer));
+    如果有并发，则会在表加锁的时候尝试失败，然后进行bulk 扩展过程
+      LockBuffer(buffer, BUFFER_LOCK_EXCLUSIVE);
+      pageFreeSpace = PageGetHeapFreeSpace(page);
+      if (targetFreeSpace &lt;= pageFreeSpace) // false
+      LockBuffer(buffer, BUFFER_LOCK_UNLOCK);
+      targetBlock = RecordAndGetPageWithFreeSpace()
+      if (!ConditionalLockRelationForExtension(relation, ExclusiveLock)) // 表加排他锁 失败
+        LockRelationForExtension(relation, ExclusiveLock);
+        targetBlock = GetPageWithFreeSpace(relation, targetFreeSpace);
+        if (targetBlock != InvalidBlockNumber)
+          UnlockRelationForExtension(relation, ExclusiveLock);
+          return
+        RelationAddExtraBlocks(relation, bistate);
+      buffer = ReadBufferBI(relation, P_NEW, RBM_ZERO_AND_LOCK, bistate);// 扩展
+      page = BufferGetPage(buffer);
+      PageInit(page, BufferGetPageSize(buffer), 0);
+      MarkBufferDirty(buffer);
+      RelationSetTargetBlock(relation, BufferGetBlockNumber(buffer));
+
+RelationAddExtraBlocks 批量扩展，大小为 min(512, lockWaiters * 20)</code></pre>
 </div>
 <div class=pagination>
 <div class=pagination__title>

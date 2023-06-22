@@ -6,10 +6,11 @@ Esoye — My note blog
 </title>
 <meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
-<meta name=description content="统计信息与选择率与代价计算 #  PostgreSQL源代码分析：indxpath.c
-当前统计信息会收集下面数据，可以使用视图 pg_stats 查看，在使用统计信息的时候，使用相关信息计算选择率
+<meta name=description content="表和各个index的物理结构及数据操作 统计信息 cost 计算 demo 选择率的计算 基表cost index cost  pageinspect
+PostgreSQL索引系列文章链接汇总
+统计信息与选择率与代价计算 #  当前统计信息会收集下面数据，可以使用视图 pg_stats 查看，在使用统计信息的时候，使用相关信息计算选择率
 * Histogram：直方图，这个数据结构用来描述数据的分布，当前pg中计算的是等高直方图，在每一个范围内，数据数量均等 * Most common values: 出现次数最多的一组值。将它们踢出直方图可以减少极端值造成的估算误差。 * Distinct Number: 即这一列一共有多少个不同的值。值得注意的是 PostgreSQL 并没有为直方图的 每个 bucket 维护一个 bucket 本身的不同的值。 * NULL values: 有多少行的值为 NULL。因为 NULL 是一个非常特殊的值，所以也会将 NULL 单独拿出来进行维护 * Average value width in bytes: 列平均长度，记录这个值可以用来对 SQL 使用的内存大小进行估算，以及 对 IO 开销进行更细致的估算。 * Correlation: 索引和主键（或者说 row id）之间的顺序相关程度。正相关为1，负相关为-1，实际上是统计的协方差  选择率 #  选择率用于计算约束条件过滤之后大的数据量大小，主要用于代价计算中估算执行代价，选择率的计算主要会使用到直方图统计信息和MCV
- 对于等值约束，只会使用 MCV 进行计算，MCV是统计的高频值  首先需要判断列 isunique，如果是，则此时是没有mcv ，直接使用公式 selec = 1.0 / rel-&amp;gt;tuples  计算选择率 否则如果条件中常数刚好是 MCV ，则直接返回当前 MCV 对应的概率即可 否则他假设数据是均匀分布，先去除 MCV 和 nullfac 的概率之后，然后再除以 otherdistinct，计算公式为 selec = (1.">
+ 对于等值约束，只会使用 MCV 进行计算，MCV是统计的高频值  首先需要判断列 isunique，如果是，则此时是没有mcv ，直接使用公式 selec = 1.">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
 <link rel=canonical href=https://askyx.github.io/posts/postgres/cost/>
@@ -68,11 +69,21 @@ Esoye — My note blog
 </span>
 </div>
 <div class=post-content>
+<ol>
+<li>表和各个index的物理结构及数据操作</li>
+<li>统计信息</li>
+<li>cost 计算</li>
+<li>demo</li>
+<li>选择率的计算</li>
+<li>基表cost</li>
+<li>index cost</li>
+</ol>
+<p><a href=http://postgres.cn/docs/14/pageinspect.html>pageinspect</a></p>
+<p><a href=https://www.mengqingzhong.com/2020/10/01/postgresql-index-linnks/>PostgreSQL索引系列文章链接汇总</a></p>
 <h2 id=统计信息与选择率与代价计算>
 统计信息与选择率与代价计算
 <a href=#%e7%bb%9f%e8%ae%a1%e4%bf%a1%e6%81%af%e4%b8%8e%e9%80%89%e6%8b%a9%e7%8e%87%e4%b8%8e%e4%bb%a3%e4%bb%b7%e8%ae%a1%e7%ae%97 class=h-anchor aria-hidden=true>#</a>
 </h2>
-<p><a href=https://www.mengqingzhong.com/2021/01/01/indxpath-c/>PostgreSQL源代码分析：indxpath.c</a></p>
 <p>当前统计信息会收集下面数据，可以使用视图 <code>pg_stats</code> 查看，在使用统计信息的时候，使用相关信息计算选择率</p>
 <pre><code>* Histogram：直方图，这个数据结构用来描述数据的分布，当前pg中计算的是等高直方图，在每一个范围内，数据数量均等
 * Most common values: 出现次数最多的一组值。将它们踢出直方图可以减少极端值造成的估算误差。
@@ -177,7 +188,6 @@ p(<span style=color:#66d9ef>c</span> <span style=color:#f92672>&gt;</span> <span
 p(a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span> <span style=color:#66d9ef>or</span> <span style=color:#66d9ef>c</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>9800</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>273</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0152</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>015</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>273</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>28475185873552034</span>
 
 <span style=color:#ae81ff>1360000</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>28475185873552034</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>387262</span>.<span style=color:#ae81ff>52788030764</span>
-
 </code></pre></div><p>上面只是简单的例子，其他一些表达式这里不能简单的使用上面的方式计算，pg提供不同的计算函数，大致有下面几种，其他的复合条件，则是会递归或者循环调用这些函数单独计算，大致的调用关系如图</p>
 <p><img src=/posts/postgres/images/cost.svg alt=xx></p>
 <pre><code>  src/backend/utils/adt/selfuncs.c:
@@ -208,7 +218,7 @@ cost 计算
 算子在输出第一行可用tuple需要的代价
 <ul>
 <li>对于非阻塞算子，代价通用的计算规则为约束条件的启动代价 加上 targetlist的启动代价，具体的表达式的代价计算使用函数 cost_qual_eval_node 计算，具体主要计算 startup cost 和 per_tuple cost</li>
-<li>对于阻塞算子，例如join，sort等，则会再加上一些准备工作需要的代价，例如如果hash join的 hashtable的构造代价，或者是 sort 算子的排序代价</li>
+<li>对于阻塞算子，例如join，sort等，则会再加上一些准备工作需要的代价，例如如果hash join的 hashtable 的构造代价，或者是 sort 算子的排序代价</li>
 </ul>
 </li>
 <li>总代价为所有数据输出开始到结束的代价，需要计算当前算子操作tuple的总代价和从下层节点获取数据的代价
@@ -224,6 +234,9 @@ cost 计算
 </ul>
 </li>
 </ol>
+<p>total_cost = startup_cost + cpu_run_cost + disk_run_cost + other
+cpu_run_cost = cpu_per_tuple * inputrows + target_cost_per_tuple * outputrows
+disk_run_cost = spc_page_cost * pages</p>
 <h4 id=简单的seqscan>
 简单的seqscan
 <a href=#%e7%ae%80%e5%8d%95%e7%9a%84seqscan class=h-anchor aria-hidden=true>#</a>
@@ -358,7 +371,7 @@ accept_new
 </ul>
 </li>
 <li>indexTotalCost 需要计算得代价和前面 seqscan 类似，需要计算 io cost 加上 CPU cost， index 使用的是随机读写， 这里大致通用公式
-为 <code>indexTotalCost = indexStartupCost + numIndexPages * (spc_random_page_cost + cpu_index_tuple_cost + qual_op_cost)</code>，带入参数计算得 <code>indexTotalCost = 6495.4775</code>
+为 <code>indexTotalCost = indexStartupCost + numIndexPages * spc_random_page_cost + numIndexTuples * (cpu_index_tuple_cost + qual_op_cost)</code>，带入参数计算得 <code>indexTotalCost = 6495.4775</code>
 <pre tabindex=0><code>  indexStartupCost = 0.4274
   indexTotalCost   = 6495.904
   indexSelectivity = 0.27367
@@ -400,6 +413,75 @@ accept_new
 是节点传入得行数，path->rows是输出行数，分别为 372197 和 151344 ， <code>total_cost = 6533.741 + 7053 + 0 * 151344 + 0.015 * 372197 = 19169.696</code></li>
 </ul>
 <hr>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
+seq scan
+<span style=color:#f92672>---</span>
+startup_cost  <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
+total_cost    <span style=color:#f92672>=</span> <span style=color:#ae81ff>0.0125</span> <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>tuples <span style=color:#f92672>+</span> baserel<span style=color:#f92672>-&gt;</span>pages
+
+
+btree
+<span style=color:#f92672>---</span>
+<span style=color:#75715e>// log2(index-&gt;tuples) 指的是叶子二分查找的cost，H + 1 指的是树的高度，50 是代码写死的定值 0.0025 = cpu_operator_cost
+</span><span style=color:#75715e></span>startup_cost    <span style=color:#f92672>=</span> {ceil( log2(index<span style=color:#f92672>-&gt;</span>tuples) ) <span style=color:#f92672>+</span> ( H <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span> ) <span style=color:#f92672>*</span> <span style=color:#ae81ff>50</span>} <span style=color:#f92672>*</span> <span style=color:#ae81ff>0.0025</span>   
+<span style=color:#75715e>// max_IO_cost + csquared * (min_IO_cost - max_IO_cost) 是disk cost， 这里使用相关度计算，后面是 cpu cost, 0.01 是 cpu_per_tuple
+</span><span style=color:#75715e></span>total_cost      <span style=color:#f92672>=</span> indexTotalCost <span style=color:#f92672>+</span> max_IO_cost <span style=color:#f92672>+</span> csquared <span style=color:#f92672>*</span> (min_IO_cost <span style=color:#f92672>-</span> max_IO_cost) <span style=color:#f92672>+</span> <span style=color:#ae81ff>0.01</span> <span style=color:#f92672>*</span> ceil(indexSelectivity <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>tuples) 
+<span style=color:#75715e>// Btree 的 indexSelectivity 就是其 cond 计算的结果
+</span><span style=color:#75715e></span>indexTotalCost  <span style=color:#f92672>=</span> startup_cost <span style=color:#f92672>+</span> ceil(indexSelectivity <span style=color:#f92672>*</span> index<span style=color:#f92672>-&gt;</span>pages) <span style=color:#f92672>*</span> <span style=color:#ae81ff>4</span> <span style=color:#f92672>+</span> (indexSelectivity <span style=color:#f92672>*</span> index<span style=color:#f92672>-&gt;</span>tuples) <span style=color:#f92672>*</span> <span style=color:#ae81ff>0.0075</span>
+<span style=color:#75715e>// PF = page fetch, 指的是语句最差的情况下需要最大读取的page，4为random io cost
+</span><span style=color:#75715e></span>max_IO_cost     <span style=color:#f92672>=</span> PF <span style=color:#f92672>*</span> <span style=color:#ae81ff>4</span>
+<span style=color:#75715e>// 最优时读取的page cost，这两个表达式分别对应关联度最优和最差时的代价
+</span><span style=color:#75715e></span>min_IO_cost     <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> <span style=color:#f92672>+</span> (ceil(indexSelectivity <span style=color:#f92672>*</span> (<span style=color:#66d9ef>double</span>) baserel<span style=color:#f92672>-&gt;</span>pages) <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>)
+csquared        <span style=color:#f92672>=</span> indexCorrelation <span style=color:#f92672>*</span> indexCorrelation
+
+  PF <span style=color:#f92672>=</span>
+    min(<span style=color:#ae81ff>2</span>TNs<span style=color:#f92672>/</span>(<span style=color:#ae81ff>2</span>T<span style=color:#f92672>+</span>Ns), T)              when T <span style=color:#f92672>&lt;=</span> b
+    <span style=color:#ae81ff>2</span>TNs<span style=color:#f92672>/</span>(<span style=color:#ae81ff>2</span>T<span style=color:#f92672>+</span>Ns)                      when T <span style=color:#f92672>&gt;</span> b and Ns <span style=color:#f92672>&lt;=</span> <span style=color:#ae81ff>2</span>Tb<span style=color:#f92672>/</span>(<span style=color:#ae81ff>2</span>T<span style=color:#f92672>-</span>b)
+    b <span style=color:#f92672>+</span> (Ns <span style=color:#f92672>-</span> <span style=color:#ae81ff>2</span>Tb<span style=color:#f92672>/</span>(<span style=color:#ae81ff>2</span>T<span style=color:#f92672>-</span>b))<span style=color:#f92672>*</span>(T<span style=color:#f92672>-</span>b)<span style=color:#f92672>/</span>T     when T <span style=color:#f92672>&gt;</span> b and Ns <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>2</span>Tb<span style=color:#f92672>/</span>(<span style=color:#ae81ff>2</span>T<span style=color:#f92672>-</span>b)
+ where
+    T <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>#</span> pages in table
+    N <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>#</span> tuples in table
+    s <span style=color:#f92672>=</span> selectivity <span style=color:#f92672>=</span> fraction of table to be scanned
+    b <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>#</span> buffer pages available (we include kernel space here)
+      <span style=color:#f92672>=</span> (<span style=color:#66d9ef>double</span>) effective_cache_size <span style=color:#f92672>*</span> T <span style=color:#f92672>/</span> (root<span style=color:#f92672>-&gt;</span>total_table_pages <span style=color:#f92672>+</span> index_pages);
+      effective_cache_size <span style=color:#f92672>=</span> <span style=color:#ae81ff>524288</span> KB <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span>Gb
+
+
+brin
+<span style=color:#f92672>---</span>
+startup_cost      <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span> <span style=color:#f92672>*</span> statsData.revmapNumPages
+total_cost        <span style=color:#f92672>=</span> indexTotalCost <span style=color:#f92672>+</span> max_IO_cost <span style=color:#f92672>+</span> csquared <span style=color:#f92672>*</span> (min_IO_cost <span style=color:#f92672>-</span> max_IO_cost) <span style=color:#f92672>+</span> <span style=color:#ae81ff>0.01</span> <span style=color:#f92672>*</span> ceil(indexSelectivity <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>tuples) 
+indexTotalCost    <span style=color:#f92672>=</span> startup_cost <span style=color:#f92672>+</span> <span style=color:#ae81ff>4</span> <span style=color:#f92672>*</span> (index<span style=color:#f92672>-&gt;</span>pages <span style=color:#f92672>-</span> statsData.revmapNumPages) <span style=color:#f92672>+</span> <span style=color:#ae81ff>0.00025</span> <span style=color:#f92672>*</span> estimatedRanges <span style=color:#f92672>*</span> statsData.pagesPerRange
+indexRanges       <span style=color:#f92672>=</span> max(ceil((<span style=color:#66d9ef>double</span>) baserel<span style=color:#f92672>-&gt;</span>pages <span style=color:#f92672>/</span> statsData.pagesPerRange), <span style=color:#ae81ff>1.0</span>)  
+minimalRanges     <span style=color:#f92672>=</span> ceil(indexRanges <span style=color:#f92672>*</span> qualSelectivity)   
+estimatedRanges   <span style=color:#f92672>=</span> min(minimalRanges <span style=color:#f92672>/</span> indexCorrelation, indexRanges)  
+indexSelectivity  <span style=color:#f92672>=</span> estimatedRanges <span style=color:#f92672>/</span> indexRanges  
+max_IO_cost     <span style=color:#f92672>=</span> PF <span style=color:#f92672>*</span> <span style=color:#ae81ff>4</span>
+min_IO_cost     <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> <span style=color:#f92672>+</span> (ceil(indexSelectivity <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>pages) <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>)
+csquared        <span style=color:#f92672>=</span> indexCorrelation <span style=color:#f92672>*</span> indexCorrelation
+
+bitmap
+<span style=color:#f92672>---</span>
+startup_cost  <span style=color:#f92672>=</span> ((IndexPath <span style=color:#f92672>*</span>) path)<span style=color:#f92672>-&gt;</span>indextotalcost <span style=color:#f92672>+</span>  <span style=color:#ae81ff>0.1</span> <span style=color:#f92672>*</span> cpu_operator_cost <span style=color:#f92672>*</span> path<span style=color:#f92672>-&gt;</span>rows
+total_cost    <span style=color:#f92672>=</span> startup_cost <span style=color:#f92672>+</span> pages_fetched <span style=color:#f92672>*</span> cost_per_page <span style=color:#f92672>+</span> pathtarget<span style=color:#f92672>-&gt;</span>cost.per_tuple <span style=color:#f92672>*</span> path<span style=color:#f92672>-&gt;</span>rows <span style=color:#f92672>+</span> cpu_per_tuple <span style=color:#f92672>*</span> tuples_fetched
+
+
+</code></pre></div><p>SELECT * FROM brin_page_items(get_raw_page(&lsquo;idxb&rsquo;, 2),&lsquo;idxb&rsquo;);
+SELECT * FROM brin_revmap_data(get_raw_page(&lsquo;idxb&rsquo;, 1)) ;
+SELECT * FROM brin_metapage_info(get_raw_page(&lsquo;idxb&rsquo;, 0));</p>
+<p>cost_sort (path=0x7ffccbfceae0, root=0x563be3d33940, pathkeys=0x0, input_cost=15406, tuples=1000000, width=12, comparison_cost=0, sort_mem=4096, limit_tuples=-1)</p>
+<p>type = 3821921280,
+pathtype = 22075,
+parent = 0x563be3cde400,
+pathtarget = 0x563be3cacd40,
+param_info = 0x563be3cada20,
+parallel_aware = 80,
+parallel_safe = 117,
+parallel_workers = 1,
+rows = 1000000,
+startup_cost = 132154.34284662094,
+total_cost = 134654.34284662094,
+pathkeys = 0x563be3d86de0</p>
 <h3 id=heading>
 <a href=#heading class=h-anchor aria-hidden=true>#</a>
 </h3>

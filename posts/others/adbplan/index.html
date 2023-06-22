@@ -1,0 +1,699 @@
+<!doctype html><html lang=en>
+<head>
+<title>
+::
+Esoye — My note blog
+</title>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="issues #  1490 #  1921 #  1699 #  http://10.20.16.216:9090/ADB/AntDB/-/issues/1490 http://10.20.16.216:9090/ADB/AntDB/-/issues/1921 http://10.20.16.216:9090/ADB/AntDB/-/issues/1699
+问题 #  使用到reduce的地方（包括查询）偶现以下错误，再次执行sql就正常；
+ERROR: remote node 16389 closed socket CONTEXT: dynamic reduce 复现方法 #  使用修改分布方式的方式去复现问题，过程如下： 创建100张表，然后并发100，不停执行下面的语句，5分钟之内会出现报错：
+alter table xxx distribute by replication; alter table xxx distribute by random;  无法直接复现  1799 #  http://10.20.16.216:9090/ADB/AntDB/-/issues/1779
+问题 #  执行计划不正确导致dyreduce执行出错
+复现方法 #  create table tb1( c1 int,c2 varchar(100),c3 varchar(100)); create table tb2(c1 int,sheet_num varchar(100)); create table tb3(c1 int,order_no varchar(100)); explain select count(distinct c2) from tb1 where c2 in (select distinct sheet_num from tb2,tb3 where sheet_num=order_no and c3=&amp;#39;1&amp;#39;); 1875 #  http://10.">
+<meta name=keywords content="数据库">
+<meta name=robots content="noodp">
+<link rel=canonical href=https://askyx.github.io/posts/others/adbplan/>
+<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
+<link rel=stylesheet href=https://askyx.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://askyx.github.io/img/favicon.png>
+<link href=https://askyx.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content>
+<meta name=twitter:description content="issues #  1490 #  1921 #  1699 #  http://10.20.16.216:9090/ADB/AntDB/-/issues/1490 http://10.20.16.216:9090/ADB/AntDB/-/issues/1921 http://10.20.16.216:9090/ADB/AntDB/-/issues/1699
+问题 #  使用到reduce的地方（包括查询）偶现以下错误，再次执行sql就正常；
+ERROR: remote node 16389 closed socket CONTEXT: dynamic reduce 复现方法 #  使用修改分布方式的方式去复现问题，过程如下： 创建100张表，然后并发100，不停执行下面的语句，5分钟之内会出现报错：
+alter table xxx distribute by replication; alter table xxx distribute by random;  无法直接复现  1799 #  http://10.20.16.216:9090/ADB/AntDB/-/issues/1779
+问题 #  执行计划不正确导致dyreduce执行出错
+复现方法 #  create table tb1( c1 int,c2 varchar(100),c3 varchar(100)); create table tb2(c1 int,sheet_num varchar(100)); create table tb3(c1 int,order_no varchar(100)); explain select count(distinct c2) from tb1 where c2 in (select distinct sheet_num from tb2,tb3 where sheet_num=order_no and c3='1'); 1875 #  http://10.">
+<meta property="og:title" content>
+<meta property="og:description" content="issues #  1490 #  1921 #  1699 #  http://10.20.16.216:9090/ADB/AntDB/-/issues/1490 http://10.20.16.216:9090/ADB/AntDB/-/issues/1921 http://10.20.16.216:9090/ADB/AntDB/-/issues/1699
+问题 #  使用到reduce的地方（包括查询）偶现以下错误，再次执行sql就正常；
+ERROR: remote node 16389 closed socket CONTEXT: dynamic reduce 复现方法 #  使用修改分布方式的方式去复现问题，过程如下： 创建100张表，然后并发100，不停执行下面的语句，5分钟之内会出现报错：
+alter table xxx distribute by replication; alter table xxx distribute by random;  无法直接复现  1799 #  http://10.20.16.216:9090/ADB/AntDB/-/issues/1779
+问题 #  执行计划不正确导致dyreduce执行出错
+复现方法 #  create table tb1( c1 int,c2 varchar(100),c3 varchar(100)); create table tb2(c1 int,sheet_num varchar(100)); create table tb3(c1 int,order_no varchar(100)); explain select count(distinct c2) from tb1 where c2 in (select distinct sheet_num from tb2,tb3 where sheet_num=order_no and c3='1'); 1875 #  http://10.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://askyx.github.io/posts/others/adbplan/"><meta property="article:section" content="posts">
+<meta property="og:site_name" content="Esoye">
+</head>
+<body class=light-theme>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archive>Archive</a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archive>Archive</a></li>
+</ul>
+</nav>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class=post>
+<h1 class=post-title></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+<h2 id=issues>
+issues
+<a href=#issues class=h-anchor aria-hidden=true>#</a>
+</h2>
+<h3 id=1490>
+1490
+<a href=#1490 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<h3 id=1921>
+1921
+<a href=#1921 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<h3 id=1699>
+1699
+<a href=#1699 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>http://10.20.16.216:9090/ADB/AntDB/-/issues/1490
+http://10.20.16.216:9090/ADB/AntDB/-/issues/1921
+http://10.20.16.216:9090/ADB/AntDB/-/issues/1699</p>
+<h4 id=问题>
+问题
+<a href=#%e9%97%ae%e9%a2%98 class=h-anchor aria-hidden=true>#</a>
+</h4>
+<p>使用到reduce的地方（包括查询）偶现以下错误，再次执行sql就正常；</p>
+<pre tabindex=0><code class=language-log data-lang=log>ERROR:  remote node 16389 closed socket
+CONTEXT:  dynamic reduce
+</code></pre><h4 id=复现方法>
+复现方法
+<a href=#%e5%a4%8d%e7%8e%b0%e6%96%b9%e6%b3%95 class=h-anchor aria-hidden=true>#</a>
+</h4>
+<p>使用修改分布方式的方式去复现问题，过程如下：
+创建100张表，然后并发100，不停执行下面的语句，5分钟之内会出现报错：</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=color:#66d9ef>alter</span> <span style=color:#66d9ef>table</span> xxx distribute <span style=color:#66d9ef>by</span> replication;
+<span style=color:#66d9ef>alter</span> <span style=color:#66d9ef>table</span> xxx distribute <span style=color:#66d9ef>by</span> random;
+</code></pre></div><ul>
+<li>无法直接复现</li>
+</ul>
+<h3 id=1799>
+1799
+<a href=#1799 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>http://10.20.16.216:9090/ADB/AntDB/-/issues/1779</p>
+<h4 id=问题-1>
+问题
+<a href=#%e9%97%ae%e9%a2%98-1 class=h-anchor aria-hidden=true>#</a>
+</h4>
+<p>执行计划不正确导致dyreduce执行出错</p>
+<h4 id=复现方法-1>
+复现方法
+<a href=#%e5%a4%8d%e7%8e%b0%e6%96%b9%e6%b3%95-1 class=h-anchor aria-hidden=true>#</a>
+</h4>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> tb1( c1 int,c2 varchar(<span style=color:#ae81ff>100</span>),c3 varchar(<span style=color:#ae81ff>100</span>));
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> tb2(c1 int,sheet_num varchar(<span style=color:#ae81ff>100</span>));
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> tb3(c1 int,order_no varchar(<span style=color:#ae81ff>100</span>));
+<span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#66d9ef>count</span>(<span style=color:#66d9ef>distinct</span> c2) <span style=color:#66d9ef>from</span> tb1 <span style=color:#66d9ef>where</span> c2 <span style=color:#66d9ef>in</span> (<span style=color:#66d9ef>select</span> <span style=color:#66d9ef>distinct</span> sheet_num <span style=color:#66d9ef>from</span> tb2,tb3 <span style=color:#66d9ef>where</span> sheet_num<span style=color:#f92672>=</span>order_no <span style=color:#66d9ef>and</span> c3<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;1&#39;</span>);
+</code></pre></div><h3 id=1875>
+1875
+<a href=#1875 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>http://10.20.16.216:9090/ADB/AntDB/-/issues/1875</p>
+<h4 id=问题-2>
+问题
+<a href=#%e9%97%ae%e9%a2%98-2 class=h-anchor aria-hidden=true>#</a>
+</h4>
+<p>数据重分布错误</p>
+<h4 id=复现方法-2>
+复现方法
+<a href=#%e5%a4%8d%e7%8e%b0%e6%96%b9%e6%b3%95-2 class=h-anchor aria-hidden=true>#</a>
+</h4>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> test (id int ,name varchar(<span style=color:#ae81ff>22</span>)) <span style=color:#66d9ef>to</span> node(dn2);
+<span style=color:#66d9ef>alter</span> <span style=color:#66d9ef>table</span> test  distribute <span style=color:#66d9ef>by</span> replication ;
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> t1 (id int ,name text) distribute <span style=color:#66d9ef>by</span> replication <span style=color:#66d9ef>to</span> node(dn2);
+<span style=color:#66d9ef>alter</span> <span style=color:#66d9ef>table</span> t1 distribute <span style=color:#66d9ef>by</span> hash(id);
+
+
+<span style=color:#66d9ef>alter</span> <span style=color:#66d9ef>table</span> test <span style=color:#66d9ef>to</span> node(dn1, dn2);
+
+</code></pre></div><h3 id=1938>
+1938
+<a href=#1938 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>http://10.20.16.216:9090/ADB/AntDB/-/issues/1938</p>
+<p>cluster reduce not support from REPLICATED to none REPLICATED</p>
+<h4 id=复现>
+复现
+<a href=#%e5%a4%8d%e7%8e%b0 class=h-anchor aria-hidden=true>#</a>
+</h4>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> test2(c1 int <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span> <span style=color:#66d9ef>primary</span> <span style=color:#66d9ef>key</span>,c2 text) distribute <span style=color:#66d9ef>by</span> replication;
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> test2 <span style=color:#66d9ef>select</span> id ,<span style=color:#e6db74>&#39;abcd&#39;</span><span style=color:#f92672>||</span>id<span style=color:#f92672>||</span><span style=color:#e6db74>&#39;efgh&#39;</span> <span style=color:#66d9ef>from</span> generate_series(<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>100000</span>) id;
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> test2_tmp2 (c1 int <span style=color:#66d9ef>not</span> <span style=color:#66d9ef>null</span> <span style=color:#66d9ef>primary</span> <span style=color:#66d9ef>key</span>,c2 text,c3 int) distribute <span style=color:#66d9ef>by</span> hash(c1);
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> test2_tmp3 (c1 int,c2 text,c3 int) distribute <span style=color:#66d9ef>by</span> hash(c1);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> test2_tmp3 <span style=color:#66d9ef>select</span> c1, <span style=color:#66d9ef>count</span>(<span style=color:#f92672>*</span>) <span style=color:#66d9ef>c</span>, <span style=color:#ae81ff>100</span> <span style=color:#66d9ef>from</span> test2 <span style=color:#66d9ef>where</span> c1 <span style=color:#66d9ef>between</span> <span style=color:#ae81ff>501</span> <span style=color:#66d9ef>and</span> <span style=color:#ae81ff>1000</span> <span style=color:#66d9ef>group</span> <span style=color:#66d9ef>by</span> c1 <span style=color:#66d9ef>HAVING</span> c1<span style=color:#f92672>&lt;</span><span style=color:#ae81ff>520</span> ;
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> test2_tmp3 <span style=color:#66d9ef>select</span> c1, c2, c1 <span style=color:#66d9ef>from</span> test2 <span style=color:#66d9ef>limit</span> <span style=color:#ae81ff>10</span>  ;
+
+
+
+<span style=color:#66d9ef>select</span> c1, <span style=color:#66d9ef>count</span>(<span style=color:#f92672>*</span>) <span style=color:#66d9ef>c</span>, rank() OVER my_win <span style=color:#66d9ef>as</span> rnk <span style=color:#66d9ef>from</span> test2 <span style=color:#66d9ef>where</span> c1 <span style=color:#66d9ef>between</span> <span style=color:#ae81ff>501</span> <span style=color:#66d9ef>and</span> <span style=color:#ae81ff>1000</span> <span style=color:#66d9ef>group</span> <span style=color:#66d9ef>by</span> c1 <span style=color:#66d9ef>HAVING</span> c1<span style=color:#f92672>&lt;</span><span style=color:#ae81ff>520</span> WINDOW my_win <span style=color:#66d9ef>AS</span> (<span style=color:#66d9ef>ORDER</span> <span style=color:#66d9ef>BY</span> c2 <span style=color:#66d9ef>DESC</span>) <span style=color:#66d9ef>limit</span> <span style=color:#ae81ff>50</span> <span style=color:#66d9ef>offset</span> <span style=color:#ae81ff>5</span>;
+
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> test2_tmp2 <span style=color:#66d9ef>select</span> c1, <span style=color:#66d9ef>count</span>(<span style=color:#f92672>*</span>) <span style=color:#66d9ef>c</span>, rank() OVER my_win <span style=color:#66d9ef>as</span> rnk <span style=color:#66d9ef>from</span> test2 <span style=color:#66d9ef>where</span> c1 <span style=color:#66d9ef>between</span> <span style=color:#ae81ff>501</span> <span style=color:#66d9ef>and</span> <span style=color:#ae81ff>1000</span> <span style=color:#66d9ef>group</span> <span style=color:#66d9ef>by</span> c1 <span style=color:#66d9ef>HAVING</span> c1<span style=color:#f92672>&lt;</span><span style=color:#ae81ff>520</span> WINDOW my_win <span style=color:#66d9ef>AS</span> (<span style=color:#66d9ef>ORDER</span> <span style=color:#66d9ef>BY</span> c2 <span style=color:#66d9ef>DESC</span>) <span style=color:#66d9ef>limit</span> <span style=color:#ae81ff>50</span> <span style=color:#66d9ef>offset</span> <span style=color:#ae81ff>5</span>;
+
+ <span style=color:#66d9ef>Insert</span> <span style=color:#66d9ef>on</span> <span style=color:#66d9ef>public</span>.test2_tmp2  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>9</span>.<span style=color:#ae81ff>50</span>..<span style=color:#ae81ff>9</span>.<span style=color:#ae81ff>99</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
+   <span style=color:#f92672>-&gt;</span>  Subquery Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;*SELECT*&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>9</span>.<span style=color:#ae81ff>50</span>..<span style=color:#ae81ff>9</span>.<span style=color:#ae81ff>99</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>14</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>40</span>)
+         <span style=color:#66d9ef>Output</span>: <span style=color:#e6db74>&#34;*SELECT*&#34;</span>.c1, <span style=color:#e6db74>&#34;*SELECT*&#34;</span>.<span style=color:#66d9ef>c</span>, <span style=color:#e6db74>&#34;*SELECT*&#34;</span>.rnk
+         <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Limit</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>9</span>.<span style=color:#ae81ff>50</span>..<span style=color:#ae81ff>9</span>.<span style=color:#ae81ff>74</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>14</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>33</span>)
+               <span style=color:#66d9ef>Output</span>: test2.c1, (<span style=color:#66d9ef>count</span>(<span style=color:#f92672>*</span>)), (rank() OVER (<span style=color:#f92672>?</span>)), test2.c2
+               <span style=color:#f92672>-&gt;</span>  WindowAgg  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>9</span>.<span style=color:#ae81ff>41</span>..<span style=color:#ae81ff>9</span>.<span style=color:#ae81ff>74</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>19</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>33</span>)
+                     <span style=color:#66d9ef>Output</span>: test2.c1, (<span style=color:#66d9ef>count</span>(<span style=color:#f92672>*</span>)), rank() OVER (<span style=color:#f92672>?</span>), test2.c2
+                     <span style=color:#f92672>-&gt;</span>  Sort  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>9</span>.<span style=color:#ae81ff>41</span>..<span style=color:#ae81ff>9</span>.<span style=color:#ae81ff>46</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>19</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>25</span>)
+                           <span style=color:#66d9ef>Output</span>: test2.c1, test2.c2, (<span style=color:#66d9ef>count</span>(<span style=color:#f92672>*</span>))
+                           Sort <span style=color:#66d9ef>Key</span>: test2.c2 <span style=color:#66d9ef>DESC</span>
+                           <span style=color:#f92672>-&gt;</span>  GroupAggregate  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>29</span>..<span style=color:#ae81ff>9</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>19</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>25</span>)
+                                 <span style=color:#66d9ef>Output</span>: test2.c1, test2.c2, <span style=color:#66d9ef>count</span>(<span style=color:#f92672>*</span>)
+                                 <span style=color:#66d9ef>Group</span> <span style=color:#66d9ef>Key</span>: test2.c1
+                                 <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Index</span> Scan <span style=color:#66d9ef>using</span> test2_pkey <span style=color:#66d9ef>on</span> <span style=color:#66d9ef>public</span>.test2  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>29</span>..<span style=color:#ae81ff>8</span>.<span style=color:#ae81ff>72</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>19</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>17</span>)
+                                       <span style=color:#66d9ef>Output</span>: test2.c1, test2.c2
+                                       <span style=color:#66d9ef>Index</span> Cond: ((test2.c1 <span style=color:#f92672>&gt;=</span> <span style=color:#ae81ff>501</span>) <span style=color:#66d9ef>AND</span> (test2.c1 <span style=color:#f92672>&lt;=</span> <span style=color:#ae81ff>1000</span>) <span style=color:#66d9ef>AND</span> (test2.c1 <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>520</span>))
+
+
+ <span style=color:#66d9ef>Limit</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>47</span>.<span style=color:#ae81ff>30</span>..<span style=color:#ae81ff>47</span>.<span style=color:#ae81ff>32</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>33</span>)
+   <span style=color:#66d9ef>Output</span>: c1, (<span style=color:#66d9ef>count</span>(<span style=color:#f92672>*</span>)), (rank() OVER (<span style=color:#f92672>?</span>)), c2
+   <span style=color:#f92672>-&gt;</span>  WindowAgg  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>47</span>.<span style=color:#ae81ff>21</span>..<span style=color:#ae81ff>47</span>.<span style=color:#ae81ff>32</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>6</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>33</span>)
+         <span style=color:#66d9ef>Output</span>: c1, (<span style=color:#66d9ef>count</span>(<span style=color:#f92672>*</span>)), rank() OVER (<span style=color:#f92672>?</span>), c2
+         <span style=color:#f92672>-&gt;</span>  Sort  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>47</span>.<span style=color:#ae81ff>21</span>..<span style=color:#ae81ff>47</span>.<span style=color:#ae81ff>23</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>6</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>25</span>)
+               <span style=color:#66d9ef>Output</span>: c1, c2, (<span style=color:#66d9ef>count</span>(<span style=color:#f92672>*</span>))
+               Sort <span style=color:#66d9ef>Key</span>: test2.c2 <span style=color:#66d9ef>DESC</span>
+               <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Cluster</span> Gather  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>17</span>..<span style=color:#ae81ff>47</span>.<span style=color:#ae81ff>14</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>6</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>25</span>)
+                     Remote node: <span style=color:#ae81ff>16388</span>
+                     <span style=color:#f92672>-&gt;</span>  GroupAggregate  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>17</span>..<span style=color:#ae81ff>45</span>.<span style=color:#ae81ff>34</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>6</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>25</span>)
+                           <span style=color:#66d9ef>Output</span>: c1, c2, <span style=color:#66d9ef>count</span>(<span style=color:#f92672>*</span>)
+                           <span style=color:#66d9ef>Group</span> <span style=color:#66d9ef>Key</span>: test2.c1
+                           <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Index</span> Scan <span style=color:#66d9ef>using</span> test2_pkey <span style=color:#66d9ef>on</span> <span style=color:#66d9ef>public</span>.test2  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>17</span>..<span style=color:#ae81ff>45</span>.<span style=color:#ae81ff>25</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>6</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>17</span>)
+                                 <span style=color:#66d9ef>Output</span>: c1, c2
+                                 <span style=color:#66d9ef>Index</span> Cond: ((test2.c1 <span style=color:#f92672>&gt;=</span> <span style=color:#ae81ff>501</span>) <span style=color:#66d9ef>AND</span> (test2.c1 <span style=color:#f92672>&lt;=</span> <span style=color:#ae81ff>1000</span>) <span style=color:#66d9ef>AND</span> (test2.c1 <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>520</span>))
+                                 Remote node: <span style=color:#ae81ff>16386</span>,<span style=color:#ae81ff>16387</span>,<span style=color:#ae81ff>16388</span>
+
+<span style=color:#f92672>#</span><span style=color:#ae81ff>0</span>  cost_cluster_reduce (path<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec5acd8) <span style=color:#66d9ef>at</span> <span style=color:#f92672>/</span>workspaces<span style=color:#f92672>/</span>antdb<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>backend<span style=color:#f92672>/</span>optimizer<span style=color:#f92672>/</span>path<span style=color:#f92672>/</span>costsize.<span style=color:#66d9ef>c</span>:<span style=color:#ae81ff>6422</span>
+<span style=color:#f92672>#</span><span style=color:#ae81ff>1</span>  <span style=color:#ae81ff>0</span>x000055d3ed7c2289 <span style=color:#66d9ef>in</span> create_cluster_reduce_path (root<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec4b1a8, sub_path<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec59a00, rinfo_list<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec5ac88, rel<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec5a648, pathkeys<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x0) <span style=color:#66d9ef>at</span> <span style=color:#f92672>/</span>workspaces<span style=color:#f92672>/</span>antdb<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>backend<span style=color:#f92672>/</span>optimizer<span style=color:#f92672>/</span>util<span style=color:#f92672>/</span>pathnode.<span style=color:#66d9ef>c</span>:<span style=color:#ae81ff>5051</span>
+<span style=color:#f92672>#</span><span style=color:#ae81ff>2</span>  <span style=color:#ae81ff>0</span>x000055d3ed759dc6 <span style=color:#66d9ef>in</span> create_cluster_window_path (root<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec4b1a8, window_rel<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec5a648, path<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec59a00, input_target<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec592d8, output_target<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec58c80, wflists<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec56b18, activeWindows<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec56c18)
+    <span style=color:#66d9ef>at</span> <span style=color:#f92672>/</span>workspaces<span style=color:#f92672>/</span>antdb<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>backend<span style=color:#f92672>/</span>optimizer<span style=color:#f92672>/</span>plan<span style=color:#f92672>/</span>planner.<span style=color:#66d9ef>c</span>:<span style=color:#ae81ff>5948</span>
+<span style=color:#f92672>#</span><span style=color:#ae81ff>3</span>  <span style=color:#ae81ff>0</span>x000055d3ed758c56 <span style=color:#66d9ef>in</span> create_window_paths (root<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec4b1a8, input_rel<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec58110, input_target<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec592d8, output_target<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec58c80, output_target_parallel_safe<span style=color:#f92672>=</span><span style=color:#66d9ef>false</span>, wflists<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec56b18, activeWindows<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec56c18)
+    <span style=color:#66d9ef>at</span> <span style=color:#f92672>/</span>workspaces<span style=color:#f92672>/</span>antdb<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>backend<span style=color:#f92672>/</span>optimizer<span style=color:#f92672>/</span>plan<span style=color:#f92672>/</span>planner.<span style=color:#66d9ef>c</span>:<span style=color:#ae81ff>5654</span>
+<span style=color:#f92672>#</span><span style=color:#ae81ff>4</span>  <span style=color:#ae81ff>0</span>x000055d3ed74ee81 <span style=color:#66d9ef>in</span> grouping_planner (root<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec4b1a8, inheritance_update<span style=color:#f92672>=</span><span style=color:#66d9ef>false</span>, tuple_fraction<span style=color:#f92672>=</span><span style=color:#ae81ff>55</span>) <span style=color:#66d9ef>at</span> <span style=color:#f92672>/</span>workspaces<span style=color:#f92672>/</span>antdb<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>backend<span style=color:#f92672>/</span>optimizer<span style=color:#f92672>/</span>plan<span style=color:#f92672>/</span>planner.<span style=color:#66d9ef>c</span>:<span style=color:#ae81ff>2732</span>
+<span style=color:#f92672>#</span><span style=color:#ae81ff>5</span>  <span style=color:#ae81ff>0</span>x000055d3ed74aeca <span style=color:#66d9ef>in</span> subquery_planner (glob<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eeb594c0, parse<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec37be0, parent_root<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec495a8, hasRecursion<span style=color:#f92672>=</span><span style=color:#66d9ef>false</span>, tuple_fraction<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>) <span style=color:#66d9ef>at</span> <span style=color:#f92672>/</span>workspaces<span style=color:#f92672>/</span>antdb<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>backend<span style=color:#f92672>/</span>optimizer<span style=color:#f92672>/</span>plan<span style=color:#f92672>/</span>planner.<span style=color:#66d9ef>c</span>:<span style=color:#ae81ff>1320</span>
+<span style=color:#f92672>#</span><span style=color:#ae81ff>6</span>  <span style=color:#ae81ff>0</span>x000055d3ed6deef6 <span style=color:#66d9ef>in</span> set_subquery_pathlist (root<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec495a8, rel<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec49ce8, rti<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>, rte<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec379d0) <span style=color:#66d9ef>at</span> <span style=color:#f92672>/</span>workspaces<span style=color:#f92672>/</span>antdb<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>backend<span style=color:#f92672>/</span>optimizer<span style=color:#f92672>/</span>path<span style=color:#f92672>/</span>allpaths.<span style=color:#66d9ef>c</span>:<span style=color:#ae81ff>3262</span>
+<span style=color:#f92672>#</span><span style=color:#ae81ff>7</span>  <span style=color:#ae81ff>0</span>x000055d3ed6d4bf4 <span style=color:#66d9ef>in</span> set_rel_size (root<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec495a8, rel<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec49ce8, rti<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>, rte<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec379d0) <span style=color:#66d9ef>at</span> <span style=color:#f92672>/</span>workspaces<span style=color:#f92672>/</span>antdb<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>backend<span style=color:#f92672>/</span>optimizer<span style=color:#f92672>/</span>path<span style=color:#f92672>/</span>allpaths.<span style=color:#66d9ef>c</span>:<span style=color:#ae81ff>437</span>
+<span style=color:#f92672>#</span><span style=color:#ae81ff>8</span>  <span style=color:#ae81ff>0</span>x000055d3ed6d487a <span style=color:#66d9ef>in</span> set_base_rel_sizes (root<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec495a8) <span style=color:#66d9ef>at</span> <span style=color:#f92672>/</span>workspaces<span style=color:#f92672>/</span>antdb<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>backend<span style=color:#f92672>/</span>optimizer<span style=color:#f92672>/</span>path<span style=color:#f92672>/</span>allpaths.<span style=color:#66d9ef>c</span>:<span style=color:#ae81ff>338</span>
+<span style=color:#f92672>#</span><span style=color:#ae81ff>9</span>  <span style=color:#ae81ff>0</span>x000055d3ed6d4431 <span style=color:#66d9ef>in</span> make_one_rel (root<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec495a8, joinlist<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec4a198) <span style=color:#66d9ef>at</span> <span style=color:#f92672>/</span>workspaces<span style=color:#f92672>/</span>antdb<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>backend<span style=color:#f92672>/</span>optimizer<span style=color:#f92672>/</span>path<span style=color:#f92672>/</span>allpaths.<span style=color:#66d9ef>c</span>:<span style=color:#ae81ff>200</span>
+<span style=color:#f92672>#</span><span style=color:#ae81ff>10</span> <span style=color:#ae81ff>0</span>x000055d3ed7476c2 <span style=color:#66d9ef>in</span> query_planner (root<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec495a8, qp_callback<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3ed754f96 <span style=color:#f92672>&lt;</span>standard_qp_callback<span style=color:#f92672>&gt;</span>, qp_extra<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x7ffe3b15f700) <span style=color:#66d9ef>at</span> <span style=color:#f92672>/</span>workspaces<span style=color:#f92672>/</span>antdb<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>backend<span style=color:#f92672>/</span>optimizer<span style=color:#f92672>/</span>plan<span style=color:#f92672>/</span>planmain.<span style=color:#66d9ef>c</span>:<span style=color:#ae81ff>292</span>
+<span style=color:#f92672>#</span><span style=color:#ae81ff>11</span> <span style=color:#ae81ff>0</span>x000055d3ed74df07 <span style=color:#66d9ef>in</span> grouping_planner (root<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eec495a8, inheritance_update<span style=color:#f92672>=</span><span style=color:#66d9ef>false</span>, tuple_fraction<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>) <span style=color:#66d9ef>at</span> <span style=color:#f92672>/</span>workspaces<span style=color:#f92672>/</span>antdb<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>backend<span style=color:#f92672>/</span>optimizer<span style=color:#f92672>/</span>plan<span style=color:#f92672>/</span>planner.<span style=color:#66d9ef>c</span>:<span style=color:#ae81ff>2471</span>
+<span style=color:#f92672>#</span><span style=color:#ae81ff>12</span> <span style=color:#ae81ff>0</span>x000055d3ed74aeca <span style=color:#66d9ef>in</span> subquery_planner (glob<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eeb594c0, parse<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x55d3eeb593b0, parent_root<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>x0, hasRecursion<span style=color:#f92672>=</span><span style=color:#66d9ef>false</span>, tuple_fraction<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>) <span style=color:#66d9ef>at</span> <span style=color:#f92672>/</span>workspaces<span style=color:#f92672>/</span>antdb<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>backend<span style=color:#f92672>/</span>optimizer<span style=color:#f92672>/</span>plan<span style=color:#f92672>/</span>planner.<span style=color:#66d9ef>c</span>:<span style=color:#ae81ff>1320</span>
+
+</code></pre></div><h4 id=问题-3>
+问题
+<a href=#%e9%97%ae%e9%a2%98-3 class=h-anchor aria-hidden=true>#</a>
+</h4>
+<p>执行计划不正确，select 的 top 应该是 reduce，但是在某些情况下，执行计划生成错误， 最简单的例子是 insert .. select .. limit offset, 这是一大类问题，除了 limit offset ， 窗口函数也有问题，</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> test2_tmp3 <span style=color:#66d9ef>select</span> c1, c2, c1 <span style=color:#66d9ef>from</span> test2 <span style=color:#66d9ef>limit</span> <span style=color:#ae81ff>10</span>  <span style=color:#66d9ef>offset</span> <span style=color:#ae81ff>20</span>;
+
+</code></pre></div><h3 id=2085>
+2085
+<a href=#2085 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>http://10.20.16.216:9090/ADB/AntDB/-/issues/2085</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>
+<span style=color:#66d9ef>set</span> enable_cluster_plan <span style=color:#66d9ef>to</span> <span style=color:#66d9ef>off</span>; <span style=color:#75715e>-- 不使用reduce逻辑
+</span><span style=color:#75715e></span>
+<span style=color:#66d9ef>drop</span> <span style=color:#66d9ef>table</span> tbl;
+<span style=color:#66d9ef>CREATE</span> <span style=color:#66d9ef>TABLE</span> <span style=color:#66d9ef>IF</span> <span style=color:#66d9ef>NOT</span> <span style=color:#66d9ef>EXISTS</span> tbl (sd int)  DISTRIBUTE <span style=color:#66d9ef>BY</span> REPLICATION <span style=color:#66d9ef>to</span> node(dn1, dn2);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> tbl <span style=color:#66d9ef>select</span> generate_series(<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>10</span>);
+
+
+<span style=color:#66d9ef>drop</span> <span style=color:#66d9ef>table</span> tbl;
+<span style=color:#66d9ef>CREATE</span> <span style=color:#66d9ef>TABLE</span> <span style=color:#66d9ef>IF</span> <span style=color:#66d9ef>NOT</span> <span style=color:#66d9ef>EXISTS</span> tbl (sd int)  DISTRIBUTE <span style=color:#66d9ef>BY</span> REPLICATION;
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> tbl <span style=color:#66d9ef>select</span> generate_series(<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>10</span>);
+postgres<span style=color:#f92672>=#</span> <span style=color:#960050;background-color:#1e0010>\</span>d<span style=color:#f92672>+</span> tbl
+                                    <span style=color:#66d9ef>Table</span> <span style=color:#e6db74>&#34;public.tbl&#34;</span>
+ <span style=color:#66d9ef>Column</span> <span style=color:#f92672>|</span>  <span style=color:#66d9ef>Type</span>   <span style=color:#f92672>|</span> <span style=color:#66d9ef>Collation</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>Nullable</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>Default</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>Storage</span> <span style=color:#f92672>|</span> Stats target <span style=color:#f92672>|</span> Description
+<span style=color:#75715e>--------+---------+-----------+----------+---------+---------+--------------+-------------
+</span><span style=color:#75715e></span> sd     <span style=color:#f92672>|</span> integer <span style=color:#f92672>|</span>           <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>         <span style=color:#f92672>|</span> plain   <span style=color:#f92672>|</span>              <span style=color:#f92672>|</span>
+Tablespace: <span style=color:#e6db74>&#34;hottbs&#34;</span>
+DISTRIBUTE <span style=color:#66d9ef>BY</span> REPLICATION <span style=color:#66d9ef>TO</span> NODE(dn1_1, dn2_1, dn3_1)
+<span style=color:#66d9ef>Access</span> <span style=color:#66d9ef>method</span>: heap
+
+postgres<span style=color:#f92672>=#</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> tbl <span style=color:#66d9ef>order</span> <span style=color:#66d9ef>by</span> <span style=color:#ae81ff>1</span>;
+ sd
+<span style=color:#75715e>----
+</span><span style=color:#75715e></span>  <span style=color:#ae81ff>1</span>
+  <span style=color:#ae81ff>2</span>
+  <span style=color:#ae81ff>3</span>
+  <span style=color:#ae81ff>4</span>
+  <span style=color:#ae81ff>5</span>
+  <span style=color:#ae81ff>6</span>
+  <span style=color:#ae81ff>7</span>
+  <span style=color:#ae81ff>8</span>
+  <span style=color:#ae81ff>9</span>
+ <span style=color:#ae81ff>10</span>
+(<span style=color:#ae81ff>10</span> <span style=color:#66d9ef>rows</span>)
+
+<span style=color:#66d9ef>execute</span> direct <span style=color:#66d9ef>on</span> (dn1) <span style=color:#e6db74>&#39;select * from tbl &#39;</span>;
+<span style=color:#66d9ef>execute</span> direct <span style=color:#66d9ef>on</span> (dn2) <span style=color:#e6db74>&#39;select * from tbl &#39;</span>;
+<span style=color:#66d9ef>execute</span> direct <span style=color:#66d9ef>on</span> (dn3) <span style=color:#e6db74>&#39;select * from tbl &#39;</span>;
+
+<span style=color:#66d9ef>execute</span> direct <span style=color:#66d9ef>on</span> (dn1) <span style=color:#e6db74>&#39;select * from tbl where ((hash_combin_mod(3, hashint4(sd))) != 0)&#39;</span>;
+<span style=color:#66d9ef>execute</span> direct <span style=color:#66d9ef>on</span> (dn2) <span style=color:#e6db74>&#39;select * from tbl where ((hash_combin_mod(3, hashint4(sd))) != 1)&#39;</span>;
+<span style=color:#66d9ef>execute</span> direct <span style=color:#66d9ef>on</span> (dn3) <span style=color:#e6db74>&#39;select * from tbl where ((hash_combin_mod(3, hashint4(sd))) != 2)&#39;</span>;
+
+<span style=color:#66d9ef>alter</span> <span style=color:#66d9ef>table</span> tbl distribute <span style=color:#66d9ef>by</span> hash(sd);
+postgres<span style=color:#f92672>=#</span> <span style=color:#960050;background-color:#1e0010>\</span>d<span style=color:#f92672>+</span> tbl
+                                    <span style=color:#66d9ef>Table</span> <span style=color:#e6db74>&#34;public.tbl&#34;</span>
+ <span style=color:#66d9ef>Column</span> <span style=color:#f92672>|</span>  <span style=color:#66d9ef>Type</span>   <span style=color:#f92672>|</span> <span style=color:#66d9ef>Collation</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>Nullable</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>Default</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>Storage</span> <span style=color:#f92672>|</span> Stats target <span style=color:#f92672>|</span> Description
+<span style=color:#75715e>--------+---------+-----------+----------+---------+---------+--------------+-------------
+</span><span style=color:#75715e></span> sd     <span style=color:#f92672>|</span> integer <span style=color:#f92672>|</span>           <span style=color:#f92672>|</span>          <span style=color:#f92672>|</span>         <span style=color:#f92672>|</span> plain   <span style=color:#f92672>|</span>              <span style=color:#f92672>|</span>
+Tablespace: <span style=color:#e6db74>&#34;hottbs&#34;</span>
+DISTRIBUTE <span style=color:#66d9ef>BY</span> HASH(sd) <span style=color:#66d9ef>TO</span> NODE(dn1_1, dn2_1, dn3_1)
+<span style=color:#66d9ef>Access</span> <span style=color:#66d9ef>method</span>: heap
+
+postgres<span style=color:#f92672>=#</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> tbl <span style=color:#66d9ef>order</span> <span style=color:#66d9ef>by</span> <span style=color:#ae81ff>1</span>;
+ sd
+<span style=color:#75715e>----
+</span><span style=color:#75715e></span>  <span style=color:#ae81ff>3</span>
+  <span style=color:#ae81ff>3</span>
+  <span style=color:#ae81ff>3</span>
+  <span style=color:#ae81ff>5</span>
+  <span style=color:#ae81ff>5</span>
+  <span style=color:#ae81ff>5</span>
+(<span style=color:#ae81ff>6</span> <span style=color:#66d9ef>rows</span>)
+
+<span style=color:#66d9ef>DELETE</span> <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>public</span>.tbl <span style=color:#66d9ef>where</span> ((hash_combin_mod(<span style=color:#ae81ff>3</span>, hashint4(sd))) <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span>)
+
+</code></pre></div><h4 id=问题-4>
+问题
+<a href=#%e9%97%ae%e9%a2%98-4 class=h-anchor aria-hidden=true>#</a>
+</h4>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c>
+distrib_delete_hash <span style=color:#960050;background-color:#1e0010>构建语句删除数据，条件拼接错误</span> 
+
+<span style=color:#f92672>---</span> a<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>backend<span style=color:#f92672>/</span>pgxc<span style=color:#f92672>/</span>locator<span style=color:#f92672>/</span>redistrib.c
+<span style=color:#f92672>+++</span> b<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>backend<span style=color:#f92672>/</span>pgxc<span style=color:#f92672>/</span>locator<span style=color:#f92672>/</span>redistrib.c
+<span style=color:#960050;background-color:#1e0010>@@</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>805</span>,<span style=color:#ae81ff>6</span> <span style=color:#f92672>+</span><span style=color:#ae81ff>805</span>,<span style=color:#ae81ff>7</span> <span style=color:#960050;background-color:#1e0010>@@</span> distrib_delete_hash(RedistribState <span style=color:#f92672>*</span>distribState, ExecNodes <span style=color:#f92672>*</span>exec_nodes)
+ 
+                <span style=color:#75715e>/* Then launch this single query */</span>
+                distrib_execute_query(buf2.data, RelationUsesLocalBuffers(rel), local_exec_nodes);
+<span style=color:#f92672>+</span>               nodepos<span style=color:#f92672>++</span>;
+ 
+                FreeExecNodes(<span style=color:#f92672>&amp;</span>local_exec_nodes);
+                pfree(buf2.data);
+
+</code></pre></div><h3 id=2103>
+2103
+<a href=#2103 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>http://10.20.16.216:9090/ADB/AntDB/-/issues/2103</p>
+<pre tabindex=0><code>版本：ADB 6.3.14 d22d4cf
+pgbench压测一段时间
+gc上执行with a as (select sum(abalance) from pgbench_accounts),b as (select sum(delta) from pgbench_history),c as (select sum(bbalance) from pgbench_branches) select * from a,b,c;
+
+报错：
+postgres=# with a as (select sum(abalance) from pgbench_accounts),b as (select sum(delta) from pgbench_history),c as (select sum(bbalance) from pgbench_branches) select * from a,b,c;
+ERROR:  can not send message to dynamic reduce for plan: MQ detached
+
+cn上执行成功，没有报错。
+
+</code></pre><ul>
+<li>无法复现</li>
+</ul>
+<h3 id=1927>
+1927
+<a href=#1927 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>http://10.20.16.216:9090/ADB/AntDB/-/issues/1927</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=color:#66d9ef>drop</span> <span style=color:#66d9ef>table</span> ff1;
+<span style=color:#66d9ef>drop</span> <span style=color:#66d9ef>table</span> ff2;
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> ff1 (a integer);
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> ff2 (a bigint);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> ff1 <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>456789</span>),(<span style=color:#ae81ff>11</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> ff2 <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>4567890123456789</span>),(<span style=color:#ae81ff>11</span>);
+
+<span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> ff1, ff2 <span style=color:#66d9ef>where</span> ff1.a <span style=color:#f92672>=</span> ff2.a;
+
+                                                       QUERY PLAN
+<span style=color:#75715e>-------------------------------------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Cluster</span> Gather  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1047</span>.<span style=color:#ae81ff>12</span>..<span style=color:#ae81ff>2272</span>.<span style=color:#ae81ff>56</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>3200</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+   Remote node: <span style=color:#ae81ff>16386</span>,<span style=color:#ae81ff>16387</span>,<span style=color:#ae81ff>16388</span>
+   <span style=color:#f92672>-&gt;</span>  Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>47</span>.<span style=color:#ae81ff>12</span>..<span style=color:#ae81ff>312</span>.<span style=color:#ae81ff>56</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1067</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+         <span style=color:#66d9ef>Output</span>: ff1.a, ff2.a
+         Hash Cond: (ff2.a <span style=color:#f92672>=</span> ff1.a)
+         <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Cluster</span> Reduce  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>152</span>.<span style=color:#ae81ff>55</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>753</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
+               Reduce: (<span style=color:#e6db74>&#39;[0:2]={16386,16387,16388}&#39;</span>::oid[])[COALESCE(hash_combin_mod(<span style=color:#ae81ff>3</span>, hashint4((ff2.a)::integer)), <span style=color:#ae81ff>0</span>)]
+               <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> <span style=color:#66d9ef>public</span>.ff2  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>32</span>.<span style=color:#ae81ff>60</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>753</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
+                     <span style=color:#66d9ef>Output</span>: ff2.a
+                     Remote node: <span style=color:#ae81ff>16386</span>,<span style=color:#ae81ff>16387</span>,<span style=color:#ae81ff>16388</span>
+         <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>35</span>.<span style=color:#ae81ff>50</span>..<span style=color:#ae81ff>35</span>.<span style=color:#ae81ff>50</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>850</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+               <span style=color:#66d9ef>Output</span>: ff1.a
+               <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> <span style=color:#66d9ef>public</span>.ff1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>35</span>.<span style=color:#ae81ff>50</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>850</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+                     <span style=color:#66d9ef>Output</span>: ff1.a
+                     Remote node: <span style=color:#ae81ff>16386</span>,<span style=color:#ae81ff>16387</span>,<span style=color:#ae81ff>16388</span>
+
+(<span style=color:#e6db74>&#39;[0:2]={16386,16387,16388}&#39;</span>::oid[])[COALESCE(hash_combin_mod(<span style=color:#ae81ff>3</span>, hashint8((ff2.a)::bigint)), <span style=color:#ae81ff>0</span>)]
+
+<span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> pg_attribute <span style=color:#66d9ef>where</span> attrelid <span style=color:#f92672>=</span> <span style=color:#ae81ff>286766</span> <span style=color:#66d9ef>and</span> attname <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;a&#39;</span>;
+
+int4<span style=color:#75715e>--&gt;23---&gt;int4_ops---&gt;10020
+</span><span style=color:#75715e></span>int8<span style=color:#75715e>--&gt;20---&gt;int8_ops---&gt;10021
+</span><span style=color:#75715e></span>
+
+bigint <span style=color:#960050;background-color:#1e0010>的</span> opclass <span style=color:#960050;background-color:#1e0010>是</span> <span style=color:#ae81ff>10020</span> int4_ops <span style=color:#960050;background-color:#1e0010>不正确，</span> <span style=color:#960050;background-color:#1e0010>因该为</span> <span style=color:#ae81ff>10021</span> int8_ops
+<span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> pg_opclass <span style=color:#66d9ef>where</span> oid <span style=color:#f92672>=</span> <span style=color:#ae81ff>10020</span>;
+SetReduceKeyDefaultInfo
+CreateExprUsingReduceInfo
+ff2.a
+<span style=color:#960050;background-color:#1e0010>{</span>
+  <span style=color:#66d9ef>key</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>x5558cb24ea28,
+  opclass <span style=color:#f92672>=</span> <span style=color:#ae81ff>10020</span>,
+  opfamily <span style=color:#f92672>=</span> <span style=color:#ae81ff>1977</span>
+<span style=color:#960050;background-color:#1e0010>}</span>
+
+<span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> pg_attribute <span style=color:#66d9ef>where</span> attrelid <span style=color:#f92672>=</span> <span style=color:#ae81ff>286766</span> <span style=color:#66d9ef>and</span> attname <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;a&#39;</span>;
+
+reduce_outer_and_inner_for_join <span style=color:#960050;background-color:#1e0010>中</span>reduce <span style=color:#66d9ef>inner</span> <span style=color:#960050;background-color:#1e0010>或者</span> outter <span style=color:#960050;background-color:#1e0010>的时候，使用的是对应另一边的</span>path的rinfo<span style=color:#960050;background-color:#1e0010>，然后使用函数</span> MakeReduceInfoAs <span style=color:#960050;background-color:#1e0010>进行</span> <span style=color:#66d9ef>copy</span> <span style=color:#960050;background-color:#1e0010>的，他在</span><span style=color:#66d9ef>copy</span> <span style=color:#960050;background-color:#1e0010>的时候只会</span><span style=color:#66d9ef>copy</span> <span style=color:#960050;background-color:#1e0010>除</span> <span style=color:#66d9ef>key</span> <span style=color:#960050;background-color:#1e0010>之外的参数，但是</span> <span style=color:#66d9ef>key</span> <span style=color:#960050;background-color:#1e0010>的</span>  opclass <span style=color:#960050;background-color:#1e0010>和</span> opfamily <span style=color:#960050;background-color:#1e0010>应该是和</span> <span style=color:#66d9ef>key</span> <span style=color:#960050;background-color:#1e0010>绑定的，</span>
+<span style=color:#960050;background-color:#1e0010>所以类型不一样的时候</span>
+<span style=color:#66d9ef>left</span>  
+<span style=color:#960050;background-color:#1e0010>{</span>
+  <span style=color:#66d9ef>key</span> <span style=color:#f92672>=</span> int8<span style=color:#75715e>--&gt;20---&gt;int8_ops---&gt;10021
+</span><span style=color:#75715e></span>  opclass <span style=color:#f92672>=</span> <span style=color:#ae81ff>10021</span>,
+  opfamily <span style=color:#f92672>=</span> <span style=color:#ae81ff>1977</span>
+<span style=color:#960050;background-color:#1e0010>}</span>
+<span style=color:#66d9ef>right</span>
+<span style=color:#960050;background-color:#1e0010>{</span>
+  <span style=color:#66d9ef>key</span> <span style=color:#f92672>=</span> int4<span style=color:#75715e>--&gt;23---&gt;int4_ops---&gt;10020
+</span><span style=color:#75715e></span>  opclass <span style=color:#f92672>=</span> <span style=color:#ae81ff>10020</span>,
+  opfamily <span style=color:#f92672>=</span> <span style=color:#ae81ff>1977</span>
+<span style=color:#960050;background-color:#1e0010>}</span>
+
+<span style=color:#960050;background-color:#1e0010>在</span><span style=color:#66d9ef>copy</span> <span style=color:#960050;background-color:#1e0010>之后会产生错误的</span>keyinfo
+
+create_inner_reduce_info_for_join <span style=color:#66d9ef>before</span>: <span style=color:#ae81ff>0</span>x55a8fe4e4af8: <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>key</span>: <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>, opclass: <span style=color:#ae81ff>10020</span>, opfamily: <span style=color:#ae81ff>1977</span><span style=color:#960050;background-color:#1e0010>}</span>
+CopyReduceInfoExtend: (nil): <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>key</span>: <span style=color:#f92672>&lt;&gt;</span>, opclass: <span style=color:#ae81ff>10020</span>, opfamily: <span style=color:#ae81ff>1977</span><span style=color:#960050;background-color:#1e0010>}</span>
+create_inner_reduce_info_for_join <span style=color:#66d9ef>after</span>: <span style=color:#ae81ff>0</span>x55a8fe4e5a28: <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>key</span>: <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>20</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>37</span><span style=color:#960050;background-color:#1e0010>}</span>, opclass: <span style=color:#ae81ff>10020</span>, opfamily: <span style=color:#ae81ff>1977</span><span style=color:#960050;background-color:#1e0010>}</span>
+CopyReduceInfoExtend: <span style=color:#ae81ff>0</span>x55a8fe4e6c68: <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>key</span>: <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>, opclass: <span style=color:#ae81ff>10020</span>, opfamily: <span style=color:#ae81ff>1977</span><span style=color:#960050;background-color:#1e0010>}</span>
+CopyReduceInfoExtend: <span style=color:#ae81ff>0</span>x55a8fe4e6dc8: <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>key</span>: <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>20</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>37</span><span style=color:#960050;background-color:#1e0010>}</span>, opclass: <span style=color:#ae81ff>10020</span>, opfamily: <span style=color:#ae81ff>1977</span><span style=color:#960050;background-color:#1e0010>}</span>
+CopyReduceInfoExtend: <span style=color:#ae81ff>0</span>x55a8fe4e6f28: <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>key</span>: <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>, opclass: <span style=color:#ae81ff>10020</span>, opfamily: <span style=color:#ae81ff>1977</span><span style=color:#960050;background-color:#1e0010>}</span>
+CopyReduceInfoExtend: <span style=color:#ae81ff>0</span>x55a8fe4e7088: <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>key</span>: <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>20</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>37</span><span style=color:#960050;background-color:#1e0010>}</span>, opclass: <span style=color:#ae81ff>10020</span>, opfamily: <span style=color:#ae81ff>1977</span><span style=color:#960050;background-color:#1e0010>}</span>
+create_outer_reduce_info_for_join <span style=color:#66d9ef>before</span>: <span style=color:#ae81ff>0</span>x55a8fe4e5078: <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>key</span>: <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>20</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>, opclass: <span style=color:#ae81ff>10021</span>, opfamily: <span style=color:#ae81ff>1977</span><span style=color:#960050;background-color:#1e0010>}</span>
+CopyReduceInfoExtend: (nil): <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>key</span>: <span style=color:#f92672>&lt;&gt;</span>, opclass: <span style=color:#ae81ff>10021</span>, opfamily: <span style=color:#ae81ff>1977</span><span style=color:#960050;background-color:#1e0010>}</span>
+create_outer_reduce_info_for_join <span style=color:#66d9ef>after</span>: <span style=color:#ae81ff>0</span>x55a8fe4e5a78: <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>key</span>: <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>29</span><span style=color:#960050;background-color:#1e0010>}</span>, opclass: <span style=color:#ae81ff>10021</span>, opfamily: <span style=color:#ae81ff>1977</span><span style=color:#960050;background-color:#1e0010>}</span>
+CopyReduceInfoExtend: <span style=color:#ae81ff>0</span>x55a8fe4e7508: <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>key</span>: <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>20</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>, opclass: <span style=color:#ae81ff>10021</span>, opfamily: <span style=color:#ae81ff>1977</span><span style=color:#960050;background-color:#1e0010>}</span>
+CopyReduceInfoExtend: <span style=color:#ae81ff>0</span>x55a8fe4e76f8: <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>key</span>: <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>20</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>, opclass: <span style=color:#ae81ff>10021</span>, opfamily: <span style=color:#ae81ff>1977</span><span style=color:#960050;background-color:#1e0010>}</span>
+CopyReduceInfoExtend: <span style=color:#ae81ff>0</span>x55a8fe4e7968: <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>key</span>: <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>2</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>20</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>2</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>}</span>, opclass: <span style=color:#ae81ff>10021</span>, opfamily: <span style=color:#ae81ff>1977</span><span style=color:#960050;background-color:#1e0010>}</span>
+CopyReduceInfoExtend: <span style=color:#ae81ff>0</span>x55a8fe4e7ac8: <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#66d9ef>key</span>: <span style=color:#960050;background-color:#1e0010>{</span>VAR :varno <span style=color:#ae81ff>1</span> :varattno <span style=color:#ae81ff>1</span> :vartype <span style=color:#ae81ff>23</span> :vartypmod <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> :varcollid <span style=color:#ae81ff>0</span> :varlevelsup <span style=color:#ae81ff>0</span> :varnosyn <span style=color:#ae81ff>1</span> :varattnosyn <span style=color:#ae81ff>1</span> :<span style=color:#66d9ef>location</span> <span style=color:#ae81ff>29</span><span style=color:#960050;background-color:#1e0010>}</span>, opclass: <span style=color:#ae81ff>10021</span>, opfamily: <span style=color:#ae81ff>1977</span><span style=color:#960050;background-color:#1e0010>}</span>
+
+
+<span style=color:#960050;background-color:#1e0010>所以在最后</span> CreateExprUsingReduceInfo <span style=color:#960050;background-color:#1e0010>生成表达式的时候，使用了错误的</span>rinfo
+fix1<span style=color:#960050;background-color:#1e0010>：</span>
+  <span style=color:#960050;background-color:#1e0010>从根本上修改，</span><span style=color:#66d9ef>copy</span> rinfo <span style=color:#960050;background-color:#1e0010>的时候，按照</span> <span style=color:#66d9ef>key</span> <span style=color:#960050;background-color:#1e0010>重新生成</span> opclass <span style=color:#960050;background-color:#1e0010>和</span> opfamily <span style=color:#960050;background-color:#1e0010>，但是后续使用</span> rinfo <span style=color:#960050;background-color:#1e0010>已经将错就错形成一套体系，修改比较大</span>
+fix2<span style=color:#960050;background-color:#1e0010>：最终</span><span style=color:#66d9ef>create</span> plan <span style=color:#960050;background-color:#1e0010>的时候</span> fix <span style=color:#960050;background-color:#1e0010>对应类型</span>
+
+
+<span style=color:#75715e>/*pg*/</span>
+<span style=color:#66d9ef>SELECT</span>
+  <span style=color:#66d9ef>c</span>.relchecks,
+  <span style=color:#66d9ef>c</span>.relkind,
+  <span style=color:#66d9ef>c</span>.relhasindex,
+  <span style=color:#66d9ef>c</span>.relhasrules,
+  <span style=color:#66d9ef>c</span>.relhastriggers,
+  <span style=color:#66d9ef>c</span>.relrowsecurity,
+  <span style=color:#66d9ef>c</span>.relforcerowsecurity,
+  <span style=color:#66d9ef>false</span> <span style=color:#66d9ef>AS</span> relhasoids,
+  <span style=color:#66d9ef>c</span>.relispartition,
+  pg_catalog.array_to_string (
+    <span style=color:#66d9ef>c</span>.reloptions <span style=color:#f92672>||</span> array (
+      <span style=color:#66d9ef>select</span>
+        <span style=color:#e6db74>&#39;toast.&#39;</span> <span style=color:#f92672>||</span> x
+      <span style=color:#66d9ef>from</span>
+        pg_catalog.<span style=color:#66d9ef>unnest</span> (tc.reloptions) x
+    ),
+    <span style=color:#e6db74>&#39;, &#39;</span>
+  ),
+  <span style=color:#66d9ef>c</span>.reltablespace,
+  <span style=color:#66d9ef>CASE</span>
+    <span style=color:#66d9ef>WHEN</span> <span style=color:#66d9ef>c</span>.reloftype <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span> <span style=color:#66d9ef>THEN</span> <span style=color:#e6db74>&#39;&#39;</span>
+    <span style=color:#66d9ef>ELSE</span> <span style=color:#66d9ef>c</span>.reloftype::pg_catalog.regtype::pg_catalog.text
+  <span style=color:#66d9ef>END</span>,
+  <span style=color:#66d9ef>c</span>.relpersistence,
+  <span style=color:#66d9ef>c</span>.relreplident,
+  am.amname
+<span style=color:#66d9ef>FROM</span>
+  pg_catalog.pg_class <span style=color:#66d9ef>c</span>
+  <span style=color:#66d9ef>LEFT</span> <span style=color:#66d9ef>JOIN</span> pg_catalog.pg_class tc <span style=color:#66d9ef>ON</span> (<span style=color:#66d9ef>c</span>.reltoastrelid <span style=color:#f92672>=</span> tc.oid)
+  <span style=color:#66d9ef>LEFT</span> <span style=color:#66d9ef>JOIN</span> pg_catalog.pg_am am <span style=color:#66d9ef>ON</span> (<span style=color:#66d9ef>c</span>.relam <span style=color:#f92672>=</span> am.oid)
+<span style=color:#66d9ef>WHERE</span>
+  <span style=color:#66d9ef>c</span>.oid <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;286766&#39;</span>;
+
+<span style=color:#75715e>/*pg*/</span>
+<span style=color:#66d9ef>SELECT</span>
+  a.attname,
+  pg_catalog.format_type (a.atttypid, a.atttypmod),
+  (
+    <span style=color:#66d9ef>SELECT</span>
+      pg_catalog.pg_get_expr (d.adbin, d.adrelid, <span style=color:#66d9ef>true</span>)
+    <span style=color:#66d9ef>FROM</span>
+      pg_catalog.pg_attrdef d
+    <span style=color:#66d9ef>WHERE</span>
+      d.adrelid <span style=color:#f92672>=</span> a.attrelid
+      <span style=color:#66d9ef>AND</span> d.adnum <span style=color:#f92672>=</span> a.attnum
+      <span style=color:#66d9ef>AND</span> a.atthasdef
+  ),
+  a.attnotnull,
+  (
+    <span style=color:#66d9ef>SELECT</span>
+      <span style=color:#66d9ef>c</span>.collname
+    <span style=color:#66d9ef>FROM</span>
+      pg_catalog.pg_collation <span style=color:#66d9ef>c</span>,
+      pg_catalog.pg_type t
+    <span style=color:#66d9ef>WHERE</span>
+      <span style=color:#66d9ef>c</span>.oid <span style=color:#f92672>=</span> a.attcollation
+      <span style=color:#66d9ef>AND</span> t.oid <span style=color:#f92672>=</span> a.atttypid
+      <span style=color:#66d9ef>AND</span> a.attcollation <span style=color:#f92672>&lt;&gt;</span> t.typcollation
+  ) <span style=color:#66d9ef>AS</span> attcollation,
+  a.attidentity,
+  a.attgenerated,
+  a.attstorage,
+  <span style=color:#66d9ef>CASE</span>
+    <span style=color:#66d9ef>WHEN</span> a.attstattarget <span style=color:#f92672>=</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#66d9ef>THEN</span> <span style=color:#66d9ef>NULL</span>
+    <span style=color:#66d9ef>ELSE</span> a.attstattarget
+  <span style=color:#66d9ef>END</span> <span style=color:#66d9ef>AS</span> attstattarget,
+  pg_catalog.col_description (a.attrelid, a.attnum)
+<span style=color:#66d9ef>FROM</span>
+  pg_catalog.pg_attribute a
+<span style=color:#66d9ef>WHERE</span>
+  a.attrelid <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;286766&#39;</span>
+  <span style=color:#66d9ef>AND</span> a.attnum <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span>
+  <span style=color:#66d9ef>AND</span> <span style=color:#66d9ef>NOT</span> a.attisdropped
+<span style=color:#66d9ef>ORDER</span> <span style=color:#66d9ef>BY</span>
+  a.attnum;
+
+</code></pre></div><h4 id=已解决>
+已解决
+<a href=#%e5%b7%b2%e8%a7%a3%e5%86%b3 class=h-anchor aria-hidden=true>#</a>
+</h4>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-patch data-lang=patch><span style=color:#75715e>@@ -2317,6 +2362,26 @@ Expr *CreateExprUsingReduceInfo(ReduceInfo *reduce)
+</span><span style=color:#75715e></span>                        for(i=0,nkey=reduce-&gt;nkey;i&lt;nkey;++i)
+                        {
+                                ReduceKeyInfo *key = &amp;reduce-&gt;keys[i];
+<span style=color:#a6e22e>+                               {
+</span><span style=color:#a6e22e>+                                       printf(&#34;CreateExprUsingReduceInfo: %p: {key: &#34;, key-&gt;key);
+</span><span style=color:#a6e22e>+
+</span><span style=color:#a6e22e>+                                       char       *s;
+</span><span style=color:#a6e22e>+
+</span><span style=color:#a6e22e>+                                       s = nodeToString((void*)key-&gt;key);
+</span><span style=color:#a6e22e>+                                       printf(&#34;%s, &#34;, s);
+</span><span style=color:#a6e22e>+                                       pfree(s);
+</span><span style=color:#a6e22e>+
+</span><span style=color:#a6e22e>+                                       printf(&#34;opclass: %d, opfamily: %d}\n&#34;, key-&gt;opclass, key-&gt;opfamily);
+</span><span style=color:#a6e22e>+                                       fflush(stdout);
+</span><span style=color:#a6e22e>+
+</span><span style=color:#a6e22e>+                                       // fix opfamily and opclass
+</span><span style=color:#a6e22e>+                                       key-&gt;opclass = ResolveOpClass(NIL,
+</span><span style=color:#a6e22e>+                                                                 exprType((Node*)key-&gt;key),
+</span><span style=color:#a6e22e>+                                                                       &#34;hash&#34;,
+</span><span style=color:#a6e22e>+                                                                 HASH_AM_OID
+</span><span style=color:#a6e22e>+                                                                 );
+</span><span style=color:#a6e22e>+                                       key-&gt;opfamily = get_opclass_family(key-&gt;opclass);
+</span><span style=color:#a6e22e>+                               }
+</span><span style=color:#a6e22e></span>                                args = lappend(args, makeHashExprFamily(key-&gt;key, key-&gt;opfamily, get_opclass_input_type(key-&gt;opclass)));
+                        }
+                        result = (Expr*)makeSimpleFuncExpr(F_HASH_COMBIN_MOD, INT4OID, args);
+
+</code></pre></div><h3 id=1736>
+1736
+<a href=#1736 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>http://10.20.16.216:9090/ADB/AntDB/-/issues/1736</p>
+<table>
+<thead>
+<tr>
+<th>issues</th>
+<th></th>
+<th>fix</th>
+<th>status</th>
+<th>\</th>
+<th>根本问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href=#1490>1490</a></td>
+<td></td>
+<td></td>
+<td>无法复现</td>
+<td>scoket close</td>
+<td></td>
+</tr>
+<tr>
+<td><a href=#1921>1921</a></td>
+<td></td>
+<td></td>
+<td>无法复现</td>
+<td>同上</td>
+<td></td>
+</tr>
+<tr>
+<td><a href=#1699>1699</a></td>
+<td></td>
+<td></td>
+<td>无法复现</td>
+<td>同上</td>
+<td></td>
+</tr>
+<tr>
+<td><a href=#1736>1736</a></td>
+<td></td>
+<td></td>
+<td>无法复现</td>
+<td>并行reduce偶发core</td>
+<td></td>
+</tr>
+<tr>
+<td><a href=#2103>2103</a></td>
+<td></td>
+<td></td>
+<td>无法复现</td>
+<td>gc pgbench 压测<code>can not send message to dynamic reduce for plan: MQ detached</code></td>
+<td></td>
+</tr>
+<tr>
+<td><a href=#1799>1799</a></td>
+<td>hard</td>
+<td>已定位</td>
+<td>稳定复现</td>
+<td>执行计划错误</td>
+<td>子查询存在上层引用，没有处理joinrel的情况</td>
+</tr>
+<tr>
+<td><a href=#1875>1875</a></td>
+<td></td>
+<td></td>
+<td>稳定复现</td>
+<td>数据重分布hang住</td>
+<td></td>
+</tr>
+<tr>
+<td><a href=#1938>1938</a></td>
+<td>hard</td>
+<td>已定位</td>
+<td>稳定复现</td>
+<td>insert..select..有reduce的时候不支持</td>
+<td>执行计划生成错误，在<code>grouping_planner</code>之后的op都可能有问题，修复涉及范围可能太大</td>
+</tr>
+<tr>
+<td><a href=#2085>2085</a></td>
+<td>mid</td>
+<td>已修复</td>
+<td>稳定复现</td>
+<td>数据重分布之后数据不正确</td>
+<td>使用remote query进行数据重分布的时候，拼接语句序号计算错误，修正序号即可</td>
+</tr>
+<tr>
+<td><a href=#1927>1927</a></td>
+<td>easy</td>
+<td>已修复</td>
+<td>稳定复现</td>
+<td>reduce 操作int8 溢出</td>
+<td>join 条件左右类型不匹配的时候，构建的表达式错误的向下转型，需要修正</td>
+</tr>
+</tbody>
+</table>
+<p>10.21.15.28 AntDB@123!@#</p>
+<p>../ADB6_2_FOR_POC/configure &ndash;prefix=/home/maoxp/wen &ndash;disable-cluster &ndash;with-segsize=4 &ndash;with-wal-blocksize=64 &ndash;enable-grammar-oracle &ndash;with-perl &ndash;with-python &ndash;with-pam &ndash;with-ldap &ndash;with-libxml &ndash;with-libxslt &ndash;enable-thread-safety &ndash;disable-debug &ndash;disable-cassert &ndash;enable-depend CFLAGS="-O2 -ggdb3 -fsigned-char -march=armv8-a+crc+lse" &ndash;with-libxml</p>
+<p>../ADB6_2_FOR_POC/configure &ndash;prefix=/home/maoxp/app/antdb &ndash;with-segsize=4 &ndash;with-wal-blocksize=64 &ndash;enable-grammar-oracle &ndash;with-perl &ndash;with-python &ndash;with-pam &ndash;with-ldap &ndash;with-libxml &ndash;with-libxslt &ndash;enable-thread-safety &ndash;disable-debug &ndash;disable-cassert &ndash;enable-depend CFLAGS="-O2 -ggdb3 -fsigned-char -march=armv8-a+crc+lse" &ndash;with-libxml</p>
+<p>mxp1234@#</p>
+<p>sysbench &ndash;db-driver=pgsql &ndash;pgsql-host=172.10.13.28 &ndash;pgsql-port=65032 &ndash;pgsql-user=maoxp &ndash;pgsql-password=mxp1234@# &ndash;pgsql-db=sysbench_db &ndash;time=60 &ndash;report-interval=10 &ndash;events=0 &ndash;percentile=95 &ndash;threads=1 &ndash;table-size=5000000 &ndash;tables=5 /usr/share/sysbench/oltp_insert.lua run</p>
+<p>/home/maoxp/wen/bin/initdb -D /home/maoxp/datewen/data
+/home/maoxp/wen/bin/createdb maoxp</p>
+<p>/home/maoxp/wen/bin/pg_ctl -D /home/maoxp/datewen/data start
+/home/maoxp/wen/bin/pg_ctl -D /home/maoxp/datewen/data stop</p>
+<p>sysbench &ndash;table_size=50000 &ndash;pgsql-host=172.10.13.28 &ndash;pgsql-port=5432 &ndash;pgsql-user=maoxp &ndash;pgsql-password=mxp1234@# &ndash;pgsql-db=postgres &ndash;db-driver=pgsql &ndash;threads=1 &ndash;tables=5 &ndash;report-interval=5 &ndash;time=120 oltp_insert run</p>
+<p>sysbench &ndash;db-driver=pgsql &ndash;pgsql-host=172.10.13.28 &ndash;pgsql-port=65032 &ndash;pgsql-user=maoxp &ndash;pgsql-password=mxp1234@# &ndash;pgsql-db=sysbench_db &ndash;time=2000 &ndash;report-interval=5 &ndash;events=0 &ndash;percentile=95 &ndash;threads=1 &ndash;table-size=5000000 &ndash;tables=5 /usr/share/sysbench/oltp_insert.lua run</p>
+</div>
+<div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>Read other posts</span>
+<hr>
+</div>
+<div class=pagination__buttons>
+<span class="button previous">
+<a href=https://askyx.github.io/posts/languange/cpp/>
+<span class=button__icon>←</span>
+<span class=button__text>C++ Primer Plus</span>
+</a>
+</span>
+<span class="button next">
+<a href=https://askyx.github.io/posts/others/log/>
+<span class=button__text></span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<div class=copyright>
+<span>© 2023 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
+</div>
+</div>
+</footer>
+<script src=https://askyx.github.io/assets/main.js></script>
+<script src=https://askyx.github.io/assets/prism.js></script>
+</div>
+</body>
+</html>

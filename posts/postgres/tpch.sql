@@ -29,6 +29,15 @@ ALTER TABLE ORDERS ADD PRIMARY KEY (O_ORDERKEY);
 \copy customer from '/home/vscode/adb_tools/TPCH/TPCH/dbgen/customer.tbl' with (format csv,encoding utf8,DELIMITER '|');
 
 
+vacuum analyze customer ;
+vacuum analyze lineitem ;
+vacuum analyze nation   ;
+vacuum analyze orders   ;
+vacuum analyze part     ;
+vacuum analyze partsupp ;
+vacuum analyze region   ;
+vacuum analyze supplier ;
+
 ```
 
 
@@ -6116,3 +6125,40 @@ order by
 -- end
 select now();
 
+
+select 324.83 + 31389.42 +
+current_setting('cpu_operator_cost')::numeric(18,6) * (1000000 + 9452) +
+current_setting('cpu_tuple_cost')::numeric(18,6) * 9452;
+
+C_o + C_i + C_{ri}\times (N_o - 1) + C_{cpu} \times  N_i \times N_o
+
+
+
+--------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=8767.73..8810.32 rows=100 width=192)
+   ->  Incremental Sort  (cost=8767.73..5962789990.50 rows=13999994603 width=192)
+         Sort Key: supplier.s_acctbal DESC, nation.n_name, supplier.s_name, part.p_partkey
+         Presorted Key: supplier.s_acctbal, nation.n_name, supplier.s_name
+         ->  Nested Loop  (cost=6459.64..1374709575.57 rows=13999994603 width=192)
+               ->  Nested Loop  (cost=5459.64..1199654284.22 rows=1599451 width=162)
+                     ->  Gather Merge  (cost=5459.21..7738.62 rows=20000 width=166)
+                           Workers Planned: 1
+                           ->  Sort  (cost=4459.20..4488.61 rows=11765 width=166)
+                                 Sort Key: supplier.s_acctbal DESC, nation.n_name, supplier.s_name
+                                 ->  Hash Join  (cost=2.51..3144.98 rows=11765 width=166)
+                                       Hash Cond: (supplier.s_nationkey = nation.n_nationkey)
+                                       ->  Parallel Seq Scan on supplier  (cost=0.00..2804.24 rows=58824 width=144)
+                                       ->  Hash  (cost=2.45..2.45 rows=5 width=30)
+                                             ->  Hash Join  (cost=1.07..2.45 rows=5 width=30)
+                                                   Hash Cond: (nation.n_regionkey = region.r_regionkey)
+                                                   ->  Seq Scan on nation  (cost=0.00..1.25 rows=25 width=34)
+                                                   ->  Hash  (cost=1.06..1.06 rows=1 width=4)
+                                                         ->  Seq Scan on region  (cost=0.00..1.06 rows=1 width=4)
+                                                               Filter: (r_name = 'EUROPE'::bpchar)
+                     ->  Index Only Scan using partsupp_pkey on partsupp  (cost=0.43..59981.53 rows=80 width=4)
+                           Index Cond: (ps_suppkey = supplier.s_suppkey)
+               ->  Materialize  (cost=1000.00..55380.70 rows=8753 width=30)
+                     ->  Gather  (cost=1000.00..55336.93 rows=8753 width=30)
+                           Workers Planned: 2
+                           ->  Parallel Seq Scan on part  (cost=0.00..53461.63 rows=3647 width=30)
+                                 Filter: (((p_type)::text ~~ '%BRASS'::text) AND (p_size = 15))

@@ -94,6 +94,7 @@ Esoye — My note blog
 <li><a href=#mysql-源码编译>mysql 源码编译</a></li>
 </ul>
 </li>
+<li><a href=#oracle>ORACLE</a></li>
 <li><a href=#end>end</a></li>
 </ul>
 </nav></aside>
@@ -340,8 +341,8 @@ alias cda<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;cd /wo
 </span><span style=color:#e6db74>EOF</span>
 
 cat  &gt;&gt; <span style=color:#e6db74>${</span>mgrdata<span style=color:#e6db74>}</span>/mgr/pg_hba.conf <span style=color:#e6db74>&lt;&lt; EOF
-</span><span style=color:#e6db74>host    replication     all          10.0.0.0/8                 trust
-</span><span style=color:#e6db74>host    all             all          10.0.0.0/8                 trust
+</span><span style=color:#e6db74>host    replication     all          0.0.0.0/8                 trust
+</span><span style=color:#e6db74>host    all             all          0.0.0.0/8                 trust
 </span><span style=color:#e6db74>EOF</span>
 </code></pre></div><ol start=7>
 <li>
@@ -856,15 +857,20 @@ sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 
 sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 <span style=color:#ae81ff>200</span>
 <span style=color:#75715e># 上面的例子是，设定python3.10的优先级是100，设定python3.7的优先级是200， 优先级越高，数字越大的在终端输入python时会先被执行</span>
 </code></pre></div><p>其他package自行查找，几乎一样的方法，如果<a href=https://www.zhihu.com/question/382334154>安装的时候慢</a>，可以在<code>/etc/apt/sources.list.d/</code>中的文件中修改源</p>
-<pre tabindex=0><code>sudo sed -i s@/ppa.launchpad.net/@/launchpad.proxy.ustclug.org/@g /etc/apt/sources.list.d/*
+<pre tabindex=0><code>https://launchpad.net/~ubuntu-toolchain-r/+archive/ubuntu/test
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+sudo apt update
+
+deb https://ppa.launchpadcontent.net/ubuntu-toolchain-r/test/ubuntu/ jammy main
+sudo sed -i s@/ppa.launchpad.net/@/launchpad.proxy.ustclug.org/@g /etc/apt/sources.list.d/*
 </code></pre><p>且文件中的http 修改为https</p>
 <p>gcc 11
 add-apt-repository ppa:ubuntu-toolchain-r/test</p>
 <p>sudo apt install gcc-11 g++-11</p>
-<p>g++ -v
+<p>gcc -v
 sudo update-alternatives &ndash;install /usr/bin/gcc gcc /usr/bin/gcc-9 9
 sudo update-alternatives &ndash;install /usr/bin/gcc gcc /usr/bin/gcc-11 11
-gcc -v
+g++ -v
 sudo update-alternatives &ndash;install /usr/bin/g++ g++ /usr/bin/g++-11 11
 sudo update-alternatives &ndash;install /usr/bin/g++ g++ /usr/bin/g++-9 9</p>
 <h3 id=火焰图>
@@ -931,11 +937,45 @@ mysql 源码编译
 <li>
 <p>去掉 /etc/my.cnf 的跳过密码，然后使用 <code>./mysql -u root -p</code> 输入密码即可</p>
 </li>
+</ol>
+<h2 id=oracle>
+ORACLE
+<a href=#oracle class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p><a href=https://blog.csdn.net/arcsin_/article/details/123707618>https://blog.csdn.net/arcsin_/article/details/123707618</a></p>
+<p>下载镜像直接安装即可</p>
+<ol>
 <li>
-<p>之后可以按个人需求定制修改了</p>
+<p>docker pull registry.cn-hangzhou.aliyuncs.com/zhuyijun/oracle:19c</p>
 </li>
 <li>
-<p>mysql 就是依托答辩，就登陆这几步，网上百度下可以有各种各样的问题，甚至大部分还不能用</p>
+<p>mkdir -p /mydata/oracle/oradata
+chmod 777 /mydata/oracle/oradata</p>
+</li>
+<li>
+<p>docker run -d <br>
+-p 1524:1521 -p 5502:5500 <br>
+-e ORACLE_SID=ORCLCDB <br>
+-e ORACLE_PDB=ORCLPDB1 <br>
+-e ORACLE_PWD=123456 <br>
+-e ORACLE_EDITION=standard <br>
+-e ORACLE_CHARACTERSET=AL32UTF8 <br>
+-v /mydata/oracle/oradata:/opt/oracle/oradata <br>
+&ndash;name orcl19c_03 <br>
+registry.cn-hangzhou.aliyuncs.com/zhuyijun/oracle:19c</p>
+</li>
+<li>
+<p>docker logs -ft orcl19c_03
+日志显示完成就算安装成功</p>
+</li>
+<li>
+<p>docker exec -it orcl19c_03 /bin/bash
+sqlplus / as sysdba
+show pdbs;
+https://localhost:5502/em
+username：sys
+password：123456
+Container Name：ORCLPDB1</p>
 </li>
 </ol>
 <ul>

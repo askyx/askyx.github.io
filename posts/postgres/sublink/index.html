@@ -1,0 +1,234 @@
+<!doctype html><html lang=en>
+<head>
+<title>
+::
+Esoye — My note blog
+</title>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="typedef struct SubPlan { pg_node_attr(no_query_jumble) Expr xpr; /* Fields copied from original SubLink: */ SubLinkType subLinkType; /* see above */ /* The combining operators, transformed to an executable expression: */ Node *testexpr; /* OpExpr or RowCompareExpr expression tree */ List *paramIds; /* IDs of Params embedded in the above */ /* Identification of the Plan tree to use: */ int plan_id; /* Index (from 1) in PlannedStmt.subplans */ /* Identification of the SubPlan for EXPLAIN and debugging purposes: */ char *plan_name; /* A name assigned during planning */ /* Extra data useful for determining subplan&amp;#39;s output type: */ Oid firstColType; /* Type of first column of subplan result */ int32 firstColTypmod; /* Typmod of first column of subplan result */ Oid firstColCollation; /* Collation of first column of subplan result */ /* Information about execution strategy: */ bool useHashTable; /* true to store subselect output in a hash table (implies we are doing &amp;#34;IN&amp;#34;) */ bool unknownEqFalse; /* true if it&amp;#39;s okay to return FALSE when the * spec result is UNKNOWN; this allows much * simpler handling of null values */ bool parallel_safe; /* is the subplan parallel-safe?">
+<meta name=keywords content="数据库">
+<meta name=robots content="noodp">
+<link rel=canonical href=https://askyx.github.io/posts/postgres/sublink/>
+<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
+<link rel=stylesheet href=https://askyx.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://askyx.github.io/img/favicon.png>
+<link href=https://askyx.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content>
+<meta name=twitter:description content="typedef struct SubPlan { pg_node_attr(no_query_jumble) Expr xpr; /* Fields copied from original SubLink: */ SubLinkType subLinkType; /* see above */ /* The combining operators, transformed to an executable expression: */ Node *testexpr; /* OpExpr or RowCompareExpr expression tree */ List *paramIds; /* IDs of Params embedded in the above */ /* Identification of the Plan tree to use: */ int plan_id; /* Index (from 1) in PlannedStmt.subplans */ /* Identification of the SubPlan for EXPLAIN and debugging purposes: */ char *plan_name; /* A name assigned during planning */ /* Extra data useful for determining subplan's output type: */ Oid firstColType; /* Type of first column of subplan result */ int32 firstColTypmod; /* Typmod of first column of subplan result */ Oid firstColCollation; /* Collation of first column of subplan result */ /* Information about execution strategy: */ bool useHashTable; /* true to store subselect output in a hash table (implies we are doing &#34;IN&#34;) */ bool unknownEqFalse; /* true if it's okay to return FALSE when the * spec result is UNKNOWN; this allows much * simpler handling of null values */ bool parallel_safe; /* is the subplan parallel-safe?">
+<meta property="og:title" content>
+<meta property="og:description" content="typedef struct SubPlan { pg_node_attr(no_query_jumble) Expr xpr; /* Fields copied from original SubLink: */ SubLinkType subLinkType; /* see above */ /* The combining operators, transformed to an executable expression: */ Node *testexpr; /* OpExpr or RowCompareExpr expression tree */ List *paramIds; /* IDs of Params embedded in the above */ /* Identification of the Plan tree to use: */ int plan_id; /* Index (from 1) in PlannedStmt.subplans */ /* Identification of the SubPlan for EXPLAIN and debugging purposes: */ char *plan_name; /* A name assigned during planning */ /* Extra data useful for determining subplan's output type: */ Oid firstColType; /* Type of first column of subplan result */ int32 firstColTypmod; /* Typmod of first column of subplan result */ Oid firstColCollation; /* Collation of first column of subplan result */ /* Information about execution strategy: */ bool useHashTable; /* true to store subselect output in a hash table (implies we are doing &#34;IN&#34;) */ bool unknownEqFalse; /* true if it's okay to return FALSE when the * spec result is UNKNOWN; this allows much * simpler handling of null values */ bool parallel_safe; /* is the subplan parallel-safe?">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://askyx.github.io/posts/postgres/sublink/"><meta property="article:section" content="posts">
+<meta property="og:site_name" content="Esoye">
+</head>
+<body class=light-theme>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archive>Archive</a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archive>Archive</a></li>
+</ul>
+</nav>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class=post>
+<h1 class=post-title></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
+<span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>SubPlan</span>
+{
+  pg_node_attr(no_query_jumble)
+
+  Expr    xpr;
+  <span style=color:#75715e>/* Fields copied from original SubLink: */</span>
+  SubLinkType subLinkType;  <span style=color:#75715e>/* see above */</span>
+  <span style=color:#75715e>/* The combining operators, transformed to an executable expression: */</span>
+  Node     <span style=color:#f92672>*</span>testexpr;       <span style=color:#75715e>/* OpExpr or RowCompareExpr expression tree */</span>
+  List     <span style=color:#f92672>*</span>paramIds;       <span style=color:#75715e>/* IDs of Params embedded in the above */</span>
+  <span style=color:#75715e>/* Identification of the Plan tree to use: */</span>
+  <span style=color:#66d9ef>int</span>      plan_id;         <span style=color:#75715e>/* Index (from 1) in PlannedStmt.subplans */</span>
+  <span style=color:#75715e>/* Identification of the SubPlan for EXPLAIN and debugging purposes: */</span>
+  <span style=color:#66d9ef>char</span>     <span style=color:#f92672>*</span>plan_name;      <span style=color:#75715e>/* A name assigned during planning */</span>
+  <span style=color:#75715e>/* Extra data useful for determining subplan&#39;s output type: */</span>
+  Oid      firstColType;    <span style=color:#75715e>/* Type of first column of subplan result */</span>
+  int32    firstColTypmod;  <span style=color:#75715e>/* Typmod of first column of subplan result */</span>
+  Oid      firstColCollation;  <span style=color:#75715e>/* Collation of first column of subplan result */</span>
+  <span style=color:#75715e>/* Information about execution strategy: */</span>
+  <span style=color:#66d9ef>bool</span>    useHashTable;   <span style=color:#75715e>/* true to store subselect output in a hash table (implies we are doing &#34;IN&#34;) */</span>
+  <span style=color:#66d9ef>bool</span>    unknownEqFalse; <span style=color:#75715e>/* true if it&#39;s okay to return FALSE when the
+</span><span style=color:#75715e>                 * spec result is UNKNOWN; this allows much
+</span><span style=color:#75715e>                 * simpler handling of null values */</span>
+  <span style=color:#66d9ef>bool</span>    parallel_safe;  <span style=color:#75715e>/* is the subplan parallel-safe? */</span>
+  <span style=color:#75715e>/* Note: parallel_safe does not consider contents of testexpr or args */</span>
+  <span style=color:#75715e>/* Information for passing params into and out of the subselect: */</span>
+  <span style=color:#75715e>/* setParam and parParam are lists of integers (param IDs) */</span>
+  <span style=color:#75715e>//  如果存在 setParam ，在初始化 SubPlanState 的时候，会把 SubPlanState 添加到 paramid 对应的 prm 中去，在执行的时候，
+</span><span style=color:#75715e></span>  <span style=color:#75715e>//  遇到 Param 的时候会执行 ExecEvalParamExec 函数，此时由于存在 SubPlanState ，会去执行 ExecSetParamPlan ， 去执行initplan
+</span><span style=color:#75715e></span>  <span style=color:#75715e>//  但是 初始化的时候要求 parParam 为 nil， 此时不会设置的 SubPlanState ， ExecEvalParamExec 也不会执行 ExecSetParamPlan ，而是直接获取 prm 
+</span><span style=color:#75715e></span>  <span style=color:#75715e>//  中 提前设置的值
+</span><span style=color:#75715e></span>  <span style=color:#75715e>//  在 initplan 执行过之后，会设置 execPlan 为null， 之后直接使用 prm 中得 值即可， 这也代表 init plan 只会返回一行
+</span><span style=color:#75715e></span>  List     <span style=color:#f92672>*</span>setParam;     <span style=color:#75715e>/* initplan and MULTIEXPR subqueries have to set these Params for parent plan */</span>
+  <span style=color:#75715e>//  parParam 和 args 是一一对应的，args 是 Var list，在 ExecScanSubPlan 中， 会使用 args 去 slot 中获取对应的值，
+</span><span style=color:#75715e></span>  <span style=color:#75715e>//  然后 使用 parParam 获取对应下标 的 prm， 然后设置值， 此时 parent 参数准备完毕，在后续执行中遇到 Param ， 执行 ExecEvalParamExec 的时候，则直接使用 prm 的值即可， 
+</span><span style=color:#75715e></span>  <span style=color:#75715e>//  如果 存在 testexpr ， 则需要 再执行 testexpr ， 否则直接输出 子查询的结果，然后再 执行对应的比较表达式
+</span><span style=color:#75715e></span>  List     <span style=color:#f92672>*</span>parParam;     <span style=color:#75715e>/* indices of input Params from parent plan */</span>
+  List     <span style=color:#f92672>*</span>args;         <span style=color:#75715e>/* exprs to pass as parParam values */</span>
+  <span style=color:#75715e>/* Estimated execution costs: */</span>
+  Cost    startup_cost;   <span style=color:#75715e>/* one-time setup cost */</span>
+  Cost    per_call_cost;  <span style=color:#75715e>/* cost for each subplan evaluation */</span>
+} SubPlan;
+
+
+</code></pre></div><ul>
+<li>SS_replace_correlation_vars
+遍历子查询中的，上层引用，替换为 param ，并且 对应 层级 得 root 的 plan_params 会记录替换的 表达式,</li>
+</ul>
+<p>$150 = [opno: 96, opfuncid: 65, opresulttype: 16, opretset false, opcollid 0, inputcollid 0] = {
+args = List with 2 elements = {
+0 = [varno: 1, varattno: 1, vartype: 23, vartypmod: -1, varcollid: 0, varlevelsup: 0, varnosyn: 1, varattnosyn: 1],
+1 = [varno: 1, varattno: 1, vartype: 23, vartypmod: -1, varcollid: 0, varlevelsup: 1, varnosyn: 1, varattnosyn: 1]
+}
+}</p>
+<p>$153 = [opno: 96, opfuncid: 65, opresulttype: 16, opretset false, opcollid 0, inputcollid 0] = {
+args = List with 2 elements = {
+0 = [varno: 1, varattno: 1, vartype: 23, vartypmod: -1, varcollid: 0, varlevelsup: 0, varnosyn: 1, varattnosyn: 1],
+1 = Param[paramkind: PARAM_EXEC, paramid: 0, paramtype: 23, paramtypmod: -1, paramcollid: 0]
+}
+}</p>
+<ul>
+<li>
+<p>build_subplan</p>
+<ul>
+<li>
+<p>plan_params 不为null，则使用 plan_params 构造 parParam 和 args</p>
+</li>
+<li>
+<p>parParam 是 paramId ， args 是 对应得 var</p>
+</li>
+<li>
+<p>代表得是上层引用</p>
+</li>
+<li>
+<p>如果为空，表示没有上层引用，表示 为 initplan</p>
+</li>
+<li>
+<p>此时构建Param 作为result 返回</p>
+</li>
+<li>
+<p>同时 setParam 表示下层对应输出的targetlist 中的var</p>
+</li>
+<li>
+<p>存在 testexpr 的时候， 则会把对应的 param 的 id 添加到 paramIds 中</p>
+</li>
+<li>
+<p>添加subplan 到 global subplans 中， initplan 的时候会初始化到 es_subplanstates 中</p>
+</li>
+</ul>
+</li>
+<li>
+<p>execute
+按照的表示中 节点 的类型， 分为两种执行方式</p>
+<ol>
+<li>EEOP_PARAM_EXEC ， 节点为 Param 的时候， 对应执行时函数为 ExecEvalParamExec</li>
+</ol>
+<ul>
+<li>初始化 subplan 的时候，判断存在 setParam 且 不存在 parParam 的时候，设置 prm 的 execPlan 为当前的 subplanstats， 表示执行为initplan， 且需要执行子查询</li>
+<li>执行的时候，判断 execPlan 存在，则使用 ExecSetParamPlan 执行 子查询， 且 按照 setParam 获取对应的 prm
+<ul>
+<li>设置 prm 的值， 表示的是 initplan 的返回值</li>
+<li>设置 execPlan 为 null, 表示initplan 执行完毕，后续不再执行，后续直接使用 prm 的值即可</li>
+</ul>
+</li>
+</ul>
+<ol start=2>
+<li>EEOP_SUBPLAN ， 节点为 subplan 的时候，对应的执行函数为 ExecEvalSubPlan</li>
+</ol>
+<ul>
+<li>subplan 有两种特殊情况
+<ul>
+<li>不存在 testexpr， subplan 的返回值需要返回到 表达式的计算过程中参与计算。类似 <code>Filter: (a &lt;= (SubPlan 1))</code></li>
+<li>存在 testexpr， subplan 中，直接计算表达式，然后返回一个bool值即可，类似 <code>Filter: (SubPlan 1)</code></li>
+<li>执行时，作为 qual 存在，此时 <code>econtext->ecxt_scantuple</code> 已存在，在 函数 ExecScanSubPlan 中，
+<ul>
+<li>首先遍历 parParam 和 args， 使用args 从 ecxt_scantuple 中获取数据， 然后使用 parParam 获取 prm 把数据设置到 prm 中</li>
+<li>然后执行子查询， 子查询中遇到 需要外层数据的时候，直接从这里设置的 prm 中获取</li>
+<li>如果不存在 testexpr， 可以直接返回</li>
+<li>如果存在 testexpr， 则会遍历 paramIds ，从slot 中获取数据， 设置到 prm 中，然后 计算表达式， 表达式中 会使用 prm 中的数据</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>Read other posts</span>
+<hr>
+</div>
+<div class=pagination__buttons>
+<span class="button previous">
+<a href=https://askyx.github.io/posts/postgres/remotequery/>
+<span class=button__icon>←</span>
+<span class=button__text></span>
+</a>
+</span>
+<span class="button next">
+<a href=https://askyx.github.io/posts/postgres/%E9%85%8D%E7%BD%AE/>
+<span class=button__text></span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<div class=copyright>
+<span>© 2023 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
+</div>
+</div>
+</footer>
+<script src=https://askyx.github.io/assets/main.js></script>
+<script src=https://askyx.github.io/assets/prism.js></script>
+</div>
+</body>
+</html>

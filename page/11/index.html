@@ -59,69 +59,39 @@ My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/others/cmake/>cmake 速查模板</a></h1>
+<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/sublink/></a></h1>
 <div class=post-meta>
-<span class=post-date>
-2023-08-09
-</span>
 </div>
-<span class=post-tags>
-<a href=https://askyx.github.io/tags/c/c++/>#C/C++</a>&nbsp;
-<a href=https://askyx.github.io/tags/cmake/>#cmake</a>&nbsp;
-<a href=https://askyx.github.io/tags/%E6%A8%A1%E6%9D%BF%E5%BA%93/>#模板库</a>&nbsp;
-</span>
 <div class=post-content>
-cmake 速查模板，自用
+typedef struct SubPlan { pg_node_attr(no_query_jumble) Expr xpr; /* Fields copied from original SubLink: */ SubLinkType subLinkType; /* see above */ /* The combining operators, transformed to an executable expression: */ Node *testexpr; /* OpExpr or RowCompareExpr expression tree */ List *paramIds; /* IDs of Params embedded in the above */ /* Identification of the Plan tree to use: */ int plan_id; /* Index (from 1) in PlannedStmt.subplans */ /* Identification of the SubPlan for EXPLAIN and debugging purposes: */ char *plan_name; /* A name assigned during planning */ /* Extra data useful for determining subplan's output type: */ Oid firstColType; /* Type of first column of subplan result */ int32 firstColTypmod; /* Typmod of first column of subplan result */ Oid firstColCollation; /* Collation of first column of subplan result */ /* Information about execution strategy: */ bool useHashTable; /* true to store subselect output in a hash table (implies we are doing "IN") */ bool unknownEqFalse; /* true if it's okay to return FALSE when the * spec result is UNKNOWN; this allows much * simpler handling of null values */ bool parallel_safe; /* is the subplan parallel-safe?
 </div>
-<div><a class="read-more button" href=/posts/others/cmake/>Read more →</a></div>
+<div><a class="read-more button" href=/posts/postgres/sublink/>Read more →</a></div>
 </div>
 <div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/optimizer/>Postgres 技术内幕，Optimizer过程分析</a></h1>
+<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/%E9%85%8D%E7%BD%AE/></a></h1>
 <div class=post-meta>
-<span class=post-date>
-2023-05-08
-</span>
 </div>
 <div class=post-content>
-深度优化探索文章的读书笔记
+配置文件guc.c
+http://www.postgres.cn/docs/12/view-pg-settings.html
+Column | Type | Collation | Nullable | Default | Storage | Description &mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+&mdash;&mdash;&mdash;+&mdash;&mdash;&mdash;&ndash;+&mdash;&mdash;&mdash;-+&mdash;&mdash;&mdash;+&mdash;&mdash;&mdash;-+&mdash;&mdash;&mdash;&mdash;- name | text | | | | extended | 名称 setting | text | | | | extended | 配置 unit | text | | | | extended | 单位 category | text | | | | extended | 分类 short_desc | text | | | | extended | 描述 extra_desc | text | | | | extended | 附加描述 context | text | | | | extended | 上下文 vartype | text | | | | extended | 参数类型 source | text | | | | extended | 来源 min_val | text | | | | extended | 最小值 max_val | text | | | | extended | 最大值 enumvals | text[] | | | | extended | 枚举的允许值 boot_val | text | | | | extended | 默认值 reset_val | text | | | | extended | 当前session中reset 之后会设置的值 sourcefile | text | | | | extended | 设置文件 sourceline | integer | | | | plain | 文件行号 pending_restart | boolean | | | | plain | 修改文件是否需要重启生效 select name, setting, boot_val, reset_val, sourcefile, sourceline, pending_restart from pg_settings ; View definition: SELECT a.
 </div>
-<div><a class="read-more button" href=/posts/postgres/optimizer/>Read more →</a></div>
+<div><a class="read-more button" href=/posts/postgres/%E9%85%8D%E7%BD%AE/>Read more →</a></div>
 </div>
 <div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/defineinc/>宏使用模板速查</a></h1>
+<h1 class=post-title><a href=https://askyx.github.io/posts/static/mysql/></a></h1>
 <div class=post-meta>
-<span class=post-date>
-2023-02-22
-</span>
-</div>
-<span class=post-tags>
-<a href=https://askyx.github.io/tags/c/c++/>#C/C++</a>&nbsp;
-<a href=https://askyx.github.io/tags/%E5%AE%8F/>#宏</a>&nbsp;
-<a href=https://askyx.github.io/tags/%E6%97%A5%E5%BF%97/>#日志</a>&nbsp;
-</span>
-<div class=post-content>
-宏模板，自用
-</div>
-<div><a class="read-more button" href=/posts/postgres/defineinc/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/cost/>执行计划代价计算规则梳理</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2023-02-17
-</span>
 </div>
 <div class=post-content>
-pg中各个算子的代价计算
 </div>
-<div><a class="read-more button" href=/posts/postgres/cost/>Read more →</a></div>
+<div><a class="read-more button" href=/posts/static/mysql/>Read more →</a></div>
 </div>
 <div class=pagination>
 <div class=pagination__buttons>
-<span class="button next">
-<a href=/page/2/>
-<span class=button__text>Older posts</span>
-<span class=button__icon>→</span>
+<span class="button previous">
+<a href=/page/10/>
+<span class=button__icon>←</span>
+<span class=button__text>Newer posts</span>
 </a>
 </span>
 </div>

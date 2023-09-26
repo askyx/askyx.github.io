@@ -1,0 +1,163 @@
+<!doctype html><html lang=en>
+<head>
+<title>
+Postgres 技术内幕，Optimizer过程分析 ::
+Esoye — My note blog
+</title>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="1. 逻辑优化 #  1. 子查询提升 #   exist 相关子链接会被提升，非相关子链接不会进行优化， 但是会生成 initplan，只需要执行一次 any 相关子查询不会提升，非相关子查询才能进行优化，实际上any的非相关子查询隐含一个外部引用的条件， 实际上还是相关子查询 如果是 join 条件中的子链接，则需要遵守 &amp;ldquo;any 的 左边需要是对应链接类型中不含输出的那一边&amp;rdquo;， 例如 left join 要求 any 的 左边只能是关联右边的属性，因为如果是左边，提升之后左边现在有约束条件，可能不会全部输出 子链接存在复杂表达式不支持提升，如cte，聚合操作等 子查询类似  2. 表达式优化 #   常量折叠 谓词规范 1. 简化 2. 约束条件拉平 3. 提取公共项  3. group 杂项消除 #  如果group 中包含 主键，则可以直接消除其他
+4. 外连接消除 #   可空测有条件约束绝对不为空，则外连接可转换为内连接  ">
+<meta name=keywords content="数据库">
+<meta name=robots content="noodp">
+<link rel=canonical href=https://askyx.github.io/posts/postgres/optimizer/>
+<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
+<link rel=stylesheet href=https://askyx.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://askyx.github.io/img/favicon.png>
+<link href=https://askyx.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Postgres 技术内幕，Optimizer过程分析">
+<meta name=twitter:description content="深度优化探索文章的读书笔记">
+<meta property="og:title" content="Postgres 技术内幕，Optimizer过程分析">
+<meta property="og:description" content="深度优化探索文章的读书笔记">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://askyx.github.io/posts/postgres/optimizer/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2023-05-08T11:33:02+08:00">
+<meta property="article:modified_time" content="2023-05-08T11:33:02+08:00"><meta property="og:site_name" content="Esoye">
+</head>
+<body class=light-theme>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archive>Archive</a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archive>Archive</a></li>
+</ul>
+</nav>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class=post>
+<h1 class=post-title>Postgres 技术内幕，Optimizer过程分析</h1>
+<div class=post-meta>
+<span class=post-date>
+2023-05-08
+</span>
+</div>
+<div class=post-content>
+<h2>Table of Contents</h2>
+<aside class=table-of-contents><nav id=TableOfContents>
+<ul>
+<li><a href=#1-逻辑优化>1. 逻辑优化</a>
+<ul>
+<li><a href=#1-子查询提升>1. 子查询提升</a></li>
+<li><a href=#2-表达式优化>2. 表达式优化</a></li>
+<li><a href=#3-group-杂项消除>3. group 杂项消除</a></li>
+<li><a href=#4-外连接消除>4. 外连接消除</a></li>
+</ul>
+</li>
+</ul>
+</nav></aside>
+<h2 id=1-逻辑优化>
+1. 逻辑优化
+<a href=#1-%e9%80%bb%e8%be%91%e4%bc%98%e5%8c%96 class=h-anchor aria-hidden=true>#</a>
+</h2>
+<h3 id=1-子查询提升>
+1. 子查询提升
+<a href=#1-%e5%ad%90%e6%9f%a5%e8%af%a2%e6%8f%90%e5%8d%87 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<ol>
+<li>exist 相关子链接会被提升，非相关子链接不会进行优化， 但是会生成 initplan，只需要执行一次</li>
+<li>any 相关子查询不会提升，非相关子查询才能进行优化，实际上any的非相关子查询隐含一个外部引用的条件， 实际上还是相关子查询</li>
+<li>如果是 join 条件中的子链接，则需要遵守 &ldquo;any 的 左边需要是对应链接类型中不含输出的那一边&rdquo;， 例如 left join 要求 any 的 左边只能是关联右边的属性，因为如果是左边，提升之后左边现在有约束条件，可能不会全部输出</li>
+<li>子链接存在复杂表达式不支持提升，如cte，聚合操作等</li>
+<li>子查询类似</li>
+</ol>
+<h3 id=2-表达式优化>
+2. 表达式优化
+<a href=#2-%e8%a1%a8%e8%be%be%e5%bc%8f%e4%bc%98%e5%8c%96 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<ol>
+<li>常量折叠</li>
+<li>谓词规范
+1. 简化
+2. 约束条件拉平
+3. 提取公共项</li>
+</ol>
+<h3 id=3-group-杂项消除>
+3. group 杂项消除
+<a href=#3-group-%e6%9d%82%e9%a1%b9%e6%b6%88%e9%99%a4 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>如果group 中包含 主键，则可以直接消除其他</p>
+<h3 id=4-外连接消除>
+4. 外连接消除
+<a href=#4-%e5%a4%96%e8%bf%9e%e6%8e%a5%e6%b6%88%e9%99%a4 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<ol>
+<li>可空测有条件约束绝对不为空，则外连接可转换为内连接</li>
+</ol>
+</div>
+<div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>Read other posts</span>
+<hr>
+</div>
+<div class=pagination__buttons>
+<span class="button previous">
+<a href=https://askyx.github.io/posts/others/cmake/>
+<span class=button__icon>←</span>
+<span class=button__text>cmake 速查模板</span>
+</a>
+</span>
+<span class="button next">
+<a href=https://askyx.github.io/posts/postgres/defineinc/>
+<span class=button__text>宏使用模板速查</span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<div class=copyright>
+<span>© 2023 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
+</div>
+</div>
+</footer>
+<script src=https://askyx.github.io/assets/main.js></script>
+<script src=https://askyx.github.io/assets/prism.js></script>
+</div>
+</body>
+</html>

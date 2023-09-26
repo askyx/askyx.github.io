@@ -95,7 +95,12 @@ Esoye — My note blog
 </ul>
 </li>
 <li><a href=#oracle>ORACLE</a></li>
-<li><a href=#end>end</a></li>
+<li><a href=#end>end</a>
+<ul>
+<li><a href=#pdsh>pdsh</a></li>
+<li><a href=#cmake-升级>cmake 升级</a></li>
+</ul>
+</li>
 </ul>
 </nav></aside>
 <h2 id=环境搭建>
@@ -729,6 +734,11 @@ sudo apt-get install flex bison g++ gcc gdb make    <span style=color:#ae81ff>\
 sudo update-alternatives --install /usr/bin/python python /usr/bin/python2.7 <span style=color:#ae81ff>4</span>
 sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.10 <span style=color:#ae81ff>3</span>
 
+sudo bash -c <span style=color:#e6db74>&#34;</span><span style=color:#66d9ef>$(</span>wget -O - https://apt.llvm.org/llvm.sh<span style=color:#66d9ef>)</span><span style=color:#e6db74>&#34;</span>
+
+sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-10 <span style=color:#ae81ff>10</span>
+sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-15 <span style=color:#ae81ff>15</span>
+
 <span style=color:#75715e># 安装pip，安装一些依赖</span>
 wget https://bootstrap.pypa.io/pip/2.7/get-pip.py
 python get-pip.py -i https://pypi.tuna.tsinghua.edu.cn/simple
@@ -1058,6 +1068,24 @@ end
 <a href=#end class=h-anchor aria-hidden=true>#</a>
 </h2>
 <p>上面是最近开发需要接触的数据库，因为都是源自postgres，所以写在这里，不能确保按照步骤走一定成功，这只是我得备忘录而已</p>
+<h3 id=pdsh>
+pdsh
+<a href=#pdsh class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>多窗口同时执行任务
+<a href=https://www.cnblogs.com/chen2ha/p/14787728.html>https://www.cnblogs.com/chen2ha/p/14787728.html</a></p>
+<h3 id=cmake-升级>
+cmake 升级
+<a href=#cmake-%e5%8d%87%e7%ba%a7 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p><a href=https://zhuanlan.zhihu.com/p/513871916>https://zhuanlan.zhihu.com/p/513871916</a></p>
+<p>wget <a href=https://github.com/Kitware/CMake/releases/download/v3.23.0/cmake-3.23.0-linux-x86_64.sh>https://github.com/Kitware/CMake/releases/download/v3.23.0/cmake-3.23.0-linux-x86_64.sh</a></p>
+<p>sudo bash ./cmake-3.23.0-linux-x86_64.sh &ndash;skip-licence &ndash;prefix=/usr</p>
+<p>Do you accept the license? [yn]:</p>
+<p>By default the CMake will be installed in:
+&ldquo;/usr/cmake-3.23.0-linux-x86_64&rdquo;
+Do you want to include the subdirectory cmake-3.23.0-linux-x86_64?
+Saying no will install in: &ldquo;/usr&rdquo; [Yn]:</p>
 </div>
 <div class=pagination>
 <div class=pagination__title>

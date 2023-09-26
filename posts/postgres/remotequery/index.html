@@ -1,0 +1,598 @@
+<!doctype html><html lang=en>
+<head>
+<title>
+::
+Esoye — My note blog
+</title>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="remote Query #   精确选择数据源，需要从语句的约束条件中计算出具体的执行数据源节点，然后把语句下发的对应的 DN 操作尽可能下推，下推一些操作到对应的DN上执行  remote query当前使用两阶段优化
+  第一阶段是FQS，对语句进行简单的判断，如果语句可以完全在DN上执行，则直接在这里创建remote plan，然后直接返回，如下例子
+benchmarksql=# explain select * from t1; QUERY PLAN ----------------------------------------------------------------------------  Data Node Scan on &amp;#34;__REMOTE_FQS_QUERY__&amp;#34; (cost=0.00..0.00 rows=0 width=0) Primary node/s: dn1 Node/s: dn1, dn2 (3 rows)   第二阶段，FQS判断失败的语句，此时需要进行常规优化，一般是语句需要DN之间的数据发生交换的时候，例如join使用多表， 但是关联条件不是分区键，此时需要把DN的数据读取到 CN 上，然后进行关联，
+postgres=# explain select * from t1 join t2 on t1.c1 = t2.c1; QUERY PLAN ---------------------------------------------------------------------------------------------------  Hash Join (cost=2752.50..5509.65 rows=3000 width=16) Hash Cond: (t2.">
+<meta name=keywords content="数据库">
+<meta name=robots content="noodp">
+<link rel=canonical href=https://askyx.github.io/posts/postgres/remotequery/>
+<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
+<link rel=stylesheet href=https://askyx.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://askyx.github.io/img/favicon.png>
+<link href=https://askyx.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content>
+<meta name=twitter:description content="remote Query #   精确选择数据源，需要从语句的约束条件中计算出具体的执行数据源节点，然后把语句下发的对应的 DN 操作尽可能下推，下推一些操作到对应的DN上执行  remote query当前使用两阶段优化
+  第一阶段是FQS，对语句进行简单的判断，如果语句可以完全在DN上执行，则直接在这里创建remote plan，然后直接返回，如下例子
+benchmarksql=# explain select * from t1; QUERY PLAN ----------------------------------------------------------------------------  Data Node Scan on &#34;__REMOTE_FQS_QUERY__&#34; (cost=0.00..0.00 rows=0 width=0) Primary node/s: dn1 Node/s: dn1, dn2 (3 rows)   第二阶段，FQS判断失败的语句，此时需要进行常规优化，一般是语句需要DN之间的数据发生交换的时候，例如join使用多表， 但是关联条件不是分区键，此时需要把DN的数据读取到 CN 上，然后进行关联，
+postgres=# explain select * from t1 join t2 on t1.c1 = t2.c1; QUERY PLAN ---------------------------------------------------------------------------------------------------  Hash Join (cost=2752.50..5509.65 rows=3000 width=16) Hash Cond: (t2.">
+<meta property="og:title" content>
+<meta property="og:description" content="remote Query #   精确选择数据源，需要从语句的约束条件中计算出具体的执行数据源节点，然后把语句下发的对应的 DN 操作尽可能下推，下推一些操作到对应的DN上执行  remote query当前使用两阶段优化
+  第一阶段是FQS，对语句进行简单的判断，如果语句可以完全在DN上执行，则直接在这里创建remote plan，然后直接返回，如下例子
+benchmarksql=# explain select * from t1; QUERY PLAN ----------------------------------------------------------------------------  Data Node Scan on &#34;__REMOTE_FQS_QUERY__&#34; (cost=0.00..0.00 rows=0 width=0) Primary node/s: dn1 Node/s: dn1, dn2 (3 rows)   第二阶段，FQS判断失败的语句，此时需要进行常规优化，一般是语句需要DN之间的数据发生交换的时候，例如join使用多表， 但是关联条件不是分区键，此时需要把DN的数据读取到 CN 上，然后进行关联，
+postgres=# explain select * from t1 join t2 on t1.c1 = t2.c1; QUERY PLAN ---------------------------------------------------------------------------------------------------  Hash Join (cost=2752.50..5509.65 rows=3000 width=16) Hash Cond: (t2.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://askyx.github.io/posts/postgres/remotequery/"><meta property="article:section" content="posts">
+<meta property="og:site_name" content="Esoye">
+</head>
+<body class=light-theme>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archive>Archive</a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archive>Archive</a></li>
+</ul>
+</nav>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class=post>
+<h1 class=post-title></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+<h2 id=remote-query>
+remote Query
+<a href=#remote-query class=h-anchor aria-hidden=true>#</a>
+</h2>
+<ol>
+<li>精确选择数据源，需要从语句的约束条件中计算出具体的执行数据源节点，然后把语句下发的对应的 DN</li>
+<li>操作尽可能下推，下推一些操作到对应的DN上执行</li>
+</ol>
+<p><code>remote query</code>当前使用两阶段优化</p>
+<ol>
+<li>
+<p>第一阶段是FQS，对语句进行简单的判断，如果语句可以完全在DN上执行，则直接在这里创建<code>remote plan</code>，然后直接返回，如下例子</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1;
+                                 QUERY PLAN
+<span style=color:#75715e>----------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;__REMOTE_FQS_QUERY__&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
+   <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+   Node<span style=color:#f92672>/</span>s: dn1, dn2
+(<span style=color:#ae81ff>3</span> <span style=color:#66d9ef>rows</span>)
+</code></pre></div></li>
+<li>
+<p>第二阶段，FQS判断失败的语句，此时需要进行常规优化，一般是语句需要DN之间的数据发生交换的时候，例如join使用多表， 但是关联条件不是分区键，此时需要把DN的数据读取到 CN 上，然后进行关联，</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>postgres<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>join</span> t2 <span style=color:#66d9ef>on</span> t1.c1 <span style=color:#f92672>=</span> t2.c1;
+                                            QUERY PLAN
+<span style=color:#75715e>---------------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2752</span>.<span style=color:#ae81ff>50</span>..<span style=color:#ae81ff>5509</span>.<span style=color:#ae81ff>65</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>3000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>16</span>)
+   Hash Cond: (t2.c1 <span style=color:#f92672>=</span> t1.c1)
+   <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> t2 <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY_&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>2715</span>.<span style=color:#ae81ff>90</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>3001</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
+         <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+         Node<span style=color:#f92672>/</span>s: dn1, dn2, dn3
+   <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2715</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>2715</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>3000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
+         <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> t1 <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY__1&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>2715</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>3000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
+               <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+               Node<span style=color:#f92672>/</span>s: dn1, dn2, dn3
+(<span style=color:#ae81ff>9</span> <span style=color:#66d9ef>rows</span>)
+</code></pre></div></li>
+</ol>
+<h2 id=1-构建基表remote-query-path>
+1. 构建基表remote query path
+<a href=#1-%e6%9e%84%e5%bb%ba%e5%9f%ba%e8%a1%a8remote-query-path class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>使用函数 create_plainrel_rqpath 构建 RemoteQueryPath ，并且 使用 add_path 添加到 pathlist 中</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c>add_path(rel, (Path <span style=color:#f92672>*</span>)create_remotequery_path(root, rel, exec_nodes, param_info, NULL, NULL, <span style=color:#ae81ff>0</span>, NULL));
+</code></pre></div><p>exec_nodes 为当前 rel 的具体的使用条件计算之后的数据分布</p>
+<h2 id=2-构建-joinrel-的-path>
+2. 构建 joinrel 的 path
+<a href=#2-%e6%9e%84%e5%bb%ba-joinrel-%e7%9a%84-path class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>joinrel 使用 inner 和 outer 的path 构建path，主要分为两种:</p>
+<ol>
+<li>当前 joinrel 不能完全下推到 dn 节点，此时按照正常的 joinrel path 逻辑进行处理，如下面的例子，<code>HashJoin(part partsupp)</code> 的 outer path 和 inner path 分别是 <code>RemoteQuery(partsupp)</code> 和 <code>RemoteQuery(part)</code></li>
+</ol>
+<pre tabindex=0><code class=language-log data-lang=log>PPID 0x55862da74d28 NestLoop(part supplier partsupp nation) rows=1 cost=185101.75..933246.01
+  clauses: supplier.s_nationkey = nation.n_nationkey
+  PPID 0x55862d4d00f0 NestLoop(part supplier partsupp) rows=1 cost=185101.75..933220.41
+    clauses: partsupp.ps_suppkey = supplier.s_suppkey
+    PPID 0x55862d397638 HashJoin(part partsupp) rows=1 cost=185101.75..923954.75
+      clauses: part.p_partkey = partsupp.ps_partkey, unknown expr = partsupp.ps_supplycost
+      PPID 0x55862d391298 RemoteQuery(partsupp) rows=266667 cost=0.00..737453.00
+      PPID 0x55862d3877f0 RemoteQuery(part) rows=250 cost=0.00..185098.00
+    PPID 0x55862d38b378 RemoteQuery(supplier) rows=3333 cost=0.00..9224.00
+  PPID 0x55862d3942c8 RemoteQuery(nation) rows=8 cost=0.00..25.50
+
+</code></pre><ol start=2>
+<li>当前joinrel 可以下推到DN，此时使用函数 create_joinrel_rqpath 构建 RemoteQueryPath ，并且 使用 add_path 添加到 pathlist 中，create_joinrel_rqpath 在 add_paths_to_joinrel 中调用，但是由于 remote query 的cost 计算代价太大，所以当前即使有满足条件的语句，也会被代价比较然后剔除</li>
+</ol>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>join</span> t2 <span style=color:#66d9ef>on</span> t1.c1 <span style=color:#f92672>=</span> t2.c1 <span style=color:#66d9ef>join</span>  t3 <span style=color:#66d9ef>on</span> t3.c2 <span style=color:#f92672>=</span> t2.c1 <span style=color:#66d9ef>where</span> t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>;
+                                                   QUERY PLAN
+<span style=color:#75715e>-----------------------------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> Nested Loop  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>696</span>.<span style=color:#ae81ff>12</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>25584</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>36</span>)
+   <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> t3 <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY_&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>415</span>.<span style=color:#ae81ff>25</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+         <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+         Node<span style=color:#f92672>/</span>s: dn1, dn2
+   <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY_&#34;</span> <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY__1&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>25</span>.<span style=color:#ae81ff>03</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>25584</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>24</span>)
+         <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+         Node<span style=color:#f92672>/</span>s: dn1
+(<span style=color:#ae81ff>7</span> <span style=color:#66d9ef>rows</span>)
+
+</code></pre></div><h2 id=3-remote-query-的cost-计算>
+3. remote query 的cost 计算
+<a href=#3-remote-query-%e7%9a%84cost-%e8%ae%a1%e7%ae%97 class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>主要分为两类</p>
+<ol>
+<li>remote query 为基表的时候，此时 cost 使用 seq scan 的方式计算代价， 只是 tuple cost 使用 pgxc_remote_tuple_cost 计算，默认为 0.9， 而之前 seq scan 的 tuple cost 为 0.01</li>
+</ol>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#66d9ef>if</span>(rel<span style=color:#f92672>-&gt;</span>reloptkind <span style=color:#f92672>==</span> RELOPT_BASEREL)
+{
+  cost_seqscan_internal(<span style=color:#f92672>&amp;</span>rqpath<span style=color:#f92672>-&gt;</span>path, root, rel,
+              rqpath<span style=color:#f92672>-&gt;</span>path.param_info,
+              pgxc_remote_tuple_cost);
+}
+</code></pre></div><ol start=2>
+<li>remote query 为其他，当前只能是join，此时直接使用下面的计算公式，parallel_setup_cost 默认为1000，pgxc_remote_tuple_cost默认为0.9</li>
+</ol>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>{
+  rqpath<span style=color:#f92672>-&gt;</span>path.startup_cost <span style=color:#f92672>=</span> parallel_setup_cost <span style=color:#f92672>*</span> <span style=color:#ae81ff>2</span>;
+  rqpath<span style=color:#f92672>-&gt;</span>path.total_cost <span style=color:#f92672>=</span> rqpath<span style=color:#f92672>-&gt;</span>path.startup_cost <span style=color:#f92672>+</span> rel<span style=color:#f92672>-&gt;</span>rows <span style=color:#f92672>*</span> pgxc_remote_tuple_cost;
+  rqpath<span style=color:#f92672>-&gt;</span>path.rows <span style=color:#f92672>=</span> rel<span style=color:#f92672>-&gt;</span>rows;
+}
+<span style=color:#960050;background-color:#1e0010>``</span>
+
+
+<span style=color:#75715e>## 场景增强
+</span><span style=color:#75715e></span>
+<span style=color:#960050;background-color:#1e0010>上面说了实现以及现有的问题，现在对这些问题进行分析优化，主要思路是</span>
+
+<span style=color:#ae81ff>1.</span> <span style=color:#960050;background-color:#1e0010>限制</span>FQS<span style=color:#960050;background-color:#1e0010>，把</span>FQS的定位从<span style=color:#e6db74>&#34;快速判断语句是否可以ship到dn上&#34;</span><span style=color:#960050;background-color:#1e0010>转换为</span><span style=color:#e6db74>&#34;快速判断语句是否可以ship到一个DN上&#34;</span>
+<span style=color:#ae81ff>2.</span> <span style=color:#960050;background-color:#1e0010>添加下推逻辑，如果确定算子能在一个</span>DN上执行<span style=color:#960050;background-color:#1e0010>，则下推到</span>DN
+
+
+
+<span style=color:#960050;background-color:#1e0010>下文中使用的表结构</span>
+
+<span style=color:#960050;background-color:#1e0010>```</span>sql
+create table t1 (c1 <span style=color:#66d9ef>int</span> , c2 <span style=color:#66d9ef>int</span> , c3 <span style=color:#66d9ef>int</span>);
+create table <span style=color:#a6e22e>t2</span> (c1 <span style=color:#66d9ef>int</span> , c2 <span style=color:#66d9ef>int</span> , c3 <span style=color:#66d9ef>int</span>);
+create table <span style=color:#a6e22e>t3</span> (c1 <span style=color:#66d9ef>int</span> , c2 <span style=color:#66d9ef>int</span> , c3 <span style=color:#66d9ef>int</span>);
+
+insert into t1 select  <span style=color:#a6e22e>floor</span>(random() <span style=color:#f92672>*</span> <span style=color:#ae81ff>100000</span>)<span style=color:#f92672>::</span><span style=color:#66d9ef>int</span> <span style=color:#f92672>%</span> <span style=color:#ae81ff>10</span>, floor(random() <span style=color:#f92672>*</span> <span style=color:#ae81ff>100000</span>)<span style=color:#f92672>::</span><span style=color:#66d9ef>int</span> <span style=color:#f92672>%</span> <span style=color:#ae81ff>10</span>, generate_series(<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>100000</span>);
+insert into t2 select  <span style=color:#a6e22e>floor</span>(random() <span style=color:#f92672>*</span> <span style=color:#ae81ff>100000</span>)<span style=color:#f92672>::</span><span style=color:#66d9ef>int</span> <span style=color:#f92672>%</span> <span style=color:#ae81ff>10</span>, floor(random() <span style=color:#f92672>*</span> <span style=color:#ae81ff>100000</span>)<span style=color:#f92672>::</span><span style=color:#66d9ef>int</span> <span style=color:#f92672>%</span> <span style=color:#ae81ff>10</span>, generate_series(<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>100000</span>);
+insert into t3 select  <span style=color:#a6e22e>floor</span>(random() <span style=color:#f92672>*</span> <span style=color:#ae81ff>100000</span>)<span style=color:#f92672>::</span><span style=color:#66d9ef>int</span> <span style=color:#f92672>%</span> <span style=color:#ae81ff>10</span>, floor(random() <span style=color:#f92672>*</span> <span style=color:#ae81ff>100000</span>)<span style=color:#f92672>::</span><span style=color:#66d9ef>int</span> <span style=color:#f92672>%</span> <span style=color:#ae81ff>10</span>, generate_series(<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>100000</span>);
+
+</code></pre></div><h3 id=1-连接支持>
+1. 连接支持
+<a href=#1-%e8%bf%9e%e6%8e%a5%e6%94%af%e6%8c%81 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>​链接有当前有实现对应<code>create_remotequery_path</code>函数，但是只是实现了<code>inner join</code> 和 <code>left join</code>，且在大多数时候，<code>left join</code> 无法触发，而<code>inner join</code> 也有的问题是当前<code>remote query</code>的path的代价都非常高，所以即使在构建join的path 的过程中，左子树和右子树都在同一个节点，此时他的path还是常规path胜出，所以第一步是先修改此时的代价计算方式，上面的语句变为</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>join</span> t2 <span style=color:#66d9ef>on</span> t1.c1 <span style=color:#f92672>=</span> t2.c1 <span style=color:#66d9ef>where</span>  t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>;
+                                    QUERY PLAN
+<span style=color:#75715e>----------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY_&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>25</span>.<span style=color:#ae81ff>03</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>25584</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>24</span>)
+   <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+   Node<span style=color:#f92672>/</span>s: dn1
+(<span style=color:#ae81ff>3</span> <span style=color:#66d9ef>rows</span>)
+</code></pre></div><p><img src=/posts/postgres/images/rplan.svg alt=rplan1></p>
+<p>这是本来join的path中就有的一种path生成方式，只是修改了计算的代价的大小，现在即使多表关联，也可以使用表达式正确的进行进行优化</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>join</span> t2 <span style=color:#66d9ef>on</span> t1.c1 <span style=color:#f92672>=</span> t2.c1 <span style=color:#66d9ef>join</span>  t3 <span style=color:#66d9ef>on</span> t3.c1 <span style=color:#f92672>=</span> t2.c1 <span style=color:#66d9ef>where</span>  t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>;
+                                     QUERY PLAN
+<span style=color:#75715e>------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY_&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>117</span>.<span style=color:#ae81ff>13</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>127920</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>36</span>)
+   <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+   Node<span style=color:#f92672>/</span>s: dn1
+(<span style=color:#ae81ff>3</span> <span style=color:#66d9ef>rows</span>)
+
+benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>join</span> t2 <span style=color:#66d9ef>on</span> t1.c1 <span style=color:#f92672>=</span> t2.c1 <span style=color:#66d9ef>join</span>  t3 <span style=color:#66d9ef>on</span> t3.c2 <span style=color:#f92672>=</span> t2.c1 <span style=color:#66d9ef>where</span> t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>;
+                                                   QUERY PLAN
+<span style=color:#75715e>-----------------------------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> Nested Loop  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>696</span>.<span style=color:#ae81ff>12</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>25584</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>36</span>)
+   <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> t3 <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY_&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>415</span>.<span style=color:#ae81ff>25</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+         <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+         Node<span style=color:#f92672>/</span>s: dn1, dn2
+   <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY_&#34;</span> <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY__1&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>25</span>.<span style=color:#ae81ff>03</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>25584</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>24</span>)
+         <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+         Node<span style=color:#f92672>/</span>s: dn1
+(<span style=color:#ae81ff>7</span> <span style=color:#66d9ef>rows</span>)
+</code></pre></div><p><code>left join</code>和<code>right join</code>以及<code>full join</code> 在满足条件下，也可以实现相同的优化，只是需要注意他们语义上on和where的区别，这些细节join原来都处理掉了，我们只需要补充相应的规则即可。</p>
+<p>另外对于<code>left join</code> 和<code>right join</code>，在满足某些规则的时候会转换为<code>inner join</code>，此时判断规则使用<code>inner join</code>的规则。对于条件不足无法转换的语句，pg会把<code>right join</code>转换为左深树，所以只需要添加<code>left join</code> 的判断即可，而full join ，按照条件转换为<code>left join</code>或者<code>right join</code>，再或者按照原来的逻辑处理</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>verbose</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>left</span>  <span style=color:#66d9ef>join</span> t2 <span style=color:#66d9ef>on</span> t1.c1 <span style=color:#f92672>=</span> t2.c1 <span style=color:#66d9ef>where</span>  t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>;
+
+                                     QUERY PLAN
+<span style=color:#75715e>------------------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY_&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>04</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>48</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>24</span>)
+   <span style=color:#66d9ef>Output</span>: t1.c1, t1.c2, t1.c3, t2.c1, t2.c2, t2.c3
+   <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+   Node<span style=color:#f92672>/</span>s: dn1
+   Remote query: <span style=color:#66d9ef>SELECT</span> l.a_1, l.a_2, l.a_3, r.a_1, r.a_2, r.a_3 <span style=color:#66d9ef>FROM</span> ((<span style=color:#66d9ef>SELECT</span> t1.c1, t1.c2, t1.c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t1 t1 <span style=color:#66d9ef>WHERE</span> (t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>)) l(a_1, a_2, a_3) <span style=color:#66d9ef>LEFT</span> <span style=color:#66d9ef>JOIN</span> (<span style=color:#66d9ef>SELECT</span> t2.c1, t2.c2, t2.c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t2 t2 <span style=color:#66d9ef>WHERE</span> (t2.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>)) r(a_1, a_2, a_3) <span style=color:#66d9ef>ON</span> ((l.a_1 <span style=color:#f92672>=</span> r.a_1))) <span style=color:#66d9ef>WHERE</span> <span style=color:#66d9ef>true</span>
+(<span style=color:#ae81ff>5</span> <span style=color:#66d9ef>rows</span>)
+
+
+benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>verbose</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>right</span> <span style=color:#66d9ef>join</span> t2 <span style=color:#66d9ef>on</span> t1.c1 <span style=color:#f92672>=</span> t2.c1 <span style=color:#66d9ef>where</span>  t2.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>;
+                                        QUERY PLAN
+<span style=color:#75715e>------------------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Result</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>52</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>48</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>24</span>)
+   <span style=color:#66d9ef>Output</span>: t1.c1, t1.c2, t1.c3, t2.c1, t2.c2, t2.c3
+   <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY_&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>04</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>48</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>24</span>)
+         <span style=color:#66d9ef>Output</span>: t2.c1, t2.c2, t2.c3, t1.c1, t1.c2, t1.c3
+         <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+         Node<span style=color:#f92672>/</span>s: dn1
+         Remote query: <span style=color:#66d9ef>SELECT</span> l.a_1, l.a_2, l.a_3, r.a_1, r.a_2, r.a_3 <span style=color:#66d9ef>FROM</span> ((<span style=color:#66d9ef>SELECT</span> t2.c1, t2.c2, t2.c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t2 t2 <span style=color:#66d9ef>WHERE</span> (t2.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>)) l(a_1, a_2, a_3) <span style=color:#66d9ef>LEFT</span> <span style=color:#66d9ef>JOIN</span> (<span style=color:#66d9ef>SELECT</span> t1.c1, t1.c2, t1.c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t1 t1 <span style=color:#66d9ef>WHERE</span> (t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>)) r(a_1, a_2, a_3) <span style=color:#66d9ef>ON</span> ((r.a_1 <span style=color:#f92672>=</span> l.a_1))) <span style=color:#66d9ef>WHERE</span> <span style=color:#66d9ef>true</span>
+(<span style=color:#ae81ff>7</span> <span style=color:#66d9ef>rows</span>)
+
+benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>verbose</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>full</span>  <span style=color:#66d9ef>join</span> t2 <span style=color:#66d9ef>on</span> t1.c1 <span style=color:#f92672>=</span> t2.c1 <span style=color:#66d9ef>where</span>  t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>;
+                                     QUERY PLAN
+<span style=color:#75715e>------------------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY_&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>04</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>48</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>24</span>)
+   <span style=color:#66d9ef>Output</span>: t1.c1, t1.c2, t1.c3, t2.c1, t2.c2, t2.c3
+   <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+   Node<span style=color:#f92672>/</span>s: dn1
+   Remote query: <span style=color:#66d9ef>SELECT</span> l.a_1, l.a_2, l.a_3, r.a_1, r.a_2, r.a_3 <span style=color:#66d9ef>FROM</span> ((<span style=color:#66d9ef>SELECT</span> t1.c1, t1.c2, t1.c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t1 t1 <span style=color:#66d9ef>WHERE</span> (t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>)) l(a_1, a_2, a_3) <span style=color:#66d9ef>LEFT</span> <span style=color:#66d9ef>JOIN</span> (<span style=color:#66d9ef>SELECT</span> t2.c1, t2.c2, t2.c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t2 t2 <span style=color:#66d9ef>WHERE</span> (t2.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>)) r(a_1, a_2, a_3) <span style=color:#66d9ef>ON</span> ((l.a_1 <span style=color:#f92672>=</span> r.a_1))) <span style=color:#66d9ef>WHERE</span> <span style=color:#66d9ef>true</span>
+(<span style=color:#ae81ff>5</span> <span style=color:#66d9ef>rows</span>)
+
+<span style=color:#75715e>-- left 和right 混合的语句
+</span><span style=color:#75715e></span>benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>verbose</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>right</span> <span style=color:#66d9ef>join</span> t2 <span style=color:#66d9ef>on</span> t1.c1 <span style=color:#f92672>=</span> t2.c1 <span style=color:#66d9ef>left</span> <span style=color:#66d9ef>join</span>  t3 <span style=color:#66d9ef>on</span> t3.c1 <span style=color:#f92672>=</span> t2.c1 <span style=color:#66d9ef>where</span> t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>;
+                              QUERY PLAN
+<span style=color:#75715e>------------------------------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY_&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>117</span>.<span style=color:#ae81ff>13</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>127920</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>36</span>)
+   <span style=color:#66d9ef>Output</span>: t1.c1, t1.c2, t1.c3, t2.c1, t2.c2, t2.c3, t3.c1, t3.c2, t3.c3
+   <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+   Node<span style=color:#f92672>/</span>s: dn1
+   Remote query: <span style=color:#66d9ef>SELECT</span> l.a_1, l.a_2, l.a_3, l.a_4, l.a_5, l.a_6, r.a_1, r.a_2, r.a_3 <span style=color:#66d9ef>FROM</span> ((<span style=color:#66d9ef>SELECT</span> l_1.a_1, l_1.a_2, l_1.a_3, r_1.a_1, r_1.a_2, r_1.a_3 <span style=color:#66d9ef>FROM</span> ((<span style=color:#66d9ef>SELECT</span> t1.c1, t1.c2, t1.c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t1 t1 <span style=color:#66d9ef>WHERE</span> (t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>)) l_1(a_1, a_2, a_3) <span style=color:#66d9ef>JOIN</span> (<span style=color:#66d9ef>SELECT</span> t2.c1, t2.c2, t2.c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t2 t2 <span style=color:#66d9ef>WHERE</span> (t2.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>)) r_1(a_1, a_2, a_3)<span style=color:#66d9ef>ON</span> (<span style=color:#66d9ef>true</span>)) <span style=color:#66d9ef>WHERE</span> <span style=color:#66d9ef>true</span>) l(a_1, a_2, a_3, a_4, a_5, a_6) <span style=color:#66d9ef>LEFT</span> <span style=color:#66d9ef>JOIN</span> (<span style=color:#66d9ef>SELECT</span> t3.c1, t3.c2, t3.c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t3 t3 <span style=color:#66d9ef>WHERE</span> (t3.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>)) r(a_1, a_2, a_3) <span style=color:#66d9ef>ON</span> ((r.a_1 <span style=color:#f92672>=</span> l.a_4))) <span style=color:#66d9ef>WHERE</span> <span style=color:#66d9ef>true</span>
+(<span style=color:#ae81ff>5</span> <span style=color:#66d9ef>rows</span>)
+
+</code></pre></div><blockquote>
+<p>只是pg没有实现full join 到<code>left join</code>然后再到<code>inner join</code> 的优化，在前面也有遇到某个场景，是可以进行优化的，但是pg并没有做，pg的优化器还是不够好，比较古老</p>
+</blockquote>
+<h3 id=2-聚合操作group支持>
+2. 聚合操作，group支持
+<a href=#2-%e8%81%9a%e5%90%88%e6%93%8d%e4%bd%9cgroup%e6%94%af%e6%8c%81 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>单纯的聚合操作是在query 的targetList中的，所以如果语句原本可以下推，则聚合操作完全不用操行，直接不做处理，deparse 的时候会进行处理</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#66d9ef>avg</span>(c2) <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>;
+                                 QUERY PLAN
+<span style=color:#75715e>----------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;__REMOTE_FQS_QUERY__&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
+   <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+   Node<span style=color:#f92672>/</span>s: dn1
+(<span style=color:#ae81ff>3</span> <span style=color:#66d9ef>rows</span>)
+</code></pre></div><p>对于group，这里需要首先明白group在query中的表现方式，group在query和结构体中表现为<code>havingQual</code>和<code>groupClause</code>， <code>remote query</code> 进行deparse 需要构造query 所以理论上，只需要在remote_query中构造对应的信息就可以了。</p>
+<p>在pg中，group在create_plan的时候，会在原来的plan上构造一个Group node 或者Sort node 或者Agg node，然后原来的plan作为他的subplan，在原来的pgxc中，有一个<code>create_remotegrouping_plan</code>函数，他的输入是此时group 的plan，作用是抽取node 中的group信息，填充到<code>remote query</code> 的对应的位置上去，包括targetlist，groupcluse，havingcluse等，然后此时再返回remote_query，所以这里的逻辑很清晰</p>
+<p><em><strong>在group的subplan是remoteplan 的时候，且是exec_node限定在一个<code>datanode</code>的时候，受用group plan中的信息填充到<code>remote query</code>中，用来构造下发到<code>datanode</code>的语句</strong></em></p>
+<p><img src=/posts/postgres/images/cplan2.svg alt=rplan1></p>
+<p>当前满足条件的语句可以实现group的下推操作</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span>  <span style=color:#66d9ef>verbose</span>  <span style=color:#66d9ef>select</span> <span style=color:#66d9ef>max</span>(c2) <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>;
+                                 QUERY PLAN
+<span style=color:#75715e>----------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;__REMOTE_FQS_QUERY__&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
+   <span style=color:#66d9ef>Output</span>: (<span style=color:#66d9ef>max</span>(t1.c2))
+   <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+   Node<span style=color:#f92672>/</span>s: dn1
+   Remote query: <span style=color:#66d9ef>SELECT</span> <span style=color:#66d9ef>max</span>(c2) <span style=color:#66d9ef>AS</span> <span style=color:#66d9ef>max</span> <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>public</span>.t1 t1 <span style=color:#66d9ef>WHERE</span> (c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>)
+(<span style=color:#ae81ff>5</span> <span style=color:#66d9ef>rows</span>)
+
+benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>verbose</span> <span style=color:#66d9ef>select</span> <span style=color:#66d9ef>max</span>(t1.c2), <span style=color:#66d9ef>avg</span>(t2.c2), <span style=color:#66d9ef>sum</span>(t2.c3)  <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>join</span> t2 <span style=color:#66d9ef>on</span> t1.c1 <span style=color:#f92672>=</span> t2.c1 <span style=color:#66d9ef>where</span> t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span> ;
+                                 QUERY PLAN
+<span style=color:#75715e>-------------------------------------------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;__REMOTE_GROUP_QUERY__&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>31</span>.<span style=color:#ae81ff>39</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>32656</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+   <span style=color:#66d9ef>Output</span>: (<span style=color:#66d9ef>max</span>(t1.c2)), (<span style=color:#66d9ef>avg</span>(t2.c2)), (<span style=color:#66d9ef>sum</span>(t2.c3))
+   <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+   Node<span style=color:#f92672>/</span>s: dn1
+   Remote query: <span style=color:#66d9ef>SELECT</span> <span style=color:#66d9ef>max</span>(l.a_1), <span style=color:#66d9ef>avg</span>(r.a_1), <span style=color:#66d9ef>sum</span>(r.a_2) <span style=color:#66d9ef>FROM</span> ((<span style=color:#66d9ef>SELECT</span> t1.c2, t1.c1 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t1 t1 <span style=color:#66d9ef>WHERE</span> (t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>)) l(a_1, a_2) <span style=color:#66d9ef>JOIN</span> (<span style=color:#66d9ef>SELECT</span> t2.c2, t2.c3, t2.c1 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t2 t2 <span style=color:#66d9ef>WHERE</span> (t2.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>)) r(a_1, a_2, a_3) <span style=color:#66d9ef>ON</span> (<span style=color:#66d9ef>true</span>)) <span style=color:#66d9ef>WHERE</span> <span style=color:#66d9ef>true</span>
+(<span style=color:#ae81ff>5</span> <span style=color:#66d9ef>rows</span>)
+
+
+benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>verbose</span> <span style=color:#66d9ef>select</span> c2, <span style=color:#66d9ef>sum</span>(c3) <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span> <span style=color:#66d9ef>group</span> <span style=color:#66d9ef>by</span> c2;
+                                       QUERY PLAN
+<span style=color:#75715e>----------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;__REMOTE_FQS_QUERY__&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
+   <span style=color:#66d9ef>Output</span>: t1.c2, (<span style=color:#66d9ef>sum</span>(t1.c3))
+   <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+   Node<span style=color:#f92672>/</span>s: dn1
+   Remote query: <span style=color:#66d9ef>SELECT</span> c2, <span style=color:#66d9ef>sum</span>(c3) <span style=color:#66d9ef>AS</span> <span style=color:#66d9ef>sum</span> <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>public</span>.t1 t1 <span style=color:#66d9ef>WHERE</span> (c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>) <span style=color:#66d9ef>GROUP</span> <span style=color:#66d9ef>BY</span> c2
+(<span style=color:#ae81ff>5</span> <span style=color:#66d9ef>rows</span>)
+
+benchmarksql<span style=color:#f92672>=#</span>  <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>verbose</span> <span style=color:#66d9ef>select</span> c2, <span style=color:#66d9ef>sum</span>(c3) <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span> <span style=color:#66d9ef>group</span> <span style=color:#66d9ef>by</span> c2 <span style=color:#66d9ef>having</span> <span style=color:#66d9ef>sum</span> (c1) <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>1000</span>;
+                                                   QUERY PLAN
+<span style=color:#75715e>----------------------------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;__REMOTE_FQS_QUERY__&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
+   <span style=color:#66d9ef>Output</span>: t1.c2, (<span style=color:#66d9ef>sum</span>(t1.c3))
+   <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+   Node<span style=color:#f92672>/</span>s: dn1
+   Remote query: <span style=color:#66d9ef>SELECT</span> c2, <span style=color:#66d9ef>sum</span>(c3) <span style=color:#66d9ef>AS</span> <span style=color:#66d9ef>sum</span> <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>public</span>.t1 t1 <span style=color:#66d9ef>WHERE</span> (c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>) <span style=color:#66d9ef>GROUP</span> <span style=color:#66d9ef>BY</span> c2 <span style=color:#66d9ef>HAVING</span> (<span style=color:#66d9ef>sum</span>(c1) <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>1000</span>)
+(<span style=color:#ae81ff>5</span> <span style=color:#66d9ef>rows</span>)
+
+benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>verbose</span>  <span style=color:#66d9ef>select</span> t1.c2, <span style=color:#66d9ef>sum</span> (t1.c1), <span style=color:#66d9ef>max</span>(t2.c2) <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>join</span> t2 <span style=color:#66d9ef>on</span> t1.c1 <span style=color:#f92672>=</span> t2.c1 <span style=color:#66d9ef>and</span> t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> <span style=color:#66d9ef>group</span> <span style=color:#66d9ef>by</span> t1.c2 <span style=color:#66d9ef>having</span> <span style=color:#66d9ef>sum</span> (t2.c3) <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>1000</span>;
+                                                                    QUERY PLAN
+<span style=color:#75715e>--------------------------------------------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;__REMOTE_GROUP_QUERY__&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>24</span>.<span style=color:#ae81ff>78</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>25312</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>16</span>)
+   <span style=color:#66d9ef>Output</span>: t1.c2, (<span style=color:#66d9ef>sum</span>(t1.c1)), (<span style=color:#66d9ef>max</span>(t2.c2))
+   Node<span style=color:#f92672>/</span>s: dn2
+   Remote query: <span style=color:#66d9ef>SELECT</span> l.a_1, <span style=color:#66d9ef>sum</span>(r.a_2), <span style=color:#66d9ef>sum</span>(l.a_2), <span style=color:#66d9ef>max</span>(r.a_1) <span style=color:#66d9ef>FROM</span> ((<span style=color:#66d9ef>SELECT</span> t1.c2, t1.c1 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t1 t1 <span style=color:#66d9ef>WHERE</span> (t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span>)) l(a_1, a_2) <span style=color:#66d9ef>JOIN</span> (<span style=color:#66d9ef>SELECT</span> t2.c2, t2.c3, t2.c1 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t2 t2 <span style=color:#66d9ef>WHERE</span> (t2.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span>)) r(a_1, a_2, a_3) <span style=color:#66d9ef>ON</span> (<span style=color:#66d9ef>true</span>)) <span style=color:#66d9ef>WHERE</span> <span style=color:#66d9ef>true</span> <span style=color:#66d9ef>GROUP</span> <span style=color:#66d9ef>BY</span> <span style=color:#ae81ff>1</span>
+   Coordinator quals: ((<span style=color:#66d9ef>sum</span>(t2.c3)) <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>1000</span>)
+(<span style=color:#ae81ff>5</span> <span style=color:#66d9ef>rows</span>)
+
+</code></pre></div><h3 id=3-limit-支持>
+3. limit 支持
+<a href=#3-limit-%e6%94%af%e6%8c%81 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>只要语句中出现<code>limit</code>，则在语义正确的情况下，任何时候都可以进行下推，例如<code>select * from t1 limit 10</code>，这里最优的执行计划是在dn上进行limit，然后再在此基础上在<code>coordinate</code>上进行<code>limit</code>，在<code>AntDB</code>最初的移植的<code>postgres-xc</code>的代码中，已经实现了对应的函数，只是由于内核的变动，所以后面没有继续支持。</p>
+<p>这里进行逻辑梳理，然后添加对应的实现，具体的实现逻辑和<code>group</code> 类似</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>verbose</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>limit</span> <span style=color:#ae81ff>10</span> <span style=color:#66d9ef>offset</span> <span style=color:#ae81ff>100</span>;
+                                                   QUERY PLAN
+<span style=color:#75715e>----------------------------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Limit</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>91</span>.<span style=color:#ae81ff>03</span>..<span style=color:#ae81ff>100</span>.<span style=color:#ae81ff>14</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>10</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+   <span style=color:#66d9ef>Output</span>: t1.c1, t1.c2, t1.c3
+   <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;__REMOTE_LIMIT_QUERY__&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>91033</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>100000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+         <span style=color:#66d9ef>Output</span>: t1.c1, t1.c2, t1.c3
+         <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+         Node<span style=color:#f92672>/</span>s: dn1, dn2
+         Remote query: <span style=color:#66d9ef>SELECT</span> c1, c2, c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t1 t1 <span style=color:#66d9ef>WHERE</span> <span style=color:#66d9ef>true</span> <span style=color:#66d9ef>LIMIT</span> (<span style=color:#e6db74>&#39;10&#39;</span>::bigint <span style=color:#f92672>+</span> <span style=color:#e6db74>&#39;100&#39;</span>::bigint)
+(<span style=color:#ae81ff>7</span> <span style=color:#66d9ef>rows</span>)
+
+benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>verbose</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span> <span style=color:#66d9ef>limit</span> <span style=color:#ae81ff>10</span> <span style=color:#66d9ef>offset</span> <span style=color:#ae81ff>100</span>;
+                                                   QUERY PLAN
+<span style=color:#75715e>-----------------------------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;__REMOTE_LIMIT_QUERY__&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1118</span>.<span style=color:#ae81ff>25</span>..<span style=color:#ae81ff>1230</span>.<span style=color:#ae81ff>08</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>10</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+   <span style=color:#66d9ef>Output</span>: t1.c1, t1.c2, t1.c3
+   <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+   Node<span style=color:#f92672>/</span>s: dn1
+   Remote query: <span style=color:#66d9ef>SELECT</span> c1, c2, c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t1 t1 <span style=color:#66d9ef>WHERE</span> (c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>) <span style=color:#66d9ef>OFFSET</span> <span style=color:#e6db74>&#39;100&#39;</span>::bigint <span style=color:#66d9ef>LIMIT</span> <span style=color:#e6db74>&#39;10&#39;</span>::bigint
+(<span style=color:#ae81ff>5</span> <span style=color:#66d9ef>rows</span>)
+
+benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>verbose</span>  <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> c2 <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span> <span style=color:#66d9ef>order</span> <span style=color:#66d9ef>by</span> c3 <span style=color:#66d9ef>limit</span> <span style=color:#ae81ff>10</span> <span style=color:#66d9ef>offset</span> <span style=color:#ae81ff>100</span>;
+                                           QUERY PLAN
+<span style=color:#75715e>-------------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Limit</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>91664</span>.<span style=color:#ae81ff>26</span>..<span style=color:#ae81ff>91664</span>.<span style=color:#ae81ff>29</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>10</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+   <span style=color:#66d9ef>Output</span>: t1.c1, t1.c2, t1.c3
+   <span style=color:#f92672>-&gt;</span>  Sort  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>91664</span>.<span style=color:#ae81ff>01</span>..<span style=color:#ae81ff>91688</span>.<span style=color:#ae81ff>50</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>9793</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+         <span style=color:#66d9ef>Output</span>: t1.c1, t1.c2, t1.c3
+         Sort <span style=color:#66d9ef>Key</span>: t1.c3
+         <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;__REMOTE_SORT_QUERY__&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>91283</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>9793</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+               <span style=color:#66d9ef>Output</span>: t1.c1, t1.c2, t1.c3
+               <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+               Node<span style=color:#f92672>/</span>s: dn1, dn2
+               Remote query: <span style=color:#66d9ef>SELECT</span> c1, c2, c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t1 t1 <span style=color:#66d9ef>WHERE</span> (c2 <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>) <span style=color:#66d9ef>ORDER</span> <span style=color:#66d9ef>BY</span> <span style=color:#ae81ff>3</span>
+(<span style=color:#ae81ff>10</span> <span style=color:#66d9ef>rows</span>)
+
+benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>verbose</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>right</span> <span style=color:#66d9ef>join</span> t2 <span style=color:#66d9ef>on</span> t1.c1 <span style=color:#f92672>=</span> t2.c1 <span style=color:#66d9ef>left</span> <span style=color:#66d9ef>join</span>  t3 <span style=color:#66d9ef>on</span> t3.c1 <span style=color:#f92672>=</span> t2.c1 <span style=color:#66d9ef>where</span> t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span> <span style=color:#66d9ef>limit</span> <span style=color:#ae81ff>10</span> <span style=color:#66d9ef>offset</span> <span style=color:#ae81ff>100</span>;
+                                                  QUERY PLAN
+<span style=color:#75715e>------------------------------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;__REMOTE_LIMIT_QUERY__&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>09</span>..<span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>10</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>10</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>36</span>)
+   <span style=color:#66d9ef>Output</span>: t1.c1, t1.c2, t1.c3, t2.c1, t2.c2, t2.c3, t3.c1, t3.c2, t3.c3
+   <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+   Node<span style=color:#f92672>/</span>s: dn1
+   Remote query: <span style=color:#66d9ef>SELECT</span> l.a_1, l.a_2, l.a_3, l.a_4, l.a_5, l.a_6, r.a_1, r.a_2, r.a_3 <span style=color:#66d9ef>FROM</span> ((<span style=color:#66d9ef>SELECT</span> l_1.a_1, l_1.a_2, l_1.a_3, r_1.a_1, r_1.a_2, r_1.a_3 <span style=color:#66d9ef>FROM</span> ((<span style=color:#66d9ef>SELECT</span> t1.c1, t1.c2, t1.c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t1 t1 <span style=color:#66d9ef>WHERE</span> (t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>)) l_1(a_1, a_2, a_3) <span style=color:#66d9ef>JOIN</span> (<span style=color:#66d9ef>SELECT</span> t2.c1, t2.c2, t2.c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t2 t2 <span style=color:#66d9ef>WHERE</span> (t2.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>)) r_1(a_1, a_2, a_3)<span style=color:#66d9ef>ON</span> (<span style=color:#66d9ef>true</span>)) <span style=color:#66d9ef>WHERE</span> <span style=color:#66d9ef>true</span>) l(a_1, a_2, a_3, a_4, a_5, a_6) <span style=color:#66d9ef>LEFT</span> <span style=color:#66d9ef>JOIN</span> (<span style=color:#66d9ef>SELECT</span> t3.c1, t3.c2, t3.c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t3 t3 <span style=color:#66d9ef>WHERE</span> (t3.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>)) r(a_1, a_2, a_3) <span style=color:#66d9ef>ON</span> ((r.a_1 <span style=color:#f92672>=</span> l.a_4))) <span style=color:#66d9ef>WHERE</span> <span style=color:#66d9ef>true</span> <span style=color:#66d9ef>OFFSET</span> <span style=color:#e6db74>&#39;100&#39;</span>::bigint <span style=color:#66d9ef>LIMIT</span> <span style=color:#e6db74>&#39;10&#39;</span>::bigint
+(<span style=color:#ae81ff>5</span> <span style=color:#66d9ef>rows</span>)
+
+benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>verbose</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>right</span> <span style=color:#66d9ef>join</span> t2 <span style=color:#66d9ef>on</span> t1.c1 <span style=color:#f92672>=</span> t2.c1 <span style=color:#66d9ef>left</span> <span style=color:#66d9ef>join</span>  t3 <span style=color:#66d9ef>on</span> t3.c1 <span style=color:#f92672>=</span> t2.c1 <span style=color:#66d9ef>where</span> t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span> <span style=color:#66d9ef>limit</span> <span style=color:#ae81ff>10</span>;
+                                                 QUERY PLAN
+<span style=color:#75715e>-------------------------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Limit</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>11</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>10</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>36</span>)
+   <span style=color:#66d9ef>Output</span>: t1.c1, t1.c2, t1.c3, t2.c1, t2.c2, t2.c3, t3.c1, t3.c2, t3.c3
+   <span style=color:#f92672>-&gt;</span>  Nested Loop  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>104078</span>.<span style=color:#ae81ff>12</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>937970</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>36</span>)
+         <span style=color:#66d9ef>Output</span>: t1.c1, t1.c2, t1.c3, t2.c1, t2.c2, t2.c3, t3.c1, t3.c2, t3.c3
+         <span style=color:#f92672>-&gt;</span>  Nested Loop <span style=color:#66d9ef>Left</span> <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1049</span>.<span style=color:#ae81ff>17</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>110</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>24</span>)
+               <span style=color:#66d9ef>Output</span>: t2.c1, t2.c2, t2.c3, t3.c1, t3.c2, t3.c3
+               <span style=color:#66d9ef>Join</span> Filter: (t3.c1 <span style=color:#f92672>=</span> t2.c1)
+               <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> t2 <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY_&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>632</span>.<span style=color:#ae81ff>25</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>11</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+                     <span style=color:#66d9ef>Output</span>: t2.c1, t2.c2, t2.c3
+                     <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+                     Node<span style=color:#f92672>/</span>s: dn1
+                     Remote query: <span style=color:#66d9ef>SELECT</span> c1, c2, c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t2 t2 <span style=color:#66d9ef>WHERE</span> (c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>)
+               <span style=color:#f92672>-&gt;</span>  Materialize  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>415</span>.<span style=color:#ae81ff>30</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>10</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+                     <span style=color:#66d9ef>Output</span>: t3.c1, t3.c2, t3.c3
+                     <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> t3 <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY__1&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>415</span>.<span style=color:#ae81ff>25</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>10</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+                           <span style=color:#66d9ef>Output</span>: t3.c1, t3.c2, t3.c3
+                           <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+                           Node<span style=color:#f92672>/</span>s: dn1
+                           Remote query: <span style=color:#66d9ef>SELECT</span> c1, c2, c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t3 t3 <span style=color:#66d9ef>WHERE</span> (c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>)
+         <span style=color:#f92672>-&gt;</span>  Materialize  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>91325</span>.<span style=color:#ae81ff>63</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>8527</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+               <span style=color:#66d9ef>Output</span>: t1.c1, t1.c2, t1.c3
+               <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> t1 <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY__2&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>91283</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>8527</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+                     <span style=color:#66d9ef>Output</span>: t1.c1, t1.c2, t1.c3
+                     <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+                     Node<span style=color:#f92672>/</span>s: dn1
+                     Remote query: <span style=color:#66d9ef>SELECT</span> c1, c2, c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t1 t1 <span style=color:#66d9ef>WHERE</span> (c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>)
+(<span style=color:#ae81ff>26</span> <span style=color:#66d9ef>rows</span>)
+
+</code></pre></div><p>这里上面的这条语句没有实现limit下推，但是这里确定对应的逻辑已经实现了，没有选择下推，最大的可能是代价对比的过程中，path被淘汰了。</p>
+<h3 id=4-order支持>
+4. order支持
+<a href=#4-order%e6%94%af%e6%8c%81 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>order 有几种优化思路，</p>
+<ol>
+<li>条件约束到单个节点执行，此时order下推</li>
+<li>条件无法约束到单个节点
+<ol>
+<li>dn执行查询，然后数据在<code>coordinate</code>汇总排序</li>
+<li>dn查询排序，然后数据在<code>coordinate</code>执行merge操作</li>
+</ol>
+</li>
+</ol>
+<p>其中简单语句的场景已经实现，因为order 在query中是一个附属的list，FQS中几乎没有检测，所以如果是简单的语句，按照简单语句的逻辑处理。对于复杂语句，需要在后面进行优化</p>
+<p>在pg 原有的逻辑中，sort 在create_plan 中，会在原paln之上建立一个sort node，原plan作为他的subplan，具体细节可以看<code>create_sort_plan</code>，在上面的group的优化中介绍了group的优化原理，这里的sort也是类似的操作</p>
+<p><em><strong>如果sort的subplan是remoteplan 的时候，从sort中抽取相关信息，构造<code>remote query</code> 的sortcluase，如果<code>remote plan</code>只有一个执行节点，则直接返回subplan，否则返回sort</strong></em></p>
+<p>所以这里可以看出sort 在有多个执行节点的时候，节点上的语句也会进行sort，然后再<code>coordinate</code>上再执行排序操作，具体的执行计划如下</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>   benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>verbose</span>  <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>order</span> <span style=color:#66d9ef>by</span> c2;
+                                            QUERY PLAN
+   <span style=color:#75715e>---------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span>    Sort  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>99337</span>.<span style=color:#ae81ff>82</span>..<span style=color:#ae81ff>99587</span>.<span style=color:#ae81ff>82</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>100000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+      <span style=color:#66d9ef>Output</span>: t1.c1, t1.c2, t1.c3
+      Sort <span style=color:#66d9ef>Key</span>: t1.c2
+      <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;__REMOTE_SORT_QUERY__&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>91033</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>100000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+            <span style=color:#66d9ef>Output</span>: t1.c1, t1.c2, t1.c3
+            <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+            Node<span style=color:#f92672>/</span>s: dn1, dn2
+            Remote query: <span style=color:#66d9ef>SELECT</span> c1, c2, c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t1 t1 <span style=color:#66d9ef>WHERE</span> <span style=color:#66d9ef>true</span> <span style=color:#66d9ef>ORDER</span> <span style=color:#66d9ef>BY</span> <span style=color:#ae81ff>2</span>
+   (<span style=color:#ae81ff>8</span> <span style=color:#66d9ef>rows</span>)
+</code></pre></div><p>此执行计划明显可以看到ship 的语句也进行了排序，在<code>coordinate</code>上也进行排序，这里<code>coordinate</code>上的排序进行了一些优化，类似于merge操作，而不是一个完整的排序，这里也可以取消dn上的排序，但是并不知道这两者之间性能差异有多大，适用场景是什么，所以暂时没有改动。</p>
+<p>dn语句上的sort原本是为了下发的语句添加的，如果有约束条件，则语句表现如下</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>verbose</span>  <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> <span style=color:#66d9ef>order</span> <span style=color:#66d9ef>by</span> c2;
+                                   QUERY PLAN
+<span style=color:#75715e>--------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;__REMOTE_FQS_QUERY__&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
+   <span style=color:#66d9ef>Output</span>: t1.c1, t1.c2, t1.c3
+   Node<span style=color:#f92672>/</span>s: dn2
+   Remote query: <span style=color:#66d9ef>SELECT</span> c1, c2, c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>public</span>.t1 t1 <span style=color:#66d9ef>WHERE</span> (c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span>) <span style=color:#66d9ef>ORDER</span> <span style=color:#66d9ef>BY</span> c2
+(<span style=color:#ae81ff>4</span> <span style=color:#66d9ef>rows</span>)
+</code></pre></div><p>另外语句sort优化的时候，检测的plan是<code>Sort->remoteQuery</code>，所以满足这个模式的plan都可以添加sort支持，根据实际执行的dn选择合适的执行计划，例如下面的复杂的语句</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>verbose</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>right</span> <span style=color:#66d9ef>join</span> t2 <span style=color:#66d9ef>on</span> t1.c1 <span style=color:#f92672>=</span> t2.c1 <span style=color:#66d9ef>left</span> <span style=color:#66d9ef>join</span>  t3 <span style=color:#66d9ef>on</span> t3.c1 <span style=color:#f92672>=</span> t2.c1 <span style=color:#66d9ef>where</span> t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span> <span style=color:#66d9ef>order</span> <span style=color:#66d9ef>by</span> t3.c2;
+                                                                              QUERY PLAN
+<span style=color:#75715e>--------------------------------------------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;__REMOTE_SORT_QUERY__&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>14467</span>.<span style=color:#ae81ff>87</span>..<span style=color:#ae81ff>14787</span>.<span style=color:#ae81ff>67</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>127920</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>36</span>)
+   <span style=color:#66d9ef>Output</span>: t1.c1, t1.c2, t1.c3, t2.c1, t2.c2, t2.c3, t3.c1, t3.c2, t3.c3
+   <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+   Node<span style=color:#f92672>/</span>s: dn1
+   Remote query: <span style=color:#66d9ef>SELECT</span> l.a_1, l.a_2, l.a_3, l.a_4, l.a_5, l.a_6, r.a_1, r.a_2, r.a_3 <span style=color:#66d9ef>FROM</span> ((<span style=color:#66d9ef>SELECT</span> l_1.a_1, l_1.a_2, l_1.a_3, r_1.a_1, r_1.a_2, r_1.a_3 <span style=color:#66d9ef>FROM</span> ((<span style=color:#66d9ef>SELECT</span> t1.c1, t1.c2, t1.c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t1 t1 <span style=color:#66d9ef>WHERE</span> (t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>)) l_1(a_1, a_2, a_3) <span style=color:#66d9ef>JOIN</span> (<span style=color:#66d9ef>SELECT</span> t2.c1, t2.c2, t2.c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t2 t2 <span style=color:#66d9ef>WHERE</span> (t2.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>)) r_1(a_1, a_2, a_3) <span style=color:#66d9ef>ON</span> (<span style=color:#66d9ef>true</span>)) <span style=color:#66d9ef>WHERE</span> <span style=color:#66d9ef>true</span>) l(a_1,a_2, a_3, a_4, a_5, a_6) <span style=color:#66d9ef>LEFT</span> <span style=color:#66d9ef>JOIN</span> (<span style=color:#66d9ef>SELECT</span> t3.c1, t3.c2, t3.c3 <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.t3 t3 <span style=color:#66d9ef>WHERE</span> (t3.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>)) r(a_1, a_2, a_3) <span style=color:#66d9ef>ON</span> ((r.a_1 <span style=color:#f92672>=</span> l.a_4))) <span style=color:#66d9ef>WHERE</span> <span style=color:#66d9ef>true</span> <span style=color:#66d9ef>ORDER</span> <span style=color:#66d9ef>BY</span> <span style=color:#ae81ff>8</span>
+(<span style=color:#ae81ff>5</span> <span style=color:#66d9ef>rows</span>)
+</code></pre></div><p>对于复杂的语句，这里一般在优化过程中，在优化到聚合或者sort算子的时候，如果是此时plan是多节点执行的话，一般早就被淘汰，所以复杂语句这里一般都是优化的一个执行节点的情况，这也是本次优化的目标</p>
+<h3 id=5-子查询支持>
+5. 子查询支持
+<a href=#5-%e5%ad%90%e6%9f%a5%e8%af%a2%e6%94%af%e6%8c%81 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p>在FQS中几乎不支持子查询的check，一般都会失败，只支持极为简单的语句，这里稍作修改，支持下面的类似的场景</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span>  <span style=color:#66d9ef>select</span> <span style=color:#66d9ef>count</span> (<span style=color:#f92672>*</span>) <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> <span style=color:#66d9ef>exists</span> (
+  <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t2 <span style=color:#66d9ef>where</span> t2.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>
+) <span style=color:#66d9ef>and</span> <span style=color:#66d9ef>exists</span> (
+  <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t3 <span style=color:#66d9ef>where</span> t3.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>
+) <span style=color:#66d9ef>and</span> t1.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>;
+                                 QUERY PLAN
+<span style=color:#75715e>----------------------------------------------------------------------------
+</span><span style=color:#75715e></span> <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;__REMOTE_FQS_QUERY__&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
+   <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+   Node<span style=color:#f92672>/</span>s: dn1
+(<span style=color:#ae81ff>3</span> <span style=color:#66d9ef>rows</span>)
+</code></pre></div><p>上面的语句属于子链接的优化，且语句在每一个子查询上都有一个约束条件的，FQS中就是使用次约束条件才正确的计算了exec_node，然后在这里还添加了一些限制条件，在FQS中，只允许exists语句，其他子链接不支持，因为其他的子链接中都有隐藏的链接条件，在FQS中处理较为困难，所以直接判断失败。</p>
+<p>另外对于复杂的子查询，需要进行在语句优化中综合上下文进行判断，例如<code>a join b on a.c1 = b.c1 where a.c1 = 1</code> 和<code>a join b on a.c1 = b.c1 and a.c1 = 1</code>在FQS中是两种不同的数据结构，但是在语义上是完全相同的，且其中的隐含条件<code>b.c1 = 1</code>是需要我们进行推导才能知道的，仅仅凭上述的条件，对于a表和b表，得到的<code>exec_nodes</code>完全无意义的，这里也可以把后续的对应的优化操作提前，但是场景太多，所有对于这种场景，需要推后到后面的优化阶段进行判断</p>
+<p>所以子查询都是在FQS之后进行优化的，而在优化过程中，对于子查询，pg有两种优化思路，一是上拉为join，此时使用join的优化逻辑优化，前面的join优化已经处理掉了；二是直接优化为subplan，此时subplan 是一个单独的完整的语句，也可以按照正常的<code>remoteQuery</code>的优化逻辑进行优化</p>
+<p>这里还需要对子链接中存在的问题进行单独说明，前面提到，FQS中只能处理exists类型的子链接，其他类型的子链接中存在隐藏的链接条件，例如</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>benchmarksql<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> t1.c2 <span style=color:#66d9ef>in</span> (<span style=color:#66d9ef>select</span> c2 <span style=color:#66d9ef>from</span> t2 <span style=color:#66d9ef>where</span> t2.c1 <span style=color:#f92672>=</span> <span style=color:#ae81ff>3</span>);
+                                          QUERY PLAN
+<span style=color:#75715e>-----------------------------------------------------------------------------------------------
+</span><span style=color:#75715e></span> Hash Semi <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>632</span>.<span style=color:#ae81ff>33</span>..<span style=color:#ae81ff>91994</span>.<span style=color:#ae81ff>57</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>6000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+   Hash Cond: (t1.c2 <span style=color:#f92672>=</span> t2.c2)
+   <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> t1 <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY_&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>91033</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>100000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+         <span style=color:#66d9ef>Primary</span> node<span style=color:#f92672>/</span>s: dn1
+         Node<span style=color:#f92672>/</span>s: dn1, dn2
+   <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>632</span>.<span style=color:#ae81ff>25</span>..<span style=color:#ae81ff>632</span>.<span style=color:#ae81ff>25</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>6</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+         <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> t2 <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY__1&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>632</span>.<span style=color:#ae81ff>25</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>6</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+               Node<span style=color:#f92672>/</span>s: dn2
+(<span style=color:#ae81ff>8</span> <span style=color:#66d9ef>rows</span>)
+</code></pre></div><p>上面的语句中的隐藏条件为<code>t1.c2 = t2.c2</code>，在没有表达式推导的时候，这个语句是无法确定是否能在一个数据节点运算的，所以此类语句在FQS中都限制掉了，需要在后面的优化过程中进行处理。</p>
+<p>前面提到<code>remoteQuery</code>的实现原理，<code>remote query</code>之后在生成plan 之后，会使用plan构造query，然后使用query deparse 出语句，发送到<code>datanode</code>，执行，但是在pg 中，并没有<code>semi join</code> 和anti join，此时如果优化出来的语句是<code>semi join</code>或者anti join，则即使前面优化通过，确定可以生成remoteplan，但是会deparse失败，而在pg中，一般是子链接会生成这两种join。</p>
+<p>所以对于此类语句。暂时搁置，解决方案有</p>
+<ol>
+<li>语句中如果有子链接，则保存原始的query，优化的时候按照原有的逻辑进行优化，join中放开对<code>semi join</code> 的限制，最后如果生成的plan是remotequery且只有一个执行节点，则使用保存的query 进行deparse，类似将FQS延申到这里，整个优化过程只是进行一个判断过程
+<ol>
+<li>问题是语句情况复杂，场景复杂，逻辑复杂，需要对整个语句有完整的把握，需要实现过程是简单的，但是简但的替换需要考虑的问题很多</li>
+<li>逻辑上来说，只要最后如果plan是remotequery，那就代表整个优化过程中已经对语句进行了完整的判断，这里是可以无条件替换的，但是有人可以保证直接替换没有问题吗</li>
+</ol>
+</li>
+<li>在deparse中实现<code>semi join</code> 的等意语句的转换，无法deparse为<code>semi join</code>，则直接转换为等义语句
+<ol>
+<li>需要对<code>semi join</code>有完整的认知</li>
+</ol>
+</li>
+<li>把子链接以及join以及表达式的优化提前到FQS中，在FQS中进行判断</li>
+<li>维持原状</li>
+</ol>
+<h2 id=遗留问题>
+遗留问题
+<a href=#%e9%81%97%e7%95%99%e9%97%ae%e9%a2%98 class=h-anchor aria-hidden=true>#</a>
+</h2>
+<ol>
+<li>子链接优化为<code>semi join</code>之后无法deparse</li>
+<li>代价模型需要综合<code>cluster</code>进行考虑，需要明确代价模型的计算原则</li>
+<li>动态参数支持</li>
+<li>check 更多的场景</li>
+</ol>
+<hr>
+<p>进一步优化的可能
+如聚合函数更加细化</p>
+<p>count() = sum(count(all dn))
+sum() = sum(sum(all dn))
+max() = max(max(all dn))
+min() = min(min(all dn))
+avg() = sum()/count() = sum(sum(all dn)) / sum(count(all dn))
+sort() = merge(sort(all dn))
+limit() = limit(limit(all dn))</p>
+<blockquote>
+</blockquote>
+</div>
+<div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>Read other posts</span>
+<hr>
+</div>
+<div class=pagination__buttons>
+<span class="button previous">
+<a href=https://askyx.github.io/posts/personal/%E7%AE%80%E5%8E%86/>
+<span class=button__icon>←</span>
+<span class=button__text></span>
+</a>
+</span>
+<span class="button next">
+<a href=https://askyx.github.io/posts/postgres/sublink/>
+<span class=button__text></span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<div class=copyright>
+<span>© 2023 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
+</div>
+</div>
+</footer>
+<script src=https://askyx.github.io/assets/main.js></script>
+<script src=https://askyx.github.io/assets/prism.js></script>
+</div>
+</body>
+</html>

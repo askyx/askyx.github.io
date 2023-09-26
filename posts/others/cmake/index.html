@@ -1,0 +1,226 @@
+<!doctype html><html lang=en>
+<head>
+<title>
+cmake 速查模板 ::
+Esoye — My note blog
+</title>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="cmake 速记模板 #  添加第三方库 #  include(FetchContent) function(get_third_dep dep_name dep_url dep_tag) FetchContent_Declare(${dep_name} QUIET SOURCE_DIR ${CMAKE_BINARY_DIR}/_deps/src/${dep_name} BINARY_DIR ${CMAKE_BINARY_DIR}/_deps/build/${dep_name} SUBBUILD_DIR ${CMAKE_BINARY_DIR}/_deps/sub/${dep_name} GIT_REPOSITORY ${dep_url} GIT_TAG ${dep_tag} GIT_PROGRESS TRUE GIT_SHALLOW TRUE ) FetchContent_MakeAvailable(${dep_name}) endfunction(get_third_dep) get_third_dep(spdlog https://ghproxy.com/https://github.com/gabime/spdlog.git v1.11.0) get_third_dep(googletest https://ghproxy.com/https://github.com/google/googletest.git release-1.12.1) get_third_dep(asio https://ghproxy.com/https://github.com/chriskohlhoff/asio.git asio-1-28-0)  # 添加 head only 库 add_library(asio INTERFACE) target_include_directories(asio INTERFACE ${CMAKE_BINARY_DIR}/_deps/src/asio/asio/include ) target_compile_definitions(asio INTERFACE ASIO_STANDALONE ASIO_NO_DEPRECATED ) target_link_libraries(asio INTERFACE pthread ) 添加 yacc lex 编译 #  find_package(FLEX REQUIRED) find_package(BISON 3.">
+<meta name=keywords content="数据库">
+<meta name=robots content="noodp">
+<link rel=canonical href=https://askyx.github.io/posts/others/cmake/>
+<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
+<link rel=stylesheet href=https://askyx.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://askyx.github.io/img/favicon.png>
+<link href=https://askyx.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="cmake 速查模板">
+<meta name=twitter:description content="cmake 速查模板，自用">
+<meta property="og:title" content="cmake 速查模板">
+<meta property="og:description" content="cmake 速查模板，自用">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://askyx.github.io/posts/others/cmake/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2023-08-09T17:34:54+08:00">
+<meta property="article:modified_time" content="2023-08-09T17:34:54+08:00"><meta property="og:site_name" content="Esoye">
+</head>
+<body class=light-theme>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archive>Archive</a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archive>Archive</a></li>
+</ul>
+</nav>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class=post>
+<h1 class=post-title>cmake 速查模板</h1>
+<div class=post-meta>
+<span class=post-date>
+2023-08-09
+</span>
+</div>
+<span class=post-tags>
+<a href=https://askyx.github.io/tags/c/c++/>#C/C++</a>&nbsp;
+<a href=https://askyx.github.io/tags/cmake/>#cmake</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E6%A8%A1%E6%9D%BF%E5%BA%93/>#模板库</a>&nbsp;
+</span>
+<div class=post-content>
+<h2 id=cmake-速记模板>
+cmake 速记模板
+<a href=#cmake-%e9%80%9f%e8%ae%b0%e6%a8%a1%e6%9d%bf class=h-anchor aria-hidden=true>#</a>
+</h2>
+<h3 id=添加第三方库>
+添加第三方库
+<a href=#%e6%b7%bb%e5%8a%a0%e7%ac%ac%e4%b8%89%e6%96%b9%e5%ba%93 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
+include(FetchContent)
+function(get_third_dep dep_name dep_url dep_tag)
+  FetchContent_Declare(<span style=color:#960050;background-color:#1e0010>$</span>{dep_name}
+    QUIET
+    SOURCE_DIR <span style=color:#960050;background-color:#1e0010>$</span>{CMAKE_BINARY_DIR}<span style=color:#f92672>/</span>_deps<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span><span style=color:#960050;background-color:#1e0010>$</span>{dep_name}
+    BINARY_DIR <span style=color:#960050;background-color:#1e0010>$</span>{CMAKE_BINARY_DIR}<span style=color:#f92672>/</span>_deps<span style=color:#f92672>/</span>build<span style=color:#f92672>/</span><span style=color:#960050;background-color:#1e0010>$</span>{dep_name}
+    SUBBUILD_DIR <span style=color:#960050;background-color:#1e0010>$</span>{CMAKE_BINARY_DIR}<span style=color:#f92672>/</span>_deps<span style=color:#f92672>/</span>sub<span style=color:#f92672>/</span><span style=color:#960050;background-color:#1e0010>$</span>{dep_name}
+    GIT_REPOSITORY <span style=color:#960050;background-color:#1e0010>$</span>{dep_url}
+    GIT_TAG <span style=color:#960050;background-color:#1e0010>$</span>{dep_tag}
+    GIT_PROGRESS TRUE
+    GIT_SHALLOW TRUE
+  )
+  FetchContent_MakeAvailable(<span style=color:#960050;background-color:#1e0010>$</span>{dep_name})
+endfunction(get_third_dep)
+
+get_third_dep(spdlog https:<span style=color:#75715e>//ghproxy.com/https://github.com/gabime/spdlog.git v1.11.0)
+</span><span style=color:#75715e></span>get_third_dep(googletest https:<span style=color:#75715e>//ghproxy.com/https://github.com/google/googletest.git release-1.12.1)
+</span><span style=color:#75715e></span>get_third_dep(asio https:<span style=color:#75715e>//ghproxy.com/https://github.com/chriskohlhoff/asio.git asio-1-28-0)
+</span><span style=color:#75715e></span>
+<span style=color:#75715e># 添加 head only 库
+</span><span style=color:#75715e></span>add_library(asio INTERFACE)
+target_include_directories(asio
+  INTERFACE <span style=color:#960050;background-color:#1e0010>$</span>{CMAKE_BINARY_DIR}<span style=color:#f92672>/</span>_deps<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>asio<span style=color:#f92672>/</span>asio<span style=color:#f92672>/</span>include
+)
+target_compile_definitions(asio
+  INTERFACE
+    ASIO_STANDALONE
+    ASIO_NO_DEPRECATED
+)
+target_link_libraries(asio
+    INTERFACE pthread
+)
+
+</code></pre></div><h3 id=添加-yacc-lex-编译>
+添加 yacc lex 编译
+<a href=#%e6%b7%bb%e5%8a%a0-yacc-lex-%e7%bc%96%e8%af%91 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>find_package(FLEX REQUIRED)
+find_package(BISON <span style=color:#ae81ff>3.5.0</span> REQUIRED)
+
+bison_target(parser
+    <span style=color:#960050;background-color:#1e0010>$</span>{PROJECT_SOURCE_DIR}<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>parser<span style=color:#f92672>/</span>parser.yy
+    <span style=color:#960050;background-color:#1e0010>$</span>{PROJECT_SOURCE_DIR}<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>parser<span style=color:#f92672>/</span>parser.cpp
+    <span style=color:#75715e># DEFINES_FILE ${PROJECT_SOURCE_DIR}/src/include</span><span style=color:#75715e>/parser/parser.hpp</span><span style=color:#75715e>
+</span><span style=color:#75715e></span>    COMPILE_FLAGS <span style=color:#960050;background-color:#1e0010>$</span>{bison_flags})
+
+flex_target(scanner
+  <span style=color:#960050;background-color:#1e0010>$</span>{PROJECT_SOURCE_DIR}<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>parser<span style=color:#f92672>/</span>scanner.lex
+  <span style=color:#960050;background-color:#1e0010>$</span>{PROJECT_SOURCE_DIR}<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>parser<span style=color:#f92672>/</span>scanner.cpp)
+
+ADD_FLEX_BISON_DEPENDENCY(scanner parser)
+
+add_library(ASKY_lib
+  SHARED
+    <span style=color:#960050;background-color:#1e0010>$</span>{ASKY_SRC}
+    <span style=color:#960050;background-color:#1e0010>$</span>{BISON_parser_OUTPUTS}
+    <span style=color:#960050;background-color:#1e0010>$</span>{FLEX_scanner_OUTPUTS}
+)
+
+</code></pre></div><h3 id=添加单元测试>
+添加单元测试
+<a href=#%e6%b7%bb%e5%8a%a0%e5%8d%95%e5%85%83%e6%b5%8b%e8%af%95 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>function(add_cosmos_test test_name test_file)
+  add_executable(<span style=color:#960050;background-color:#1e0010>$</span>{test_name} <span style=color:#960050;background-color:#1e0010>$</span>{test_file})
+  target_link_libraries(<span style=color:#960050;background-color:#1e0010>$</span>{test_name} PRIVATE gtest gtest_main ASKY_lib)
+  add_test(NAME <span style=color:#960050;background-color:#1e0010>$</span>{test_name} COMMAND <span style=color:#960050;background-color:#1e0010>$</span>{test_name})
+endfunction(add_cosmos_test)
+
+foreach(TEST_SOURCE_FILE <span style=color:#960050;background-color:#1e0010>$</span>{ASKY_TEST_SRC})
+  file(RELATIVE_PATH ASKY_TEST_CPP_REL <span style=color:#e6db74>&#34;${PROJECT_SOURCE_DIR}/test&#34;</span> <span style=color:#960050;background-color:#1e0010>$</span>{TEST_SOURCE_FILE})
+  get_filename_component(NOISEPAGE_TEST_DIR <span style=color:#960050;background-color:#1e0010>$</span>{ASKY_TEST_CPP_REL} DIRECTORY)
+  get_filename_component(NOISEPAGE_TEST <span style=color:#960050;background-color:#1e0010>$</span>{TEST_SOURCE_FILE} NAME_WE)
+
+  add_cosmos_test(<span style=color:#960050;background-color:#1e0010>$</span>{NOISEPAGE_TEST} <span style=color:#960050;background-color:#1e0010>$</span>{TEST_SOURCE_FILE})
+endforeach()
+
+</code></pre></div><h3 id=添加-自定义-command>
+添加 自定义 command
+<a href=#%e6%b7%bb%e5%8a%a0-%e8%87%aa%e5%ae%9a%e4%b9%89-command class=h-anchor aria-hidden=true>#</a>
+</h3>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=color:#75715e># clang-format
+</span><span style=color:#75715e></span>add_custom_target(format
+  COMMAND git diff <span style=color:#f92672>--</span>name<span style=color:#f92672>-</span>only <span style=color:#f92672>--</span>diff<span style=color:#f92672>-</span>filter<span style=color:#f92672>=</span>d <span style=color:#f92672>--</span>cached <span style=color:#960050;background-color:#1e0010>&#39;</span><span style=color:#f92672>*</span>.cpp<span style=color:#e6db74>&#39; &#39;</span><span style=color:#f92672>*</span>.h<span style=color:#960050;background-color:#1e0010>&#39;</span> <span style=color:#f92672>|</span> xargs clang<span style=color:#f92672>-</span>format <span style=color:#f92672>-</span>i
+  WORKING_DIRECTORY <span style=color:#960050;background-color:#1e0010>$</span>{PROJECT_SOURCE_DIR}
+)
+
+</code></pre></div><h3 id=cmake-option>
+cmake option
+<a href=#cmake-option class=h-anchor aria-hidden=true>#</a>
+</h3>
+<ul>
+<li><code>option</code> 会缓存在cache 中，直接修改cmake文件不会立刻生效，可以手动 cmake 使用 <code>-D</code> 指定
+<code>cmake .. -DENABLE_ASAN=OFF</code></li>
+</ul>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>option(ENABLE_ASAN          <span style=color:#e6db74>&#34;enable asna check&#34;</span>         ON)
+option(ENABLE_TEST          <span style=color:#e6db74>&#34;enable regress&#34;</span>            OFF)
+option(ENABLE_COVERAGE      <span style=color:#e6db74>&#34;enable coverage&#34;</span>           OFF)
+option(ENABLE_PARSER_TRACE  <span style=color:#e6db74>&#34;enable sql parser trace&#34;</span>   ON)
+
+<span style=color:#66d9ef>if</span> (<span style=color:#960050;background-color:#1e0010>$</span>{ENABLE_ASAN})
+    list(APPEND COMPILE_OPTIONS <span style=color:#e6db74>&#34;-fsanitize=address&#34;</span> <span style=color:#e6db74>&#34;-fno-omit-frame-pointer&#34;</span> <span style=color:#e6db74>&#34;-fno-optimize-sibling-calls&#34;</span>)
+    list(APPEND LINK_OPTIONS <span style=color:#e6db74>&#34;-fsanitize=address&#34;</span>)
+endif ()
+message(STATUS <span style=color:#e6db74>&#34;ASAN: ${ENABLE_ASAN}&#34;</span>)
+
+</code></pre></div>
+</div>
+<div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>Read other posts</span>
+<hr>
+</div>
+<div class=pagination__buttons>
+<span class="button next">
+<a href=https://askyx.github.io/posts/postgres/optimizer/>
+<span class=button__text>Postgres 技术内幕，Optimizer过程分析</span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<div class=copyright>
+<span>© 2023 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
+</div>
+</div>
+</footer>
+<script src=https://askyx.github.io/assets/main.js></script>
+<script src=https://askyx.github.io/assets/prism.js></script>
+</div>
+</body>
+</html>

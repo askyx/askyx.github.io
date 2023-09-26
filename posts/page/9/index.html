@@ -58,6 +58,39 @@ Esoye — My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/others/cmake/>cmake 速查模板</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2023-08-09
+</span>
+</div>
+<span class=post-tags>
+<a href=https://askyx.github.io/tags/c/c++/>#C/C++</a>&nbsp;
+<a href=https://askyx.github.io/tags/cmake/>#cmake</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E6%A8%A1%E6%9D%BF%E5%BA%93/>#模板库</a>&nbsp;
+</span>
+<div class=post-content>
+cmake 速查模板，自用
+</div>
+<div>
+<a class="read-more button" href=/posts/others/cmake/>Read more →</a>
+</div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/optimizer/>Postgres 技术内幕，Optimizer过程分析</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2023-05-08
+</span>
+</div>
+<div class=post-content>
+深度优化探索文章的读书笔记
+</div>
+<div>
+<a class="read-more button" href=/posts/postgres/optimizer/>Read more →</a>
+</div>
+</div>
+<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/postgres/defineinc/>宏使用模板速查</a></h1>
 <div class=post-meta>
 <span class=post-date>
@@ -70,7 +103,7 @@ Esoye — My note blog
 <a href=https://askyx.github.io/tags/%E6%97%A5%E5%BF%97/>#日志</a>&nbsp;
 </span>
 <div class=post-content>
-宏的使用模板，网上的没有太多的详细的例子，这里写了一个模板自用，主要是变长参数
+宏模板，自用
 </div>
 <div>
 <a class="read-more button" href=/posts/postgres/defineinc/>Read more →</a>
@@ -757,6 +790,31 @@ benchmarksql=# explain verbose select no_o_id from bmsql_new_order where no_w_id
 </div>
 <div>
 <a class="read-more button" href=/posts/personal/%E7%AE%80%E5%8E%86/>Read more →</a>
+</div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/remotequery/></a></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+remote Query # 精确选择数据源，需要从语句的约束条件中计算出具体的执行数据源节点，然后把语句下发的对应的 DN 操作尽可能下推，下推一些操作到对应的DN上执行 remote query当前使用两阶段优化
+第一阶段是FQS，对语句进行简单的判断，如果语句可以完全在DN上执行，则直接在这里创建remote plan，然后直接返回，如下例子
+benchmarksql=# explain select * from t1; QUERY PLAN ---------------------------------------------------------------------------- Data Node Scan on "__REMOTE_FQS_QUERY__" (cost=0.00..0.00 rows=0 width=0) Primary node/s: dn1 Node/s: dn1, dn2 (3 rows) 第二阶段，FQS判断失败的语句，此时需要进行常规优化，一般是语句需要DN之间的数据发生交换的时候，例如join使用多表， 但是关联条件不是分区键，此时需要把DN的数据读取到 CN 上，然后进行关联，
+postgres=# explain select * from t1 join t2 on t1.c1 = t2.c1; QUERY PLAN --------------------------------------------------------------------------------------------------- Hash Join (cost=2752.50..5509.65 rows=3000 width=16) Hash Cond: (t2.
+</div>
+<div>
+<a class="read-more button" href=/posts/postgres/remotequery/>Read more →</a>
+</div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/sublink/></a></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+typedef struct SubPlan { pg_node_attr(no_query_jumble) Expr xpr; /* Fields copied from original SubLink: */ SubLinkType subLinkType; /* see above */ /* The combining operators, transformed to an executable expression: */ Node *testexpr; /* OpExpr or RowCompareExpr expression tree */ List *paramIds; /* IDs of Params embedded in the above */ /* Identification of the Plan tree to use: */ int plan_id; /* Index (from 1) in PlannedStmt.subplans */ /* Identification of the SubPlan for EXPLAIN and debugging purposes: */ char *plan_name; /* A name assigned during planning */ /* Extra data useful for determining subplan's output type: */ Oid firstColType; /* Type of first column of subplan result */ int32 firstColTypmod; /* Typmod of first column of subplan result */ Oid firstColCollation; /* Collation of first column of subplan result */ /* Information about execution strategy: */ bool useHashTable; /* true to store subselect output in a hash table (implies we are doing "IN") */ bool unknownEqFalse; /* true if it's okay to return FALSE when the * spec result is UNKNOWN; this allows much * simpler handling of null values */ bool parallel_safe; /* is the subplan parallel-safe?
+</div>
+<div>
+<a class="read-more button" href=/posts/postgres/sublink/>Read more →</a>
 </div>
 </div>
 <div class="post on-list">

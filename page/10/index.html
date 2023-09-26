@@ -59,6 +59,26 @@ My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/others/%E5%8A%A8%E6%80%81%E8%AF%AD%E5%8F%A5/></a></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+prepare s34(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc; explain verbose execute s34(4,1); prepare s35(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc for update; explain verbose execute s35(4,1);
+prepare s35(int, int) as select a.no_o_id from bmsql_new_order a join bmsql_new_order b on a.no_w_id = b.no_w_id and a.no_w_id = 4 order by no_o_id asc;
+</div>
+<div><a class="read-more button" href=/posts/others/%E5%8A%A8%E6%80%81%E8%AF%AD%E5%8F%A5/>Read more →</a></div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/others/%E9%9D%99%E6%80%81%E8%AF%AD%E5%8F%A5/></a></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+explain verbose select no_o_id from bmsql_new_order where no_w_id = 4 and no_d_id = 1 order by no_o_id asc;
+benchmarksql=# explain verbose select no_o_id from bmsql_new_order where no_w_id = 4 and no_d_id = 1 order by no_o_id asc; QUERY PLAN # Data Node Scan on &ldquo;REMOTE_FQS_QUERY&rdquo; (cost=0.00..0.00 rows=0 width=0) Output: bmsql_new_order.no_o_id Node/s: dn2 Remote query: SELECT no_o_id FROM public.bmsql_new_order bmsql_new_order WHERE ((no_w_id = 4) AND (no_d_id = 1)) ORDER BY no_o_id (4 rows)
+</div>
+<div><a class="read-more button" href=/posts/others/%E9%9D%99%E6%80%81%E8%AF%AD%E5%8F%A5/>Read more →</a></div>
+</div>
+<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/personal/%E7%AE%80%E5%8E%86/></a></h1>
 <div class=post-meta>
 </div>
@@ -78,23 +98,16 @@ My note blog
 <div><a class="read-more button" href=/posts/personal/%E7%AE%80%E5%8E%86/>Read more →</a></div>
 </div>
 <div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/%E9%85%8D%E7%BD%AE/></a></h1>
+<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/remotequery/></a></h1>
 <div class=post-meta>
 </div>
 <div class=post-content>
-配置文件guc.c
-http://www.postgres.cn/docs/12/view-pg-settings.html
-Column | Type | Collation | Nullable | Default | Storage | Description &mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+&mdash;&mdash;&mdash;+&mdash;&mdash;&mdash;&ndash;+&mdash;&mdash;&mdash;-+&mdash;&mdash;&mdash;+&mdash;&mdash;&mdash;-+&mdash;&mdash;&mdash;&mdash;- name | text | | | | extended | 名称 setting | text | | | | extended | 配置 unit | text | | | | extended | 单位 category | text | | | | extended | 分类 short_desc | text | | | | extended | 描述 extra_desc | text | | | | extended | 附加描述 context | text | | | | extended | 上下文 vartype | text | | | | extended | 参数类型 source | text | | | | extended | 来源 min_val | text | | | | extended | 最小值 max_val | text | | | | extended | 最大值 enumvals | text[] | | | | extended | 枚举的允许值 boot_val | text | | | | extended | 默认值 reset_val | text | | | | extended | 当前session中reset 之后会设置的值 sourcefile | text | | | | extended | 设置文件 sourceline | integer | | | | plain | 文件行号 pending_restart | boolean | | | | plain | 修改文件是否需要重启生效 select name, setting, boot_val, reset_val, sourcefile, sourceline, pending_restart from pg_settings ; View definition: SELECT a.
+remote Query # 精确选择数据源，需要从语句的约束条件中计算出具体的执行数据源节点，然后把语句下发的对应的 DN 操作尽可能下推，下推一些操作到对应的DN上执行 remote query当前使用两阶段优化
+第一阶段是FQS，对语句进行简单的判断，如果语句可以完全在DN上执行，则直接在这里创建remote plan，然后直接返回，如下例子
+benchmarksql=# explain select * from t1; QUERY PLAN ---------------------------------------------------------------------------- Data Node Scan on "__REMOTE_FQS_QUERY__" (cost=0.00..0.00 rows=0 width=0) Primary node/s: dn1 Node/s: dn1, dn2 (3 rows) 第二阶段，FQS判断失败的语句，此时需要进行常规优化，一般是语句需要DN之间的数据发生交换的时候，例如join使用多表， 但是关联条件不是分区键，此时需要把DN的数据读取到 CN 上，然后进行关联，
+postgres=# explain select * from t1 join t2 on t1.c1 = t2.c1; QUERY PLAN --------------------------------------------------------------------------------------------------- Hash Join (cost=2752.50..5509.65 rows=3000 width=16) Hash Cond: (t2.
 </div>
-<div><a class="read-more button" href=/posts/postgres/%E9%85%8D%E7%BD%AE/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/static/mysql/></a></h1>
-<div class=post-meta>
-</div>
-<div class=post-content>
-</div>
-<div><a class="read-more button" href=/posts/static/mysql/>Read more →</a></div>
+<div><a class="read-more button" href=/posts/postgres/remotequery/>Read more →</a></div>
 </div>
 <div class=pagination>
 <div class=pagination__buttons>
@@ -102,6 +115,12 @@ Column | Type | Collation | Nullable | Default | Storage | Description &mdash;&m
 <a href=/page/9/>
 <span class=button__icon>←</span>
 <span class=button__text>Newer posts</span>
+</a>
+</span>
+<span class="button next">
+<a href=/page/11/>
+<span class=button__text>Older posts</span>
+<span class=button__icon>→</span>
 </a>
 </span>
 </div>

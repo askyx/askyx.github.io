@@ -59,6 +59,43 @@ My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/languange/cpp/>C++ Primer Plus</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-02-20
+</span>
+</div>
+<span class=post-tags>
+<a href=https://askyx.github.io/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/>#读书笔记</a>&nbsp;
+<a href=https://askyx.github.io/tags/c++/>#C++</a>&nbsp;
+</span>
+<div class=post-content>
+编译器 # 把高级语言编译成可执行语言工具，分为前端后后端，前端值得是高级语言的解析，后端是指翻译解析之后的结果为机器语言
+多文件 ** 连接 多文件编译可以有两种方式，一是直接编译为一个可以执行文件，二是按模块或者按文件编译为库，然后连接到执行文件
+连接方式有两种， 一是静态连接，把所有的库文件打包到最后的生成文件中，优点是不需要额外的依赖外部环境，独立性强，缺点是文件体积大 二是动态链接，为了解决静态链接的缺点，执行文件在执行到库相关的代码的时候才加载库，有一点需要注意的是，程序运行的时候，在使用到动态库的时候才映射动态库到内存空间中。原理是编译待援在编译的时候，会更具声明生成函数的调用逻辑，但是只是一个地址跳转语句，所以，只要不调用，就不会有问题，当调用到了。才会加载库然后映射库的地址，这个完整的过程称为重定向。 动态连接 C语言编程透视 声明 声明是为了在编译的时候编译器能进行完整的上下文编译。他需要更具声明来确定编译信息，否则编译器无法确定编译中的语句信息，声明可以辅助完成这个情况， 所以理论上编译的时候是可以不需要实现的，可以在其他编译单元中实现声明的函数，其声明的文件可以不引用头文件，即两个编译单元完全可以无任何联系，除了声明之外，在连接的时候，连接器会根据编译出来的信息去确定函数调用情况，这里有一个问题，按上述的描述，是一个声明对应一个实现，如果有一个声明对应多个实现呢 == ： 会有覆盖问题，如果多个动态链接库都有同一个声明的实现，则连接的时候连接第一个，后面的则忽略，这也提醒我们，在大型项目中，避免同名全局函数或者变量，使用namespace或者static限制作用域，
+g++ -o tt ../main.cpp -ldl ./libhellolib.so ./libhellolib1.so LD_LIBRARY_PATH=$PWD ./tt 头文件，避免公用代码的重复，预处理时展开头文件，需要使用#pragma once避免重复引用，头文件只是简单的文件替换，理论上的可以替换任何文本。 cmake * 子模块，使用add_subdirectory引入 * 第三方库 * 只是头文件，直接指定头文件目录编译即可 * 使用子模块 * 使用为连接库 * 使用git模块
+STL
+重点为容器和算法 lambda表达式，实质上是仿函数，是一个结构体实现()运算的重载，捕获的时候按照声明的新式捕获参数，建议使用的时候明确使用的参数，使用哪个就捕获哪一个，否则他实际上会占据一定的大小的，配合std::function使用
+CTAD &mdash; complie-time argument deduction，编译器参数推断，C++17引入的，可以在编译器按照上下文推断类型，具体表现在lambda参数可以使用auto，容器可以不适用&lt;>
+ranges https://zhuanlan.
+</div>
+<div><a class="read-more button" href=/posts/languange/cpp/>Read more →</a></div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/others/adbplan/></a></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+issues # 1490 # 1921 # 1699 # http://10.20.16.216:9090/ADB/AntDB/-/issues/1490 http://10.20.16.216:9090/ADB/AntDB/-/issues/1921 http://10.20.16.216:9090/ADB/AntDB/-/issues/1699
+问题 # 使用到reduce的地方（包括查询）偶现以下错误，再次执行sql就正常；
+ERROR: remote node 16389 closed socket CONTEXT: dynamic reduce 复现方法 # 使用修改分布方式的方式去复现问题，过程如下： 创建100张表，然后并发100，不停执行下面的语句，5分钟之内会出现报错：
+alter table xxx distribute by replication; alter table xxx distribute by random; 无法直接复现 1799 # http://10.20.16.216:9090/ADB/AntDB/-/issues/1779
+问题 # 执行计划不正确导致dyreduce执行出错
+复现方法 # create table tb1( c1 int,c2 varchar(100),c3 varchar(100)); create table tb2(c1 int,sheet_num varchar(100)); create table tb3(c1 int,order_no varchar(100)); explain select count(distinct c2) from tb1 where c2 in (select distinct sheet_num from tb2,tb3 where sheet_num=order_no and c3='1'); 1875 # http://10.
+</div>
+<div><a class="read-more button" href=/posts/others/adbplan/>Read more →</a></div>
+</div>
+<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/others/log/></a></h1>
 <div class=post-meta>
 </div>
@@ -78,26 +115,6 @@ make_new_qual_list需要使用表达式和分区信息构造新的表达式，�
 node_count = 2 Table "public.bmsql_new_order" Column | Type | Nullable | Storage | ---------+---------+----------+---------+ no_w_id | integer | not null | plain | no_d_id | integer | not null | plain | no_o_id | integer | not null | plain | Indexes: "bmsql_new_order_pkey" PRIMARY KEY, btree (no_w_id, no_d_id, no_o_id) Foreign-key constraints: "no_order_fkey" FOREIGN KEY (no_w_id, no_d_id, no_o_id) REFERENCES bmsql_oorder(o_w_id, o_d_id, o_id) DISTRIBUTE BY HASH(no_w_id) TO NODE(dn1, dn2) Access method: heap 数据分布 benchmarksql=# execute direct on (dn1) 'select distinct no_w_id from public.
 </div>
 <div><a class="read-more button" href=/posts/others/%E5%87%BD%E6%95%B0%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/others/%E5%8A%A8%E6%80%81%E8%AF%AD%E5%8F%A5/></a></h1>
-<div class=post-meta>
-</div>
-<div class=post-content>
-prepare s34(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc; explain verbose execute s34(4,1); prepare s35(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc for update; explain verbose execute s35(4,1);
-prepare s35(int, int) as select a.no_o_id from bmsql_new_order a join bmsql_new_order b on a.no_w_id = b.no_w_id and a.no_w_id = 4 order by no_o_id asc;
-</div>
-<div><a class="read-more button" href=/posts/others/%E5%8A%A8%E6%80%81%E8%AF%AD%E5%8F%A5/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/others/%E9%9D%99%E6%80%81%E8%AF%AD%E5%8F%A5/></a></h1>
-<div class=post-meta>
-</div>
-<div class=post-content>
-explain verbose select no_o_id from bmsql_new_order where no_w_id = 4 and no_d_id = 1 order by no_o_id asc;
-benchmarksql=# explain verbose select no_o_id from bmsql_new_order where no_w_id = 4 and no_d_id = 1 order by no_o_id asc; QUERY PLAN # Data Node Scan on &ldquo;REMOTE_FQS_QUERY&rdquo; (cost=0.00..0.00 rows=0 width=0) Output: bmsql_new_order.no_o_id Node/s: dn2 Remote query: SELECT no_o_id FROM public.bmsql_new_order bmsql_new_order WHERE ((no_w_id = 4) AND (no_d_id = 1)) ORDER BY no_o_id (4 rows)
-</div>
-<div><a class="read-more button" href=/posts/others/%E9%9D%99%E6%80%81%E8%AF%AD%E5%8F%A5/>Read more →</a></div>
 </div>
 <div class=pagination>
 <div class=pagination__buttons>

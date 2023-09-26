@@ -59,6 +59,38 @@ My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/course/6.824/coursenote/>Coursenote</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-05-17
+</span>
+</div>
+<div class=post-content>
+随堂笔记 # Why do people build distributed systems? to increase capacity via parallel processing to tolerate faults via replication to match distribution of physical devices e.g. sensors to achieve security via isolation
+分布式的困难点：
+大量的并发操作 具有容错性 难于实现 Lab 1: distributed big-data framework (like MapReduce) Lab 2: fault tolerance library using replication (Raft) Lab 3: a simple fault-tolerant database Lab 4: scalable database performance via sharding
+A big goal: hide the complexity of distribution from applications.
+</div>
+<div><a class="read-more button" href=/posts/course/6.824/coursenote/>Read more →</a></div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/readbooks/leveldb/>LevelDB源码阅读</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-05-15
+</span>
+</div>
+<span class=post-tags>
+<a href=https://askyx.github.io/tags/%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/>#源码阅读</a>&nbsp;
+<a href=https://askyx.github.io/tags/leveldb/>#LevelDB</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/>#存储引擎</a>&nbsp;
+</span>
+<div class=post-content>
+leveldb 源码总结分析
+</div>
+<div><a class="read-more button" href=/posts/readbooks/leveldb/>Read more →</a></div>
+</div>
+<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/readbooks/volcanooptimizer/>VolcanoOptimizer</a></h1>
 <div class=post-meta>
 <span class=post-date>
@@ -96,46 +128,6 @@ Algorithm + Enforcer set，即可应用的物理实现算法 + 可添加的Enfor
 <div class=post-content>
 </div>
 <div><a class="read-more button" href=/posts/readbooks/columbia-optimizer/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/personal/log/>面试</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-03-24
-</span>
-</div>
-<div class=post-content>
-面试 # 只是一个技术汇总
-C++基础 [2 days] [课程- https://github.com/parallel101/course.git]
-内存 内存结构 [https://segmentfault.com/a/1190000039348996]
-c++ 编译出来的是可执行文件，是ELF格式的，他本来就有一些格式上的划分，C++在他的基础上进行了更细的划分，分为五个部分，从高地址到底地址依次为： 1. 内核虚拟内存 进程的虚拟印象 2. 栈 程序自动控制，具体为程序的函数调用，保存局部变量，有大小，可以使用ulimit -s 查看，也可以自行设置，但是建议系统默认即可 * 函数调用机制 调用的时候是一个一个的栈帧，函数参数会在调用者的栈帧中开辟空间，从右到左，所以函数列表的默认值必须从右到左的初始化， 可能和这个有关系，然后被调用者构造栈帧，依次执行 3. 共享库的内存印象 3. 堆 空间有程序员自行维护，向上增长(TIPS: 由于C的历史原因，C++的内存结构还是说堆区，但是在区别new/malloc 和delete/free 的时候，他们的差别之一可能会在内存上有点区别 C的malloc/free可能会说是在堆上分配空间，但是对于C++可能会说的是在自由存储区上分配，自由存储区和堆是不同的概念，堆是操作系统上的概念，但是自由存储区是一个抽象概念 一般new可以是在堆上分配空间，但是可能存在在其他情况，例如在栈上使用new，所以他们不是一个概念，面试的时候说到这里，可以装逼😎) 4. 可写/全局区 对应elf中data段和bss段，data段保存的是已初始化的全局变量或者静态变量，bss保存的是未初始化的数据 5. 只读区/代码段 text段，保存编译之后的指令，不可变 6. 常量区 保存全局变量，不可变，rodata段，记得使用其他手段去尝试修改常量的时候会报错。 TIPS: const修饰的参数不一定是常量，例如他修饰一个函数的参数的时候，参数还是只是在栈中，只是约定不能修改。 7.
-</div>
-<div><a class="read-more button" href=/posts/personal/log/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/readbooks/%E7%8E%B0%E4%BB%A3c++%E7%99%BD%E7%9A%AE%E4%B9%A6/>现代C++白皮书</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-03-06
-</span>
-</div>
-<span class=post-tags>
-<a href=https://askyx.github.io/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/>#读书笔记</a>&nbsp;
-<a href=https://askyx.github.io/tags/c++/>#C++</a>&nbsp;
-</span>
-<div class=post-content>
-读者序 # 之前没有好好的阅读过一本任何技术书籍，一般都是打开前几张，然后慢慢的失去耐心，所有造成的问题是一些书籍上的知识，只会对前面的章节有记忆，而大多数的书籍前面的章节也只是他书籍的入门介绍而已，所以我是个半吊子程序员，工作两年半之后，这个问题越来越困扰着我，有时候看见别人的面帖，感觉那些问题其实都因该是知道答案的，但是当我想要在脑海中把答案整理出来的时候却无从说起，简单的来说就是有的东西我是知道的，但是无法表示出来，不成体系，这给我一个错觉就是我感觉我能力可以，但是落到实地的时候却啥也做不了，脱离了谷歌百度或者其他我之前的资料，我啥都不行。
-我个人觉得问题的解决方式是学会输出，把自己的知识整理输出，通过自己让别人知道一项新技能，新知识，那就代表自己其实已经有了闹靠的基础，知识的输出需要一个载体，我不是老师，公司也没有这个渠道，因为公司的知识交流与工作内容是密切相关的，所以这也是我搭建这个博客的原因，但愿我可以长期的坚持下去，说实话，之前已经有了还几次类似的经历，但是都半途而废了，我希望这是最后一次
-前言 # 书籍是Bjarne Stroustup为HOPL所撰写的论文，目的是介绍c++在过去到现在的发展历程，以及其中一些大的功能点的演化。促发展上来划分C++可以分为两个阶段，一是C++98之前的类C版C++，二是之后的C++11之后的现代C++，在进40年的时间里C++还没有被取代，还可以在如此多的编程语言中占据一些之地，引用Bjarne Stroustup大佬的话说就是因为他填补了编程语言中一个重要的生态位。C++的核心是直接映射硬件和林开销抽象，
-ISO 编程语言可以分为三种，一是有公司主导的编程语言，例如Google的go，C#以及苹果的swift等，二是由社区主导如php，python等，这两种在除了显而易见的好处之外的，都有各自的问题，公司主导的语言的，可能哎公司强势的时候还可以得到发展，但是公司没落之后，语言没有支持可能就无了，还有那家公司主导，那语言就是那家公司的产品，技术上的map由公司指定，小公司没有能力可以影响到语言的后续发展，对于社区，则可能会由于没有一个核心的个人或者组织来引导方向，导致语言偏离最初顶下的发展道路。Bjarne Stroustup就是基于以上的原因，提出组建一个标准委员会来引导C++ 的发展，
-语言特性 具体的定义的语言的规则，有对应的具体的实现
-1. 起源 # C++核心特性
-语言到设备之间的直接映射 零开销抽象 不使用的东西就不需要付出任何代价 使用到的东西就是可以实现的最好的 抽象具体为类，函数，模板，概念和别名 simula 最早的面向对象的语言，之后几乎所有的面向对象的语言都是直接或者间接的受奥他的印象。
-C++最初是在1979年推出的，那时候是真正的带类的C。 Bjarne Stroustup的目的是想要一个可以直接映射硬件，同时又有类似于simula的具有抽象能力的语言，那是一个实验性质的语言的，实现就是把编码从C++逐行翻译到C，之后的1982年，随着人数的增加，他重写了前端，实现了一个功能完整的编译器，但是实际上在代码生成的是时候，还是生成的是C，
-之后就是平稳的发展到推出98版本的C++，不考虑最近的一些新特性的话，我们大部分人的C++ 知识就到这里了。此时C++实现了
-类 多态 运算符重载 类型安全连接 抽象类 模板 更好的泛型编程。大佬最初的时候使用宏实现的泛型编程 异常 RAII *_cast bool STL标准库 上述就是最初的98的C++实现的功能点，实际上也是大多是C++的开发人员知道的最详细的C++知识。之后就是漫长过渡期，直到11版本的推出，使C++进入新时代， 06年单核处理器新能几乎不再提升，所以大部分应用开始寻找可以提升性能的编程语言， C++11 新时代 # 许多新的特性的引入，使得C++类似一个新语言 特性如下
-</div>
-<div><a class="read-more button" href=/posts/readbooks/%E7%8E%B0%E4%BB%A3c++%E7%99%BD%E7%9A%AE%E4%B9%A6/>Read more →</a></div>
 </div>
 <div class=pagination>
 <div class=pagination__buttons>

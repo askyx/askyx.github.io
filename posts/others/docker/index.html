@@ -6,8 +6,7 @@ Esoye — My note blog
 </title>
 <meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
-<meta name=description content="Docker #  新公司的产品的每一个模块是单独运行在容器中的，且由于是使用Java开发的，所以需要有频繁替换包的过程，之前只是简单的了解了docker，但是并没有深入的学习，这里记录docker的使用细节，以便于更好的工作，
-基础概念 #  Docker使用go开发的一种沙箱工具，他使得应用可以单独运行在沙箱中，通过端口映射或者volumes与外界进行交互。这可以让一个机器上可以运行多种不同环境的应用且互不干扰，例如一个比较大型的引用，使用的此方式单独维护一个模块，使得系统的可靠性大大增强
+<meta name=description content="基础概念 #  Docker使用go开发的一种沙箱工具，他使得应用可以单独运行在沙箱中，通过端口映射或者volumes与外界进行交互。这可以让一个机器上可以运行多种不同环境的应用且互不干扰，例如一个比较大型的引用，使用的此方式单独维护一个模块，使得系统的可靠性大大增强
  容器
 镜像运行的实例，一个镜像可以运行多个实例。 镜像
 一个完整的可运行的资源集合 仓库
@@ -19,7 +18,8 @@ Esoye — My note blog
  run
 创建新的容器，且会使用run指定启动规则，例如端口的映射，volumes文件的指定，以及其他重要参数等，这个命令可以说重要，因为同一个镜像，使用不同参数启动之后，效果是不一样的，对于开发来时，更多的是参与后期的开发，如果不是前期的项目设计，这里了解即可，但是最好的是知道他的只要参数的意义，因为和其他命令有的是通用的，例如-i -t -p等 start stop restart exec
 使用此命令可以进入运行中的容器中区，exec -it xxx command attach rm logs cp
-在本地和容器中传输文件 export ps    其他命令基本在遇到的时候，再去查看">
+在本地和容器中传输文件 export ps    其他命令基本在遇到的时候，再去查看
+权限问题 #  Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
 <link rel=canonical href=https://askyx.github.io/posts/others/docker/>
@@ -35,35 +35,9 @@ Esoye — My note blog
 <link href=https://askyx.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
 <meta name=twitter:card content="summary">
 <meta name=twitter:title content="Docker">
-<meta name=twitter:description content="Docker #  新公司的产品的每一个模块是单独运行在容器中的，且由于是使用Java开发的，所以需要有频繁替换包的过程，之前只是简单的了解了docker，但是并没有深入的学习，这里记录docker的使用细节，以便于更好的工作，
-基础概念 #  Docker使用go开发的一种沙箱工具，他使得应用可以单独运行在沙箱中，通过端口映射或者volumes与外界进行交互。这可以让一个机器上可以运行多种不同环境的应用且互不干扰，例如一个比较大型的引用，使用的此方式单独维护一个模块，使得系统的可靠性大大增强
- 容器
-镜像运行的实例，一个镜像可以运行多个实例。 镜像
-一个完整的可运行的资源集合 仓库
-保存镜像  使用 #  这里记录高频次使用的功能，其他的后续记录
-  镜像的管理
- pull push commit
-修改一个容器之后，使用commit在此基础上构建自己的容器 build
-创建一个镜像，使用docker build语句创建，需要自己编写Dockerfile，具体的编写规则可以参考nosipage rmi    容器的管理
- run
-创建新的容器，且会使用run指定启动规则，例如端口的映射，volumes文件的指定，以及其他重要参数等，这个命令可以说重要，因为同一个镜像，使用不同参数启动之后，效果是不一样的，对于开发来时，更多的是参与后期的开发，如果不是前期的项目设计，这里了解即可，但是最好的是知道他的只要参数的意义，因为和其他命令有的是通用的，例如-i -t -p等 start stop restart exec
-使用此命令可以进入运行中的容器中区，exec -it xxx command attach rm logs cp
-在本地和容器中传输文件 export ps    其他命令基本在遇到的时候，再去查看">
+<meta name=twitter:description content="docker 常用命令速查，私用">
 <meta property="og:title" content="Docker">
-<meta property="og:description" content="Docker #  新公司的产品的每一个模块是单独运行在容器中的，且由于是使用Java开发的，所以需要有频繁替换包的过程，之前只是简单的了解了docker，但是并没有深入的学习，这里记录docker的使用细节，以便于更好的工作，
-基础概念 #  Docker使用go开发的一种沙箱工具，他使得应用可以单独运行在沙箱中，通过端口映射或者volumes与外界进行交互。这可以让一个机器上可以运行多种不同环境的应用且互不干扰，例如一个比较大型的引用，使用的此方式单独维护一个模块，使得系统的可靠性大大增强
- 容器
-镜像运行的实例，一个镜像可以运行多个实例。 镜像
-一个完整的可运行的资源集合 仓库
-保存镜像  使用 #  这里记录高频次使用的功能，其他的后续记录
-  镜像的管理
- pull push commit
-修改一个容器之后，使用commit在此基础上构建自己的容器 build
-创建一个镜像，使用docker build语句创建，需要自己编写Dockerfile，具体的编写规则可以参考nosipage rmi    容器的管理
- run
-创建新的容器，且会使用run指定启动规则，例如端口的映射，volumes文件的指定，以及其他重要参数等，这个命令可以说重要，因为同一个镜像，使用不同参数启动之后，效果是不一样的，对于开发来时，更多的是参与后期的开发，如果不是前期的项目设计，这里了解即可，但是最好的是知道他的只要参数的意义，因为和其他命令有的是通用的，例如-i -t -p等 start stop restart exec
-使用此命令可以进入运行中的容器中区，exec -it xxx command attach rm logs cp
-在本地和容器中传输文件 export ps    其他命令基本在遇到的时候，再去查看">
+<meta property="og:description" content="docker 常用命令速查，私用">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://askyx.github.io/posts/others/docker/"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2022-02-20T21:17:58+08:00">
@@ -107,11 +81,19 @@ Esoye — My note blog
 <a href=https://askyx.github.io/tags/docker/>#Docker</a>&nbsp;
 </span>
 <div class=post-content>
-<h2 id=docker>
-Docker
-<a href=#docker class=h-anchor aria-hidden=true>#</a>
-</h2>
-<p>新公司的产品的每一个模块是单独运行在容器中的，且由于是使用Java开发的，所以需要有频繁替换包的过程，之前只是简单的了解了docker，但是并没有深入的学习，这里记录docker的使用细节，以便于更好的工作，</p>
+<h2>Table of Contents</h2>
+<aside class=table-of-contents><nav id=TableOfContents>
+<ul>
+<li><a href=#基础概念>基础概念</a></li>
+<li><a href=#使用>使用</a></li>
+<li><a href=#权限问题>权限问题</a></li>
+<li><a href=#system-has-not-been-booted-with-systemd-as-init-system-pid-1-cant-operate><code>System has not been booted with systemd as init system (PID 1). Can’t operate.</code></a></li>
+<li><a href=#常用命令>常用命令</a></li>
+<li><a href=#构建基础-pg-centos镜像>构建基础 pg centos镜像</a></li>
+<li><a href=#lcov-安装>lcov 安装</a></li>
+<li><a href=#查看-已案转perl-模块>查看 已案转perl 模块</a></li>
+</ul>
+</nav></aside>
 <h2 id=基础概念>
 基础概念
 <a href=#%e5%9f%ba%e7%a1%80%e6%a6%82%e5%bf%b5 class=h-anchor aria-hidden=true>#</a>
@@ -164,6 +146,158 @@ Docker
 </li>
 </ul>
 <p>其他命令基本在遇到的时候，再去查看</p>
+<h2 id=权限问题>
+权限问题
+<a href=#%e6%9d%83%e9%99%90%e9%97%ae%e9%a2%98 class=h-anchor aria-hidden=true>#</a>
+</h2>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell>Got permission denied <span style=color:#66d9ef>while</span> trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get <span style=color:#e6db74>&#34;http://%2Fvar%2Frun%2Fdocker.sock/v1.39/containers/json&#34;</span>: dial unix /var/run/docker.sock: connect: permission denied
+
+sudo groupadd docker         <span style=color:#75715e>#添加docker用户组</span>
+sudo gpasswd -a $USER docker <span style=color:#75715e>#将当前用户添加到docker用户组</span>
+newgrp docker                <span style=color:#75715e>#更新docker用户组</span>
+
+</code></pre></div><h2 id=system-has-not-been-booted-with-systemd-as-init-system-pid-1-cant-operate>
+<code>System has not been booted with systemd as init system (PID 1). Can’t operate.</code>
+<a href=#system-has-not-been-booted-with-systemd-as-init-system-pid-1-cant-operate class=h-anchor aria-hidden=true>#</a>
+</h2>
+<ul>
+<li>使用 &ndash;privileged=true</li>
+<li>/sbin/init</li>
+<li>从一开始就最基础的镜像手动构建，使用docker file 构建镜像之后，即使指定 privileged 也无效</li>
+<li>systemctl 验证</li>
+<li>docker file 指定用户之后， 后续即使容器 systemctl 失败，暂时没有解决方案，gitlab中又需要指定非root用户~~</li>
+<li>gitlab 不支持指定容器用户，gitlab有issue，也有解决方案，但是当前版本runner不支持 指定user</li>
+<li>解决方案
+<ul>
+<li>
+<ol>
+<li>使用ssh到容器中执行，</li>
+</ol>
+<ul>
+<li>无法任务并行，会有端口冲突这类的问题</li>
+</ul>
+</li>
+<li>
+<ol start=2>
+<li>ssh到宿主机中启动docker，然后copy代码到docker 中，或者build镜像然后执行</li>
+</ol>
+<ul>
+<li>可任务并发，后续研究怎么实现</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id=常用命令>
+常用命令
+<a href=#%e5%b8%b8%e7%94%a8%e5%91%bd%e4%bb%a4 class=h-anchor aria-hidden=true>#</a>
+</h2>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell>
+docker run -dit --name centos-p centos /sbin/init
+
+docker run   <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span> --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/asky/asky,target<span style=color:#f92672>=</span>/workspaces/asky <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span> --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/asky/.workspaces,target<span style=color:#f92672>=</span>/workspaces/.common <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span> --privileged<span style=color:#f92672>=</span>true  -itd asky:1  /sbin/init
+
+/home/wen/.workspaces:/workspaces/.common:rw
+
+docker run   <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span> --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/wen/.workspaces,target<span style=color:#f92672>=</span>/workspaces/.common <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span> --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/var/lib/docker/volumes/runner-bpams8g-project-152-concurrent-0-cache-c33bcaa1fd2c77edfc3893b41966cea8/_data,target<span style=color:#f92672>=</span>/builds <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span> --privileged<span style=color:#f92672>=</span>true  -itd asky:1  /sbin/init
+
+                <span style=color:#e6db74>&#34;Source&#34;</span>: <span style=color:#e6db74>&#34;/var/lib/docker/volumes/runner-a8wbhcvb-project-5-concurrent-1-cache-c33bcaa1fd2c77edfc3893b41966cea8/_data&#34;</span>,
+                <span style=color:#e6db74>&#34;Destination&#34;</span>: <span style=color:#e6db74>&#34;/builds&#34;</span>,
+
+docker run    --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/wen/.workspaces,target<span style=color:#f92672>=</span>/workspaces/.common --privileged<span style=color:#f92672>=</span>true -itd asky:latest
+docker run    --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/wen/.workspaces,target<span style=color:#f92672>=</span>/workspaces/.common --privileged<span style=color:#f92672>=</span>true -itd asky:1.0 /sbin/init
+
+docker run -d -p 443:443 -p 80:80 -p 22:22 --name gitlab --restart always <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span>-v $GITLAB_HOME/config:/etc/gitlab:Z -v $GITLAB_HOME/logs:/var/log/gitlab:Z  -v $GITLAB_HOME/data:/var/opt/gitlab:Z gitlab/gitlab-ce
+
+docker exec -it centos-p /bin/bash
+
+docker commit -a <span style=color:#e6db74>&#34;xxx&#34;</span> -m <span style=color:#e6db74>&#34;a new centos 8 env&#34;</span> centos-p  centos-pre:1
+
+docker cp /home/wen/xxxxx/.git  centos-p:/home/xxxxx
+
+
+docker build -f DockerFile -t xxx ./
+
+
+</code></pre></div><h2 id=构建基础-pg-centos镜像>
+构建基础 pg centos镜像
+<a href=#%e6%9e%84%e5%bb%ba%e5%9f%ba%e7%a1%80-pg-centos%e9%95%9c%e5%83%8f class=h-anchor aria-hidden=true>#</a>
+</h2>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-DockerFile data-lang=DockerFile><span style=color:#66d9ef>FROM</span><span style=color:#e6db74> centos:8</span><span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>LABEL</span> description<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;build xxxxx regress env&#34;</span><span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> sed -i <span style=color:#e6db74>&#39;s/mirrorlist/#mirrorlist/g&#39;</span> /etc/yum.repos.d/CentOS-*<span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> sed -i <span style=color:#e6db74>&#39;s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g&#39;</span> /etc/yum.repos.d/CentOS-*<span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> sed -e <span style=color:#e6db74>&#39;s|^mirrorlist=|#mirrorlist=|g&#39;</span> <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span>         -e <span style=color:#e6db74>&#39;s|^#baseurl=http://vault.centos.org/$contentdir|baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos|g&#39;</span> <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span>         -i.bak <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span>         /etc/yum.repos.d/CentOS-*.repo<span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> yum makecache<span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> yum update -y<span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> yum install -y gcc flex bison make perl-ExtUtils-Embed python3 python3-devel readline-devel zlib-devel pam-devel libxml2 libxml2-devel libxslt libxslt-devel openldap openldap-devel wget git perl perl-devel sudo<span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> dnf -y --enablerepo<span style=color:#f92672>=</span>powertools install perl-IPC-Run perl-Capture-Tiny perl-DateTime<span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>WORKDIR</span><span style=color:#e6db74> /home</span><span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> git clone --depth<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> https://ghproxy.com/https://github.com/linux-test-project/lcov -b v1.14 /home/lcov<span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>WORKDIR</span><span style=color:#e6db74> /home/lcov</span><span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> make install<span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> genhtml<span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>WORKDIR</span><span style=color:#e6db74> /home</span><span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> wget https://libssh2.org/download/libssh2-1.11.0.tar.gz<span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> tar -zxf libssh2-1.11.0.tar.gz<span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>WORKDIR</span><span style=color:#e6db74> /home/libssh2-1.11.0</span><span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> ./configure<span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> make install<span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>WORKDIR</span><span style=color:#e6db74> /home</span><span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> rm -rf /home/lcov<span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> rm libssh2-1.11.0.tar.gz<span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> rm -rf /home/libssh2-1.11.0<span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> useradd -ms /bin/bash centos<span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> echo <span style=color:#e6db74>&#39;centos ALL=(ALL) NOPASSWD:ALL&#39;</span> &gt;&gt; /etc/sudoers<span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>USER</span><span style=color:#e6db74> centos</span><span style=color:#960050;background-color:#1e0010>
+</span><span style=color:#960050;background-color:#1e0010>
+</span></code></pre></div><ul>
+<li>使用命令 <code>docker build -f DockerFile -t xxx ./</code></li>
+<li>构建失败时，存在中间镜像，可以从中间镜像开始构造</li>
+<li>后期需要修改的时候，如果是增量修改，可以直接从已构造的镜像继续</li>
+<li>file中需要改变路径不能直接cd，必须使用<code>WORKDIR</code></li>
+<li>指定用户使用 USER</li>
+<li>编写file过程中，如果需要添加某些操作，从文件尾部添加，尽量使用缓存</li>
+</ul>
+<h2 id=lcov-安装>
+lcov 安装
+<a href=#lcov-%e5%ae%89%e8%a3%85 class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>使用perl实现的，极度依赖perl 的某些模块，但是perl模块有的不能直接yum安装，需要使用 <code>powertools</code>，且有的模块使用 powertools 也无法直接安装。。。
+install 之后使用genhtml 验证是否安装完成</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell>
+
+git clone --depth<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> https://github.com/linux-test-project/lcov -b v1.14 /home/lcov
+make install
+
+genhtml
+
+</code></pre></div><h2 id=查看-已案转perl-模块>
+查看 已案转perl 模块
+<a href=#%e6%9f%a5%e7%9c%8b-%e5%b7%b2%e6%a1%88%e8%bd%acperl-%e6%a8%a1%e5%9d%97 class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p>sudo find <code>perl -e 'print "@INC"'</code> -name &lsquo;*.pm&rsquo;</p>
+<p>docker run <br>
+&ndash;mount type=bind,source=/home/wen/.workspaces,target=/workspaces/.common <br>
+-itd centos-antdb</p>
 </div>
 <div class=pagination>
 <div class=pagination__title>

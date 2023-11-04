@@ -59,37 +59,6 @@ My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/course/6.824/raft/>Raft</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-05-30
-</span>
-</div>
-<span class=post-tags>
-<a href=https://askyx.github.io/tags/%E8%AE%BA%E6%96%87/>#论文</a>&nbsp;
-<a href=https://askyx.github.io/tags/raft/>#Raft</a>&nbsp;
-<a href=https://askyx.github.io/tags/6.824/>#6.824</a>&nbsp;
-</span>
-<div class=post-content>
-译文 原文 有用的飞书文档 和其他的算法相比 Strong leader
-日志只能从领导者发送到其他节点 Leader election
-随机计时器选举领导，在心跳机制上加上一些额外的工作 Membership changes
-角色变换 Replicated state machines # 复制状态机一般基于日志实现，通俗的理解只要所有的机器按照相同的顺序执行指令，那么每个节点的状态都是确定的，所以需要把指令日志复制到其他节点上去，这就是一致性算法的工作
-如果只是要求最终所有的节点都执行一样顺序的指令，而不要求实时性，则可以限定
-只有一个节点可以进行写操作，因为只有写操作才可以改变系统的状态 写节点同步指令到其他节点，最终所有节点指令顺序一致 一致性算法的共有特性
-安全性
-不会返回一个错误结果，只要是在非拜占庭错误情况下，包括网络延迟，乱序，丢包，分区，冗余等都可以保障正确性 可用性
-集群只要大多数机器可以正常通信，就可以确保可用，失败节点可以忽略或者后续恢复状态，大多数指的是半数以上 不依赖时序保证一致性
-时钟错误或者消息延迟只有在极端情况下才会导致可用性 慢节点不会影响消息的反馈，消息可以快速的响应 拜占庭将军问题
-Paxos # 难以理解 没有公认的可以实现的基础架构，大部分系统从Paxos开始，在遇到问题的时候自行想办法解决，导致最后的系统实现只能是类似Paxos的算法 Raft # 管理复制状态机的一种算法，他会在集群中选举一个leader，之后会复制所有的日志到其他节点实现一致性
-他可以分解为三个问题
-领导选举 一个新的领导人需要被选举出来，当先存的领导人宕机的时候 日志复制
-领导人必须从客户端接收日志然后复制到集群中的其他节点，并且强制要求其他节点的日志保持和自己相同 安全性
-在 Raft 中安全性的关键是在图 3 中展示的状态机安全：如果有任何的服务器节点已经应用了一个确定的日志条目到它的状态机中，那么其他服务器节点不能在同一个日志索引位置应用一个不同的指令 可以在这个网站查看实例
-</div>
-<div><a class="read-more button" href=/posts/course/6.824/raft/>Read more →</a></div>
-</div>
-<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/course/6.824/gfs/>GFS</a></h1>
 <div class=post-meta>
 <span class=post-date>
@@ -146,6 +115,21 @@ go的return还可以使用不带参数的 &ldquo;naked&rdquo; return，此时要
 func split(sum int) (x, y int) { x = sum * 4 / 9 y = sum - x return } 变量 # 使用var声明变量，声明多个变量的时候可以类似参数列表中的参数，前面参数不需要声明类型。初始化的时候按顺序初始化，且初始化的参数个数必须前后一致
 </div>
 <div><a class="read-more button" href=/posts/languange/go_1/>Read more →</a></div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/course/6.824/coursenote/>Coursenote</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-05-17
+</span>
+</div>
+<div class=post-content>
+随堂笔记 # Why do people build distributed systems? to increase capacity via parallel processing to tolerate faults via replication to match distribution of physical devices e.g. sensors to achieve security via isolation
+分布式的困难点：
+大量的并发操作 具有容错性 难于实现 Lab 1: distributed big-data framework (like MapReduce) Lab 2: fault tolerance library using replication (Raft) Lab 3: a simple fault-tolerant database Lab 4: scalable database performance via sharding
+A big goal: hide the complexity of distribution from applications.
+</div>
+<div><a class="read-more button" href=/posts/course/6.824/coursenote/>Read more →</a></div>
 </div>
 <div class=pagination>
 <div class=pagination__buttons>

@@ -9,9 +9,9 @@ Esoye — My note blog
 <meta name=description content="issues #  1490 #  1921 #  1699 #  http://10.20.16.216:9090/ADB/AntDB/-/issues/1490 http://10.20.16.216:9090/ADB/AntDB/-/issues/1921 http://10.20.16.216:9090/ADB/AntDB/-/issues/1699
 问题 #  使用到reduce的地方（包括查询）偶现以下错误，再次执行sql就正常；
 ERROR: remote node 16389 closed socket CONTEXT: dynamic reduce 复现方法 #  使用修改分布方式的方式去复现问题，过程如下： 创建100张表，然后并发100，不停执行下面的语句，5分钟之内会出现报错：
-alter table xxx distribute by replication; alter table xxx distribute by random;  无法直接复现  1799 #  http://10.20.16.216:9090/ADB/AntDB/-/issues/1779
+alter table xxx distribute by replication; alter table xxx distribute by random;  无法直接复现  1779 #  http://10.20.16.216:9090/ADB/AntDB/-/issues/1779
 问题 #  执行计划不正确导致dyreduce执行出错
-复现方法 #  create table tb1( c1 int,c2 varchar(100),c3 varchar(100)); create table tb2(c1 int,sheet_num varchar(100)); create table tb3(c1 int,order_no varchar(100)); explain select count(distinct c2) from tb1 where c2 in (select distinct sheet_num from tb2,tb3 where sheet_num=order_no and c3=&amp;#39;1&amp;#39;); 1875 #  http://10.">
+复现方法 #  create table tttb1( c1 int,c2 varchar(100),c3 varchar(100)); create table tttb2(c1 int,sheet_num varchar(100)); create table tttb3(c1 int,order_no varchar(100)); explain select count(distinct c2) from tttb1 where c2 in (select distinct sheet_num from tttb2,tttb3 where sheet_num=order_no and c3=&amp;#39;1&amp;#39;); create table tb1(c1 int,c2 varchar(100),c3 varchar(100)); create table tb2(c1 int,sheet_num varchar(100)); create table tb3(c1 int,order_no varchar(100)); explain select count(distinct c2) from tb1 where c2 in (select distinct sheet_num from tb2,tb3 where sheet_num=order_no and c3=&amp;#39;1&amp;#39;); insert into tb1 select (random()*10000000)::int, (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); insert into tb2 select (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); insert into tb3 select (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); create table tb1int(c1 int,c2 int,c3 int); create table tb2int(c1 int,sheet_num int); create table tb3int(c1 int,order_no int); explain select count(distinct c2) from tb1int where c2 in (select distinct sheet_num from tb2int,tb3int where sheet_num=order_no and c3=1); insert into tb1int select (random()*10000000)::int, (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); insert into tb2int select (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); insert into tb3int select (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); 1875 #  http://10.">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
 <link rel=canonical href=https://askyx.github.io/posts/others/adbplan/>
@@ -30,16 +30,16 @@ alter table xxx distribute by replication; alter table xxx distribute by random;
 <meta name=twitter:description content="issues #  1490 #  1921 #  1699 #  http://10.20.16.216:9090/ADB/AntDB/-/issues/1490 http://10.20.16.216:9090/ADB/AntDB/-/issues/1921 http://10.20.16.216:9090/ADB/AntDB/-/issues/1699
 问题 #  使用到reduce的地方（包括查询）偶现以下错误，再次执行sql就正常；
 ERROR: remote node 16389 closed socket CONTEXT: dynamic reduce 复现方法 #  使用修改分布方式的方式去复现问题，过程如下： 创建100张表，然后并发100，不停执行下面的语句，5分钟之内会出现报错：
-alter table xxx distribute by replication; alter table xxx distribute by random;  无法直接复现  1799 #  http://10.20.16.216:9090/ADB/AntDB/-/issues/1779
+alter table xxx distribute by replication; alter table xxx distribute by random;  无法直接复现  1779 #  http://10.20.16.216:9090/ADB/AntDB/-/issues/1779
 问题 #  执行计划不正确导致dyreduce执行出错
-复现方法 #  create table tb1( c1 int,c2 varchar(100),c3 varchar(100)); create table tb2(c1 int,sheet_num varchar(100)); create table tb3(c1 int,order_no varchar(100)); explain select count(distinct c2) from tb1 where c2 in (select distinct sheet_num from tb2,tb3 where sheet_num=order_no and c3='1'); 1875 #  http://10.">
+复现方法 #  create table tttb1( c1 int,c2 varchar(100),c3 varchar(100)); create table tttb2(c1 int,sheet_num varchar(100)); create table tttb3(c1 int,order_no varchar(100)); explain select count(distinct c2) from tttb1 where c2 in (select distinct sheet_num from tttb2,tttb3 where sheet_num=order_no and c3='1'); create table tb1(c1 int,c2 varchar(100),c3 varchar(100)); create table tb2(c1 int,sheet_num varchar(100)); create table tb3(c1 int,order_no varchar(100)); explain select count(distinct c2) from tb1 where c2 in (select distinct sheet_num from tb2,tb3 where sheet_num=order_no and c3='1'); insert into tb1 select (random()*10000000)::int, (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); insert into tb2 select (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); insert into tb3 select (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); create table tb1int(c1 int,c2 int,c3 int); create table tb2int(c1 int,sheet_num int); create table tb3int(c1 int,order_no int); explain select count(distinct c2) from tb1int where c2 in (select distinct sheet_num from tb2int,tb3int where sheet_num=order_no and c3=1); insert into tb1int select (random()*10000000)::int, (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); insert into tb2int select (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); insert into tb3int select (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); 1875 #  http://10.">
 <meta property="og:title" content>
 <meta property="og:description" content="issues #  1490 #  1921 #  1699 #  http://10.20.16.216:9090/ADB/AntDB/-/issues/1490 http://10.20.16.216:9090/ADB/AntDB/-/issues/1921 http://10.20.16.216:9090/ADB/AntDB/-/issues/1699
 问题 #  使用到reduce的地方（包括查询）偶现以下错误，再次执行sql就正常；
 ERROR: remote node 16389 closed socket CONTEXT: dynamic reduce 复现方法 #  使用修改分布方式的方式去复现问题，过程如下： 创建100张表，然后并发100，不停执行下面的语句，5分钟之内会出现报错：
-alter table xxx distribute by replication; alter table xxx distribute by random;  无法直接复现  1799 #  http://10.20.16.216:9090/ADB/AntDB/-/issues/1779
+alter table xxx distribute by replication; alter table xxx distribute by random;  无法直接复现  1779 #  http://10.20.16.216:9090/ADB/AntDB/-/issues/1779
 问题 #  执行计划不正确导致dyreduce执行出错
-复现方法 #  create table tb1( c1 int,c2 varchar(100),c3 varchar(100)); create table tb2(c1 int,sheet_num varchar(100)); create table tb3(c1 int,order_no varchar(100)); explain select count(distinct c2) from tb1 where c2 in (select distinct sheet_num from tb2,tb3 where sheet_num=order_no and c3='1'); 1875 #  http://10.">
+复现方法 #  create table tttb1( c1 int,c2 varchar(100),c3 varchar(100)); create table tttb2(c1 int,sheet_num varchar(100)); create table tttb3(c1 int,order_no varchar(100)); explain select count(distinct c2) from tttb1 where c2 in (select distinct sheet_num from tttb2,tttb3 where sheet_num=order_no and c3='1'); create table tb1(c1 int,c2 varchar(100),c3 varchar(100)); create table tb2(c1 int,sheet_num varchar(100)); create table tb3(c1 int,order_no varchar(100)); explain select count(distinct c2) from tb1 where c2 in (select distinct sheet_num from tb2,tb3 where sheet_num=order_no and c3='1'); insert into tb1 select (random()*10000000)::int, (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); insert into tb2 select (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); insert into tb3 select (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); create table tb1int(c1 int,c2 int,c3 int); create table tb2int(c1 int,sheet_num int); create table tb3int(c1 int,order_no int); explain select count(distinct c2) from tb1int where c2 in (select distinct sheet_num from tb2int,tb3int where sheet_num=order_no and c3=1); insert into tb1int select (random()*10000000)::int, (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); insert into tb2int select (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); insert into tb3int select (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); 1875 #  http://10.">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://askyx.github.io/posts/others/adbplan/"><meta property="article:section" content="posts">
 <meta property="og:site_name" content="Esoye">
@@ -113,9 +113,9 @@ CONTEXT:  dynamic reduce
 </code></pre></div><ul>
 <li>无法直接复现</li>
 </ul>
-<h3 id=1799>
-1799
-<a href=#1799 class=h-anchor aria-hidden=true>#</a>
+<h3 id=1779>
+1779
+<a href=#1779 class=h-anchor aria-hidden=true>#</a>
 </h3>
 <p>http://10.20.16.216:9090/ADB/AntDB/-/issues/1779</p>
 <h4 id=问题-1>
@@ -127,10 +127,34 @@ CONTEXT:  dynamic reduce
 复现方法
 <a href=#%e5%a4%8d%e7%8e%b0%e6%96%b9%e6%b3%95-1 class=h-anchor aria-hidden=true>#</a>
 </h4>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> tb1( c1 int,c2 varchar(<span style=color:#ae81ff>100</span>),c3 varchar(<span style=color:#ae81ff>100</span>));
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> tttb1( c1 int,c2 varchar(<span style=color:#ae81ff>100</span>),c3 varchar(<span style=color:#ae81ff>100</span>));
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> tttb2(c1 int,sheet_num varchar(<span style=color:#ae81ff>100</span>));
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> tttb3(c1 int,order_no varchar(<span style=color:#ae81ff>100</span>));
+<span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#66d9ef>count</span>(<span style=color:#66d9ef>distinct</span> c2) <span style=color:#66d9ef>from</span> tttb1 <span style=color:#66d9ef>where</span> c2 <span style=color:#66d9ef>in</span> (<span style=color:#66d9ef>select</span> <span style=color:#66d9ef>distinct</span> sheet_num <span style=color:#66d9ef>from</span> tttb2,tttb3 <span style=color:#66d9ef>where</span> sheet_num<span style=color:#f92672>=</span>order_no <span style=color:#66d9ef>and</span> c3<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;1&#39;</span>);
+    
+
+
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> tb1(c1 int,c2 varchar(<span style=color:#ae81ff>100</span>),c3 varchar(<span style=color:#ae81ff>100</span>));
 <span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> tb2(c1 int,sheet_num varchar(<span style=color:#ae81ff>100</span>));
 <span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> tb3(c1 int,order_no varchar(<span style=color:#ae81ff>100</span>));
 <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#66d9ef>count</span>(<span style=color:#66d9ef>distinct</span> c2) <span style=color:#66d9ef>from</span> tb1 <span style=color:#66d9ef>where</span> c2 <span style=color:#66d9ef>in</span> (<span style=color:#66d9ef>select</span> <span style=color:#66d9ef>distinct</span> sheet_num <span style=color:#66d9ef>from</span> tb2,tb3 <span style=color:#66d9ef>where</span> sheet_num<span style=color:#f92672>=</span>order_no <span style=color:#66d9ef>and</span> c3<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;1&#39;</span>);
+
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> tb1 <span style=color:#66d9ef>select</span> (random()<span style=color:#f92672>*</span><span style=color:#ae81ff>10000000</span>)::int, (random()<span style=color:#f92672>*</span><span style=color:#ae81ff>10000000</span>)::int, (random()<span style=color:#f92672>*</span><span style=color:#ae81ff>10000000</span>)::int <span style=color:#66d9ef>from</span>  generate_series(<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>100000</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> tb2 <span style=color:#66d9ef>select</span> (random()<span style=color:#f92672>*</span><span style=color:#ae81ff>10000000</span>)::int, (random()<span style=color:#f92672>*</span><span style=color:#ae81ff>10000000</span>)::int <span style=color:#66d9ef>from</span>  generate_series(<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>100000</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> tb3 <span style=color:#66d9ef>select</span> (random()<span style=color:#f92672>*</span><span style=color:#ae81ff>10000000</span>)::int, (random()<span style=color:#f92672>*</span><span style=color:#ae81ff>10000000</span>)::int <span style=color:#66d9ef>from</span>  generate_series(<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>100000</span>);
+
+
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> tb1int(c1 int,c2 int,c3 int);
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> tb2int(c1 int,sheet_num int);
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> tb3int(c1 int,order_no int);
+<span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#66d9ef>count</span>(<span style=color:#66d9ef>distinct</span> c2) <span style=color:#66d9ef>from</span> tb1int <span style=color:#66d9ef>where</span> c2 <span style=color:#66d9ef>in</span> (<span style=color:#66d9ef>select</span> <span style=color:#66d9ef>distinct</span> sheet_num <span style=color:#66d9ef>from</span> tb2int,tb3int <span style=color:#66d9ef>where</span> sheet_num<span style=color:#f92672>=</span>order_no <span style=color:#66d9ef>and</span> c3<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>);
+
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> tb1int <span style=color:#66d9ef>select</span> (random()<span style=color:#f92672>*</span><span style=color:#ae81ff>10000000</span>)::int, (random()<span style=color:#f92672>*</span><span style=color:#ae81ff>10000000</span>)::int, (random()<span style=color:#f92672>*</span><span style=color:#ae81ff>10000000</span>)::int <span style=color:#66d9ef>from</span>  generate_series(<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>100000</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> tb2int <span style=color:#66d9ef>select</span> (random()<span style=color:#f92672>*</span><span style=color:#ae81ff>10000000</span>)::int, (random()<span style=color:#f92672>*</span><span style=color:#ae81ff>10000000</span>)::int <span style=color:#66d9ef>from</span>  generate_series(<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>100000</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> tb3int <span style=color:#66d9ef>select</span> (random()<span style=color:#f92672>*</span><span style=color:#ae81ff>10000000</span>)::int, (random()<span style=color:#f92672>*</span><span style=color:#ae81ff>10000000</span>)::int <span style=color:#66d9ef>from</span>  generate_series(<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>100000</span>);
+
+
 </code></pre></div><h3 id=1875>
 1875
 <a href=#1875 class=h-anchor aria-hidden=true>#</a>
@@ -278,11 +302,15 @@ postgres<span style=color:#f92672>=#</span> <span style=color:#66d9ef>select</sp
 <span style=color:#66d9ef>execute</span> direct <span style=color:#66d9ef>on</span> (dn2) <span style=color:#e6db74>&#39;select * from tbl &#39;</span>;
 <span style=color:#66d9ef>execute</span> direct <span style=color:#66d9ef>on</span> (dn3) <span style=color:#e6db74>&#39;select * from tbl &#39;</span>;
 
-<span style=color:#66d9ef>execute</span> direct <span style=color:#66d9ef>on</span> (dn1) <span style=color:#e6db74>&#39;select * from tbl where ((hash_combin_mod(3, hashint4(sd))) != 0)&#39;</span>;
-<span style=color:#66d9ef>execute</span> direct <span style=color:#66d9ef>on</span> (dn2) <span style=color:#e6db74>&#39;select * from tbl where ((hash_combin_mod(3, hashint4(sd))) != 1)&#39;</span>;
-<span style=color:#66d9ef>execute</span> direct <span style=color:#66d9ef>on</span> (dn3) <span style=color:#e6db74>&#39;select * from tbl where ((hash_combin_mod(3, hashint4(sd))) != 2)&#39;</span>;
+<span style=color:#66d9ef>execute</span> direct <span style=color:#66d9ef>on</span> (dn1) <span style=color:#e6db74>&#39;select * from tbl where ((hash_combin_mod(3, hashint4(sd))) = 0)&#39;</span>;
+<span style=color:#66d9ef>execute</span> direct <span style=color:#66d9ef>on</span> (dn2) <span style=color:#e6db74>&#39;select * from tbl where ((hash_combin_mod(3, hashint4(sd))) = 1)&#39;</span>;
+<span style=color:#66d9ef>execute</span> direct <span style=color:#66d9ef>on</span> (dn3) <span style=color:#e6db74>&#39;select * from tbl where ((hash_combin_mod(3, hashint4(sd))) = 2)&#39;</span>;
 
 <span style=color:#66d9ef>alter</span> <span style=color:#66d9ef>table</span> tbl distribute <span style=color:#66d9ef>by</span> hash(sd);
+<span style=color:#66d9ef>alter</span> <span style=color:#66d9ef>table</span> tbl distribute <span style=color:#66d9ef>by</span> modulo(sd);
+<span style=color:#66d9ef>alter</span> <span style=color:#66d9ef>table</span> tbl distribute <span style=color:#66d9ef>by</span> random;
+<span style=color:#66d9ef>alter</span> <span style=color:#66d9ef>table</span> tbl distribute <span style=color:#66d9ef>by</span> hash(sd) <span style=color:#66d9ef>TO</span> NODE(dn1, dn2, dn3);
+<span style=color:#66d9ef>alter</span> <span style=color:#66d9ef>table</span> tbl distribute <span style=color:#66d9ef>by</span> REPLICATION;
 postgres<span style=color:#f92672>=#</span> <span style=color:#960050;background-color:#1e0010>\</span>d<span style=color:#f92672>+</span> tbl
                                     <span style=color:#66d9ef>Table</span> <span style=color:#e6db74>&#34;public.tbl&#34;</span>
  <span style=color:#66d9ef>Column</span> <span style=color:#f92672>|</span>  <span style=color:#66d9ef>Type</span>   <span style=color:#f92672>|</span> <span style=color:#66d9ef>Collation</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>Nullable</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>Default</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>Storage</span> <span style=color:#f92672>|</span> Stats target <span style=color:#f92672>|</span> Description
@@ -347,6 +375,15 @@ cn上执行成功，没有报错。
 </h3>
 <p>http://10.20.16.216:9090/ADB/AntDB/-/issues/1927</p>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=color:#66d9ef>drop</span> <span style=color:#66d9ef>table</span> ff1;
+<span style=color:#66d9ef>drop</span> <span style=color:#66d9ef>table</span> ff2;
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> ff1 (a bigint,b integer);
+<span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> ff2 (a bigint,b integer);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> ff1 <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>456789</span>, <span style=color:#ae81ff>123456</span>),(<span style=color:#ae81ff>11</span>, <span style=color:#ae81ff>123456</span>),(<span style=color:#ae81ff>123456</span>, <span style=color:#ae81ff>11</span>), (<span style=color:#ae81ff>4567890123456789</span>, <span style=color:#ae81ff>344545</span>);
+<span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> ff2 <span style=color:#66d9ef>values</span>(<span style=color:#ae81ff>4567890123456789</span>, <span style=color:#ae81ff>344545</span>),(<span style=color:#ae81ff>11</span>, <span style=color:#ae81ff>344545</span>),(<span style=color:#ae81ff>123456</span>, <span style=color:#ae81ff>11</span>);
+
+<span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> ff1, ff2 <span style=color:#66d9ef>where</span> ff1.a <span style=color:#f92672>=</span> ff2.a;
+
+<span style=color:#66d9ef>drop</span> <span style=color:#66d9ef>table</span> ff1;
 <span style=color:#66d9ef>drop</span> <span style=color:#66d9ef>table</span> ff2;
 <span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> ff1 (a integer);
 <span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> ff2 (a bigint);
@@ -601,9 +638,9 @@ fix2<span style=color:#960050;background-color:#1e0010>：最终</span><span sty
 <td></td>
 </tr>
 <tr>
-<td><a href=#1799>1799</a></td>
+<td><a href=#1779>1779</a></td>
 <td>hard</td>
-<td>已定位</td>
+<td>已修复</td>
 <td>稳定复现</td>
 <td>执行计划错误</td>
 <td>子查询存在上层引用，没有处理joinrel的情况</td>
@@ -611,7 +648,7 @@ fix2<span style=color:#960050;background-color:#1e0010>：最终</span><span sty
 <tr>
 <td><a href=#1875>1875</a></td>
 <td></td>
-<td></td>
+<td>已定位</td>
 <td>稳定复现</td>
 <td>数据重分布hang住</td>
 <td></td>
@@ -653,6 +690,15 @@ fix2<span style=color:#960050;background-color:#1e0010>：最终</span><span sty
 /home/maoxp/wen/bin/pg_ctl -D /home/maoxp/datewen/data stop</p>
 <p>sysbench &ndash;table_size=50000 &ndash;pgsql-host=172.10.13.28 &ndash;pgsql-port=5432 &ndash;pgsql-user=maoxp &ndash;pgsql-password=mxp1234@# &ndash;pgsql-db=postgres &ndash;db-driver=pgsql &ndash;threads=1 &ndash;tables=5 &ndash;report-interval=5 &ndash;time=120 oltp_insert run</p>
 <p>sysbench &ndash;db-driver=pgsql &ndash;pgsql-host=172.10.13.28 &ndash;pgsql-port=65032 &ndash;pgsql-user=maoxp &ndash;pgsql-password=mxp1234@# &ndash;pgsql-db=sysbench_db &ndash;time=2000 &ndash;report-interval=5 &ndash;events=0 &ndash;percentile=95 &ndash;threads=1 &ndash;table-size=5000000 &ndash;tables=5 /usr/share/sysbench/oltp_insert.lua run</p>
+<p>DELETE FROM public.sbtest5 sbtest5 WHERE (id = $1);</p>
+<p>create table tb2(c1 int,sheet_num varchar(100));
+create table tb3(c1 int,order_no varchar(100));
+create table tb4( c1 int,c2 varchar(100),c3 int);</p>
+<p>explain select count(distinct c2) from tb4 where c2 in (select distinct sheet_num from tb2,tb3 where sheet_num=order_no and c3=1);</p>
+<p>create table ttb1( c1 int,c2 varchar(100),c3 varchar(100));
+create table ttb2(c1 int,sheet_num varchar(100));
+create table ttb3(c1 int,order_no varchar(100));
+explain select count(distinct c2) from ttb1 where c2 in (select distinct sheet_num from ttb2,ttb3 where sheet_num=order_no and c3=&lsquo;1&rsquo;);</p>
 </div>
 <div class=pagination>
 <div class=pagination__title>

@@ -1,15 +1,2 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Docker on Esoye</title><link>https://askyx.github.io/tags/docker/</link><description>Recent content in Docker on Esoye</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><lastBuildDate>Sun, 20 Feb 2022 21:17:58 +0800</lastBuildDate><atom:link href="https://askyx.github.io/tags/docker/index.xml" rel="self" type="application/rss+xml"/><item><title>Docker</title><link>https://askyx.github.io/posts/others/docker/</link><pubDate>Sun, 20 Feb 2022 21:17:58 +0800</pubDate><guid>https://askyx.github.io/posts/others/docker/</guid><description>
-Docker # 新公司的产品的每一个模块是单独运行在容器中的，且由于是使用Java开发的，所以需要有频繁替换包的过程，之前只是简单的了解了docker，但是并没有深入的学习，这里记录docker的使用细节，以便于更好的工作，
-基础概念 # Docker使用go开发的一种沙箱工具，他使得应用可以单独运行在沙箱中，通过端口映射或者volumes与外界进行交互。这可以让一个机器上可以运行多种不同环境的应用且互不干扰，例如一个比较大型的引用，使用的此方式单独维护一个模块，使得系统的可靠性大大增强
-容器
-镜像运行的实例，一个镜像可以运行多个实例。 镜像
-一个完整的可运行的资源集合 仓库
-保存镜像 使用 # 这里记录高频次使用的功能，其他的后续记录
-镜像的管理
-pull push commit
-修改一个容器之后，使用commit在此基础上构建自己的容器 build
-创建一个镜像，使用docker build语句创建，需要自己编写Dockerfile，具体的编写规则可以参考nosipage rmi 容器的管理
-run
-创建新的容器，且会使用run指定启动规则，例如端口的映射，volumes文件的指定，以及其他重要参数等，这个命令可以说重要，因为同一个镜像，使用不同参数启动之后，效果是不一样的，对于开发来时，更多的是参与后期的开发，如果不是前期的项目设计，这里了解即可，但是最好的是知道他的只要参数的意义，因为和其他命令有的是通用的，例如-i -t -p等 start stop restart exec
-使用此命令可以进入运行中的容器中区，exec -it xxx command attach rm logs cp
-在本地和容器中传输文件 export ps 其他命令基本在遇到的时候，再去查看</description></item></channel></rss>
+docker 常用命令速查，私用</description></item></channel></rss>

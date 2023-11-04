@@ -294,25 +294,6 @@ GreenPlum优化器和执行器的源码调研
 </div>
 </div>
 <div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/pgenvbuild/>Postgres 系列数据库搭建</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-07-29
-</span>
-</div>
-<span class=post-tags>
-<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
-<a href=https://askyx.github.io/tags/postgres/>#Postgres</a>&nbsp;
-<a href=https://askyx.github.io/tags/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/>#环境搭建</a>&nbsp;
-</span>
-<div class=post-content>
-PG系数据库统一安装环境，使用Docker && VSCode on Ubuntu22搭建，这里总结整理，后续PG系得数据库安装方法统一在这里总结
-</div>
-<div>
-<a class="read-more button" href=/posts/postgres/pgenvbuild/>Read more →</a>
-</div>
-</div>
-<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/postgres/opt/>Postgres Optimizer</a></h1>
 <div class=post-meta>
 <span class=post-date>
@@ -676,6 +657,7 @@ lsblk -f 查看磁盘 mkfs.xfs -f -n ftype=1 /dev/sdb1 格式化磁盘 mount /de
 <a href=https://askyx.github.io/tags/docker/>#Docker</a>&nbsp;
 </span>
 <div class=post-content>
+docker 常用命令速查，私用
 </div>
 <div>
 <a class="read-more button" href=/posts/others/docker/>Read more →</a>
@@ -714,9 +696,9 @@ ranges https://zhuanlan.
 issues # 1490 # 1921 # 1699 # http://10.20.16.216:9090/ADB/AntDB/-/issues/1490 http://10.20.16.216:9090/ADB/AntDB/-/issues/1921 http://10.20.16.216:9090/ADB/AntDB/-/issues/1699
 问题 # 使用到reduce的地方（包括查询）偶现以下错误，再次执行sql就正常；
 ERROR: remote node 16389 closed socket CONTEXT: dynamic reduce 复现方法 # 使用修改分布方式的方式去复现问题，过程如下： 创建100张表，然后并发100，不停执行下面的语句，5分钟之内会出现报错：
-alter table xxx distribute by replication; alter table xxx distribute by random; 无法直接复现 1799 # http://10.20.16.216:9090/ADB/AntDB/-/issues/1779
+alter table xxx distribute by replication; alter table xxx distribute by random; 无法直接复现 1779 # http://10.20.16.216:9090/ADB/AntDB/-/issues/1779
 问题 # 执行计划不正确导致dyreduce执行出错
-复现方法 # create table tb1( c1 int,c2 varchar(100),c3 varchar(100)); create table tb2(c1 int,sheet_num varchar(100)); create table tb3(c1 int,order_no varchar(100)); explain select count(distinct c2) from tb1 where c2 in (select distinct sheet_num from tb2,tb3 where sheet_num=order_no and c3='1'); 1875 # http://10.
+复现方法 # create table tttb1( c1 int,c2 varchar(100),c3 varchar(100)); create table tttb2(c1 int,sheet_num varchar(100)); create table tttb3(c1 int,order_no varchar(100)); explain select count(distinct c2) from tttb1 where c2 in (select distinct sheet_num from tttb2,tttb3 where sheet_num=order_no and c3='1'); create table tb1(c1 int,c2 varchar(100),c3 varchar(100)); create table tb2(c1 int,sheet_num varchar(100)); create table tb3(c1 int,order_no varchar(100)); explain select count(distinct c2) from tb1 where c2 in (select distinct sheet_num from tb2,tb3 where sheet_num=order_no and c3='1'); insert into tb1 select (random()*10000000)::int, (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); insert into tb2 select (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); insert into tb3 select (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); create table tb1int(c1 int,c2 int,c3 int); create table tb2int(c1 int,sheet_num int); create table tb3int(c1 int,order_no int); explain select count(distinct c2) from tb1int where c2 in (select distinct sheet_num from tb2int,tb3int where sheet_num=order_no and c3=1); insert into tb1int select (random()*10000000)::int, (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); insert into tb2int select (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); insert into tb3int select (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); 1875 # http://10.
 </div>
 <div>
 <a class="read-more button" href=/posts/others/adbplan/>Read more →</a>

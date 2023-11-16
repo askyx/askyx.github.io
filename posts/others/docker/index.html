@@ -198,7 +198,7 @@ docker run -dit --name centos-p centos /sbin/init
 docker run   <span style=color:#ae81ff>\
 </span><span style=color:#ae81ff></span> --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/asky/asky,target<span style=color:#f92672>=</span>/workspaces/asky <span style=color:#ae81ff>\
 </span><span style=color:#ae81ff></span> --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/asky/.workspaces,target<span style=color:#f92672>=</span>/workspaces/.common <span style=color:#ae81ff>\
-</span><span style=color:#ae81ff></span> --privileged<span style=color:#f92672>=</span>true  -itd asky:1  /sbin/init
+</span><span style=color:#ae81ff></span> --privileged<span style=color:#f92672>=</span>true  -itd regress:latest  /sbin/init
 
 /home/wen/.workspaces:/workspaces/.common:rw
 

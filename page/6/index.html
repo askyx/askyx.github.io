@@ -59,6 +59,75 @@ My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/static/note/>数据库文章资源汇总</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-07-20
+</span>
+</div>
+<span class=post-tags>
+<a href=https://askyx.github.io/tags/%E8%B5%84%E6%BA%90/>#资源</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
+</span>
+<div class=post-content>
+爬虫 # import requests from bs4 import BeautifulSoup prefix = 'http://mysql.taobao.org' # 获取文章名和url（文章名,url） def query_name_url(url: str): resp = requests.get(url) soup = BeautifulSoup(resp.content.decode('utf-8'), "html.parser") tags = soup.findAll('a', {'target': {'_blank'}}) urls = [v for v in tags if v['href'].find('/monthly/') != -1] return [(str(v.string).strip(), prefix + v['href']) for v in urls] # 获取所有月报链接（月报名,url） def query_monthly_url(): resp = requests.get('http://mysql.taobao.org/monthly/') soup = BeautifulSoup(resp.content.decode('utf-8'), "html.parser") tags = soup.findAll('a', {'class': {'main'}}) urls = [v for v in tags if v['href'].
+</div>
+<div><a class="read-more button" href=/posts/static/note/>Read more →</a></div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/course/15445/note/>15445课程笔记</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-06-10
+</span>
+</div>
+<span class=post-tags>
+<a href=https://askyx.github.io/tags/%E8%AF%BE%E7%A8%8B/>#课程</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
+<a href=https://askyx.github.io/tags/15445/>#15445</a>&nbsp;
+</span>
+<div class=post-content>
+https://15445.courses.cs.cmu.edu/fall2021/notes/02-advancedsql.pdf
+output control 控制输出结果，例如order，limit等 窗口函数 CTE Common Table Expressions，把一个语句的输出视为一张临时表参与下面的语句的运算 WITH cte1 (col1) AS (SELECT 1), cte2 (col2) AS (SELECT 2) SELECT * FROM cte1, cte2; Database Storage # 数据库的存储介质当前还是磁盘，IO慢 数据库存储要点之一是使用缓存维护数据在磁盘和内存之间的数据交换，以实现数据的快速读写 顺序读写和随机读写 顺序读写的意思是需要定位到读写的位置才能操作，例如链表。 随机读写的意思是可以直接定位到读写的位置，例如数组。 由于磁盘上随机读写速度不如顺序读写，所以当前数据库还是需要想办法使用顺序读写，例如LSM，GFS等架构都是因为这个原因导致的 磁盘和内存中数据的组织格式 # 数据全部在磁盘上，按page组织数据，内存中使用buffer pool维护缓存，磁盘中有一个page专门维护page的位置信息，使用的时候先读取此page到内存，然后 然后读取其他page到buffer pool，使用buffer pool维护page的置换情况，例如LRU，或者其他算法
+可以参考lab1和slide，还是比较明显的
+buffer pool中的page可以用于上层的数据运算
+使用mmap可以完成类似的操作，但是实际上在使用中，如果在发生缺页中断的时候，mmap需要进行置换操作，所以会阻碍程序进程。且mmap是通用的组件，所以没有对数据库 的使用场景进行一些优化，
+You never want to use mmap in your DBMS if you need to write.
+</div>
+<div><a class="read-more button" href=/posts/course/15445/note/>Read more →</a></div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/course/6.824/raft/>Raft</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-05-30
+</span>
+</div>
+<span class=post-tags>
+<a href=https://askyx.github.io/tags/%E8%AE%BA%E6%96%87/>#论文</a>&nbsp;
+<a href=https://askyx.github.io/tags/raft/>#Raft</a>&nbsp;
+<a href=https://askyx.github.io/tags/6.824/>#6.824</a>&nbsp;
+</span>
+<div class=post-content>
+译文 原文 有用的飞书文档 和其他的算法相比 Strong leader
+日志只能从领导者发送到其他节点 Leader election
+随机计时器选举领导，在心跳机制上加上一些额外的工作 Membership changes
+角色变换 Replicated state machines # 复制状态机一般基于日志实现，通俗的理解只要所有的机器按照相同的顺序执行指令，那么每个节点的状态都是确定的，所以需要把指令日志复制到其他节点上去，这就是一致性算法的工作
+如果只是要求最终所有的节点都执行一样顺序的指令，而不要求实时性，则可以限定
+只有一个节点可以进行写操作，因为只有写操作才可以改变系统的状态 写节点同步指令到其他节点，最终所有节点指令顺序一致 一致性算法的共有特性
+安全性
+不会返回一个错误结果，只要是在非拜占庭错误情况下，包括网络延迟，乱序，丢包，分区，冗余等都可以保障正确性 可用性
+集群只要大多数机器可以正常通信，就可以确保可用，失败节点可以忽略或者后续恢复状态，大多数指的是半数以上 不依赖时序保证一致性
+时钟错误或者消息延迟只有在极端情况下才会导致可用性 慢节点不会影响消息的反馈，消息可以快速的响应 拜占庭将军问题
+Paxos # 难以理解 没有公认的可以实现的基础架构，大部分系统从Paxos开始，在遇到问题的时候自行想办法解决，导致最后的系统实现只能是类似Paxos的算法 Raft # 管理复制状态机的一种算法，他会在集群中选举一个leader，之后会复制所有的日志到其他节点实现一致性
+他可以分解为三个问题
+领导选举 一个新的领导人需要被选举出来，当先存的领导人宕机的时候 日志复制
+领导人必须从客户端接收日志然后复制到集群中的其他节点，并且强制要求其他节点的日志保持和自己相同 安全性
+在 Raft 中安全性的关键是在图 3 中展示的状态机安全：如果有任何的服务器节点已经应用了一个确定的日志条目到它的状态机中，那么其他服务器节点不能在同一个日志索引位置应用一个不同的指令 可以在这个网站查看实例
+</div>
+<div><a class="read-more button" href=/posts/course/6.824/raft/>Read more →</a></div>
+</div>
+<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/course/6.824/gfs/>GFS</a></h1>
 <div class=post-meta>
 <span class=post-date>
@@ -73,63 +142,6 @@ My note blog
 <div class=post-content>
 </div>
 <div><a class="read-more button" href=/posts/course/6.824/gfs/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/course/6.824/mapreduce/>Mapreduce</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-05-29
-</span>
-</div>
-<span class=post-tags>
-<a href=https://askyx.github.io/tags/%E8%AE%BA%E6%96%87/>#论文</a>&nbsp;
-<a href=https://askyx.github.io/tags/mapreduce/>#Mapreduce</a>&nbsp;
-<a href=https://askyx.github.io/tags/6.824/>#6.824</a>&nbsp;
-</span>
-<div class=post-content>
-利用普通机器组成的大规模计算集群进行并行的,高容错,高性能的数据处理函数框架
-原始论文点这里,论文翻译点这里，有时间的话，自行对比翻译和原文
-最终实现的目标是&ndash;实现一个分布式系统，对程序员隐藏底层分布式细节，程序员只需要定义map和reduce 函数即可。
-map reduce实现为简单的kv输出，其中map接受源数据，生成kv的中间结果，中间结果保存在worker节点上。 reduce负责处理map产生的中间结果的kv数据，只是简单的数据处理过程.
-他最先是受到lisp中map和reduce原语的启发，再加上当时Google现实的处理大量数据的需求，从他们现有的系统抽象而来的。
-在论文中，使用了一个单词统计的案例，此时实现map函数用来分割文本，切分出最基本的单词。然后再使用reduce进行聚合操作，
-// 输出单词以及出现的次数，map端输出1 map(String key,String value): // key: 文档名 // value: 文档内容 for each word w in value: EmitIntermediate(w,"1"); // 针对相同的key，次数+1 reduce(String key, Iterator values): // key: 一个单词 // value: 计数值列表 int result = 0; for each v in values: result += ParseInt(v); Emit(AsString(result)); 执行过程 文件划分 主节点划分任务 按照划分的任务启动worker，执行map任务 worker节点的数据生成为中间结果，保存在本节点 所有map任务执行完成之后，reduce得到对应中间节点的文件路径，通过rpc读取文件，进行reduce任务 reduce任务完成之后，最终结果写入目标文件 一个mr任务完成之后，回得到n(reduce)个结果文件，可以按照需求处理文件，可以直接使用，或者继续作为其他mr的输入，mr任务是可以嵌套的。
-主节点
-</div>
-<div><a class="read-more button" href=/posts/course/6.824/mapreduce/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/languange/go_1/>A Tour of Go速通</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-05-17
-</span>
-</div>
-<div class=post-content>
-2022-05-17 基础语法 2022-05-24 复合类型，goroutine，channel 基础语法 # Packages # go使用Packages维护模块，使用import导入模块，import最后一个元素才是需要导入的模块
-import ( "fmt" "math/rand" ) import 可以单独一个导入一个模块，也可以批量导入， 与之对应的是export，go不显示声明export，首字母大写的变量或方法自动export，外部只能使用导出的变量或者方法，类似c++中类的私有和共有的概念。
-Functions # 与c++或者Java或者其他语言不同的是，go的函数签名格式为func func_name(parm1 [type], parm2 [type]....) retype {}，先声明名字，再声明变量的类型，参数列表中有多个参数且类型一致的时候，前面的参数类型可以省略，只需要保留之后一个
-func add(x, y int) int { return x + y } 且go可以很轻易的实现多返回值的功能，如下
-func swap(x, y string) (string, string) { return y, x } func main() { a, b := swap("hello", "world") fmt.Println(a, b) } 上面的功能在c++中需要使用结构体或者tuple或者Paris才能实现。
-go的return还可以使用不带参数的 &ldquo;naked&rdquo; return，此时要求函数签名中的return参数必须有名字，且在函数体中必须为参数赋值，此时使用return直接返回，参数可以直接传递到外部，但是需要注意的时候，如果函数体过于庞大且有多个出口，不建议使用，难于阅读
-func split(sum int) (x, y int) { x = sum * 4 / 9 y = sum - x return } 变量 # 使用var声明变量，声明多个变量的时候可以类似参数列表中的参数，前面参数不需要声明类型。初始化的时候按顺序初始化，且初始化的参数个数必须前后一致
-</div>
-<div><a class="read-more button" href=/posts/languange/go_1/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/course/6.824/coursenote/>Coursenote</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-05-17
-</span>
-</div>
-<div class=post-content>
-随堂笔记 # Why do people build distributed systems? to increase capacity via parallel processing to tolerate faults via replication to match distribution of physical devices e.g. sensors to achieve security via isolation
-分布式的困难点：
-大量的并发操作 具有容错性 难于实现 Lab 1: distributed big-data framework (like MapReduce) Lab 2: fault tolerance library using replication (Raft) Lab 3: a simple fault-tolerant database Lab 4: scalable database performance via sharding
-A big goal: hide the complexity of distribution from applications.
-</div>
-<div><a class="read-more button" href=/posts/course/6.824/coursenote/>Read more →</a></div>
 </div>
 <div class=pagination>
 <div class=pagination__buttons>
@@ -158,7 +170,7 @@ A big goal: hide the complexity of distribution from applications.
 <span class=logo__cursor></span>
 </a>
 <div class=copyright>
-<span>© 2023 Powered by
+<span>© 2024 Powered by
 <a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
 <span>Theme created by
 <a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>

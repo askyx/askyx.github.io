@@ -59,6 +59,60 @@ My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/readbooks/volcanooptimizer/>VolcanoOptimizer</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-04-04
+</span>
+</div>
+<div class=post-content>
+NOTE # 论文阅读笔记The Volcano Optimizer Generator: Extensibility and Efficient Search
+可扩展
+面向对象
+自顶向下
+剪枝
+原型是EXODUS， Volcano是对他的改进
+可以单独使用的优化器 优化搜索时间和搜索空间 可扩展 可以使用启发式算法和有效的代价模型来扩展和减少搜索空间，【剪枝】 灵活的成本计算模型 一个框架，优化器生成器，可以由“optimizer implementor”自行实现关键函数，整个优化器框架的输入是AST，输出是一个执行计划，算子的集合
+SQL是基于关系代数，Volcano把关系表达式分为逻辑表达式和物理表达式，逻辑表达式之间使用transformation进行转换，物理表达式使用基于代价的implementation和逻辑表达式映射的，关系不一定是意义对应的，例如scan可以同时一起实现projection
+在表达式进行转换的时候可以使用condition进行模式判断，满足条件的时候可以进行变换
+表达式使用特征描述输出，
+enforcers会强制添加某属性，用于指导优化器进行优化，例如指定表的scan方式
+Logical Operator
+Operator set，也就是可以描述在目标data model上可以执行的代数运算合
+Transformation rules + Condition，对每条等价变换规则，在满足condition时才可以应用
+Logical properties : 逻辑属性，用来描述代数运算的输出所具有的一些特征，这些特征与运算的具体执行方式无关，是逻辑的，例如输出的行数，结果集的schema等
+Physical Operator
+Algorithm + Enforcer set，即可应用的物理实现算法 + 可添加的Enforcer集合
+</div>
+<div><a class="read-more button" href=/posts/readbooks/volcanooptimizer/>Read more →</a></div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/readbooks/columbia-optimizer/>Columbia Optimizer</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-04-02
+</span>
+</div>
+<div class=post-content>
+</div>
+<div><a class="read-more button" href=/posts/readbooks/columbia-optimizer/>Read more →</a></div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/personal/log/>面试</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-03-24
+</span>
+</div>
+<div class=post-content>
+面试 # 只是一个技术汇总
+C++基础 [2 days] [课程- https://github.com/parallel101/course.git]
+内存 内存结构 [https://segmentfault.com/a/1190000039348996]
+c++ 编译出来的是可执行文件，是ELF格式的，他本来就有一些格式上的划分，C++在他的基础上进行了更细的划分，分为五个部分，从高地址到底地址依次为： 1. 内核虚拟内存 进程的虚拟印象 2. 栈 程序自动控制，具体为程序的函数调用，保存局部变量，有大小，可以使用ulimit -s 查看，也可以自行设置，但是建议系统默认即可 * 函数调用机制 调用的时候是一个一个的栈帧，函数参数会在调用者的栈帧中开辟空间，从右到左，所以函数列表的默认值必须从右到左的初始化， 可能和这个有关系，然后被调用者构造栈帧，依次执行 3. 共享库的内存印象 3. 堆 空间有程序员自行维护，向上增长(TIPS: 由于C的历史原因，C++的内存结构还是说堆区，但是在区别new/malloc 和delete/free 的时候，他们的差别之一可能会在内存上有点区别 C的malloc/free可能会说是在堆上分配空间，但是对于C++可能会说的是在自由存储区上分配，自由存储区和堆是不同的概念，堆是操作系统上的概念，但是自由存储区是一个抽象概念 一般new可以是在堆上分配空间，但是可能存在在其他情况，例如在栈上使用new，所以他们不是一个概念，面试的时候说到这里，可以装逼😎) 4. 可写/全局区 对应elf中data段和bss段，data段保存的是已初始化的全局变量或者静态变量，bss保存的是未初始化的数据 5. 只读区/代码段 text段，保存编译之后的指令，不可变 6. 常量区 保存全局变量，不可变，rodata段，记得使用其他手段去尝试修改常量的时候会报错。 TIPS: const修饰的参数不一定是常量，例如他修饰一个函数的参数的时候，参数还是只是在栈中，只是约定不能修改。 7.
+</div>
+<div><a class="read-more button" href=/posts/personal/log/>Read more →</a></div>
+</div>
+<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/readbooks/%E7%8E%B0%E4%BB%A3c++%E7%99%BD%E7%9A%AE%E4%B9%A6/>现代C++白皮书</a></h1>
 <div class=post-meta>
 <span class=post-date>
@@ -82,65 +136,6 @@ C++最初是在1979年推出的，那时候是真正的带类的C。 Bjarne Stro
 类 多态 运算符重载 类型安全连接 抽象类 模板 更好的泛型编程。大佬最初的时候使用宏实现的泛型编程 异常 RAII *_cast bool STL标准库 上述就是最初的98的C++实现的功能点，实际上也是大多是C++的开发人员知道的最详细的C++知识。之后就是漫长过渡期，直到11版本的推出，使C++进入新时代， 06年单核处理器新能几乎不再提升，所以大部分应用开始寻找可以提升性能的编程语言， C++11 新时代 # 许多新的特性的引入，使得C++类似一个新语言 特性如下
 </div>
 <div><a class="read-more button" href=/posts/readbooks/%E7%8E%B0%E4%BB%A3c++%E7%99%BD%E7%9A%AE%E4%B9%A6/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/others/envs/>Envs</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-02-21
-</span>
-</div>
-<div class=post-content>
-hugo # wget https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb https://github.91chi.fun/https://github.com//gohugoio/hugo/releases/download/v0.92.2/hugo_extended_0.92.2_Linux-64bit.deb sudo dpkg -i hugo*.deb
-140.82.113.3
-aria2c -s 5 https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb
-https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb
-可以使用aria2下载，ubuntu使用apt install aria2直接安装工具，使用-s开启多路下载 aria2c -s 5 https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb
-manager用户
-https://www.jianshu.com/p/a76a93e8c662
-Unix # 分区问题，集群上多块磁盘分区挂载到指定目录
-fdisk disk 可以对一个磁盘进行分区的添加和删除等操作 p d w h 添加磁盘挂载
-lsblk -f 查看磁盘 mkfs.xfs -f -n ftype=1 /dev/sdb1 格式化磁盘 mount /dev/sdb1 /var/lib/docker 挂载 xfs_info /dev/sdb1 | grep ftype=1 blkid /dev/sdb1 查看UUID UUID=&lt;UUID> /var/lib/docker xfs defaults 0 0 写进/etc/fstab 问题Couldn't find device with uuid 4mhUbb-Ls1h-jp0d-JuJK-C38V-T3tX-f7s2IN
-</div>
-<div><a class="read-more button" href=/posts/others/envs/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/others/docker/>Docker</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-02-20
-</span>
-</div>
-<span class=post-tags>
-<a href=https://askyx.github.io/tags/docker/>#Docker</a>&nbsp;
-</span>
-<div class=post-content>
-docker 常用命令速查，私用
-</div>
-<div><a class="read-more button" href=/posts/others/docker/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/languange/cpp/>C++ Primer Plus</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-02-20
-</span>
-</div>
-<span class=post-tags>
-<a href=https://askyx.github.io/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/>#读书笔记</a>&nbsp;
-<a href=https://askyx.github.io/tags/c++/>#C++</a>&nbsp;
-</span>
-<div class=post-content>
-编译器 # 把高级语言编译成可执行语言工具，分为前端后后端，前端值得是高级语言的解析，后端是指翻译解析之后的结果为机器语言
-多文件 ** 连接 多文件编译可以有两种方式，一是直接编译为一个可以执行文件，二是按模块或者按文件编译为库，然后连接到执行文件
-连接方式有两种， 一是静态连接，把所有的库文件打包到最后的生成文件中，优点是不需要额外的依赖外部环境，独立性强，缺点是文件体积大 二是动态链接，为了解决静态链接的缺点，执行文件在执行到库相关的代码的时候才加载库，有一点需要注意的是，程序运行的时候，在使用到动态库的时候才映射动态库到内存空间中。原理是编译待援在编译的时候，会更具声明生成函数的调用逻辑，但是只是一个地址跳转语句，所以，只要不调用，就不会有问题，当调用到了。才会加载库然后映射库的地址，这个完整的过程称为重定向。 动态连接 C语言编程透视 声明 声明是为了在编译的时候编译器能进行完整的上下文编译。他需要更具声明来确定编译信息，否则编译器无法确定编译中的语句信息，声明可以辅助完成这个情况， 所以理论上编译的时候是可以不需要实现的，可以在其他编译单元中实现声明的函数，其声明的文件可以不引用头文件，即两个编译单元完全可以无任何联系，除了声明之外，在连接的时候，连接器会根据编译出来的信息去确定函数调用情况，这里有一个问题，按上述的描述，是一个声明对应一个实现，如果有一个声明对应多个实现呢 == ： 会有覆盖问题，如果多个动态链接库都有同一个声明的实现，则连接的时候连接第一个，后面的则忽略，这也提醒我们，在大型项目中，避免同名全局函数或者变量，使用namespace或者static限制作用域，
-g++ -o tt ../main.cpp -ldl ./libhellolib.so ./libhellolib1.so LD_LIBRARY_PATH=$PWD ./tt 头文件，避免公用代码的重复，预处理时展开头文件，需要使用#pragma once避免重复引用，头文件只是简单的文件替换，理论上的可以替换任何文本。 cmake * 子模块，使用add_subdirectory引入 * 第三方库 * 只是头文件，直接指定头文件目录编译即可 * 使用子模块 * 使用为连接库 * 使用git模块
-STL
-重点为容器和算法 lambda表达式，实质上是仿函数，是一个结构体实现()运算的重载，捕获的时候按照声明的新式捕获参数，建议使用的时候明确使用的参数，使用哪个就捕获哪一个，否则他实际上会占据一定的大小的，配合std::function使用
-CTAD &mdash; complie-time argument deduction，编译器参数推断，C++17引入的，可以在编译器按照上下文推断类型，具体表现在lambda参数可以使用auto，容器可以不适用&lt;>
-ranges https://zhuanlan.
-</div>
-<div><a class="read-more button" href=/posts/languange/cpp/>Read more →</a></div>
 </div>
 <div class=pagination>
 <div class=pagination__buttons>
@@ -169,7 +164,7 @@ ranges https://zhuanlan.
 <span class=logo__cursor></span>
 </a>
 <div class=copyright>
-<span>© 2023 Powered by
+<span>© 2024 Powered by
 <a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
 <span>Theme created by
 <a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>

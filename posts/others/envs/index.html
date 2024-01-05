@@ -139,88 +139,7 @@ lvremove /dev/mapper/centos-home           删除lv
 lvcreate -L 100G -n /dev/mapper/centos-home	创建lv
 mkdf.sfx /xxxx								创建文件系统
 </code></pre><p>详细储备知识 <a href=https://blog.csdn.net/lemontree1945/article/details/79293390>linux 文件</a></p>
-<h2 id=ubuntu安装typora>
-Ubuntu安装typora
-<a href=#ubuntu%e5%ae%89%e8%a3%85typora class=h-anchor aria-hidden=true>#</a>
-</h2>
-<p>上海无法直连外网，所以这些都需要翻墙，或者使用其他的链接方式，</p>
-<ol>
-<li>直接使用snap安装，一般情况下，Ubuntu上可以使用apt安装就使用apt安装，这样节约空间，但是无法使用apt的时候，可以尝试使用snap，不是首选，但是无法链接网络的时候，这是首选方案</li>
-<li>使用安装包，但是可能无法下载</li>
-<li>添加typora的apt源，使用apt下载，可能有网络问题</li>
-</ol>
-<h2 id=kubelet-换包>
-kubelet 换包
-<a href=#kubelet-%e6%8d%a2%e5%8c%85 class=h-anchor aria-hidden=true>#</a>
-</h2>
-<p><a href=http://docs.kubernetes.org.cn/227.html>官网</a></p>
-<h3 id=角色>
-角色
-<a href=#%e8%a7%92%e8%89%b2 class=h-anchor aria-hidden=true>#</a>
-</h3>
-<ul>
-<li>deployment
-*</li>
-<li>replicaset</li>
-<li>pod</li>
-</ul>
-<pre tabindex=0><code>docker pull 172.16.1.99/postcommit/inceptor@sha256:d9a8c9c1cf4e1587e2ac468942a987ee43b92c99787f9d392b81a8e1bda26932
-docker tag 3b2a1923a5d3 baisheng5:5000/transwarp/argodb-inceptor:argodb-3.2.0-final-wl
-docker push baisheng5:5000/transwarp/argodb-inceptor:argodb-3.2.0-final-wl
-
-vdevelop-shiva1-202112141040
-
-kubectl get deployment | grep shiva
-
-172.16.1.99/postcommit/shiva-tabletserver:vdevelop-shiva1-202112141040
-172.16.1.99/postcommit/shiva-master:vdevelop-shiva1-202112141040
-172.16.1.99/postcommit/shiva-webserver:vdevelop-shiva1-202112141040
-
-
-</code></pre><p>改变deployment的配置文件的镜像，他会自动重启然后拉取镜像启动服务，所以需要准备自己的镜像，一般只需要替换镜像中的一个或者几个文件，然后让k8s使用此镜像即可，但是无法直接替换镜像中的文件，需要在运行的容器中替换，然后再以此为基准建立新的镜像，然后替换</p>
-<p>安装最新gcc g++
-<a href=https://www.jianshu.com/p/>https://www.jianshu.com/p/</a>
-<a href=https://cloud.tencent.com/developer/article/1635218>https://cloud.tencent.com/developer/article/1635218</a></p>
-<h2 id=ubuntu换源>
-Ubuntu换源
-<a href=#ubuntu%e6%8d%a2%e6%ba%90 class=h-anchor aria-hidden=true>#</a>
-</h2>
-<pre tabindex=0><code>cd /etc/apt/
-sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
-sudo vim /etc/apt/sources.list
-
-
-http://deb.debian.org/debian
-
-sudo sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list
-
-注意换源的版本
-
-deb http://mirrors.aliyun.com/ubuntu/ focal main restricted universe multiverse
-deb-src http://mirrors.aliyun.com/ubuntu/ focal main restricted universe multiverse
-
-deb http://mirrors.aliyun.com/ubuntu/ focal-security main restricted universe multiverse
-deb-src http://mirrors.aliyun.com/ubuntu/ focal-security main restricted universe multiverse
-
-deb http://mirrors.aliyun.com/ubuntu/ focal-updates main restricted universe multiverse
-deb-src http://mirrors.aliyun.com/ubuntu/ focal-updates main restricted universe multiverse
-
-deb http://mirrors.aliyun.com/ubuntu/ focal-proposed main restricted universe multiverse
-deb-src http://mirrors.aliyun.com/ubuntu/ focal-proposed main restricted universe multiverse
-
-deb http://mirrors.aliyun.com/ubuntu/ focal-backports main restricted universe multiverse
-deb-src http://mirrors.aliyun.com/ubuntu/ focal-backports main restricted universe multiverse
-
-
-sudo apt-get update
-sudo apt-get upgrade
-</code></pre><pre tabindex=0><code>sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-sudo apt update
-
-sudo apt install g++-11
-sudo apt install gcc-11
-
-</code></pre><p>export GIT_CURL_VERBOSE=1
+<p>export GIT_CURL_VERBOSE=1
 github无法使用https拉取代码</p>
 <ul>
 <li>单机docker换源，编辑/etc/docker/daemon.json，配置为</li>
@@ -305,7 +224,7 @@ Nodejs 升级
 <span class=logo__cursor></span>
 </a>
 <div class=copyright>
-<span>© 2023 Powered by
+<span>© 2024 Powered by
 <a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
 <span>Theme created by
 <a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>

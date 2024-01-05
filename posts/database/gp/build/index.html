@@ -1,0 +1,800 @@
+<!doctype html><html lang=en>
+<head>
+<title>
+源码编译 GreenPlum 速通版 ::
+Esoye — My note blog
+</title>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="shell #  git clone git@github.com:greenplum-db/gpdb.gitgit clone --depth=1 git@github.com:greenplum-db/gpdb.git -b 7.0.0 docker run -itd --name gpdb --mount type=bind,source=/home/asky/gpdb,target=/workspaces/gpdb runner bash docker exec -it -u vscode gpdb bash sudo service ssh start ssh-keygen cat ~/.ssh/id_rsa.pub &amp;gt;&amp;gt; ~/.ssh/authorized_keys chmod 700 ~/.ssh chmod 644 ~/.ssh/authorized_keys # 不支持其他文件夹编译，只能在gpdb目录下 ./configure --with-perl --enable-orca --with-python --with-libxml --with-gssapi --enable-debug CFLAGS=-O0 CXXFLAGS=-O0 --prefix=/home/vscode/.build make -j16 make install source /home/vscode/.build/greenplum_path.sh # 创建demo 集群 make create-demo-cluster # 销毁demo集群 make destroy-demo-cluster # .">
+<meta name=keywords content="数据库">
+<meta name=robots content="noodp">
+<link rel=canonical href=https://askyx.github.io/posts/database/gp/build/>
+<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
+<link rel=stylesheet href=https://askyx.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://askyx.github.io/img/favicon.png>
+<link href=https://askyx.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="源码编译 GreenPlum 速通版">
+<meta name=twitter:description content="docker GreenPlum 源码编译">
+<meta property="og:title" content="源码编译 GreenPlum 速通版">
+<meta property="og:description" content="docker GreenPlum 源码编译">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://askyx.github.io/posts/database/gp/build/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2024-01-05T11:07:23+08:00">
+<meta property="article:modified_time" content="2024-01-05T11:07:23+08:00"><meta property="og:site_name" content="Esoye">
+</head>
+<body class=light-theme>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archive>Archive</a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archive>Archive</a></li>
+</ul>
+</nav>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class=post>
+<h1 class=post-title>源码编译 GreenPlum 速通版</h1>
+<div class=post-meta>
+<span class=post-date>
+2024-01-05
+</span>
+</div>
+<span class=post-tags>
+<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
+<a href=https://askyx.github.io/tags/postgres/>#Postgres</a>&nbsp;
+<a href=https://askyx.github.io/tags/greenplum/>#GreenPlum</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/>#源码编译</a>&nbsp;
+</span>
+<div class=post-content>
+<h2 id=shell>
+shell
+<a href=#shell class=h-anchor aria-hidden=true>#</a>
+</h2>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>
+git clone git@github.com:greenplum-db/gpdb.gitgit clone --depth<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> git@github.com:greenplum-db/gpdb.git -b 7.0.0
+
+
+docker run  -itd  --name gpdb  --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/asky/gpdb,target<span style=color:#f92672>=</span>/workspaces/gpdb  runner  bash
+docker exec -it -u vscode gpdb bash
+
+sudo service ssh start
+
+ssh-keygen
+cat ~/.ssh/id_rsa.pub &gt;&gt; ~/.ssh/authorized_keys
+chmod <span style=color:#ae81ff>700</span> ~/.ssh
+chmod <span style=color:#ae81ff>644</span> ~/.ssh/authorized_keys
+
+<span style=color:#75715e># 不支持其他文件夹编译，只能在gpdb目录下</span>
+./configure --with-perl --enable-orca --with-python --with-libxml --with-gssapi --enable-debug CFLAGS<span style=color:#f92672>=</span>-O0 CXXFLAGS<span style=color:#f92672>=</span>-O0 --prefix<span style=color:#f92672>=</span>/home/vscode/.build
+make -j16
+make install 
+source /home/vscode/.build/greenplum_path.sh
+
+<span style=color:#75715e># 创建demo 集群</span>
+make create-demo-cluster
+
+<span style=color:#75715e># 销毁demo集群</span>
+make destroy-demo-cluster
+
+
+<span style=color:#75715e># .bashrc 文件</span>
+source /home/vscode/.build/greenplum_path.sh
+alias psql<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;psql -p 7000&#39;</span>
+alias gpstart<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;gpstart -d /workspaces/gpdb/gpAux/gpdemo/datadirs/qddir/demoDataDir-1&#39;</span>
+alias gpstop<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;gpstop -d /workspaces/gpdb/gpAux/gpdemo/datadirs/qddir/demoDataDir-1&#39;</span>
+alias sqps<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;echo &#39;USER         PID     PPID VSZ                  CMD&#39; ; ps -eo user,pid,ppid,vsize,cmd | grep -E &#39;postgres&#39; &#34;</span>
+
+
+</code></pre></div><h2 id=demo-sql>
+demo sql
+<a href=#demo-sql class=h-anchor aria-hidden=true>#</a>
+</h2>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>
+<span style=color:#66d9ef>select</span> <span style=color:#e6db74>&#39;
+</span><span style=color:#e6db74>drop table if exists t0;
+</span><span style=color:#e6db74>drop table if exists t0_hash;                drop table if exists t1_hash;                  drop table if exists t2_hash;
+</span><span style=color:#e6db74>drop table if exists t0_repl;                drop table if exists t1_repl;                  drop table if exists t2_repl;
+</span><span style=color:#e6db74>drop table if exists t0_random;              drop table if exists t1_random;                drop table if exists t2_random;
+</span><span style=color:#e6db74>&#39;</span> droptable <span style=color:#960050;background-color:#1e0010>\</span>gset
+
+<span style=color:#66d9ef>select</span> <span style=color:#e6db74>&#39;
+</span><span style=color:#e6db74>create table t0(a int, b int, c char(10), d timestamp);
+</span><span style=color:#e6db74>insert into t0 values
+</span><span style=color:#e6db74>(1,  1,  &#39;&#39;1&#39;&#39;,  &#39;&#39;2021-12-29 20:10:01&#39;&#39;),(2,  2,  &#39;&#39;2&#39;&#39;,  &#39;&#39;2022-12-29 20:10:01&#39;&#39;),(3,  3,  &#39;&#39;3&#39;&#39;,  &#39;&#39;2023-12-29 20:10:01&#39;&#39;),(4,  4,  &#39;&#39;4&#39;&#39;,  &#39;&#39;2024-12-29 20:10:01&#39;&#39;),
+</span><span style=color:#e6db74>(5,  5,  &#39;&#39;5&#39;&#39;,  &#39;&#39;2025-12-29 20:10:01&#39;&#39;),(6,  6,  &#39;&#39;6&#39;&#39;,  &#39;&#39;2026-12-29 20:10:01&#39;&#39;),(7,  7,  &#39;&#39;7&#39;&#39;,  &#39;&#39;2027-12-29 20:10:01&#39;&#39;),(8,  8,  &#39;&#39;8&#39;&#39;,  &#39;&#39;2028-12-29 20:10:01&#39;&#39;),
+</span><span style=color:#e6db74>(9,  9,  &#39;&#39;9&#39;&#39;,  &#39;&#39;2029-12-29 20:10:01&#39;&#39;),(10, 10, &#39;&#39;10&#39;&#39;, &#39;&#39;2010-12-29 20:10:01&#39;&#39;),(11, 11, &#39;&#39;11&#39;&#39;, &#39;&#39;2011-12-29 20:10:01&#39;&#39;),(12, 12, &#39;&#39;12&#39;&#39;, &#39;&#39;2012-12-29 20:10:01&#39;&#39;),
+</span><span style=color:#e6db74>(13, 13, &#39;&#39;13&#39;&#39;, &#39;&#39;2013-12-29 20:10:01&#39;&#39;),(14, 14, &#39;&#39;14&#39;&#39;, &#39;&#39;2014-12-29 20:10:01&#39;&#39;),(15, 15, &#39;&#39;15&#39;&#39;, &#39;&#39;2015-12-29 20:10:01&#39;&#39;),(16, 16, &#39;&#39;16&#39;&#39;, &#39;&#39;2016-12-29 20:10:01&#39;&#39;),
+</span><span style=color:#e6db74>(17, 17, &#39;&#39;17&#39;&#39;, &#39;&#39;2017-12-29 20:10:01&#39;&#39;),(18, 18, &#39;&#39;18&#39;&#39;, &#39;&#39;2018-12-29 20:10:01&#39;&#39;),(19, 19, &#39;&#39;19&#39;&#39;, &#39;&#39;2019-12-29 20:10:01&#39;&#39;),(20, 20, &#39;&#39;20&#39;&#39;, &#39;&#39;2020-12-29 20:10:01&#39;&#39;);
+</span><span style=color:#e6db74>
+</span><span style=color:#e6db74>create table t0_hash   (a int, b int, c char(10), d timestamp) Distributed by (a);
+</span><span style=color:#e6db74>create table t0_repl   (a int, b int, c char(10), d timestamp) Distributed REPLICATED;
+</span><span style=color:#e6db74>create table t0_random (a int, b int, c char(10), d timestamp) Distributed RANDOMLY;
+</span><span style=color:#e6db74>
+</span><span style=color:#e6db74>create table t1_hash   (a int, b int, c char(10), d timestamp) Distributed by (a);
+</span><span style=color:#e6db74>create table t1_repl   (a int, b int, c char(10), d timestamp) Distributed REPLICATED;
+</span><span style=color:#e6db74>create table t1_random (a int, b int, c char(10), d timestamp) Distributed RANDOMLY;
+</span><span style=color:#e6db74>
+</span><span style=color:#e6db74>create table t2_hash   (a int, b int, c char(10), d timestamp) Distributed by (a);
+</span><span style=color:#e6db74>create table t2_repl   (a int, b int, c char(10), d timestamp) Distributed REPLICATED;
+</span><span style=color:#e6db74>create table t2_random (a int, b int, c char(10), d timestamp) Distributed RANDOMLY;
+</span><span style=color:#e6db74>
+</span><span style=color:#e6db74>insert into t0_hash select * from t0;
+</span><span style=color:#e6db74>insert into t0_repl select * from t0;
+</span><span style=color:#e6db74>insert into t0_random select * from t0;
+</span><span style=color:#e6db74>insert into t1_hash select * from t0;
+</span><span style=color:#e6db74>insert into t1_repl select * from t0;
+</span><span style=color:#e6db74>insert into t1_random select * from t0;
+</span><span style=color:#e6db74>insert into t2_hash select * from t0;
+</span><span style=color:#e6db74>insert into t2_repl select * from t0;
+</span><span style=color:#e6db74>insert into t2_random select * from t0;
+</span><span style=color:#e6db74>
+</span><span style=color:#e6db74>vacuum ANALYZE t0_hash;                vacuum ANALYZE t1_hash;                  vacuum ANALYZE t2_hash;
+</span><span style=color:#e6db74>vacuum ANALYZE t0_repl;                vacuum ANALYZE t1_repl;                  vacuum ANALYZE t2_repl;
+</span><span style=color:#e6db74>vacuum ANALYZE t0_random;              vacuum ANALYZE t1_random;                vacuum ANALYZE t2_random;
+</span><span style=color:#e6db74>&#39;</span> createtable <span style=color:#960050;background-color:#1e0010>\</span>gset
+
+
+<span style=color:#75715e>-- test start: case 1
+</span><span style=color:#75715e>--2 层 简单 子查询
+</span><span style=color:#75715e></span><span style=color:#66d9ef>select</span> <span style=color:#e6db74>&#39;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select avg(t1_hash.a)::int from t1_hash) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select avg(t1_repl.a)::int from t1_repl) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select avg(t1_random.a)::int from t1_random) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select avg(t1_hash.a)::int from t1_hash) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select avg(t1_repl.a)::int from t1_repl) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select avg(t1_random.a)::int from t1_random) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select avg(t1_hash.a)::int from t1_hash) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select avg(t1_repl.a)::int from t1_repl) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select avg(t1_random.a)::int from t1_random) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>&#39;</span> testcase1 <span style=color:#960050;background-color:#1e0010>\</span>gset
+
+<span style=color:#75715e>-- test start: case 2
+</span><span style=color:#75715e>--2 层 join 子查询
+</span><span style=color:#75715e></span><span style=color:#66d9ef>select</span> <span style=color:#e6db74>&#39;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (max(t2_hash.b)::int/avg(t1_hash.a))::int from t1_hash, t2_hash where t1_hash.a = t2_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (max(t2_repl.b)::int/avg(t1_hash.a))::int from t1_hash, t2_repl where t1_hash.a = t2_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (max(t2_random.b)::int/avg(t1_hash.a))::int from t1_hash, t2_random where t1_hash.a = t2_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (max(t2_hash.b)::int/avg(t1_repl.a))::int from t1_repl, t2_hash where t1_repl.a = t2_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (max(t2_repl.b)::int/avg(t1_repl.a))::int from t1_repl, t2_repl where t1_repl.a = t2_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (max(t2_random.b)::int/avg(t1_repl.a))::int from t1_repl, t2_random where t1_repl.a = t2_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (max(t2_hash.b)::int/avg(t1_random.a))::int from t1_random, t2_hash where t1_random.a = t2_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (max(t2_repl.b)::int/avg(t1_random.a))::int from t1_random, t2_repl where t1_random.a = t2_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (max(t2_random.b)::int/avg(t1_random.a))::int from t1_random, t2_random where t1_random.a = t2_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (max(t2_hash.b)::int/avg(t1_hash.a))::int from t1_hash, t2_hash where t1_hash.a = t2_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (max(t2_repl.b)::int/avg(t1_hash.a))::int from t1_hash, t2_repl where t1_hash.a = t2_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (max(t2_random.b)::int/avg(t1_hash.a))::int from t1_hash, t2_random where t1_hash.a = t2_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (max(t2_hash.b)::int/avg(t1_repl.a))::int from t1_repl, t2_hash where t1_repl.a = t2_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (max(t2_repl.b)::int/avg(t1_repl.a))::int from t1_repl, t2_repl where t1_repl.a = t2_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (max(t2_random.b)::int/avg(t1_repl.a))::int from t1_repl, t2_random where t1_repl.a = t2_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (max(t2_hash.b)::int/avg(t1_random.a))::int from t1_random, t2_hash where t1_random.a = t2_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (max(t2_repl.b)::int/avg(t1_random.a))::int from t1_random, t2_repl where t1_random.a = t2_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (max(t2_random.b)::int/avg(t1_random.a))::int from t1_random, t2_random where t1_random.a = t2_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (max(t2_hash.b)::int/avg(t1_hash.a))::int from t1_hash, t2_hash where t1_hash.a = t2_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (max(t2_repl.b)::int/avg(t1_hash.a))::int from t1_hash, t2_repl where t1_hash.a = t2_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (max(t2_random.b)::int/avg(t1_hash.a))::int from t1_hash, t2_random where t1_hash.a = t2_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (max(t2_hash.b)::int/avg(t1_repl.a))::int from t1_repl, t2_hash where t1_repl.a = t2_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (max(t2_repl.b)::int/avg(t1_repl.a))::int from t1_repl, t2_repl where t1_repl.a = t2_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (max(t2_random.b)::int/avg(t1_repl.a))::int from t1_repl, t2_random where t1_repl.a = t2_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (max(t2_hash.b)::int/avg(t1_random.a))::int from t1_random, t2_hash where t1_random.a = t2_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (max(t2_repl.b)::int/avg(t1_random.a))::int from t1_random, t2_repl where t1_random.a = t2_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (max(t2_random.b)::int/avg(t1_random.a))::int from t1_random, t2_random where t1_random.a = t2_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>&#39;</span> testcase2 <span style=color:#960050;background-color:#1e0010>\</span>gset
+
+<span style=color:#75715e>-- test start: case 3
+</span><span style=color:#75715e>--2 层 关联 子查询
+</span><span style=color:#75715e></span><span style=color:#66d9ef>select</span> <span style=color:#e6db74>&#39;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt; 5 and t0_hash.a in (select avg(t1_hash.a)::int from t1_hash where t0_hash.a = t1_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt; 5 and t0_hash.a in (select avg(t1_hash.a)::int from t1_hash where t0_hash.b = t1_hash.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt; 5 and t0_hash.a in (select avg(t1_hash.a)::int from t1_hash where t0_hash.c = t1_hash.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt; 5 and t0_hash.a in (select avg(t1_hash.a)::int from t1_hash where t0_hash.d = t1_hash.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt; 5 and t0_hash.a in (select avg(t1_repl.a)::int from t1_repl where t0_hash.a = t1_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt; 5 and t0_hash.a in (select avg(t1_repl.a)::int from t1_repl where t0_hash.b = t1_repl.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt; 5 and t0_hash.a in (select avg(t1_repl.a)::int from t1_repl where t0_hash.c = t1_repl.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt; 5 and t0_hash.a in (select avg(t1_repl.a)::int from t1_repl where t0_hash.d = t1_repl.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt; 5 and t0_hash.a in (select avg(t1_random.a)::int from t1_random where t0_hash.a = t1_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt; 5 and t0_hash.a in (select avg(t1_random.a)::int from t1_random where t0_hash.b = t1_random.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt; 5 and t0_hash.a in (select avg(t1_random.a)::int from t1_random where t0_hash.c = t1_random.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt; 5 and t0_hash.a in (select avg(t1_random.a)::int from t1_random where t0_hash.d = t1_random.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt; 5 and t0_repl.a in (select avg(t1_hash.a)::int from t1_hash where t0_repl.a = t1_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt; 5 and t0_repl.a in (select avg(t1_hash.a)::int from t1_hash where t0_repl.b = t1_hash.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt; 5 and t0_repl.a in (select avg(t1_hash.a)::int from t1_hash where t0_repl.c = t1_hash.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt; 5 and t0_repl.a in (select avg(t1_hash.a)::int from t1_hash where t0_repl.d = t1_hash.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt; 5 and t0_repl.a in (select avg(t1_repl.a)::int from t1_repl where t0_repl.a = t1_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt; 5 and t0_repl.a in (select avg(t1_repl.a)::int from t1_repl where t0_repl.b = t1_repl.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt; 5 and t0_repl.a in (select avg(t1_repl.a)::int from t1_repl where t0_repl.c = t1_repl.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt; 5 and t0_repl.a in (select avg(t1_repl.a)::int from t1_repl where t0_repl.d = t1_repl.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt; 5 and t0_repl.a in (select avg(t1_random.a)::int from t1_random where t0_repl.a = t1_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt; 5 and t0_repl.a in (select avg(t1_random.a)::int from t1_random where t0_repl.b = t1_random.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt; 5 and t0_repl.a in (select avg(t1_random.a)::int from t1_random where t0_repl.c = t1_random.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt; 5 and t0_repl.a in (select avg(t1_random.a)::int from t1_random where t0_repl.d = t1_random.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt; 5 and t0_random.a in (select avg(t1_hash.a)::int from t1_hash where t0_random.a = t1_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt; 5 and t0_random.a in (select avg(t1_hash.a)::int from t1_hash where t0_random.b = t1_hash.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt; 5 and t0_random.a in (select avg(t1_hash.a)::int from t1_hash where t0_random.c = t1_hash.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt; 5 and t0_random.a in (select avg(t1_hash.a)::int from t1_hash where t0_random.d = t1_hash.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt; 5 and t0_random.a in (select avg(t1_repl.a)::int from t1_repl where t0_random.a = t1_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt; 5 and t0_random.a in (select avg(t1_repl.a)::int from t1_repl where t0_random.b = t1_repl.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt; 5 and t0_random.a in (select avg(t1_repl.a)::int from t1_repl where t0_random.c = t1_repl.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt; 5 and t0_random.a in (select avg(t1_repl.a)::int from t1_repl where t0_random.d = t1_repl.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt; 5 and t0_random.a in (select avg(t1_random.a)::int from t1_random where t0_random.a = t1_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt; 5 and t0_random.a in (select avg(t1_random.a)::int from t1_random where t0_random.b = t1_random.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt; 5 and t0_random.a in (select avg(t1_random.a)::int from t1_random where t0_random.c = t1_random.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt; 5 and t0_random.a in (select avg(t1_random.a)::int from t1_random where t0_random.d = t1_random.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>&#39;</span> testcase3 <span style=color:#960050;background-color:#1e0010>\</span>gset
+
+<span style=color:#75715e>-- test start: case 5
+</span><span style=color:#75715e>--3 层 非关联关联子查询
+</span><span style=color:#75715e></span><span style=color:#66d9ef>select</span> <span style=color:#e6db74>&#39;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>&#39;</span> testcase5 <span style=color:#960050;background-color:#1e0010>\</span>gset
+
+<span style=color:#75715e>-- test start: case 7
+</span><span style=color:#75715e>--3 层 关联子查询，关联13层
+</span><span style=color:#75715e></span><span style=color:#66d9ef>select</span> <span style=color:#e6db74>&#39;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.a = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>-- explain this query, must be remote table query
+</span><span style=color:#e6db74>explain (costs off) select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.a = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.b = t2_hash.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.c = t2_hash.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.d = t2_hash.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.a = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.b = t2_repl.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.c = t2_repl.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.d = t2_repl.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.a = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.b = t2_random.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.c = t2_random.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.d = t2_random.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.a = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.b = t2_hash.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.c = t2_hash.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.d = t2_hash.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.a = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.b = t2_repl.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.c = t2_repl.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.d = t2_repl.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.a = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.b = t2_random.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.c = t2_random.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.d = t2_random.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.a = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.b = t2_hash.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.c = t2_hash.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.d = t2_hash.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.a = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.b = t2_repl.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.c = t2_repl.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.d = t2_repl.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.a = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.b = t2_random.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.c = t2_random.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.d = t2_random.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.a = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.b = t2_hash.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.c = t2_hash.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.d = t2_hash.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.a = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.b = t2_repl.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.c = t2_repl.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.d = t2_repl.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.a = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.b = t2_random.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.c = t2_random.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.d = t2_random.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.a = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.b = t2_hash.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.c = t2_hash.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.d = t2_hash.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.a = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.b = t2_repl.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.c = t2_repl.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.d = t2_repl.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.a = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.b = t2_random.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.c = t2_random.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.d = t2_random.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.a = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.b = t2_hash.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.c = t2_hash.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.d = t2_hash.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.a = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.b = t2_repl.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.c = t2_repl.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.d = t2_repl.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.a = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.b = t2_random.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.c = t2_random.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.d = t2_random.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.a = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.b = t2_hash.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.c = t2_hash.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.d = t2_hash.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.a = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.b = t2_repl.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.c = t2_repl.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.d = t2_repl.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.a = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.b = t2_random.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.c = t2_random.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.d = t2_random.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.a = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.b = t2_hash.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.c = t2_hash.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.d = t2_hash.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.a = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.b = t2_repl.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.c = t2_repl.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.d = t2_repl.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.a = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.b = t2_random.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.c = t2_random.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.d = t2_random.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.a = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.b = t2_hash.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.c = t2_hash.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.d = t2_hash.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.a = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.b = t2_repl.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.c = t2_repl.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.d = t2_repl.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.a = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.b = t2_random.b)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.c = t2_random.c)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.d = t2_random.d)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74></span><span style=color:#e6db74>&#39;</span> testcase7 <span style=color:#960050;background-color:#1e0010>\</span>gset
+
+<span style=color:#75715e>-- test start: case 4
+</span><span style=color:#75715e>--2 层 join 关联子查询
+</span><span style=color:#75715e></span><span style=color:#66d9ef>select</span> <span style=color:#e6db74>&#39;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_hash.b)::int/avg(t1_hash.a))::int from t1_hash, t2_hash where t1_hash.a = t2_hash.b and t0_hash.a = t1_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_hash.b)::int/avg(t1_hash.a))::int from t1_hash, t2_hash where t1_hash.a = t2_hash.b and t0_hash.b = t1_hash.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_hash.b)::int/avg(t1_hash.a))::int from t1_hash, t2_hash where t1_hash.a = t2_hash.b and t0_hash.c = t1_hash.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_hash.b)::int/avg(t1_hash.a))::int from t1_hash, t2_hash where t1_hash.a = t2_hash.b and t0_hash.d = t1_hash.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_repl.b)::int/avg(t1_hash.a))::int from t1_hash, t2_repl where t1_hash.a = t2_repl.b and t0_hash.a = t1_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_repl.b)::int/avg(t1_hash.a))::int from t1_hash, t2_repl where t1_hash.a = t2_repl.b and t0_hash.b = t1_hash.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_repl.b)::int/avg(t1_hash.a))::int from t1_hash, t2_repl where t1_hash.a = t2_repl.b and t0_hash.c = t1_hash.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_repl.b)::int/avg(t1_hash.a))::int from t1_hash, t2_repl where t1_hash.a = t2_repl.b and t0_hash.d = t1_hash.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_random.b)::int/avg(t1_hash.a))::int from t1_hash, t2_random where t1_hash.a = t2_random.b and t0_hash.a = t1_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_random.b)::int/avg(t1_hash.a))::int from t1_hash, t2_random where t1_hash.a = t2_random.b and t0_hash.b = t1_hash.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_random.b)::int/avg(t1_hash.a))::int from t1_hash, t2_random where t1_hash.a = t2_random.b and t0_hash.c = t1_hash.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_random.b)::int/avg(t1_hash.a))::int from t1_hash, t2_random where t1_hash.a = t2_random.b and t0_hash.d = t1_hash.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_hash.b)::int/avg(t1_repl.a))::int from t1_repl, t2_hash where t1_repl.a = t2_hash.b and t0_hash.a = t1_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_hash.b)::int/avg(t1_repl.a))::int from t1_repl, t2_hash where t1_repl.a = t2_hash.b and t0_hash.b = t1_repl.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_hash.b)::int/avg(t1_repl.a))::int from t1_repl, t2_hash where t1_repl.a = t2_hash.b and t0_hash.c = t1_repl.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_hash.b)::int/avg(t1_repl.a))::int from t1_repl, t2_hash where t1_repl.a = t2_hash.b and t0_hash.d = t1_repl.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_repl.b)::int/avg(t1_repl.a))::int from t1_repl, t2_repl where t1_repl.a = t2_repl.b and t0_hash.a = t1_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_repl.b)::int/avg(t1_repl.a))::int from t1_repl, t2_repl where t1_repl.a = t2_repl.b and t0_hash.b = t1_repl.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_repl.b)::int/avg(t1_repl.a))::int from t1_repl, t2_repl where t1_repl.a = t2_repl.b and t0_hash.c = t1_repl.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_repl.b)::int/avg(t1_repl.a))::int from t1_repl, t2_repl where t1_repl.a = t2_repl.b and t0_hash.d = t1_repl.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_random.b)::int/avg(t1_repl.a))::int from t1_repl, t2_random where t1_repl.a = t2_random.b and t0_hash.a = t1_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_random.b)::int/avg(t1_repl.a))::int from t1_repl, t2_random where t1_repl.a = t2_random.b and t0_hash.b = t1_repl.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_random.b)::int/avg(t1_repl.a))::int from t1_repl, t2_random where t1_repl.a = t2_random.b and t0_hash.c = t1_repl.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_random.b)::int/avg(t1_repl.a))::int from t1_repl, t2_random where t1_repl.a = t2_random.b and t0_hash.d = t1_repl.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_hash.b)::int/avg(t1_random.a))::int from t1_random, t2_hash where t1_random.a = t2_hash.b and t0_hash.a = t1_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_hash.b)::int/avg(t1_random.a))::int from t1_random, t2_hash where t1_random.a = t2_hash.b and t0_hash.b = t1_random.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_hash.b)::int/avg(t1_random.a))::int from t1_random, t2_hash where t1_random.a = t2_hash.b and t0_hash.c = t1_random.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_hash.b)::int/avg(t1_random.a))::int from t1_random, t2_hash where t1_random.a = t2_hash.b and t0_hash.d = t1_random.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_repl.b)::int/avg(t1_random.a))::int from t1_random, t2_repl where t1_random.a = t2_repl.b and t0_hash.a = t1_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_repl.b)::int/avg(t1_random.a))::int from t1_random, t2_repl where t1_random.a = t2_repl.b and t0_hash.b = t1_random.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_repl.b)::int/avg(t1_random.a))::int from t1_random, t2_repl where t1_random.a = t2_repl.b and t0_hash.c = t1_random.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_repl.b)::int/avg(t1_random.a))::int from t1_random, t2_repl where t1_random.a = t2_repl.b and t0_hash.d = t1_random.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_random.b)::int/avg(t1_random.a))::int from t1_random, t2_random where t1_random.a = t2_random.b and t0_hash.a = t1_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_random.b)::int/avg(t1_random.a))::int from t1_random, t2_random where t1_random.a = t2_random.b and t0_hash.b = t1_random.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_random.b)::int/avg(t1_random.a))::int from t1_random, t2_random where t1_random.a = t2_random.b and t0_hash.c = t1_random.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a in (select (sum( t2_random.b)::int/avg(t1_random.a))::int from t1_random, t2_random where t1_random.a = t2_random.b and t0_hash.d = t1_random.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_hash.b)::int/avg(t1_hash.a))::int from t1_hash, t2_hash where t1_hash.a = t2_hash.b and t0_repl.a = t1_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_hash.b)::int/avg(t1_hash.a))::int from t1_hash, t2_hash where t1_hash.a = t2_hash.b and t0_repl.b = t1_hash.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_hash.b)::int/avg(t1_hash.a))::int from t1_hash, t2_hash where t1_hash.a = t2_hash.b and t0_repl.c = t1_hash.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_hash.b)::int/avg(t1_hash.a))::int from t1_hash, t2_hash where t1_hash.a = t2_hash.b and t0_repl.d = t1_hash.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_repl.b)::int/avg(t1_hash.a))::int from t1_hash, t2_repl where t1_hash.a = t2_repl.b and t0_repl.a = t1_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_repl.b)::int/avg(t1_hash.a))::int from t1_hash, t2_repl where t1_hash.a = t2_repl.b and t0_repl.b = t1_hash.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_repl.b)::int/avg(t1_hash.a))::int from t1_hash, t2_repl where t1_hash.a = t2_repl.b and t0_repl.c = t1_hash.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_repl.b)::int/avg(t1_hash.a))::int from t1_hash, t2_repl where t1_hash.a = t2_repl.b and t0_repl.d = t1_hash.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_random.b)::int/avg(t1_hash.a))::int from t1_hash, t2_random where t1_hash.a = t2_random.b and t0_repl.a = t1_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_random.b)::int/avg(t1_hash.a))::int from t1_hash, t2_random where t1_hash.a = t2_random.b and t0_repl.b = t1_hash.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_random.b)::int/avg(t1_hash.a))::int from t1_hash, t2_random where t1_hash.a = t2_random.b and t0_repl.c = t1_hash.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_random.b)::int/avg(t1_hash.a))::int from t1_hash, t2_random where t1_hash.a = t2_random.b and t0_repl.d = t1_hash.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_hash.b)::int/avg(t1_repl.a))::int from t1_repl, t2_hash where t1_repl.a = t2_hash.b and t0_repl.a = t1_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_hash.b)::int/avg(t1_repl.a))::int from t1_repl, t2_hash where t1_repl.a = t2_hash.b and t0_repl.b = t1_repl.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_hash.b)::int/avg(t1_repl.a))::int from t1_repl, t2_hash where t1_repl.a = t2_hash.b and t0_repl.c = t1_repl.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_hash.b)::int/avg(t1_repl.a))::int from t1_repl, t2_hash where t1_repl.a = t2_hash.b and t0_repl.d = t1_repl.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_repl.b)::int/avg(t1_repl.a))::int from t1_repl, t2_repl where t1_repl.a = t2_repl.b and t0_repl.a = t1_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_repl.b)::int/avg(t1_repl.a))::int from t1_repl, t2_repl where t1_repl.a = t2_repl.b and t0_repl.b = t1_repl.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_repl.b)::int/avg(t1_repl.a))::int from t1_repl, t2_repl where t1_repl.a = t2_repl.b and t0_repl.c = t1_repl.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_repl.b)::int/avg(t1_repl.a))::int from t1_repl, t2_repl where t1_repl.a = t2_repl.b and t0_repl.d = t1_repl.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_random.b)::int/avg(t1_repl.a))::int from t1_repl, t2_random where t1_repl.a = t2_random.b and t0_repl.a = t1_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_random.b)::int/avg(t1_repl.a))::int from t1_repl, t2_random where t1_repl.a = t2_random.b and t0_repl.b = t1_repl.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_random.b)::int/avg(t1_repl.a))::int from t1_repl, t2_random where t1_repl.a = t2_random.b and t0_repl.c = t1_repl.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_random.b)::int/avg(t1_repl.a))::int from t1_repl, t2_random where t1_repl.a = t2_random.b and t0_repl.d = t1_repl.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_hash.b)::int/avg(t1_random.a))::int from t1_random, t2_hash where t1_random.a = t2_hash.b and t0_repl.a = t1_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_hash.b)::int/avg(t1_random.a))::int from t1_random, t2_hash where t1_random.a = t2_hash.b and t0_repl.b = t1_random.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_hash.b)::int/avg(t1_random.a))::int from t1_random, t2_hash where t1_random.a = t2_hash.b and t0_repl.c = t1_random.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_hash.b)::int/avg(t1_random.a))::int from t1_random, t2_hash where t1_random.a = t2_hash.b and t0_repl.d = t1_random.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_repl.b)::int/avg(t1_random.a))::int from t1_random, t2_repl where t1_random.a = t2_repl.b and t0_repl.a = t1_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_repl.b)::int/avg(t1_random.a))::int from t1_random, t2_repl where t1_random.a = t2_repl.b and t0_repl.b = t1_random.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_repl.b)::int/avg(t1_random.a))::int from t1_random, t2_repl where t1_random.a = t2_repl.b and t0_repl.c = t1_random.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_repl.b)::int/avg(t1_random.a))::int from t1_random, t2_repl where t1_random.a = t2_repl.b and t0_repl.d = t1_random.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_random.b)::int/avg(t1_random.a))::int from t1_random, t2_random where t1_random.a = t2_random.b and t0_repl.a = t1_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_random.b)::int/avg(t1_random.a))::int from t1_random, t2_random where t1_random.a = t2_random.b and t0_repl.b = t1_random.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_random.b)::int/avg(t1_random.a))::int from t1_random, t2_random where t1_random.a = t2_random.b and t0_repl.c = t1_random.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a in (select (sum( t2_random.b)::int/avg(t1_random.a))::int from t1_random, t2_random where t1_random.a = t2_random.b and t0_repl.d = t1_random.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_hash.b)::int/avg(t1_hash.a))::int from t1_hash, t2_hash where t1_hash.a = t2_hash.b and t0_random.a = t1_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_hash.b)::int/avg(t1_hash.a))::int from t1_hash, t2_hash where t1_hash.a = t2_hash.b and t0_random.b = t1_hash.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_hash.b)::int/avg(t1_hash.a))::int from t1_hash, t2_hash where t1_hash.a = t2_hash.b and t0_random.c = t1_hash.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_hash.b)::int/avg(t1_hash.a))::int from t1_hash, t2_hash where t1_hash.a = t2_hash.b and t0_random.d = t1_hash.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_repl.b)::int/avg(t1_hash.a))::int from t1_hash, t2_repl where t1_hash.a = t2_repl.b and t0_random.a = t1_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_repl.b)::int/avg(t1_hash.a))::int from t1_hash, t2_repl where t1_hash.a = t2_repl.b and t0_random.b = t1_hash.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_repl.b)::int/avg(t1_hash.a))::int from t1_hash, t2_repl where t1_hash.a = t2_repl.b and t0_random.c = t1_hash.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_repl.b)::int/avg(t1_hash.a))::int from t1_hash, t2_repl where t1_hash.a = t2_repl.b and t0_random.d = t1_hash.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_random.b)::int/avg(t1_hash.a))::int from t1_hash, t2_random where t1_hash.a = t2_random.b and t0_random.a = t1_hash.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_random.b)::int/avg(t1_hash.a))::int from t1_hash, t2_random where t1_hash.a = t2_random.b and t0_random.b = t1_hash.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_random.b)::int/avg(t1_hash.a))::int from t1_hash, t2_random where t1_hash.a = t2_random.b and t0_random.c = t1_hash.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_random.b)::int/avg(t1_hash.a))::int from t1_hash, t2_random where t1_hash.a = t2_random.b and t0_random.d = t1_hash.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_hash.b)::int/avg(t1_repl.a))::int from t1_repl, t2_hash where t1_repl.a = t2_hash.b and t0_random.a = t1_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_hash.b)::int/avg(t1_repl.a))::int from t1_repl, t2_hash where t1_repl.a = t2_hash.b and t0_random.b = t1_repl.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_hash.b)::int/avg(t1_repl.a))::int from t1_repl, t2_hash where t1_repl.a = t2_hash.b and t0_random.c = t1_repl.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_hash.b)::int/avg(t1_repl.a))::int from t1_repl, t2_hash where t1_repl.a = t2_hash.b and t0_random.d = t1_repl.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_repl.b)::int/avg(t1_repl.a))::int from t1_repl, t2_repl where t1_repl.a = t2_repl.b and t0_random.a = t1_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_repl.b)::int/avg(t1_repl.a))::int from t1_repl, t2_repl where t1_repl.a = t2_repl.b and t0_random.b = t1_repl.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_repl.b)::int/avg(t1_repl.a))::int from t1_repl, t2_repl where t1_repl.a = t2_repl.b and t0_random.c = t1_repl.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_repl.b)::int/avg(t1_repl.a))::int from t1_repl, t2_repl where t1_repl.a = t2_repl.b and t0_random.d = t1_repl.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_random.b)::int/avg(t1_repl.a))::int from t1_repl, t2_random where t1_repl.a = t2_random.b and t0_random.a = t1_repl.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_random.b)::int/avg(t1_repl.a))::int from t1_repl, t2_random where t1_repl.a = t2_random.b and t0_random.b = t1_repl.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_random.b)::int/avg(t1_repl.a))::int from t1_repl, t2_random where t1_repl.a = t2_random.b and t0_random.c = t1_repl.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_random.b)::int/avg(t1_repl.a))::int from t1_repl, t2_random where t1_repl.a = t2_random.b and t0_random.d = t1_repl.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_hash.b)::int/avg(t1_random.a))::int from t1_random, t2_hash where t1_random.a = t2_hash.b and t0_random.a = t1_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_hash.b)::int/avg(t1_random.a))::int from t1_random, t2_hash where t1_random.a = t2_hash.b and t0_random.b = t1_random.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_hash.b)::int/avg(t1_random.a))::int from t1_random, t2_hash where t1_random.a = t2_hash.b and t0_random.c = t1_random.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_hash.b)::int/avg(t1_random.a))::int from t1_random, t2_hash where t1_random.a = t2_hash.b and t0_random.d = t1_random.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_repl.b)::int/avg(t1_random.a))::int from t1_random, t2_repl where t1_random.a = t2_repl.b and t0_random.a = t1_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_repl.b)::int/avg(t1_random.a))::int from t1_random, t2_repl where t1_random.a = t2_repl.b and t0_random.b = t1_random.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_repl.b)::int/avg(t1_random.a))::int from t1_random, t2_repl where t1_random.a = t2_repl.b and t0_random.c = t1_random.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_repl.b)::int/avg(t1_random.a))::int from t1_random, t2_repl where t1_random.a = t2_repl.b and t0_random.d = t1_random.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_random.b)::int/avg(t1_random.a))::int from t1_random, t2_random where t1_random.a = t2_random.b and t0_random.a = t1_random.a) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_random.b)::int/avg(t1_random.a))::int from t1_random, t2_random where t1_random.a = t2_random.b and t0_random.b = t1_random.b) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_random.b)::int/avg(t1_random.a))::int from t1_random, t2_random where t1_random.a = t2_random.b and t0_random.c = t1_random.c) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a in (select (sum( t2_random.b)::int/avg(t1_random.a))::int from t1_random, t2_random where t1_random.a = t2_random.b and t0_random.d = t1_random.d) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74></span><span style=color:#e6db74>&#39;</span> testcase4 <span style=color:#960050;background-color:#1e0010>\</span>gset
+
+<span style=color:#75715e>-- test start: case 6
+</span><span style=color:#75715e>--3 层 关联子查询，关联12层
+</span><span style=color:#75715e></span><span style=color:#66d9ef>select</span> <span style=color:#e6db74>&#39;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_hash.a = t1_hash.a and t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_hash.b = t1_hash.b and t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_hash.c = t1_hash.c and t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_hash.d = t1_hash.d and t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_hash.a = t1_hash.a and t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_hash.b = t1_hash.b and t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_hash.c = t1_hash.c and t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_hash.d = t1_hash.d and t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_hash.a = t1_hash.a and t1_hash.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_hash.b = t1_hash.b and t1_hash.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_hash.c = t1_hash.c and t1_hash.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_hash.d = t1_hash.d and t1_hash.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_hash.a = t1_repl.a and t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_hash.b = t1_repl.b and t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_hash.c = t1_repl.c and t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_hash.d = t1_repl.d and t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_hash.a = t1_repl.a and t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_hash.b = t1_repl.b and t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_hash.c = t1_repl.c and t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_hash.d = t1_repl.d and t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_hash.a = t1_repl.a and t1_repl.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_hash.b = t1_repl.b and t1_repl.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_hash.c = t1_repl.c and t1_repl.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_hash.d = t1_repl.d and t1_repl.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_hash.a = t1_random.a and t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_hash.b = t1_random.b and t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_hash.c = t1_random.c and t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_hash.d = t1_random.d and t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_hash.a = t1_random.a and t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_hash.b = t1_random.b and t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_hash.c = t1_random.c and t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_hash.d = t1_random.d and t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_hash.a = t1_random.a and t1_random.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_hash.b = t1_random.b and t1_random.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_hash.c = t1_random.c and t1_random.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_hash.d = t1_random.d and t1_random.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_repl.a = t1_hash.a and t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_repl.b = t1_hash.b and t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_repl.c = t1_hash.c and t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_repl.d = t1_hash.d and t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_repl.a = t1_hash.a and t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_repl.b = t1_hash.b and t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_repl.c = t1_hash.c and t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_repl.d = t1_hash.d and t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_repl.a = t1_hash.a and t1_hash.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_repl.b = t1_hash.b and t1_hash.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_repl.c = t1_hash.c and t1_hash.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_repl.d = t1_hash.d and t1_hash.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_repl.a = t1_repl.a and t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_repl.b = t1_repl.b and t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_repl.c = t1_repl.c and t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_repl.d = t1_repl.d and t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_repl.a = t1_repl.a and t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_repl.b = t1_repl.b and t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_repl.c = t1_repl.c and t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_repl.d = t1_repl.d and t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_repl.a = t1_repl.a and t1_repl.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_repl.b = t1_repl.b and t1_repl.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_repl.c = t1_repl.c and t1_repl.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_repl.d = t1_repl.d and t1_repl.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_repl.a = t1_random.a and t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_repl.b = t1_random.b and t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_repl.c = t1_random.c and t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_repl.d = t1_random.d and t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_repl.a = t1_random.a and t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_repl.b = t1_random.b and t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_repl.c = t1_random.c and t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_repl.d = t1_random.d and t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_repl.a = t1_random.a and t1_random.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_repl.b = t1_random.b and t1_random.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_repl.c = t1_random.c and t1_random.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_repl.d = t1_random.d and t1_random.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_random.a = t1_hash.a and t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_random.b = t1_hash.b and t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_random.c = t1_hash.c and t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_random.d = t1_hash.d and t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_random.a = t1_hash.a and t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_random.b = t1_hash.b and t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_random.c = t1_hash.c and t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_random.d = t1_hash.d and t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_random.a = t1_hash.a and t1_hash.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_random.b = t1_hash.b and t1_hash.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_random.c = t1_hash.c and t1_hash.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t0_random.d = t1_hash.d and t1_hash.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_random.a = t1_repl.a and t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_random.b = t1_repl.b and t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_random.c = t1_repl.c and t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_random.d = t1_repl.d and t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_random.a = t1_repl.a and t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_random.b = t1_repl.b and t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_random.c = t1_repl.c and t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_random.d = t1_repl.d and t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_random.a = t1_repl.a and t1_repl.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_random.b = t1_repl.b and t1_repl.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_random.c = t1_repl.c and t1_repl.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t0_random.d = t1_repl.d and t1_repl.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_random.a = t1_random.a and t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_random.b = t1_random.b and t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_random.c = t1_random.c and t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_random.d = t1_random.d and t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_random.a = t1_random.a and t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_random.b = t1_random.b and t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_random.c = t1_random.c and t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_random.d = t1_random.d and t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_random.a = t1_random.a and t1_random.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_random.b = t1_random.b and t1_random.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_random.c = t1_random.c and t1_random.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t0_random.d = t1_random.d and t1_random.a &lt;= (select sum(t2_random.a) from t2_random)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74></span><span style=color:#e6db74>&#39;</span> testcase6 <span style=color:#960050;background-color:#1e0010>\</span>gset
+
+<span style=color:#75715e>-- test start: case 8
+</span><span style=color:#75715e>--3 层 关联子查询，关联123层
+</span><span style=color:#75715e></span><span style=color:#66d9ef>select</span> <span style=color:#e6db74>&#39;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.a = t2_hash.a and t1_hash.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>-- explain this query, must be remote table query
+</span><span style=color:#e6db74>explain (costs off) select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.a = t2_hash.a and t1_hash.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.b = t2_hash.b and t1_hash.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.c = t2_hash.c and t1_hash.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.d = t2_hash.d and t1_hash.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.a = t2_repl.a and t1_hash.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.b = t2_repl.b and t1_hash.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.c = t2_repl.c and t1_hash.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.d = t2_repl.d and t1_hash.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.a = t2_random.a and t1_hash.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.b = t2_random.b and t1_hash.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.c = t2_random.c and t1_hash.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.d = t2_random.d and t1_hash.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.a = t2_hash.a and t1_repl.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.b = t2_hash.b and t1_repl.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.c = t2_hash.c and t1_repl.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.d = t2_hash.d and t1_repl.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.a = t2_repl.a and t1_repl.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.b = t2_repl.b and t1_repl.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.c = t2_repl.c and t1_repl.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.d = t2_repl.d and t1_repl.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.a = t2_random.a and t1_repl.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.b = t2_random.b and t1_repl.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.c = t2_random.c and t1_repl.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.d = t2_random.d and t1_repl.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.a = t2_hash.a and t1_random.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.b = t2_hash.b and t1_random.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.c = t2_hash.c and t1_random.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_hash.d = t2_hash.d and t1_random.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.a = t2_repl.a and t1_random.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.b = t2_repl.b and t1_random.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.c = t2_repl.c and t1_random.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_hash.d = t2_repl.d and t1_random.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.a = t2_random.a and t1_random.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.b = t2_random.b and t1_random.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.c = t2_random.c and t1_random.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_hash where t0_hash.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_hash.d = t2_random.d and t1_random.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.a = t2_hash.a and t1_hash.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.b = t2_hash.b and t1_hash.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.c = t2_hash.c and t1_hash.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.d = t2_hash.d and t1_hash.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.a = t2_repl.a and t1_hash.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.b = t2_repl.b and t1_hash.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.c = t2_repl.c and t1_hash.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.d = t2_repl.d and t1_hash.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.a = t2_random.a and t1_hash.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.b = t2_random.b and t1_hash.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.c = t2_random.c and t1_hash.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.d = t2_random.d and t1_hash.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.a = t2_hash.a and t1_repl.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.b = t2_hash.b and t1_repl.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.c = t2_hash.c and t1_repl.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.d = t2_hash.d and t1_repl.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.a = t2_repl.a and t1_repl.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.b = t2_repl.b and t1_repl.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.c = t2_repl.c and t1_repl.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.d = t2_repl.d and t1_repl.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.a = t2_random.a and t1_repl.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.b = t2_random.b and t1_repl.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.c = t2_random.c and t1_repl.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.d = t2_random.d and t1_repl.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.a = t2_hash.a and t1_random.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.b = t2_hash.b and t1_random.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.c = t2_hash.c and t1_random.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_repl.d = t2_hash.d and t1_random.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.a = t2_repl.a and t1_random.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.b = t2_repl.b and t1_random.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.c = t2_repl.c and t1_random.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_repl.d = t2_repl.d and t1_random.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.a = t2_random.a and t1_random.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.b = t2_random.b and t1_random.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.c = t2_random.c and t1_random.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_repl where t0_repl.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_repl.d = t2_random.d and t1_random.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.a = t2_hash.a and t1_hash.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.b = t2_hash.b and t1_hash.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.c = t2_hash.c and t1_hash.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.d = t2_hash.d and t1_hash.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.a = t2_repl.a and t1_hash.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.b = t2_repl.b and t1_hash.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.c = t2_repl.c and t1_hash.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.d = t2_repl.d and t1_hash.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.a = t2_random.a and t1_hash.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.b = t2_random.b and t1_hash.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.c = t2_random.c and t1_hash.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_hash.b)::int from t1_hash where t1_hash.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.d = t2_random.d and t1_hash.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.a = t2_hash.a and t1_repl.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.b = t2_hash.b and t1_repl.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.c = t2_hash.c and t1_repl.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.d = t2_hash.d and t1_repl.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.a = t2_repl.a and t1_repl.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.b = t2_repl.b and t1_repl.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.c = t2_repl.c and t1_repl.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.d = t2_repl.d and t1_repl.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.a = t2_random.a and t1_repl.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.b = t2_random.b and t1_repl.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.c = t2_random.c and t1_repl.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_repl.b)::int from t1_repl where t1_repl.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.d = t2_random.d and t1_repl.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.a = t2_hash.a and t1_random.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.b = t2_hash.b and t1_random.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.c = t2_hash.c and t1_random.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_hash.a) from t2_hash where t0_random.d = t2_hash.d and t1_random.b = t2_hash.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.a = t2_repl.a and t1_random.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.b = t2_repl.b and t1_random.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.c = t2_repl.c and t1_random.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_repl.a) from t2_repl where t0_random.d = t2_repl.d and t1_random.b = t2_repl.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.a = t2_random.a and t1_random.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.b = t2_random.b and t1_random.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.c = t2_random.c and t1_random.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74>select * from t0_random where t0_random.a &gt;= (select avg(t1_random.b)::int from t1_random where t1_random.a &lt;= (select sum(t2_random.a) from t2_random where t0_random.d = t2_random.d and t1_random.b = t2_random.a)) order by 1,2,3 limit 3;
+</span><span style=color:#e6db74></span><span style=color:#e6db74>&#39;</span> testcase8 <span style=color:#960050;background-color:#1e0010>\</span>gset
+
+
+:droptable
+:createtable
+<span style=color:#960050;background-color:#1e0010>\</span><span style=color:#66d9ef>set</span> ECHO queries
+
+<span style=color:#75715e>-- test start 
+</span><span style=color:#75715e></span>
+
+:testcase1
+:testcase2
+:testcase3
+:testcase4
+:testcase5
+:testcase6
+:testcase7
+:testcase8
+
+<span style=color:#75715e>-- should be There is no previous error.
+</span><span style=color:#75715e></span><span style=color:#960050;background-color:#1e0010>\</span>errverbose
+
+
+<span style=color:#960050;background-color:#1e0010>\</span><span style=color:#66d9ef>set</span> ECHO <span style=color:#66d9ef>none</span>
+
+:droptable
+
+</code></pre></div>
+</div>
+<div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>Read other posts</span>
+<hr>
+</div>
+<div class=pagination__buttons>
+<span class="button next">
+<a href=https://askyx.github.io/posts/database/tbase/build/>
+<span class=button__text>源码编译 OpenTenBase 速通版</span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<div class=copyright>
+<span>© 2024 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
+</div>
+</div>
+</footer>
+<script src=https://askyx.github.io/assets/main.js></script>
+<script src=https://askyx.github.io/assets/prism.js></script>
+</div>
+</body>
+</html>

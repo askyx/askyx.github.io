@@ -59,6 +59,46 @@ My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/personal/%E7%AE%80%E5%8E%86/></a></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+文磊 # 个人信息 # 性 别：男 年 龄：28 手 机：18705169510 邮 箱：404061090@qq.com
+工作及教育经历 # 湖南亚信安慧科技有限公司 2022.7~now AntDB-T SQL内核研发工程师
+主要负责优化器对分布式执行计划的优化 星环科技有限公司 2022.2~2022.3 基础架构部-数据库研发工程师
+主要职责为负责ArgoDB数据库存储引擎的研发工作 易鲸捷信息技术有限公司 2019.7~2022.1 SQL内核研发工程师
+负责EsgynDB和Oracle的SQL兼容工作 负责BUG修复 负责一些需求开发 与交付同事一起排查项目现场问题，SQL语句优化等 南京邮电大学 2015.9~2019.6 软件工程-本科
+专业技能 # 编程语言 c++(熟悉)，Java(了解)，GO(了解)
+数据库
+工作开始就从事数据库内核开发，有一定的数据库基础，曾系统学习过相关课程
+熟悉多种数据库内核实现原理，主要为trafodion和postgres。对其他pg类数据库也有一定的理解，
+如greenplum，opengause等
+了解SQL优化器的原理，了解常用逻辑优化规则及代价优化规则等
+</div>
+<div><a class="read-more button" href=/posts/personal/%E7%AE%80%E5%8E%86/>Read more →</a></div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/remotequery/></a></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+remote Query # 精确选择数据源，需要从语句的约束条件中计算出具体的执行数据源节点，然后把语句下发的对应的 DN 操作尽可能下推，下推一些操作到对应的DN上执行 remote query当前使用两阶段优化
+第一阶段是FQS，对语句进行简单的判断，如果语句可以完全在DN上执行，则直接在这里创建remote plan，然后直接返回，如下例子
+benchmarksql=# explain select * from t1; QUERY PLAN ---------------------------------------------------------------------------- Data Node Scan on "__REMOTE_FQS_QUERY__" (cost=0.00..0.00 rows=0 width=0) Primary node/s: dn1 Node/s: dn1, dn2 (3 rows) 第二阶段，FQS判断失败的语句，此时需要进行常规优化，一般是语句需要DN之间的数据发生交换的时候，例如join使用多表， 但是关联条件不是分区键，此时需要把DN的数据读取到 CN 上，然后进行关联，
+postgres=# explain select * from t1 join t2 on t1.c1 = t2.c1; QUERY PLAN --------------------------------------------------------------------------------------------------- Hash Join (cost=2752.50..5509.65 rows=3000 width=16) Hash Cond: (t2.
+</div>
+<div><a class="read-more button" href=/posts/postgres/remotequery/>Read more →</a></div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/sublink/></a></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+typedef struct SubPlan { pg_node_attr(no_query_jumble) Expr xpr; /* Fields copied from original SubLink: */ SubLinkType subLinkType; /* see above */ /* The combining operators, transformed to an executable expression: */ Node *testexpr; /* OpExpr or RowCompareExpr expression tree */ List *paramIds; /* IDs of Params embedded in the above */ /* Identification of the Plan tree to use: */ int plan_id; /* Index (from 1) in PlannedStmt.subplans */ /* Identification of the SubPlan for EXPLAIN and debugging purposes: */ char *plan_name; /* A name assigned during planning */ /* Extra data useful for determining subplan's output type: */ Oid firstColType; /* Type of first column of subplan result */ int32 firstColTypmod; /* Typmod of first column of subplan result */ Oid firstColCollation; /* Collation of first column of subplan result */ /* Information about execution strategy: */ bool useHashTable; /* true to store subselect output in a hash table (implies we are doing "IN") */ bool unknownEqFalse; /* true if it's okay to return FALSE when the * spec result is UNKNOWN; this allows much * simpler handling of null values */ bool parallel_safe; /* is the subplan parallel-safe?
+</div>
+<div><a class="read-more button" href=/posts/postgres/sublink/>Read more →</a></div>
+</div>
+<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/postgres/%E9%85%8D%E7%BD%AE/></a></h1>
 <div class=post-meta>
 </div>
@@ -69,20 +109,18 @@ Column | Type | Collation | Nullable | Default | Storage | Description &mdash;&m
 </div>
 <div><a class="read-more button" href=/posts/postgres/%E9%85%8D%E7%BD%AE/>Read more →</a></div>
 </div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/static/mysql/></a></h1>
-<div class=post-meta>
-</div>
-<div class=post-content>
-</div>
-<div><a class="read-more button" href=/posts/static/mysql/>Read more →</a></div>
-</div>
 <div class=pagination>
 <div class=pagination__buttons>
 <span class="button previous">
 <a href=/page/10/>
 <span class=button__icon>←</span>
 <span class=button__text>Newer posts</span>
+</a>
+</span>
+<span class="button next">
+<a href=/page/12/>
+<span class=button__text>Older posts</span>
+<span class=button__icon>→</span>
 </a>
 </span>
 </div>
@@ -98,7 +136,7 @@ Column | Type | Collation | Nullable | Default | Storage | Description &mdash;&m
 <span class=logo__cursor></span>
 </a>
 <div class=copyright>
-<span>© 2023 Powered by
+<span>© 2024 Powered by
 <a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
 <span>Theme created by
 <a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>

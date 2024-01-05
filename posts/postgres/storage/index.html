@@ -899,52 +899,53 @@ insert
 4. 设置 xlog 信息</li>
 </ol>
 <p>insert 中可能会有 page 看见不足等问题，需要进行扩展，主要在 RelationGetBufferForTuple 函数中</p>
-<pre><code>RelationGetBufferForTuple:
-  1. insert 会优先使用上次 insert 操作的 page
-    如果空间足够，则
-      LockBuffer(buffer, BUFFER_LOCK_EXCLUSIVE);
-      pageFreeSpace = PageGetHeapFreeSpace(page);
-      if (targetFreeSpace &lt;= pageFreeSpace)
-        RelationSetTargetBlock(relation, targetBlock);
-        return buffer;
-    否则从 FSM 中寻找一个空间足够的页面
-      LockBuffer(buffer, BUFFER_LOCK_EXCLUSIVE);
-      pageFreeSpace = PageGetHeapFreeSpace(page);
-      if (targetFreeSpace &lt;= pageFreeSpace) // false
-      LockBuffer(buffer, BUFFER_LOCK_UNLOCK);
-      targetBlock = RecordAndGetPageWithFreeSpace()
-    如果 FSM 中没有，则进行扩展，扩展时区分并发和非并发，没有并发的时候
-      LockBuffer(buffer, BUFFER_LOCK_EXCLUSIVE);
-      pageFreeSpace = PageGetHeapFreeSpace(page);
-      if (targetFreeSpace &lt;= pageFreeSpace) // false
-      LockBuffer(buffer, BUFFER_LOCK_UNLOCK);
-      targetBlock = RecordAndGetPageWithFreeSpace()
-      if (!ConditionalLockRelationForExtension(relation, ExclusiveLock)) // 表加排他锁成功
-      buffer = ReadBufferBI(relation, P_NEW, RBM_ZERO_AND_LOCK, bistate);// 扩展
-      page = BufferGetPage(buffer);
-      PageInit(page, BufferGetPageSize(buffer), 0);
-      MarkBufferDirty(buffer);
-      RelationSetTargetBlock(relation, BufferGetBlockNumber(buffer));
-    如果有并发，则会在表加锁的时候尝试失败，然后进行bulk 扩展过程
-      LockBuffer(buffer, BUFFER_LOCK_EXCLUSIVE);
-      pageFreeSpace = PageGetHeapFreeSpace(page);
-      if (targetFreeSpace &lt;= pageFreeSpace) // false
-      LockBuffer(buffer, BUFFER_LOCK_UNLOCK);
-      targetBlock = RecordAndGetPageWithFreeSpace()
-      if (!ConditionalLockRelationForExtension(relation, ExclusiveLock)) // 表加排他锁 失败
-        LockRelationForExtension(relation, ExclusiveLock);
-        targetBlock = GetPageWithFreeSpace(relation, targetFreeSpace);
-        if (targetBlock != InvalidBlockNumber)
-          UnlockRelationForExtension(relation, ExclusiveLock);
-          return
-        RelationAddExtraBlocks(relation, bistate);
-      buffer = ReadBufferBI(relation, P_NEW, RBM_ZERO_AND_LOCK, bistate);// 扩展
-      page = BufferGetPage(buffer);
-      PageInit(page, BufferGetPageSize(buffer), 0);
-      MarkBufferDirty(buffer);
-      RelationSetTargetBlock(relation, BufferGetBlockNumber(buffer));
+<pre tabindex=0><code>  RelationGetBufferForTuple:
+    1. insert 会优先使用上次 insert 操作的 page
+      如果空间足够，则
+        LockBuffer(buffer, BUFFER_LOCK_EXCLUSIVE);
+        pageFreeSpace = PageGetHeapFreeSpace(page);
+        if (targetFreeSpace &lt;= pageFreeSpace)
+          RelationSetTargetBlock(relation, targetBlock);
+          return buffer;
+      否则从 FSM 中寻找一个空间足够的页面
+        LockBuffer(buffer, BUFFER_LOCK_EXCLUSIVE);
+        pageFreeSpace = PageGetHeapFreeSpace(page);
+        if (targetFreeSpace &lt;= pageFreeSpace) // false
+        LockBuffer(buffer, BUFFER_LOCK_UNLOCK);
+        targetBlock = RecordAndGetPageWithFreeSpace()
+      如果 FSM 中没有，则进行扩展，扩展时区分并发和非并发，没有并发的时候
+        LockBuffer(buffer, BUFFER_LOCK_EXCLUSIVE);
+        pageFreeSpace = PageGetHeapFreeSpace(page);
+        if (targetFreeSpace &lt;= pageFreeSpace) // false
+        LockBuffer(buffer, BUFFER_LOCK_UNLOCK);
+        targetBlock = RecordAndGetPageWithFreeSpace()
+        if (!ConditionalLockRelationForExtension(relation, ExclusiveLock)) // 表加排他锁成功
+        buffer = ReadBufferBI(relation, P_NEW, RBM_ZERO_AND_LOCK, bistate);// 扩展
+        page = BufferGetPage(buffer);
+        PageInit(page, BufferGetPageSize(buffer), 0);
+        MarkBufferDirty(buffer);
+        RelationSetTargetBlock(relation, BufferGetBlockNumber(buffer));
+      如果有并发，则会在表加锁的时候尝试失败，然后进行bulk 扩展过程
+        LockBuffer(buffer, BUFFER_LOCK_EXCLUSIVE);
+        pageFreeSpace = PageGetHeapFreeSpace(page);
+        if (targetFreeSpace &lt;= pageFreeSpace) // false
+        LockBuffer(buffer, BUFFER_LOCK_UNLOCK);
+        targetBlock = RecordAndGetPageWithFreeSpace()
+        if (!ConditionalLockRelationForExtension(relation, ExclusiveLock)) // 表加排他锁 失败
+          LockRelationForExtension(relation, ExclusiveLock);
+          targetBlock = GetPageWithFreeSpace(relation, targetFreeSpace);
+          if (targetBlock != InvalidBlockNumber)
+            UnlockRelationForExtension(relation, ExclusiveLock);
+            return
+          RelationAddExtraBlocks(relation, bistate);
+        buffer = ReadBufferBI(relation, P_NEW, RBM_ZERO_AND_LOCK, bistate);// 扩展
+        page = BufferGetPage(buffer);
+        PageInit(page, BufferGetPageSize(buffer), 0);
+        MarkBufferDirty(buffer);
+        RelationSetTargetBlock(relation, BufferGetBlockNumber(buffer));
 
-RelationAddExtraBlocks 批量扩展，大小为 min(512, lockWaiters * 20)</code></pre>
+  RelationAddExtraBlocks 批量扩展，大小为 min(512, lockWaiters * 20)
+  ```</code></pre>
 </div>
 <div class=pagination>
 <div class=pagination__title>
@@ -977,7 +978,7 @@ RelationAddExtraBlocks 批量扩展，大小为 min(512, lockWaiters * 20)</code
 <span class=logo__cursor></span>
 </a>
 <div class=copyright>
-<span>© 2023 Powered by
+<span>© 2024 Powered by
 <a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
 <span>Theme created by
 <a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>

@@ -1,0 +1,325 @@
+<!doctype html><html lang=en>
+<head>
+<title>
+源码编译 OpenTenBase 速通版 ::
+Esoye — My note blog
+</title>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="shell #  git clone --depth=1 https://hub.fgit.cf/OpenTenBase/OpenTenBase.git docker run -itd --name tbase --hostname vscode --mount type=bind,source=/home/asky/OpenTenBase,target=/workspaces/OpenTenBase runner bash docker exec -it -u vscode tbase bash sudo service ssh start ssh-keygen cat ~/.ssh/id_rsa.pub &amp;gt;&amp;gt; ~/.ssh/authorized_keys chmod 700 ~/.ssh chmod 644 ~/.ssh/authorized_keys mkdir -p .build/making mkdir .data cd .build/making /workspaces/OpenTenBase/configure --prefix=/home/vscode/.build --enable-user-switch --with-openssl --with-ossp-uuid --enable-alltype-distri CFLAGS=&amp;#34;-fgnu89-inline -g -O2&amp;#34; make -j16 make install cd contrib make -j16 make install mkdir pgxc_ctl # 写入下面的模板 touch pgxc_ctl/pg.">
+<meta name=keywords content="数据库">
+<meta name=robots content="noodp">
+<link rel=canonical href=https://askyx.github.io/posts/database/tbase/build/>
+<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
+<link rel=stylesheet href=https://askyx.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
+<link rel="shortcut icon" href=https://askyx.github.io/img/favicon.png>
+<link href=https://askyx.github.io/assets/fonts/Inter-Italic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Regular.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Medium.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-MediumItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<link href=https://askyx.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="源码编译 OpenTenBase 速通版">
+<meta name=twitter:description content="docker OpenTenBase 源码编译">
+<meta property="og:title" content="源码编译 OpenTenBase 速通版">
+<meta property="og:description" content="docker OpenTenBase 源码编译">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://askyx.github.io/posts/database/tbase/build/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2024-01-05T11:07:23+08:00">
+<meta property="article:modified_time" content="2024-01-05T11:07:23+08:00"><meta property="og:site_name" content="Esoye">
+</head>
+<body class=light-theme>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class=menu>
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archive>Archive</a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archive>Archive</a></li>
+</ul>
+</nav>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class=post>
+<h1 class=post-title>源码编译 OpenTenBase 速通版</h1>
+<div class=post-meta>
+<span class=post-date>
+2024-01-05
+</span>
+</div>
+<span class=post-tags>
+<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
+<a href=https://askyx.github.io/tags/postgres/>#Postgres</a>&nbsp;
+<a href=https://askyx.github.io/tags/opentenbase/>#OpenTenBase</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/>#源码编译</a>&nbsp;
+</span>
+<div class=post-content>
+<h2 id=shell>
+shell
+<a href=#shell class=h-anchor aria-hidden=true>#</a>
+</h2>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>
+git clone --depth<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> https://hub.fgit.cf/OpenTenBase/OpenTenBase.git
+
+
+docker run  -itd  --name tbase --hostname vscode --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/asky/OpenTenBase,target<span style=color:#f92672>=</span>/workspaces/OpenTenBase  runner  bash
+docker exec -it -u vscode tbase bash
+
+sudo service ssh start
+
+ssh-keygen
+cat ~/.ssh/id_rsa.pub &gt;&gt; ~/.ssh/authorized_keys
+chmod <span style=color:#ae81ff>700</span> ~/.ssh
+chmod <span style=color:#ae81ff>644</span> ~/.ssh/authorized_keys
+
+
+mkdir -p .build/making
+mkdir .data
+
+cd .build/making
+/workspaces/OpenTenBase/configure --prefix<span style=color:#f92672>=</span>/home/vscode/.build --enable-user-switch --with-openssl --with-ossp-uuid --enable-alltype-distri CFLAGS<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;-fgnu89-inline -g -O2&#34;</span>
+make -j16
+make install 
+
+cd contrib
+make -j16
+make install 
+
+mkdir pgxc_ctl
+<span style=color:#75715e># 写入下面的模板</span>
+touch pgxc_ctl/pg.conf
+
+pgxc_ctl -c pg.conf init all
+
+createdb -p <span style=color:#ae81ff>6011</span> vscode
+
+
+
+
+<span style=color:#75715e># .bashrc 文件 此外，/home/vscode/.build/bin 需要写入到  /etc/environment</span>
+
+export PATH<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;</span>$PATH<span style=color:#e6db74>:/home/vscode/.build/bin&#34;</span>
+export LD_LIBRARY_PATH<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;</span>$LD_LIBRARY_PATH<span style=color:#e6db74>:/home/vscode/.build/lib&#34;</span>
+export LC_ALL<span style=color:#f92672>=</span>C
+
+alias psql<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;psql -p 6011&#39;</span>
+alias pstart<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;pgxc_ctl -c pg.conf start all&#39;</span>
+alias pstop<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;pgxc_ctl -c pg.conf stop all&#39;</span>
+alias sqps<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;echo &#39;USER         PID     PPID VSZ                  CMD&#39; ; ps -eo user,pid,ppid,vsize,cmd | grep -E &#39;postgres&#39; &#34;</span>
+
+
+
+
+</code></pre></div><h2 id=conf-file-pgconf>
+conf file (pg.conf)
+<a href=#conf-file-pgconf class=h-anchor aria-hidden=true>#</a>
+</h2>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell>pgxcInstallDir<span style=color:#f92672>=</span>/home/vscode/.build
+
+pgxcOwner<span style=color:#f92672>=</span>vscode
+pgxcUser<span style=color:#f92672>=</span>$pgxcOwner
+defaultDatabase<span style=color:#f92672>=</span>postgres
+tmpDir<span style=color:#f92672>=</span>/tmp
+localTmpDir<span style=color:#f92672>=</span>$tmpDir
+
+<span style=color:#75715e>#------------------------ GTM  ---------------------</span>
+gtmName<span style=color:#f92672>=</span>gtm
+gtmMasterServer<span style=color:#f92672>=</span>vscode
+gtmMasterPort<span style=color:#f92672>=</span><span style=color:#ae81ff>6006</span>
+gtmMasterDir<span style=color:#f92672>=</span>/home/vscode/.data/gtm_master
+gtmExtraConfig<span style=color:#f92672>=</span>none
+gtmMasterSpecificExtraConfig<span style=color:#f92672>=</span>none
+
+gtmSlave<span style=color:#f92672>=</span>n
+
+<span style=color:#75715e>#------------------------ Coordinators ---------------------</span>
+coordNames<span style=color:#f92672>=(</span>cn001 cn002<span style=color:#f92672>)</span>
+coordMasterCluster<span style=color:#f92672>=(</span>vscode_cluster vscode_cluster<span style=color:#f92672>)</span>
+coordPorts<span style=color:#f92672>=(</span><span style=color:#ae81ff>6011</span> 6012<span style=color:#f92672>)</span>
+poolerPorts<span style=color:#f92672>=(</span><span style=color:#ae81ff>6111</span> 6112<span style=color:#f92672>)</span>
+coordPgHbaEntries<span style=color:#f92672>=(</span>0.0.0.0/0<span style=color:#f92672>)</span>
+coordMasterServers<span style=color:#f92672>=(</span>vscode vscode<span style=color:#f92672>)</span>
+coordMasterDirs<span style=color:#f92672>=(</span>/home/vscode/.data/cn001 /home/vscode/.data/cn002<span style=color:#f92672>)</span>
+coordMaxWALSenders<span style=color:#f92672>=(</span><span style=color:#ae81ff>10</span> 10<span style=color:#f92672>)</span>
+coordSlave<span style=color:#f92672>=</span>n
+coordSlaveSync<span style=color:#f92672>=</span>n
+coordArchLogDirs<span style=color:#f92672>=(</span>/home/vscode/.data/archlog/cn001 /home/vscode/.data/archlog/cn002<span style=color:#f92672>)</span>
+
+coordExtraConfig<span style=color:#f92672>=</span>coordExtraConfig
+cat &gt; $coordExtraConfig <span style=color:#e6db74>&lt;&lt;EOF
+</span><span style=color:#e6db74>#================================================
+</span><span style=color:#e6db74># Added to all the coordinator postgresql.conf
+</span><span style=color:#e6db74># Original: $coordExtraConfig
+</span><span style=color:#e6db74>
+</span><span style=color:#e6db74>include_if_exists = &#39;/home/vscode/.data/global/global_vscode.conf&#39;
+</span><span style=color:#e6db74>
+</span><span style=color:#e6db74>wal_level = replica
+</span><span style=color:#e6db74>wal_keep_segments = 256
+</span><span style=color:#e6db74>max_wal_senders = 4
+</span><span style=color:#e6db74>archive_mode = on
+</span><span style=color:#e6db74>archive_timeout = 1800
+</span><span style=color:#e6db74>archive_command = &#39;echo 0&#39;
+</span><span style=color:#e6db74>log_truncate_on_rotation = on
+</span><span style=color:#e6db74>log_filename = &#39;postgresql-%M.log&#39;
+</span><span style=color:#e6db74>log_rotation_age = 4h
+</span><span style=color:#e6db74>log_rotation_size = 100MB
+</span><span style=color:#e6db74>hot_standby = on
+</span><span style=color:#e6db74>wal_sender_timeout = 30min
+</span><span style=color:#e6db74>wal_receiver_timeout = 30min
+</span><span style=color:#e6db74>shared_buffers = 16384MB
+</span><span style=color:#e6db74>max_pool_size = 2000
+</span><span style=color:#e6db74>log_statement = &#39;ddl&#39;
+</span><span style=color:#e6db74>log_destination = &#39;csvlog&#39;
+</span><span style=color:#e6db74>logging_collector = on
+</span><span style=color:#e6db74>log_directory = &#39;pg_log&#39;
+</span><span style=color:#e6db74>listen_addresses = &#39;*&#39;
+</span><span style=color:#e6db74>max_connections = 2000
+</span><span style=color:#e6db74>
+</span><span style=color:#e6db74>EOF</span>
+
+coordSpecificExtraConfig<span style=color:#f92672>=(</span>none none<span style=color:#f92672>)</span>
+coordExtraPgHba<span style=color:#f92672>=</span>coordExtraPgHba
+cat &gt; $coordExtraPgHba <span style=color:#e6db74>&lt;&lt;EOF
+</span><span style=color:#e6db74>
+</span><span style=color:#e6db74>local   all             all                                     trust
+</span><span style=color:#e6db74>host    all             all             0.0.0.0/0               trust
+</span><span style=color:#e6db74>host    replication     all             0.0.0.0/0               trust
+</span><span style=color:#e6db74>host    all             all             ::1/128                 trust
+</span><span style=color:#e6db74>host    replication     all             ::1/128                 trust
+</span><span style=color:#e6db74>
+</span><span style=color:#e6db74>EOF</span>
+
+coordSpecificExtraPgHba<span style=color:#f92672>=(</span>none none<span style=color:#f92672>)</span>
+coordAdditionalSlaves<span style=color:#f92672>=</span>n
+cad1_Sync<span style=color:#f92672>=</span>n
+
+<span style=color:#75715e>#------------------------ Datanodes ---------------------</span>
+primaryDatanode<span style=color:#f92672>=</span>dn001
+datanodeNames<span style=color:#f92672>=(</span>dn001 dn002 dn003<span style=color:#f92672>)</span>
+datanodePorts<span style=color:#f92672>=(</span><span style=color:#ae81ff>6021</span> <span style=color:#ae81ff>6022</span> 6023<span style=color:#f92672>)</span>
+datanodePoolerPorts<span style=color:#f92672>=(</span><span style=color:#ae81ff>6121</span> <span style=color:#ae81ff>6122</span> 6123<span style=color:#f92672>)</span>
+datanodeMasterCluster<span style=color:#f92672>=(</span>vscode_cluster vscode_cluster vscode_cluster<span style=color:#f92672>)</span>
+datanodePgHbaEntries<span style=color:#f92672>=(</span>0.0.0.0/0<span style=color:#f92672>)</span>
+datanodeMasterServers<span style=color:#f92672>=(</span>vscode vscode vscode<span style=color:#f92672>)</span>
+datanodeMasterDirs<span style=color:#f92672>=(</span>/home/vscode/.data/dn001 /home/vscode/.data/dn002 /home/vscode/.data/dn003<span style=color:#f92672>)</span>
+datanodeMaxWALSenders<span style=color:#f92672>=(</span><span style=color:#ae81ff>10</span> <span style=color:#ae81ff>10</span> 10<span style=color:#f92672>)</span>
+datanodeArchLogDirs<span style=color:#f92672>=(</span>/home/vscode/.data/archlog/dn001 /home/vscode/.data/archlog/dn002 /home/vscode/.data/archlog/dn003<span style=color:#f92672>)</span>
+
+datanodeSlave<span style=color:#f92672>=</span>n
+
+datanodeExtraConfig<span style=color:#f92672>=</span>datanodeExtraConfig
+cat &gt; $datanodeExtraConfig <span style=color:#e6db74>&lt;&lt;EOF
+</span><span style=color:#e6db74>#================================================
+</span><span style=color:#e6db74># Added to all the coordinator postgresql.conf
+</span><span style=color:#e6db74># Original: $datanodeExtraConfig
+</span><span style=color:#e6db74>
+</span><span style=color:#e6db74>include_if_exists = &#39;/home/vscode/.data/global/global_vscode.conf&#39;
+</span><span style=color:#e6db74>listen_addresses = &#39;*&#39;
+</span><span style=color:#e6db74>wal_level = replica
+</span><span style=color:#e6db74>wal_keep_segments = 256
+</span><span style=color:#e6db74>max_wal_senders = 4
+</span><span style=color:#e6db74>archive_mode = on
+</span><span style=color:#e6db74>archive_timeout = 1800
+</span><span style=color:#e6db74>archive_command = &#39;echo 0&#39;
+</span><span style=color:#e6db74>log_directory = &#39;pg_log&#39;
+</span><span style=color:#e6db74>logging_collector = on
+</span><span style=color:#e6db74>log_truncate_on_rotation = on
+</span><span style=color:#e6db74>log_filename = &#39;postgresql-%M.log&#39;
+</span><span style=color:#e6db74>log_rotation_age = 4h
+</span><span style=color:#e6db74>log_rotation_size = 100MB
+</span><span style=color:#e6db74>hot_standby = on
+</span><span style=color:#e6db74>wal_sender_timeout = 30min
+</span><span style=color:#e6db74>wal_receiver_timeout = 30min
+</span><span style=color:#e6db74>shared_buffers = 16384MB
+</span><span style=color:#e6db74>max_connections = 4000
+</span><span style=color:#e6db74>max_pool_size = 4000
+</span><span style=color:#e6db74>log_statement = &#39;ddl&#39;
+</span><span style=color:#e6db74>log_destination = &#39;csvlog&#39;
+</span><span style=color:#e6db74>wal_buffers = 1GB
+</span><span style=color:#e6db74>
+</span><span style=color:#e6db74>EOF</span>
+
+datanodeSpecificExtraConfig<span style=color:#f92672>=(</span>none none<span style=color:#f92672>)</span>
+datanodeExtraPgHba<span style=color:#f92672>=</span>datanodeExtraPgHba
+cat &gt; $datanodeExtraPgHba <span style=color:#e6db74>&lt;&lt;EOF
+</span><span style=color:#e6db74>
+</span><span style=color:#e6db74>local   all             all                                     trust
+</span><span style=color:#e6db74>host    all             all             0.0.0.0/0               trust
+</span><span style=color:#e6db74>host    replication     all             0.0.0.0/0               trust
+</span><span style=color:#e6db74>host    all             all             ::1/128                 trust
+</span><span style=color:#e6db74>host    replication     all             ::1/128                 trust
+</span><span style=color:#e6db74>
+</span><span style=color:#e6db74>
+</span><span style=color:#e6db74>EOF</span>
+
+datanodeSpecificExtraPgHba<span style=color:#f92672>=(</span>none none<span style=color:#f92672>)</span>
+datanodeAdditionalSlaves<span style=color:#f92672>=</span>n
+walArchive<span style=color:#f92672>=</span>n
+</code></pre></div><h2 id=demo-sql>
+demo sql
+<a href=#demo-sql class=h-anchor aria-hidden=true>#</a>
+</h2>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>
+
+</code></pre></div>
+</div>
+<div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>Read other posts</span>
+<hr>
+</div>
+<div class=pagination__buttons>
+<span class="button previous">
+<a href=https://askyx.github.io/posts/database/gp/build/>
+<span class=button__icon>←</span>
+<span class=button__text>源码编译 GreenPlum 速通版</span>
+</a>
+</span>
+<span class="button next">
+<a href=https://askyx.github.io/posts/database/env_common/>
+<span class=button__text>源码编译环境准备文件</span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<a href=/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Esoye</span>
+<span class=logo__cursor></span>
+</a>
+<div class=copyright>
+<span>© 2024 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
+</div>
+</div>
+</footer>
+<script src=https://askyx.github.io/assets/main.js></script>
+<script src=https://askyx.github.io/assets/prism.js></script>
+</div>
+</body>
+</html>

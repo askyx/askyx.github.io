@@ -5,8 +5,7 @@ docker 源码编译 dockerfile 模板</description></item><item><title>Postgres 
 Postgres 执行器 及其扩展 总结</description></item><item><title>postgres Parser</title><link>https://askyx.github.io/posts/postgres/parser/</link><pubDate>Mon, 10 Oct 2022 12:03:18 +0800</pubDate><guid>https://askyx.github.io/posts/postgres/parser/</guid><description>
 Postgres parser 模块解析，目的是为了学习parser实现机制。编译原理以及bison和flex的使用</description></item><item><title>Locks</title><link>https://askyx.github.io/posts/postgres/locks/</link><pubDate>Wed, 28 Sep 2022 15:42:18 +0800</pubDate><guid>https://askyx.github.io/posts/postgres/locks/</guid><description>
 PG 中锁的分析</description></item><item><title>vacuum 和 analyze 过程分析</title><link>https://askyx.github.io/posts/postgres/vacuum/</link><pubDate>Mon, 26 Sep 2022 16:37:37 +0800</pubDate><guid>https://askyx.github.io/posts/postgres/vacuum/</guid><description>
-AntDB VACUUM 流程</description></item><item><title>Greenplum</title><link>https://askyx.github.io/posts/postgres/greenplum/</link><pubDate>Wed, 10 Aug 2022 20:22:49 +0800</pubDate><guid>https://askyx.github.io/posts/postgres/greenplum/</guid><description>
-GreenPlum优化器和执行器的源码调研</description></item><item><title>Postgres Optimizer</title><link>https://askyx.github.io/posts/postgres/opt/</link><pubDate>Fri, 22 Jul 2022 09:24:24 +0800</pubDate><guid>https://askyx.github.io/posts/postgres/opt/</guid><description>
+AntDB VACUUM 流程</description></item><item><title>Postgres Optimizer</title><link>https://askyx.github.io/posts/postgres/opt/</link><pubDate>Fri, 22 Jul 2022 09:24:24 +0800</pubDate><guid>https://askyx.github.io/posts/postgres/opt/</guid><description>
 本文从源码级别进行优化器的分析，对Postgres优化器代码调研，具体包括他的数据结构，以及具体的代码架构实现以及核心算法等</description></item><item><title>Postgres Storage</title><link>https://askyx.github.io/posts/postgres/storage/</link><pubDate>Thu, 21 Jul 2022 09:15:05 +0800</pubDate><guid>https://askyx.github.io/posts/postgres/storage/</guid><description>
 存储 # 内存 # 共享内存
 本地内存

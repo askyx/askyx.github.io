@@ -59,22 +59,6 @@ My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/static/note/>数据库文章资源汇总</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-07-20
-</span>
-</div>
-<span class=post-tags>
-<a href=https://askyx.github.io/tags/%E8%B5%84%E6%BA%90/>#资源</a>&nbsp;
-<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
-</span>
-<div class=post-content>
-爬虫 # import requests from bs4 import BeautifulSoup prefix = 'http://mysql.taobao.org' # 获取文章名和url（文章名,url） def query_name_url(url: str): resp = requests.get(url) soup = BeautifulSoup(resp.content.decode('utf-8'), "html.parser") tags = soup.findAll('a', {'target': {'_blank'}}) urls = [v for v in tags if v['href'].find('/monthly/') != -1] return [(str(v.string).strip(), prefix + v['href']) for v in urls] # 获取所有月报链接（月报名,url） def query_monthly_url(): resp = requests.get('http://mysql.taobao.org/monthly/') soup = BeautifulSoup(resp.content.decode('utf-8'), "html.parser") tags = soup.findAll('a', {'class': {'main'}}) urls = [v for v in tags if v['href'].
-</div>
-<div><a class="read-more button" href=/posts/static/note/>Read more →</a></div>
-</div>
-<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/course/15445/note/>15445课程笔记</a></h1>
 <div class=post-meta>
 <span class=post-date>
@@ -142,6 +126,30 @@ Paxos # 难以理解 没有公认的可以实现的基础架构，大部分系�
 <div class=post-content>
 </div>
 <div><a class="read-more button" href=/posts/course/6.824/gfs/>Read more →</a></div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/course/6.824/mapreduce/>Mapreduce</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-05-29
+</span>
+</div>
+<span class=post-tags>
+<a href=https://askyx.github.io/tags/%E8%AE%BA%E6%96%87/>#论文</a>&nbsp;
+<a href=https://askyx.github.io/tags/mapreduce/>#Mapreduce</a>&nbsp;
+<a href=https://askyx.github.io/tags/6.824/>#6.824</a>&nbsp;
+</span>
+<div class=post-content>
+利用普通机器组成的大规模计算集群进行并行的,高容错,高性能的数据处理函数框架
+原始论文点这里,论文翻译点这里，有时间的话，自行对比翻译和原文
+最终实现的目标是&ndash;实现一个分布式系统，对程序员隐藏底层分布式细节，程序员只需要定义map和reduce 函数即可。
+map reduce实现为简单的kv输出，其中map接受源数据，生成kv的中间结果，中间结果保存在worker节点上。 reduce负责处理map产生的中间结果的kv数据，只是简单的数据处理过程.
+他最先是受到lisp中map和reduce原语的启发，再加上当时Google现实的处理大量数据的需求，从他们现有的系统抽象而来的。
+在论文中，使用了一个单词统计的案例，此时实现map函数用来分割文本，切分出最基本的单词。然后再使用reduce进行聚合操作，
+// 输出单词以及出现的次数，map端输出1 map(String key,String value): // key: 文档名 // value: 文档内容 for each word w in value: EmitIntermediate(w,"1"); // 针对相同的key，次数+1 reduce(String key, Iterator values): // key: 一个单词 // value: 计数值列表 int result = 0; for each v in values: result += ParseInt(v); Emit(AsString(result)); 执行过程 文件划分 主节点划分任务 按照划分的任务启动worker，执行map任务 worker节点的数据生成为中间结果，保存在本节点 所有map任务执行完成之后，reduce得到对应中间节点的文件路径，通过rpc读取文件，进行reduce任务 reduce任务完成之后，最终结果写入目标文件 一个mr任务完成之后，回得到n(reduce)个结果文件，可以按照需求处理文件，可以直接使用，或者继续作为其他mr的输入，mr任务是可以嵌套的。
+主节点
+</div>
+<div><a class="read-more button" href=/posts/course/6.824/mapreduce/>Read more →</a></div>
 </div>
 <div class=pagination>
 <div class=pagination__buttons>

@@ -59,34 +59,6 @@ My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/readbooks/volcanooptimizer/>VolcanoOptimizer</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-04-04
-</span>
-</div>
-<div class=post-content>
-NOTE # 论文阅读笔记The Volcano Optimizer Generator: Extensibility and Efficient Search
-可扩展
-面向对象
-自顶向下
-剪枝
-原型是EXODUS， Volcano是对他的改进
-可以单独使用的优化器 优化搜索时间和搜索空间 可扩展 可以使用启发式算法和有效的代价模型来扩展和减少搜索空间，【剪枝】 灵活的成本计算模型 一个框架，优化器生成器，可以由“optimizer implementor”自行实现关键函数，整个优化器框架的输入是AST，输出是一个执行计划，算子的集合
-SQL是基于关系代数，Volcano把关系表达式分为逻辑表达式和物理表达式，逻辑表达式之间使用transformation进行转换，物理表达式使用基于代价的implementation和逻辑表达式映射的，关系不一定是意义对应的，例如scan可以同时一起实现projection
-在表达式进行转换的时候可以使用condition进行模式判断，满足条件的时候可以进行变换
-表达式使用特征描述输出，
-enforcers会强制添加某属性，用于指导优化器进行优化，例如指定表的scan方式
-Logical Operator
-Operator set，也就是可以描述在目标data model上可以执行的代数运算合
-Transformation rules + Condition，对每条等价变换规则，在满足condition时才可以应用
-Logical properties : 逻辑属性，用来描述代数运算的输出所具有的一些特征，这些特征与运算的具体执行方式无关，是逻辑的，例如输出的行数，结果集的schema等
-Physical Operator
-Algorithm + Enforcer set，即可应用的物理实现算法 + 可添加的Enforcer集合
-</div>
-<div><a class="read-more button" href=/posts/readbooks/volcanooptimizer/>Read more →</a></div>
-</div>
-<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/readbooks/columbia-optimizer/>Columbia Optimizer</a></h1>
 <div class=post-meta>
 <span class=post-date>
@@ -136,6 +108,27 @@ C++最初是在1979年推出的，那时候是真正的带类的C。 Bjarne Stro
 类 多态 运算符重载 类型安全连接 抽象类 模板 更好的泛型编程。大佬最初的时候使用宏实现的泛型编程 异常 RAII *_cast bool STL标准库 上述就是最初的98的C++实现的功能点，实际上也是大多是C++的开发人员知道的最详细的C++知识。之后就是漫长过渡期，直到11版本的推出，使C++进入新时代， 06年单核处理器新能几乎不再提升，所以大部分应用开始寻找可以提升性能的编程语言， C++11 新时代 # 许多新的特性的引入，使得C++类似一个新语言 特性如下
 </div>
 <div><a class="read-more button" href=/posts/readbooks/%E7%8E%B0%E4%BB%A3c++%E7%99%BD%E7%9A%AE%E4%B9%A6/>Read more →</a></div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/others/envs/>Envs</a></h1>
+<div class=post-meta>
+<span class=post-date>
+2022-02-21
+</span>
+</div>
+<div class=post-content>
+hugo # wget https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb https://github.91chi.fun/https://github.com//gohugoio/hugo/releases/download/v0.92.2/hugo_extended_0.92.2_Linux-64bit.deb sudo dpkg -i hugo*.deb
+140.82.113.3
+aria2c -s 5 https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb
+https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb
+可以使用aria2下载，ubuntu使用apt install aria2直接安装工具，使用-s开启多路下载 aria2c -s 5 https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb
+manager用户
+https://www.jianshu.com/p/a76a93e8c662
+Unix # 分区问题，集群上多块磁盘分区挂载到指定目录
+fdisk disk 可以对一个磁盘进行分区的添加和删除等操作 p d w h 添加磁盘挂载
+lsblk -f 查看磁盘 mkfs.xfs -f -n ftype=1 /dev/sdb1 格式化磁盘 mount /dev/sdb1 /var/lib/docker 挂载 xfs_info /dev/sdb1 | grep ftype=1 blkid /dev/sdb1 查看UUID UUID=&lt;UUID> /var/lib/docker xfs defaults 0 0 写进/etc/fstab 问题Couldn't find device with uuid 4mhUbb-Ls1h-jp0d-JuJK-C38V-T3tX-f7s2IN
+</div>
+<div><a class="read-more button" href=/posts/others/envs/>Read more →</a></div>
 </div>
 <div class=pagination>
 <div class=pagination__buttons>

@@ -59,27 +59,6 @@ My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/others/envs/>Envs</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-02-21
-</span>
-</div>
-<div class=post-content>
-hugo # wget https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb https://github.91chi.fun/https://github.com//gohugoio/hugo/releases/download/v0.92.2/hugo_extended_0.92.2_Linux-64bit.deb sudo dpkg -i hugo*.deb
-140.82.113.3
-aria2c -s 5 https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb
-https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb
-可以使用aria2下载，ubuntu使用apt install aria2直接安装工具，使用-s开启多路下载 aria2c -s 5 https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb
-manager用户
-https://www.jianshu.com/p/a76a93e8c662
-Unix # 分区问题，集群上多块磁盘分区挂载到指定目录
-fdisk disk 可以对一个磁盘进行分区的添加和删除等操作 p d w h 添加磁盘挂载
-lsblk -f 查看磁盘 mkfs.xfs -f -n ftype=1 /dev/sdb1 格式化磁盘 mount /dev/sdb1 /var/lib/docker 挂载 xfs_info /dev/sdb1 | grep ftype=1 blkid /dev/sdb1 查看UUID UUID=&lt;UUID> /var/lib/docker xfs defaults 0 0 写进/etc/fstab 问题Couldn't find device with uuid 4mhUbb-Ls1h-jp0d-JuJK-C38V-T3tX-f7s2IN
-</div>
-<div><a class="read-more button" href=/posts/others/envs/>Read more →</a></div>
-</div>
-<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/others/docker/>Docker</a></h1>
 <div class=post-meta>
 <span class=post-date>
@@ -130,6 +109,16 @@ alter table xxx distribute by replication; alter table xxx distribute by random;
 复现方法 # create table tttb1( c1 int,c2 varchar(100),c3 varchar(100)); create table tttb2(c1 int,sheet_num varchar(100)); create table tttb3(c1 int,order_no varchar(100)); explain select count(distinct c2) from tttb1 where c2 in (select distinct sheet_num from tttb2,tttb3 where sheet_num=order_no and c3='1'); create table tb1(c1 int,c2 varchar(100),c3 varchar(100)); create table tb2(c1 int,sheet_num varchar(100)); create table tb3(c1 int,order_no varchar(100)); explain select count(distinct c2) from tb1 where c2 in (select distinct sheet_num from tb2,tb3 where sheet_num=order_no and c3='1'); insert into tb1 select (random()*10000000)::int, (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); insert into tb2 select (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); insert into tb3 select (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); create table tb1int(c1 int,c2 int,c3 int); create table tb2int(c1 int,sheet_num int); create table tb3int(c1 int,order_no int); explain select count(distinct c2) from tb1int where c2 in (select distinct sheet_num from tb2int,tb3int where sheet_num=order_no and c3=1); insert into tb1int select (random()*10000000)::int, (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); insert into tb2int select (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); insert into tb3int select (random()*10000000)::int, (random()*10000000)::int from generate_series(1,100000); 1875 # http://10.
 </div>
 <div><a class="read-more button" href=/posts/others/adbplan/>Read more →</a></div>
+</div>
+<div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/others/log/></a></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+语句
+prepare s3(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc; QUERY PLAN --------------------------------------------------------------------------------------------------- Cluster Gather (cost=291.52..430.37 rows=459 width=4) Remote node: 16386 -> Sort (cost=291.52..292.67 rows=459 width=4) Output: no_o_id Sort Key: bmsql_new_order.no_o_id -> Bitmap Heap Scan on public.bmsql_new_order (cost=13.46..271.23 rows=459 width=4) Output: no_o_id Recheck Cond: ((bmsql_new_order.no_w_id = 1) AND (bmsql_new_order.no_d_id = 1)) -> Bitmap Index Scan on bmsql_new_order_pkey (cost=0.00..13.34 rows=918 width=0) Index Cond: ((bmsql_new_order.
+</div>
+<div><a class="read-more button" href=/posts/others/log/>Read more →</a></div>
 </div>
 <div class=pagination>
 <div class=pagination__buttons>

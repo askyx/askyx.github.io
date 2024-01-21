@@ -1,16 +1,20 @@
 <!doctype html><html lang=en>
 <head>
-<meta name=generator content="Hugo 0.92.1">
 <title>
-Esoye —
-My note blog
+名词一行解释 ::
+Esoye — My note blog
 </title>
 <meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
-<meta name=description content="My note blog">
+<meta name=description content="操作系统 #   NUMA  多核架构中CPU通过BUS访问RAM，所以有了距离上的区别，带来了速度上的差距，NUMA 通过划分RAM和CPU为不同的node，通过配置不同的程序运行策略来解决此问题 由于默认策略为优先使用同一个node，所以Mysql 在使用大量内存的时候，内存占用多个node，导致内存频繁swap    数据库 #    解释执行
+  编译执行
+ 避免物化 消除虚函数的跳转执行    向量化
+  Adaptive Execution of Compiled Queries
+ 先解释执行，同时异步编译， 执行完部分数据之后， 再检测是否需要编译执行    pipeline
+ 部分表达式是非阻塞的，不需要物化(从寄存器替换出去)，使用codegen编译为一个完整的执行流程    ">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
-<link rel=canonical href=https://askyx.github.io/>
+<link rel=canonical href=https://askyx.github.io/posts/note/one_line/>
 <link rel=stylesheet href=https://askyx.github.io/assets/style.css>
 <link rel=stylesheet href=https://askyx.github.io/style.css>
 <link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
@@ -22,13 +26,14 @@ My note blog
 <link href=https://askyx.github.io/assets/fonts/Inter-Bold.woff2 rel=preload type=font/woff2 as=font crossorigin>
 <link href=https://askyx.github.io/assets/fonts/Inter-BoldItalic.woff2 rel=preload type=font/woff2 as=font crossorigin>
 <meta name=twitter:card content="summary">
-<meta name=twitter:title content="Esoye">
-<meta name=twitter:description content>
-<meta property="og:title" content="Esoye">
-<meta property="og:description" content>
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://askyx.github.io/"><meta property="og:site_name" content="Esoye">
-<link rel=alternate type=application/rss+xml href=/index.xml title=Esoye>
+<meta name=twitter:title content="名词一行解释">
+<meta name=twitter:description content="重点名词解释，不一定是不知道，只是一下子想不起来，有个提示可以辅助回忆，自用">
+<meta property="og:title" content="名词一行解释">
+<meta property="og:description" content="重点名词解释，不一定是不知道，只是一下子想不起来，有个提示可以辅助回忆，自用">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://askyx.github.io/posts/note/one_line/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2023-12-21T16:28:35+08:00">
+<meta property="article:modified_time" content="2023-12-21T16:28:35+08:00"><meta property="og:site_name" content="Esoye">
 </head>
 <body class=light-theme>
 <div class=container>
@@ -58,70 +63,79 @@ My note blog
 </header>
 <div class=content>
 <div class=post>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/postgres_executor/>Postgres Executor</a></h1>
+<h1 class=post-title>名词一行解释</h1>
 <div class=post-meta>
 <span class=post-date>
-2023-02-10
-</span>
-</div>
-<span class=post-tags>
-<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
-<a href=https://askyx.github.io/tags/postgres/>#Postgres</a>&nbsp;
-<a href=https://askyx.github.io/tags/%E6%89%A7%E8%A1%8C%E5%99%A8/>#执行器</a>&nbsp;
-</span>
-<div class=post-content>
-Postgres 执行器 及其扩展 总结
-</div>
-<div><a class="read-more button" href=/posts/postgres/postgres_executor/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/tx/>事务知识简记</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2023-02-08
+2023-12-21
 </span>
 </div>
 <div class=post-content>
-事务分析记录，源码分析，关键技术点简记，唬人专用
-</div>
-<div><a class="read-more button" href=/posts/postgres/tx/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/course/15441/note/>Bison Note</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-11-17
-</span>
-</div>
-<div class=post-content>
-bison 文档重点记录
-</div>
-<div><a class="read-more button" href=/posts/course/15441/note/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/readcode/libpqxx/>Libpqxx</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-11-08
-</span>
-</div>
-<div class=post-content>
-libpqxx分析
-</div>
-<div><a class="read-more button" href=/posts/readcode/libpqxx/>Read more →</a></div>
+<h2>Table of Contents</h2>
+<aside class=table-of-contents><nav id=TableOfContents>
+<ul>
+<li><a href=#操作系统>操作系统</a></li>
+<li><a href=#数据库>数据库</a></li>
+</ul>
+</nav></aside>
+<h2 id=操作系统>
+操作系统
+<a href=#%e6%93%8d%e4%bd%9c%e7%b3%bb%e7%bb%9f class=h-anchor aria-hidden=true>#</a>
+</h2>
+<ul>
+<li>NUMA
+<ul>
+<li>多核架构中CPU通过BUS访问RAM，所以有了距离上的区别，带来了速度上的差距，NUMA 通过划分RAM和CPU为不同的node，通过配置不同的程序运行策略来解决此问题</li>
+<li>由于默认策略为优先使用同一个node，所以<a href=https://blog.jcole.us/2010/09/28/mysql-swap-insanity-and-the-numa-architecture/>Mysql</a> 在使用大量内存的时候，内存占用多个node，导致内存频繁swap</li>
+</ul>
+</li>
+</ul>
+<h2 id=数据库>
+数据库
+<a href=#%e6%95%b0%e6%8d%ae%e5%ba%93 class=h-anchor aria-hidden=true>#</a>
+</h2>
+<ul>
+<li>
+<p>解释执行</p>
+</li>
+<li>
+<p>编译执行</p>
+<ul>
+<li>避免物化</li>
+<li>消除虚函数的跳转执行</li>
+</ul>
+</li>
+<li>
+<p>向量化</p>
+</li>
+<li>
+<p>Adaptive Execution of Compiled Queries</p>
+<ul>
+<li>先解释执行，同时异步编译， 执行完部分数据之后， 再检测是否需要编译执行</li>
+</ul>
+</li>
+<li>
+<p>pipeline</p>
+<ul>
+<li>部分表达式是非阻塞的，不需要物化(从寄存器替换出去)，使用codegen编译为一个完整的执行流程</li>
+</ul>
+</li>
+</ul>
 </div>
 <div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>Read other posts</span>
+<hr>
+</div>
 <div class=pagination__buttons>
 <span class="button previous">
-<a href=/page/2/>
+<a href=https://askyx.github.io/posts/database/env_common/>
 <span class=button__icon>←</span>
-<span class=button__text>Newer posts</span>
+<span class=button__text>源码编译环境准备文件</span>
 </a>
 </span>
 <span class="button next">
-<a href=/page/4/>
-<span class=button__text>Older posts</span>
+<a href=https://askyx.github.io/posts/others/cmake/>
+<span class=button__text>cmake 速查模板</span>
 <span class=button__icon>→</span>
 </a>
 </span>

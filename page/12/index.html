@@ -59,96 +59,19 @@ My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/vacuum/>vacuum 和 analyze 过程分析</a></h1>
+<h1 class=post-title><a href=https://askyx.github.io/posts/static/mysql/></a></h1>
 <div class=post-meta>
-<span class=post-date>
-2022-09-26
-</span>
-</div>
-<span class=post-tags>
-<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
-<a href=https://askyx.github.io/tags/postgres/>#Postgres</a>&nbsp;
-<a href=https://askyx.github.io/tags/vacuum/>#VACUUM</a>&nbsp;
-</span>
-<div class=post-content>
-AntDB VACUUM 流程
-</div>
-<div><a class="read-more button" href=/posts/postgres/vacuum/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/opt/>Postgres Optimizer</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-07-22
-</span>
-</div>
-<span class=post-tags>
-<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
-<a href=https://askyx.github.io/tags/postgres/>#Postgres</a>&nbsp;
-<a href=https://askyx.github.io/tags/%E4%BC%98%E5%8C%96%E5%99%A8/>#优化器</a>&nbsp;
-</span>
-<div class=post-content>
-本文从源码级别进行优化器的分析，对Postgres优化器代码调研，具体包括他的数据结构，以及具体的代码架构实现以及核心算法等
-</div>
-<div><a class="read-more button" href=/posts/postgres/opt/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/storage/>Postgres Storage</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-07-21
-</span>
-</div>
-<span class=post-tags>
-<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
-<a href=https://askyx.github.io/tags/postgres/>#Postgres</a>&nbsp;
-<a href=https://askyx.github.io/tags/%E5%AD%98%E5%82%A8/>#存储</a>&nbsp;
-</span>
-<div class=post-content>
-存储 # 内存 # 共享内存
-本地内存
-缓存
-内存上下文
-缓存空间管理
-数据块的缓存，减少磁盘IO，有共享缓存和进程缓存
-Cache
-数据块之外的缓存，例如系统表
-系统表缓存不会缓存整个表，是以block为单位缓存？ 虚拟文件描述符
-系统中文件有打开的上限，使用VFD可以突破这种限制，本质上是一个LRU缓存
-空闲空间定位
-快速定位磁盘中的空闲空间以插入数据
-进程间通信 使用共享内存或者信号量通信
-读取过程 # 从系统表中读取表的元数据信息构造元组信息 尝试从缓存读取数据 使用SMGR从磁盘读取数据到缓存中，SMGR是一个抽象层，用于实现不同存储介质的管理 SMGR和存储介质之间使用VFD来管理文件描述符，以突破系统的FD限制 标记删除，vacuum清理数据 FSM记录空闲空间 磁盘 # 表文件
-SMGR
-VFD
-FSM
-</div>
-<div><a class="read-more button" href=/posts/postgres/storage/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/postgres/env/>Postgres源码编译及调试</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2022-07-20
-</span>
 </div>
 <div class=post-content>
-Postges 源码环境搭建，Ubuntu22，VSCode，docker
 </div>
-<div><a class="read-more button" href=/posts/postgres/env/>Read more →</a></div>
+<div><a class="read-more button" href=/posts/static/mysql/>Read more →</a></div>
 </div>
 <div class=pagination>
 <div class=pagination__buttons>
 <span class="button previous">
-<a href=/page/4/>
+<a href=/page/11/>
 <span class=button__icon>←</span>
 <span class=button__text>Newer posts</span>
-</a>
-</span>
-<span class="button next">
-<a href=/page/6/>
-<span class=button__text>Older posts</span>
-<span class=button__icon>→</span>
 </a>
 </span>
 </div>

@@ -59,6 +59,16 @@ My note blog
 <div class=content>
 <div class=post>
 <div class="post on-list">
+<h1 class=post-title><a href=https://askyx.github.io/posts/others/log/></a></h1>
+<div class=post-meta>
+</div>
+<div class=post-content>
+语句
+prepare s3(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc; QUERY PLAN --------------------------------------------------------------------------------------------------- Cluster Gather (cost=291.52..430.37 rows=459 width=4) Remote node: 16386 -> Sort (cost=291.52..292.67 rows=459 width=4) Output: no_o_id Sort Key: bmsql_new_order.no_o_id -> Bitmap Heap Scan on public.bmsql_new_order (cost=13.46..271.23 rows=459 width=4) Output: no_o_id Recheck Cond: ((bmsql_new_order.no_w_id = 1) AND (bmsql_new_order.no_d_id = 1)) -> Bitmap Index Scan on bmsql_new_order_pkey (cost=0.00..13.34 rows=918 width=0) Index Cond: ((bmsql_new_order.
+</div>
+<div><a class="read-more button" href=/posts/others/log/>Read more →</a></div>
+</div>
+<div class="post on-list">
 <h1 class=post-title><a href=https://askyx.github.io/posts/others/%E5%87%BD%E6%95%B0%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91/></a></h1>
 <div class=post-meta>
 </div>
@@ -88,25 +98,6 @@ explain verbose select no_o_id from bmsql_new_order where no_w_id = 4 and no_d_i
 benchmarksql=# explain verbose select no_o_id from bmsql_new_order where no_w_id = 4 and no_d_id = 1 order by no_o_id asc; QUERY PLAN # Data Node Scan on &ldquo;REMOTE_FQS_QUERY&rdquo; (cost=0.00..0.00 rows=0 width=0) Output: bmsql_new_order.no_o_id Node/s: dn2 Remote query: SELECT no_o_id FROM public.bmsql_new_order bmsql_new_order WHERE ((no_w_id = 4) AND (no_d_id = 1)) ORDER BY no_o_id (4 rows)
 </div>
 <div><a class="read-more button" href=/posts/others/%E9%9D%99%E6%80%81%E8%AF%AD%E5%8F%A5/>Read more →</a></div>
-</div>
-<div class="post on-list">
-<h1 class=post-title><a href=https://askyx.github.io/posts/personal/%E7%AE%80%E5%8E%86/></a></h1>
-<div class=post-meta>
-</div>
-<div class=post-content>
-文磊 # 个人信息 # 性 别：男 年 龄：28 手 机：18705169510 邮 箱：404061090@qq.com
-工作及教育经历 # 湖南亚信安慧科技有限公司 2022.7~now AntDB-T SQL内核研发工程师
-主要负责优化器对分布式执行计划的优化 星环科技有限公司 2022.2~2022.3 基础架构部-数据库研发工程师
-主要职责为负责ArgoDB数据库存储引擎的研发工作 易鲸捷信息技术有限公司 2019.7~2022.1 SQL内核研发工程师
-负责EsgynDB和Oracle的SQL兼容工作 负责BUG修复 负责一些需求开发 与交付同事一起排查项目现场问题，SQL语句优化等 南京邮电大学 2015.9~2019.6 软件工程-本科
-专业技能 # 编程语言 c++(熟悉)，Java(了解)，GO(了解)
-数据库
-工作开始就从事数据库内核开发，有一定的数据库基础，曾系统学习过相关课程
-熟悉多种数据库内核实现原理，主要为trafodion和postgres。对其他pg类数据库也有一定的理解，
-如greenplum，opengause等
-了解SQL优化器的原理，了解常用逻辑优化规则及代价优化规则等
-</div>
-<div><a class="read-more button" href=/posts/personal/%E7%AE%80%E5%8E%86/>Read more →</a></div>
 </div>
 <div class=pagination>
 <div class=pagination__buttons>

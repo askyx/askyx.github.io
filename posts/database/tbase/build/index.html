@@ -6,7 +6,7 @@ Esoye — My note blog
 </title>
 <meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
-<meta name=description content="shell #  git clone --depth=1 https://hub.fgit.cf/OpenTenBase/OpenTenBase.git docker run -itd --name tbase --hostname vscode --mount type=bind,source=/home/asky/OpenTenBase,target=/workspaces/OpenTenBase runner bash docker exec -it -u vscode tbase bash sudo service ssh start ssh-keygen cat ~/.ssh/id_rsa.pub &amp;gt;&amp;gt; ~/.ssh/authorized_keys chmod 700 ~/.ssh chmod 644 ~/.ssh/authorized_keys mkdir -p .build/making mkdir .data cd .build/making /workspaces/OpenTenBase/configure --prefix=/home/vscode/.build --enable-user-switch --with-openssl --with-ossp-uuid --enable-alltype-distri CFLAGS=&amp;#34;-fgnu89-inline -g -O2&amp;#34; make -j16 make install cd contrib make -j16 make install mkdir pgxc_ctl # 写入下面的模板 touch pgxc_ctl/pg.">
+<meta name=description content="shell #  git clone --depth=1 https://hub.fgit.cf/OpenTenBase/OpenTenBase.git docker run -itd --name tbase --cap-add=SYS_PTRACE --hostname vscode --mount type=bind,source=/home/wen/OpenTenBase,target=/workspaces/OpenTenBase runner bash docker exec -it -u vscode tbase bash sudo service ssh start ssh-keygen cat ~/.ssh/id_rsa.pub &amp;gt;&amp;gt; ~/.ssh/authorized_keys chmod 700 ~/.ssh chmod 644 ~/.ssh/authorized_keys mkdir -p .build/making mkdir .data cd .build/making # sudo chown vscode:vscode -R /workspaces/OpenTenBase /workspaces/OpenTenBase/configure --prefix=/home/vscode/.build --enable-user-switch --with-openssl --with-ossp-uuid --enable-alltype-distri CFLAGS=&amp;#34;-fgnu89-inline -g -O0&amp;#34; make -j16 make install cd contrib &amp;amp;&amp;amp; make -j64 &amp;amp;&amp;amp; make install cd ~ mkdir pgxc_ctl # 写入下面的模板 touch pgxc_ctl/pg.">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
 <link rel=canonical href=https://askyx.github.io/posts/database/tbase/build/>
@@ -79,7 +79,7 @@ shell
 git clone --depth<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> https://hub.fgit.cf/OpenTenBase/OpenTenBase.git
 
 
-docker run  -itd  --name tbase --hostname vscode --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/asky/OpenTenBase,target<span style=color:#f92672>=</span>/workspaces/OpenTenBase  runner  bash
+docker run  -itd  --name tbase --cap-add<span style=color:#f92672>=</span>SYS_PTRACE --hostname vscode --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/wen/OpenTenBase,target<span style=color:#f92672>=</span>/workspaces/OpenTenBase  runner  bash
 docker exec -it -u vscode tbase bash
 
 sudo service ssh start
@@ -94,18 +94,23 @@ mkdir -p .build/making
 mkdir .data
 
 cd .build/making
-/workspaces/OpenTenBase/configure --prefix<span style=color:#f92672>=</span>/home/vscode/.build --enable-user-switch --with-openssl --with-ossp-uuid --enable-alltype-distri CFLAGS<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;-fgnu89-inline -g -O2&#34;</span>
+
+<span style=color:#75715e># sudo chown vscode:vscode -R /workspaces/OpenTenBase</span>
+
+/workspaces/OpenTenBase/configure --prefix<span style=color:#f92672>=</span>/home/vscode/.build --enable-user-switch --with-openssl --with-ossp-uuid --enable-alltype-distri CFLAGS<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;-fgnu89-inline -g -O0&#34;</span>
 
 make -j16
 make install 
 
-cd contrib
-make -j16
-make install 
+cd contrib <span style=color:#f92672>&amp;&amp;</span> make -j64 <span style=color:#f92672>&amp;&amp;</span> make install 
+
+cd ~
 
 mkdir pgxc_ctl
 <span style=color:#75715e># 写入下面的模板</span>
 touch pgxc_ctl/pg.conf
+
+<span style=color:#75715e># ssh localhost</span>
 
 pgxc_ctl -c pg.conf init all
 
@@ -279,7 +284,7 @@ demo sql
 </h2>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>
 <span style=color:#66d9ef>select</span> <span style=color:#e6db74>&#39;
-</span><span style=color:#e6db74>drop table if exists t0_2357;
+</span><span style=color:#e6db74>drop table if exists t0;
 </span><span style=color:#e6db74>drop table if exists t0_2357_hash;                drop table if exists t1_2357_hash;                  drop table if exists t2_2357_hash;
 </span><span style=color:#e6db74>drop table if exists t0_2357_mod;                 drop table if exists t1_2357_mod;                   drop table if exists t2_2357_mod;
 </span><span style=color:#e6db74>drop table if exists t0_2357_repl;                drop table if exists t1_2357_repl;                  drop table if exists t2_2357_repl;
@@ -288,8 +293,8 @@ demo sql
 </span><span style=color:#e6db74>&#39;</span> droptable <span style=color:#960050;background-color:#1e0010>\</span>gset
 
 <span style=color:#66d9ef>select</span> <span style=color:#e6db74>&#39;
-</span><span style=color:#e6db74>create table t0_2357(a int, b int, c char(10), d timestamp);
-</span><span style=color:#e6db74>insert into t0_2357 values
+</span><span style=color:#e6db74>create table t0(a int, b int, c char(10), d timestamp);
+</span><span style=color:#e6db74>insert into t0 values
 </span><span style=color:#e6db74>(1,  1,  &#39;&#39;1&#39;&#39;,  &#39;&#39;2021-12-29 20:10:01&#39;&#39;),(2,  2,  &#39;&#39;2&#39;&#39;,  &#39;&#39;2022-12-29 20:10:01&#39;&#39;),(3,  3,  &#39;&#39;3&#39;&#39;,  &#39;&#39;2023-12-29 20:10:01&#39;&#39;),(4,  4,  &#39;&#39;4&#39;&#39;,  &#39;&#39;2024-12-29 20:10:01&#39;&#39;),
 </span><span style=color:#e6db74>(5,  5,  &#39;&#39;5&#39;&#39;,  &#39;&#39;2025-12-29 20:10:01&#39;&#39;),(6,  6,  &#39;&#39;6&#39;&#39;,  &#39;&#39;2026-12-29 20:10:01&#39;&#39;),(7,  7,  &#39;&#39;7&#39;&#39;,  &#39;&#39;2027-12-29 20:10:01&#39;&#39;),(8,  8,  &#39;&#39;8&#39;&#39;,  &#39;&#39;2028-12-29 20:10:01&#39;&#39;),
 </span><span style=color:#e6db74>(9,  9,  &#39;&#39;9&#39;&#39;,  &#39;&#39;2029-12-29 20:10:01&#39;&#39;),(10, 10, &#39;&#39;10&#39;&#39;, &#39;&#39;2010-12-29 20:10:01&#39;&#39;),(11, 11, &#39;&#39;11&#39;&#39;, &#39;&#39;2011-12-29 20:10:01&#39;&#39;),(12, 12, &#39;&#39;12&#39;&#39;, &#39;&#39;2012-12-29 20:10:01&#39;&#39;),

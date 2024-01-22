@@ -6,7 +6,7 @@ Esoye — My note blog
 </title>
 <meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
-<meta name=description content="shell #  git clone git@github.com:greenplum-db/gpdb.gitgit clone --depth=1 git@github.com:greenplum-db/gpdb.git -b 7.0.0 docker run -itd --name gpdb --mount type=bind,source=/home/asky/gpdb,target=/workspaces/gpdb runner bash docker exec -it -u vscode gpdb bash sudo service ssh start ssh-keygen cat ~/.ssh/id_rsa.pub &amp;gt;&amp;gt; ~/.ssh/authorized_keys chmod 700 ~/.ssh chmod 644 ~/.ssh/authorized_keys # 不支持其他文件夹编译，只能在gpdb目录下 ./configure --with-perl --enable-orca --with-python --with-libxml --with-gssapi --enable-debug CFLAGS=-O0 CXXFLAGS=-O0 --prefix=/home/vscode/.build make -j16 make install source /home/vscode/.build/greenplum_path.sh # 创建demo 集群 make create-demo-cluster # 销毁demo集群 make destroy-demo-cluster # .">
+<meta name=description content="shell #  git clone git@github.com:greenplum-db/gpdb.gitgit clone --depth=1 git@github.com:greenplum-db/gpdb.git -b 7.0.0 docker run -itd --name gpdb --cap-add=SYS_PTRACE --hostname vscode --mount type=bind,source=/home/asky/gpdb,target=/workspaces/gpdb runner bash docker exec -it -u vscode gpdb bash sudo service ssh start ssh-keygen cat ~/.ssh/id_rsa.pub &amp;gt;&amp;gt; ~/.ssh/authorized_keys chmod 700 ~/.ssh chmod 644 ~/.ssh/authorized_keys # sudo chown vscode:vscode -R /workspaces/gpdb # 不支持其他文件夹编译，只能在gpdb目录下 cd /workspaces/gpdb sudo apt install -y libkrb5-dev krb5-config iproute2 libossp-uuid-dev libapr1-dev libyaml-dev libxerces-c-dev less rsync pip libevent-dev .">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
 <link rel=canonical href=https://askyx.github.io/posts/database/gp/build/>
@@ -79,7 +79,7 @@ shell
 git clone git@github.com:greenplum-db/gpdb.gitgit clone --depth<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> git@github.com:greenplum-db/gpdb.git -b 7.0.0
 
 
-docker run  -itd  --name gpdb  --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/asky/gpdb,target<span style=color:#f92672>=</span>/workspaces/gpdb  runner  bash
+docker run  -itd  --name gpdb --cap-add<span style=color:#f92672>=</span>SYS_PTRACE --hostname vscode  --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/asky/gpdb,target<span style=color:#f92672>=</span>/workspaces/gpdb  runner  bash
 docker exec -it -u vscode gpdb bash
 
 sudo service ssh start
@@ -89,25 +89,49 @@ cat ~/.ssh/id_rsa.pub &gt;&gt; ~/.ssh/authorized_keys
 chmod <span style=color:#ae81ff>700</span> ~/.ssh
 chmod <span style=color:#ae81ff>644</span> ~/.ssh/authorized_keys
 
+
+<span style=color:#75715e># sudo chown vscode:vscode -R /workspaces/gpdb</span>
+
+
 <span style=color:#75715e># 不支持其他文件夹编译，只能在gpdb目录下</span>
+
+cd /workspaces/gpdb
+
+sudo apt install -y libkrb5-dev krb5-config iproute2 libossp-uuid-dev libapr1-dev libyaml-dev libxerces-c-dev less rsync pip libevent-dev
+
 ./configure --with-perl --enable-orca --with-python --with-libxml --with-gssapi --enable-debug CFLAGS<span style=color:#f92672>=</span>-O0 CXXFLAGS<span style=color:#f92672>=</span>-O0 --prefix<span style=color:#f92672>=</span>/home/vscode/.build
-make -j16
+make -j64
 make install 
 source /home/vscode/.build/greenplum_path.sh
+
+
+<span style=color:#75715e># .bashrc 文件</span>
+
+cat &gt; /home/vscode/.bashrc <span style=color:#e6db74>&lt;&lt;EOF
+</span><span style=color:#e6db74>
+</span><span style=color:#e6db74>source /home/vscode/.build/greenplum_path.sh
+</span><span style=color:#e6db74>alias psql=&#39;psql -p 7000&#39;
+</span><span style=color:#e6db74>alias gpstart=&#39;gpstart -d /workspaces/gpdb/gpAux/gpdemo/datadirs/qddir/demoDataDir-1&#39;
+</span><span style=color:#e6db74>alias gpstop=&#39;gpstop -d /workspaces/gpdb/gpAux/gpdemo/datadirs/qddir/demoDataDir-1&#39;
+</span><span style=color:#e6db74>alias sqps=&#34;echo &#39;USER         PID     PPID VSZ                  CMD&#39; ; ps -eo user,pid,ppid,vsize,cmd | grep -E &#39;postgres&#39; &#34;
+</span><span style=color:#e6db74>
+</span><span style=color:#e6db74>EOF</span>
+
+source /home/vscode/.bashrc
+
+
+pip install gssapi psycopg2 psutil -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+<span style=color:#75715e># ssh localhost</span>
 
 <span style=color:#75715e># 创建demo 集群</span>
 make create-demo-cluster
 
+createdb -p <span style=color:#ae81ff>7000</span> vscode
+
 <span style=color:#75715e># 销毁demo集群</span>
 make destroy-demo-cluster
 
-
-<span style=color:#75715e># .bashrc 文件</span>
-source /home/vscode/.build/greenplum_path.sh
-alias psql<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;psql -p 7000&#39;</span>
-alias gpstart<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;gpstart -d /workspaces/gpdb/gpAux/gpdemo/datadirs/qddir/demoDataDir-1&#39;</span>
-alias gpstop<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;gpstop -d /workspaces/gpdb/gpAux/gpdemo/datadirs/qddir/demoDataDir-1&#39;</span>
-alias sqps<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;echo &#39;USER         PID     PPID VSZ                  CMD&#39; ; ps -eo user,pid,ppid,vsize,cmd | grep -E &#39;postgres&#39; &#34;</span>
 
 
 </code></pre></div><h2 id=demo-sql>

@@ -6,7 +6,7 @@ Esoye — My note blog
 </title>
 <meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
-<meta name=description content="shell #  git clone --depth=1 https://hub.fgit.cf/OpenTenBase/OpenTenBase.git docker run -itd --name tbase --cap-add=SYS_PTRACE --hostname vscode --mount type=bind,source=/home/wen/OpenTenBase,target=/workspaces/OpenTenBase runner bash docker exec -it -u vscode tbase bash sudo service ssh start ssh-keygen cat ~/.ssh/id_rsa.pub &amp;gt;&amp;gt; ~/.ssh/authorized_keys chmod 700 ~/.ssh chmod 644 ~/.ssh/authorized_keys mkdir -p .build/making mkdir .data cd .build/making # sudo chown vscode:vscode -R /workspaces/OpenTenBase /workspaces/OpenTenBase/configure --prefix=/home/vscode/.build --enable-user-switch --with-openssl --with-ossp-uuid --enable-alltype-distri CFLAGS=&amp;#34;-fgnu89-inline -g -O0&amp;#34; make -j16 make install cd contrib &amp;amp;&amp;amp; make -j64 &amp;amp;&amp;amp; make install cd ~ mkdir pgxc_ctl # 写入下面的模板 touch pgxc_ctl/pg.">
+<meta name=description content="shell #  git clone --depth=1 https://hub.fgit.cf/OpenTenBase/OpenTenBase.git docker run -itd --name tbase --cap-add=SYS_PTRACE --privileged=true --hostname vscode --mount type=bind,source=/home/wen/OpenTenBase,target=/workspaces/OpenTenBase runner bash docker exec -it -u vscode tbase bash sudo service ssh start ssh-keygen cat ~/.ssh/id_rsa.pub &amp;gt;&amp;gt; ~/.ssh/authorized_keys chmod 700 ~/.ssh chmod 644 ~/.ssh/authorized_keys sudo chown vscode:vscode -R /workspaces/OpenTenBase mkdir -p .build/making mkdir .data cd .build/making /workspaces/OpenTenBase/configure --prefix=/home/vscode/.build --enable-user-switch --with-openssl --with-ossp-uuid --enable-alltype-distri CFLAGS=&amp;#34;-fgnu89-inline -g -O0&amp;#34; make -j64 &amp;amp;&amp;amp; make install &amp;amp;&amp;amp; cd contrib &amp;amp;&amp;amp; make -j64 &amp;amp;&amp;amp; make install cd ~ mkdir pgxc_ctl # 写入下面的模板 touch pgxc_ctl/pg.">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
 <link rel=canonical href=https://askyx.github.io/posts/database/tbase/build/>
@@ -79,7 +79,7 @@ shell
 git clone --depth<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> https://hub.fgit.cf/OpenTenBase/OpenTenBase.git
 
 
-docker run  -itd  --name tbase --cap-add<span style=color:#f92672>=</span>SYS_PTRACE --hostname vscode --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/wen/OpenTenBase,target<span style=color:#f92672>=</span>/workspaces/OpenTenBase  runner  bash
+docker run  -itd  --name tbase --cap-add<span style=color:#f92672>=</span>SYS_PTRACE --privileged<span style=color:#f92672>=</span>true --hostname vscode --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/wen/OpenTenBase,target<span style=color:#f92672>=</span>/workspaces/OpenTenBase  runner  bash
 docker exec -it -u vscode tbase bash
 
 sudo service ssh start
@@ -89,20 +89,18 @@ cat ~/.ssh/id_rsa.pub &gt;&gt; ~/.ssh/authorized_keys
 chmod <span style=color:#ae81ff>700</span> ~/.ssh
 chmod <span style=color:#ae81ff>644</span> ~/.ssh/authorized_keys
 
+sudo chown vscode:vscode -R /workspaces/OpenTenBase
+
 
 mkdir -p .build/making
 mkdir .data
 
 cd .build/making
 
-<span style=color:#75715e># sudo chown vscode:vscode -R /workspaces/OpenTenBase</span>
 
 /workspaces/OpenTenBase/configure --prefix<span style=color:#f92672>=</span>/home/vscode/.build --enable-user-switch --with-openssl --with-ossp-uuid --enable-alltype-distri CFLAGS<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;-fgnu89-inline -g -O0&#34;</span>
 
-make -j16
-make install 
-
-cd contrib <span style=color:#f92672>&amp;&amp;</span> make -j64 <span style=color:#f92672>&amp;&amp;</span> make install 
+make -j64 <span style=color:#f92672>&amp;&amp;</span> make install <span style=color:#f92672>&amp;&amp;</span> cd contrib <span style=color:#f92672>&amp;&amp;</span> make -j64 <span style=color:#f92672>&amp;&amp;</span> make install 
 
 cd ~
 
@@ -121,16 +119,17 @@ createdb -p <span style=color:#ae81ff>6011</span> vscode
 
 <span style=color:#75715e># .bashrc 文件 此外，/home/vscode/.build/bin 需要写入到  /etc/environment</span>
 
-export PATH<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;</span>$PATH<span style=color:#e6db74>:/home/vscode/.build/bin&#34;</span>
-export LD_LIBRARY_PATH<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;</span>$LD_LIBRARY_PATH<span style=color:#e6db74>:/home/vscode/.build/lib&#34;</span>
-export LC_ALL<span style=color:#f92672>=</span>C
-
-alias psql<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;psql -p 6011&#39;</span>
-alias pstart<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;pgxc_ctl -c pg.conf start all&#39;</span>
-alias pstop<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;pgxc_ctl -c pg.conf stop all&#39;</span>
-alias sqps<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;echo &#39;USER         PID     PPID VSZ                  CMD&#39; ; ps -eo user,pid,ppid,vsize,cmd | grep -E &#39;postgres&#39; &#34;</span>
-
-
+cat &gt; /home/vscode/.bashrc <span style=color:#e6db74>&lt;&lt;EOF
+</span><span style=color:#e6db74>export PATH=&#34;$PATH:/home/vscode/.build/bin&#34;
+</span><span style=color:#e6db74>export LD_LIBRARY_PATH=&#34;$LD_LIBRARY_PATH:/home/vscode/.build/lib&#34;
+</span><span style=color:#e6db74>export LC_ALL=C
+</span><span style=color:#e6db74>
+</span><span style=color:#e6db74>alias psql=&#39;psql -p 6011&#39;
+</span><span style=color:#e6db74>alias pstart=&#39;pgxc_ctl -c pg.conf start all&#39;
+</span><span style=color:#e6db74>alias pstop=&#39;pgxc_ctl -c pg.conf stop all&#39;
+</span><span style=color:#e6db74>alias sqps=&#34;echo &#39;USER         PID     PPID VSZ                  CMD&#39; ; ps -eo user,pid,ppid,vsize,cmd | grep -E &#39;postgres&#39; &#34;
+</span><span style=color:#e6db74>
+</span><span style=color:#e6db74>EOF</span>
 
 
 </code></pre></div><h2 id=conf-file-pgconf>

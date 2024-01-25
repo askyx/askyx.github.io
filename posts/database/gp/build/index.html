@@ -6,7 +6,7 @@ Esoye — My note blog
 </title>
 <meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
-<meta name=description content="shell #  git clone git@github.com:greenplum-db/gpdb.gitgit clone --depth=1 git@github.com:greenplum-db/gpdb.git -b 7.0.0 docker run -itd --name gpdb --cap-add=SYS_PTRACE --hostname vscode --mount type=bind,source=/home/asky/gpdb,target=/workspaces/gpdb runner bash docker exec -it -u vscode gpdb bash sudo service ssh start ssh-keygen cat ~/.ssh/id_rsa.pub &amp;gt;&amp;gt; ~/.ssh/authorized_keys chmod 700 ~/.ssh chmod 644 ~/.ssh/authorized_keys # sudo chown vscode:vscode -R /workspaces/gpdb # 不支持其他文件夹编译，只能在gpdb目录下 cd /workspaces/gpdb sudo apt install -y libkrb5-dev krb5-config iproute2 libossp-uuid-dev libapr1-dev libyaml-dev libxerces-c-dev less rsync pip libevent-dev .">
+<meta name=description content="shell #  git clone --depth=1 https://hub.fgit.cf/greenplum-db/gpdb.git -b 7.0.0 docker run -itd --name gpdb --cap-add=SYS_PTRACE --privileged=true --hostname vscode --mount type=bind,source=/home/wen/gpdb,target=/workspaces/gpdb runner bash docker exec -it -u vscode gpdb bash sudo service ssh start ssh-keygen cat ~/.ssh/id_rsa.pub &amp;gt;&amp;gt; ~/.ssh/authorized_keys chmod 700 ~/.ssh chmod 644 ~/.ssh/authorized_keys sudo chown vscode:vscode -R /workspaces/gpdb # 不支持其他文件夹编译，只能在gpdb目录下 cd /workspaces/gpdb sudo apt install -y libkrb5-dev krb5-config iproute2 libossp-uuid-dev libapr1-dev libyaml-dev libxerces-c-dev less rsync pip libevent-dev ./configure --with-perl --enable-orca --with-python --with-libxml --with-gssapi --enable-debug CFLAGS=-O0 CXXFLAGS=-O0 --prefix=/home/vscode/.">
 <meta name=keywords content="数据库">
 <meta name=robots content="noodp">
 <link rel=canonical href=https://askyx.github.io/posts/database/gp/build/>
@@ -76,10 +76,10 @@ shell
 <a href=#shell class=h-anchor aria-hidden=true>#</a>
 </h2>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>
-git clone git@github.com:greenplum-db/gpdb.gitgit clone --depth<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> git@github.com:greenplum-db/gpdb.git -b 7.0.0
+git clone --depth<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> https://hub.fgit.cf/greenplum-db/gpdb.git -b 7.0.0
 
 
-docker run  -itd  --name gpdb --cap-add<span style=color:#f92672>=</span>SYS_PTRACE --hostname vscode  --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/asky/gpdb,target<span style=color:#f92672>=</span>/workspaces/gpdb  runner  bash
+docker run  -itd  --name gpdb --cap-add<span style=color:#f92672>=</span>SYS_PTRACE --privileged<span style=color:#f92672>=</span>true --hostname vscode  --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/wen/gpdb,target<span style=color:#f92672>=</span>/workspaces/gpdb  runner  bash
 docker exec -it -u vscode gpdb bash
 
 sudo service ssh start
@@ -90,7 +90,7 @@ chmod <span style=color:#ae81ff>700</span> ~/.ssh
 chmod <span style=color:#ae81ff>644</span> ~/.ssh/authorized_keys
 
 
-<span style=color:#75715e># sudo chown vscode:vscode -R /workspaces/gpdb</span>
+sudo chown vscode:vscode -R /workspaces/gpdb
 
 
 <span style=color:#75715e># 不支持其他文件夹编译，只能在gpdb目录下</span>
@@ -100,9 +100,9 @@ cd /workspaces/gpdb
 sudo apt install -y libkrb5-dev krb5-config iproute2 libossp-uuid-dev libapr1-dev libyaml-dev libxerces-c-dev less rsync pip libevent-dev
 
 ./configure --with-perl --enable-orca --with-python --with-libxml --with-gssapi --enable-debug CFLAGS<span style=color:#f92672>=</span>-O0 CXXFLAGS<span style=color:#f92672>=</span>-O0 --prefix<span style=color:#f92672>=</span>/home/vscode/.build
-make -j64
-make install 
-source /home/vscode/.build/greenplum_path.sh
+
+make -j64 <span style=color:#f92672>&amp;&amp;</span> make install
+
 
 
 <span style=color:#75715e># .bashrc 文件</span>
@@ -122,7 +122,7 @@ source /home/vscode/.bashrc
 
 pip install gssapi psycopg2 psutil -i https://pypi.tuna.tsinghua.edu.cn/simple
 
-<span style=color:#75715e># ssh localhost</span>
+ssh localhost
 
 <span style=color:#75715e># 创建demo 集群</span>
 make create-demo-cluster

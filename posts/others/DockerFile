@@ -1,21 +1,20 @@
-FROM centos:8
+FROM centos
 
 LABEL description="build antdb regress env"
 
-RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
-RUN sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
-RUN sed -e 's|^mirrorlist=|#mirrorlist=|g' \
-         -e 's|^#baseurl=http://mirror.centos.org/$contentdir|baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos|g' \
-         -i.bak \
-         /etc/yum.repos.d/CentOS-*.repo
+RUN sed -e "s|^mirrorlist=|#mirrorlist=|g" \
+    -e "s|^#baseurl=http://mirror.centos.org/centos/\$releasever|baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.4.2105|g" \
+    -e "s|^#baseurl=http://mirror.centos.org/\$contentdir/\$releasever|baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.4.2105|g" \
+    -i.bak \
+    /etc/yum.repos.d/CentOS-*.repo
 RUN yum makecache
 RUN yum update -y
 
-RUN yum install -y gcc flex bison make perl-ExtUtils-Embed python3 python3-devel readline-devel zlib-devel pam-devel libxml2 libxml2-devel libxslt libxslt-devel openldap openldap-devel wget git perl perl-devel sudo
+RUN yum install -y gcc flex bison make perl-ExtUtils-Embed glibc-locale-source python3 python3-devel readline-devel zlib-devel pam-devel libxml2 libxml2-devel libxslt libxslt-devel openldap openldap-devel wget git perl perl-devel sudo
 RUN dnf -y --enablerepo=powertools install perl-IPC-Run perl-Capture-Tiny perl-DateTime perl-namespace-autoclean
 
 WORKDIR /home
-RUN git clone --depth=1 https://ghproxy.com/https://github.com/linux-test-project/lcov -b v1.14 /home/lcov
+RUN git clone --depth=1 https://gitee.com/guluyang/lcov.git -b v1.14 /home/lcov
 WORKDIR /home/lcov
 RUN make install
 RUN genhtml -V
@@ -27,9 +26,7 @@ WORKDIR /home/libssh2-1.11.0
 RUN ./configure
 RUN make install
 WORKDIR /home
-RUN rm -rf /home/lcov
-RUN rm libssh2-1.11.0.tar.gz
-RUN rm -rf /home/libssh2-1.11.0
+RUN rm -rf /home/lcov libssh2-1.11.0.tar.gz /home/libssh2-1.11.0
 
 RUN useradd -ms /bin/bash centos
 
@@ -37,9 +34,9 @@ RUN echo 'centos ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 ENV LANG en_US.utf8
 
-USER centos
+RUN localedef -v -c -i en_US -f UTF-8 en_US.UTF-8
 
-# RUN pip3 install --user gcovr -i https://pypi.tuna.tsinghua.edu.cn/simple
+USER centos
 
 RUN echo "export PATH=$HOME/bin:/usr/local/bin:$HOME/.local/bin:$PATH" >> $HOME/.bashrc
 

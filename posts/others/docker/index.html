@@ -237,7 +237,7 @@ docker build -f DockerFile -t xxx ./
 </span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> sed -i <span style=color:#e6db74>&#39;s/mirrorlist/#mirrorlist/g&#39;</span> /etc/yum.repos.d/CentOS-*<span style=color:#960050;background-color:#1e0010>
 </span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> sed -i <span style=color:#e6db74>&#39;s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g&#39;</span> /etc/yum.repos.d/CentOS-*<span style=color:#960050;background-color:#1e0010>
 </span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> sed -e <span style=color:#e6db74>&#39;s|^mirrorlist=|#mirrorlist=|g&#39;</span> <span style=color:#ae81ff>\
-</span><span style=color:#ae81ff></span>         -e <span style=color:#e6db74>&#39;s|^#baseurl=http://vault.centos.org/$contentdir|baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos|g&#39;</span> <span style=color:#ae81ff>\
+</span><span style=color:#ae81ff></span>         -e <span style=color:#e6db74>&#39;s|^#baseurl=http://mirror.centos.org/$contentdir|baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos|g&#39;</span> <span style=color:#ae81ff>\
 </span><span style=color:#ae81ff></span>         -i.bak <span style=color:#ae81ff>\
 </span><span style=color:#ae81ff></span>         /etc/yum.repos.d/CentOS-*.repo<span style=color:#960050;background-color:#1e0010>
 </span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> yum makecache<span style=color:#960050;background-color:#1e0010>

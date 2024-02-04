@@ -409,226 +409,114 @@ order by
          ->  Limit  (cost=3350657.95..3350657.95 rows=1 width=192) (actual time=0.042..0.047 rows=0 loops=1)
                Output: supplier.s_acctbal, supplier.s_name, nation.n_name, part.p_partkey, part.p_mfgr, supplier.s_address, supplier.s_phone, supplier.s_comment
                Node 16387: (actual time=1772063.313..1772063.335 rows=100 loops=1)
-               Node 16389: (actual time=1772250.135..1772250.157 rows=100 loops=1)
-               Node 16390: (actual time=1773945.812..1773945.835 rows=100 loops=1)
-               Node 16391: (actual time=1745415.807..1745415.834 rows=100 loops=1)
-               Node 16388: (actual time=1775183.282..1775183.305 rows=100 loops=1)
                ->  Sort  (cost=3350657.95..3350657.95 rows=0 width=192) (actual time=0.042..0.046 rows=0 loops=1)
                      Output: supplier.s_acctbal, supplier.s_name, nation.n_name, part.p_partkey, part.p_mfgr, supplier.s_address, supplier.s_phone, supplier.s_comment
                      Sort Key: supplier.s_acctbal DESC, nation.n_name, supplier.s_name, part.p_partkey
                      Sort Method: quicksort  Memory: 25kB
                      Node 16387: (actual time=1772063.310..1772063.325 rows=100 loops=1)
-                     Node 16389: (actual time=1772250.133..1772250.148 rows=100 loops=1)
-                     Node 16390: (actual time=1773945.810..1773945.826 rows=100 loops=1)
-                     Node 16391: (actual time=1745415.805..1745415.821 rows=100 loops=1)
-                     Node 16388: (actual time=1775183.279..1775183.294 rows=100 loops=1)
                      ->  Hash Join  (cost=745137.06..3350657.94 rows=0 width=192) (actual time=0.028..0.033 rows=0 loops=1)
                            Output: supplier.s_acctbal, supplier.s_name, nation.n_name, part.p_partkey, part.p_mfgr, supplier.s_address, supplier.s_phone, supplier.s_comment
                            Inner Unique: true
                            Hash Cond: ((partsupp.ps_partkey = part.p_partkey) AND (partsupp.ps_supplycost = (SubPlan 1)))
                            Node 16387: (actual time=1110131.517..1772047.609 rows=9470 loops=1)
-                           Node 16389: (actual time=1112923.104..1772232.293 rows=9458 loops=1)
-                           Node 16390: (actual time=1109979.548..1773927.901 rows=9502 loops=1)
-                           Node 16391: (actual time=1110835.367..1745398.589 rows=9109 loops=1)
-                           Node 16388: (actual time=1110921.287..1775168.659 rows=9568 loops=1)
                            ->  Hash Join  (cost=35313.19..2640699.64 rows=25604 width=172) (never executed)
                                  Output: supplier.s_acctbal, supplier.s_name, supplier.s_address, supplier.s_phone, supplier.s_comment, partsupp.ps_partkey, partsupp.ps_supplycost, nation.n_name
                                  Hash Cond: (partsupp.ps_suppkey = supplier.s_suppkey)
                                  Node 16387: (actual time=20573.025..32966.004 rows=3208034 loops=1)
-                                 Node 16389: (actual time=22980.367..35854.371 rows=3209194 loops=1)
-                                 Node 16390: (actual time=6954.031..19535.323 rows=3206648 loops=1)
-                                 Node 16391: (actual time=50302.949..63560.849 rows=3208964 loops=1)
-                                 Node 16388: (actual time=283.111..12716.873 rows=3209960 loops=1)
                                  ->  Seq Scan on public.partsupp  (cost=0.00..2544096.32 rows=16002646 width=14) (never executed)
                                        Output: partsupp.ps_partkey, partsupp.ps_suppkey, partsupp.ps_availqty, partsupp.ps_supplycost, partsupp.ps_comment
                                        Remote node: 16389,16387,16390,16388,16391
                                        Node 16387: (actual time=0.022..2321.959 rows=15996576 loops=1)
-                                       Node 16389: (actual time=0.011..2684.095 rows=16007608 loops=1)
-                                       Node 16390: (actual time=0.009..2591.602 rows=15990792 loops=1)
-                                       Node 16391: (actual time=0.012..2482.790 rows=16002272 loops=1)
-                                       Node 16388: (actual time=0.012..2410.073 rows=16002752 loops=1)
                                  ->  Hash  (cost=35213.19..35213.19 rows=8000 width=166) (never executed)
                                        Output: supplier.s_acctbal, supplier.s_name, supplier.s_address, supplier.s_phone, supplier.s_comment, supplier.s_suppkey, nation.n_name
                                        Node 16387: (actual time=20572.554..20572.557 rows=200535 loops=1)
-                                       Node 16389: (actual time=22980.335..22980.338 rows=200535 loops=1)
-                                       Node 16390: (actual time=6953.691..6953.693 rows=200535 loops=1)
-                                       Node 16391: (actual time=50302.601..50302.604 rows=200535 loops=1)
-                                       Node 16388: (actual time=282.865..282.868 rows=200535 loops=1)
                                        ->  Cluster Reduce  (cost=10.39..35213.19 rows=8000 width=166) (never executed)
                                              Reduce: unnest('[0:4]={16387,16388,16389,16390,16391}'::oid[])
                                              Node 16387: (actual time=0.218..20517.812 rows=200535 loops=1)
-                                             Node 16389: (actual time=0.222..22923.730 rows=200535 loops=1)
-                                             Node 16390: (actual time=0.352..6898.595 rows=200535 loops=1)
-                                             Node 16391: (actual time=0.283..50239.798 rows=200535 loops=1)
-                                             Node 16388: (actual time=0.273..230.389 rows=200535 loops=1)
                                              ->  Hash Join  (cost=9.39..32842.19 rows=1600 width=166) (never executed)
                                                    Output: supplier.s_acctbal, supplier.s_name, supplier.s_address, supplier.s_phone, supplier.s_comment, supplier.s_suppkey, nation.n_name
                                                    Inner Unique: true
                                                    Hash Cond: (nation.n_regionkey = region.r_regionkey)
                                                    Node 16387: (actual time=0.056..119.575 rows=40056 loops=1)
-                                                   Node 16389: (actual time=0.068..127.699 rows=39991 loops=1)
-                                                   Node 16390: (actual time=0.080..125.878 rows=40202 loops=1)
-                                                   Node 16391: (actual time=0.057..122.222 rows=40239 loops=1)
-                                                   Node 16388: (actual time=0.061..123.351 rows=40047 loops=1)
                                                    ->  Hash Join  (cost=5.31..32799.31 rows=8000 width=170) (never executed)
                                                          Output: supplier.s_acctbal, supplier.s_name, supplier.s_address, supplier.s_phone, supplier.s_comment, supplier.s_suppkey, nation.n_name, nation.n_regionkey
                                                          Inner Unique: true
                                                          Hash Cond: (supplier.s_nationkey = nation.n_nationkey)
                                                          Node 16387: (actual time=0.025..97.179 rows=199723 loops=1)
-                                                         Node 16389: (actual time=0.048..105.502 rows=199970 loops=1)
-                                                         Node 16390: (actual time=0.032..103.140 rows=200370 loops=1)
-                                                         Node 16391: (actual time=0.028..99.691 rows=199703 loops=1)
-                                                         Node 16388: (actual time=0.033..100.750 rows=200234 loops=1)
                                                          ->  Seq Scan on public.supplier  (cost=0.00..32180.00 rows=200000 width=144) (never executed)
                                                                Output: supplier.s_suppkey, supplier.s_name, supplier.s_address, supplier.s_nationkey, supplier.s_phone, supplier.s_acctbal, supplier.s_comment
                                                                Remote node: 16389,16387,16390,16388,16391
                                                                Node 16387: (actual time=0.004..30.007 rows=199723 loops=1)
-                                                               Node 16389: (actual time=0.027..37.360 rows=199970 loops=1)
-                                                               Node 16390: (actual time=0.009..37.024 rows=200370 loops=1)
-                                                               Node 16391: (actual time=0.004..32.427 rows=199703 loops=1)
-                                                               Node 16388: (actual time=0.005..33.345 rows=200234 loops=1)
                                                          ->  Hash  (cost=5.25..5.25 rows=5 width=34) (never executed)
                                                                Output: nation.n_name, nation.n_nationkey, nation.n_regionkey
                                                                Node 16387: (actual time=0.016..0.017 rows=25 loops=1)
-                                                               Node 16389: (actual time=0.016..0.016 rows=25 loops=1)
-                                                               Node 16390: (actual time=0.016..0.017 rows=25 loops=1)
-                                                               Node 16391: (actual time=0.017..0.018 rows=25 loops=1)
-                                                               Node 16388: (actual time=0.022..0.023 rows=25 loops=1)
                                                                ->  Seq Scan on public.nation  (cost=0.00..5.25 rows=5 width=34) (never executed)
                                                                      Output: nation.n_name, nation.n_nationkey, nation.n_regionkey
                                                                      Remote node: 16387,16388,16389,16390,16391
                                                                      Node 16387: (actual time=0.007..0.010 rows=25 loops=1)
-                                                                     Node 16389: (actual time=0.006..0.009 rows=25 loops=1)
-                                                                     Node 16390: (actual time=0.006..0.009 rows=25 loops=1)
-                                                                     Node 16391: (actual time=0.007..0.010 rows=25 loops=1)
-                                                                     Node 16388: (actual time=0.008..0.016 rows=25 loops=1)
                                                    ->  Hash  (cost=4.06..4.06 rows=1 width=4) (never executed)
                                                          Output: region.r_regionkey
                                                          Node 16387: (actual time=0.017..0.018 rows=1 loops=1)
-                                                         Node 16389: (actual time=0.015..0.015 rows=1 loops=1)
-                                                         Node 16390: (actual time=0.029..0.030 rows=1 loops=1)
-                                                         Node 16391: (actual time=0.022..0.023 rows=1 loops=1)
-                                                         Node 16388: (actual time=0.019..0.019 rows=1 loops=1)
                                                          ->  Seq Scan on public.region  (cost=0.00..4.06 rows=1 width=4) (never executed)
                                                                Output: region.r_regionkey
                                                                Filter: (region.r_name = 'EUROPE'::bpchar)
                                                                Remote node: 16387,16388,16389,16390,16391
                                                                Node 16387: (actual time=0.014..0.015 rows=1 loops=1)
-                                                               Node 16389: (actual time=0.010..0.011 rows=1 loops=1)
-                                                               Node 16390: (actual time=0.021..0.023 rows=1 loops=1)
-                                                               Node 16391: (actual time=0.018..0.019 rows=1 loops=1)
-                                                               Node 16388: (actual time=0.015..0.016 rows=1 loops=1)
                            ->  Hash  (cost=709595.86..709595.86 rows=15201 width=30) (actual time=0.015..0.017 rows=0 loops=1)
                                  Output: part.p_partkey, part.p_mfgr
                                  Buckets: 16384  Batches: 1  Memory Usage: 128kB
                                  Node 16387: (actual time=1089478.433..1089478.436 rows=9470 loops=1)
-                                 Node 16389: (actual time=1089864.879..1089864.883 rows=9458 loops=1)
-                                 Node 16390: (actual time=1102918.327..1102918.331 rows=9502 loops=1)
-                                 Node 16391: (actual time=1060438.912..1060438.916 rows=9109 loops=1)
-                                 Node 16388: (actual time=1110550.816..1110550.820 rows=9568 loops=1)
                                  ->  Seq Scan on public.part  (cost=0.00..709595.86 rows=15201 width=30) (actual time=0.014..0.014 rows=0 loops=1)
                                        Output: part.p_partkey, part.p_mfgr
                                        Filter: (((part.p_type)::text ~~ '%BRASS'::text) AND (part.p_size = 15))
                                        Remote node: 16389,16387,16390,16388,16391
                                        Node 16387: (actual time=0.030..1400.121 rows=15945 loops=1)
-                                       Node 16389: (actual time=0.022..1388.619 rows=15908 loops=1)
-                                       Node 16390: (actual time=0.211..1521.970 rows=16057 loops=1)
-                                       Node 16391: (actual time=0.032..1488.675 rows=15563 loops=1)
-                                       Node 16388: (actual time=0.051..1486.255 rows=16118 loops=1)
                                  SubPlan 1
                                    ->  Materialize  (cost=28852782.33..28852782.35 rows=1 width=32) (never executed)
                                          Output: (min(partsupp_1.ps_supplycost))
                                          Node 16387: (actual time=68.332..68.333 rows=1 loops=25415)
-                                         Node 16389: (actual time=68.358..68.358 rows=1 loops=25366)
-                                         Node 16390: (actual time=68.541..68.541 rows=1 loops=25559)
-                                         Node 16391: (actual time=68.065..68.065 rows=1 loops=24672)
-                                         Node 16388: (actual time=68.520..68.520 rows=1 loops=25686)
                                          ->  Aggregate  (cost=28852782.33..28852782.34 rows=1 width=32) (never executed)
                                                Output: min(partsupp_1.ps_supplycost)
                                                Node 16387: (actual time=68.328..68.328 rows=1 loops=25415)
-                                               Node 16389: (actual time=68.354..68.354 rows=1 loops=25366)
-                                               Node 16390: (actual time=68.537..68.537 rows=1 loops=25559)
-                                               Node 16391: (actual time=68.060..68.061 rows=1 loops=24672)
-                                               Node 16388: (actual time=68.516..68.516 rows=1 loops=25686)
                                                ->  Hash Join  (cost=35440.19..28852782.33 rows=1 width=6) (never executed)
                                                      Output: partsupp_1.ps_supplycost
                                                      Hash Cond: (partsupp_1.ps_suppkey = supplier_1.s_suppkey)
                                                      Node 16387: (actual time=60.936..68.317 rows=1 loops=25415)
-                                                     Node 16389: (actual time=60.947..68.341 rows=1 loops=25366)
-                                                     Node 16390: (actual time=61.254..68.525 rows=1 loops=25559)
-                                                     Node 16391: (actual time=60.791..68.049 rows=1 loops=24672)
-                                                     Node 16388: (actual time=61.079..68.504 rows=1 loops=25686)
                                                      ->  Reduce Scan  (cost=1.00..28510892.47 rows=80013230 width=10) (actual time=0.185..0.186 rows=0 loops=1)
                                                            Output: partsupp_1.ps_supplycost, partsupp_1.ps_suppkey
                                                            Filter: (part.p_partkey = partsupp_1.ps_partkey)
                                                            Hash Buckets: 512
                                                            Node 16387: (actual time=1.373..6.585 rows=4 loops=25416)
-                                                           Node 16389: (actual time=1.353..6.493 rows=4 loops=25367)
-                                                           Node 16390: (actual time=1.377..6.528 rows=4 loops=25560)
-                                                           Node 16391: (actual time=1.401..6.587 rows=4 loops=24673)
-                                                           Node 16388: (actual time=1.369..6.597 rows=4 loops=25687)
                                                            ->  Cluster Reduce  (cost=1.00..27720136.32 rows=80013230 width=14) (actual time=0.001..0.001 rows=0 loops=1)
                                                                  Reduce: unnest('[0:4]={16387,16388,16389,16390,16391}'::oid[])
                                                                  Node 16387: (actual time=0.010..6611.079 rows=80000000 loops=1)
-                                                                 Node 16389: (actual time=0.010..6498.273 rows=80000000 loops=1)
-                                                                 Node 16390: (actual time=0.009..6881.127 rows=80000000 loops=1)
-                                                                 Node 16391: (actual time=0.014..6772.778 rows=80000000 loops=1)
-                                                                 Node 16388: (actual time=0.015..6761.055 rows=80000000 loops=1)
                                                                  ->  Seq Scan on public.partsupp partsupp_1  (cost=0.00..2544096.32 rows=16002646 width=14) (never executed)
                                                                        Output: partsupp_1.ps_supplycost, partsupp_1.ps_suppkey, partsupp_1.ps_partkey
                                                                        Remote node: 16389,16387,16390,16388,16391
                                                                        Node 16387: (actual time=0.009..3738.103 rows=15996576 loops=1)
-                                                                       Node 16389: (actual time=0.014..3933.574 rows=16007608 loops=1)
-                                                                       Node 16390: (actual time=0.014..3781.220 rows=15990792 loops=1)
-                                                                       Node 16391: (actual time=0.010..4148.903 rows=16002272 loops=1)
-                                                                       Node 16388: (actual time=0.015..3550.565 rows=16002752 loops=1)
                                                      ->  Hash  (cost=35339.19..35339.19 rows=8000 width=4) (never executed)
                                                            Output: supplier_1.s_suppkey
                                                            Node 16387: (actual time=46.197..46.197 rows=200535 loops=25415)
-                                                           Node 16389: (actual time=46.307..46.307 rows=200535 loops=25366)
-                                                           Node 16390: (actual time=46.488..46.488 rows=200535 loops=25559)
-                                                           Node 16391: (actual time=46.039..46.039 rows=200535 loops=24672)
-                                                           Node 16388: (actual time=46.261..46.261 rows=200535 loops=25686)
                                                            ->  Cluster Reduce  (cost=10.39..35339.19 rows=8000 width=4) (never executed)
                                                                  Reduce: unnest('[0:4]={16387,16388,16389,16390,16391}'::oid[])
                                                                  Node 16387: (actual time=0.003..16.284 rows=200535 loops=25415)
-                                                                 Node 16389: (actual time=0.003..16.251 rows=200535 loops=25366)
-                                                                 Node 16390: (actual time=0.003..16.408 rows=200535 loops=25559)
-                                                                 Node 16391: (actual time=0.004..16.405 rows=200535 loops=24672)
-                                                                 Node 16388: (actual time=0.004..16.143 rows=200535 loops=25686)
                                                                  ->  Hash Join  (cost=9.39..32842.19 rows=1600 width=4) (never executed)
                                                                        Output: supplier_1.s_suppkey
                                                                        Inner Unique: true
                                                                        Hash Cond: (nation_1.n_regionkey = region_1.r_regionkey)
                                                                        Node 16387: (actual time=0.077..105.770 rows=40056 loops=1)
-                                                                       Node 16389: (actual time=0.081..112.910 rows=39991 loops=1)
-                                                                       Node 16390: (actual time=0.061..112.656 rows=40202 loops=1)
-                                                                       Node 16391: (actual time=0.115..107.845 rows=40239 loops=1)
-                                                                       Node 16388: (actual time=0.086..106.689 rows=40047 loops=1)
                                                                        ->  Hash Join  (cost=5.31..32799.31 rows=8000 width=8) (never executed)
                                                                              Output: supplier_1.s_suppkey, nation_1.n_regionkey
                                                                              Inner Unique: true
                                                                              Hash Cond: (supplier_1.s_nationkey = nation_1.n_nationkey)
                                                                              Node 16387: (actual time=0.024..84.335 rows=199723 loops=1)
-                                                                             Node 16389: (actual time=0.041..91.498 rows=199970 loops=1)
-                                                                             Node 16390: (actual time=0.025..91.283 rows=200370 loops=1)
-                                                                             Node 16391: (actual time=0.024..86.455 rows=199703 loops=1)
-                                                                             Node 16388: (actual time=0.028..85.151 rows=200234 loops=1)
                                                                              ->  Seq Scan on public.supplier supplier_1  (cost=0.00..32180.00 rows=200000 width=8) (never executed)
                                                                                    Output: supplier_1.s_suppkey, supplier_1.s_name, supplier_1.s_address, supplier_1.s_nationkey, supplier_1.s_phone, supplier_1.s_acctbal, supplier_1.s_comment
                                                                                    Remote node: 16389,16387,16390,16388,16391
                                                                                    Node 16387: (actual time=0.005..28.806 rows=199723 loops=1)
-                                                                                   Node 16389: (actual time=0.022..34.995 rows=199970 loops=1)
-                                                                                   Node 16390: (actual time=0.004..35.444 rows=200370 loops=1)
-                                                                                   Node 16391: (actual time=0.005..33.054 rows=199703 loops=1)
-                                                                                   Node 16388: (actual time=0.005..30.048 rows=200234 loops=1)
                                                                              ->  Hash  (cost=5.25..5.25 rows=5 width=8) (never executed)
                                                                                    Output: nation_1.n_nationkey, nation_1.n_regionkey
                                                                                    Node 16387: (actual time=0.014..0.014 rows=25 loops=1)
-                                                                                   Node 16389: (actual time=0.014..0.014 rows=25 loops=1)
-                                                                                   Node 16390: (actual time=0.014..0.015 rows=25 loops=1)
-                                                                                   Node 16391: (actual time=0.014..0.014 rows=25 loops=1)
-                                                                                   Node 16388: (actual time=0.016..0.017 rows=25 loops=1)
                                                                                    ->  Seq Scan on public.nation nation_1  (cost=0.00..5.25 rows=5 width=8) (never executed)
                                                                                          Output: nation_1.n_nationkey, nation_1.n_regionkey
                                                                                          Remote node: 16387,16388,16389,16390,16391
@@ -640,19 +528,11 @@ order by
                                                                        ->  Hash  (cost=4.06..4.06 rows=1 width=4) (never executed)
                                                                              Output: region_1.r_regionkey
                                                                              Node 16387: (actual time=0.036..0.036 rows=1 loops=1)
-                                                                             Node 16389: (actual time=0.024..0.024 rows=1 loops=1)
-                                                                             Node 16390: (actual time=0.024..0.025 rows=1 loops=1)
-                                                                             Node 16391: (actual time=0.035..0.036 rows=1 loops=1)
-                                                                             Node 16388: (actual time=0.037..0.038 rows=1 loops=1)
                                                                              ->  Seq Scan on public.region region_1  (cost=0.00..4.06 rows=1 width=4) (never executed)
                                                                                    Output: region_1.r_regionkey
                                                                                    Filter: (region_1.r_name = 'EUROPE'::bpchar)
                                                                                    Remote node: 16387,16388,16389,16390,16391
                                                                                    Node 16387: (actual time=0.025..0.026 rows=1 loops=1)
-                                                                                   Node 16389: (actual time=0.017..0.018 rows=1 loops=1)
-                                                                                   Node 16390: (actual time=0.017..0.019 rows=1 loops=1)
-                                                                                   Node 16391: (actual time=0.024..0.026 rows=1 loops=1)
-                                                                                   Node 16388: (actual time=0.025..0.027 rows=1 loops=1)
  Planning Time: 4.552 ms
  Execution Time: 1814317.442 ms
 (254 rows)

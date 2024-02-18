@@ -1,0 +1,1123 @@
+<!doctype html><html lang=en>
+<head>
+<title>面试 :: Asky</title>
+<meta charset=utf-8>
+<meta charset=utf-8>
+<meta name=renderer content="webkit">
+<meta name=force-rendering content="webkit">
+<meta name=referrer content="no-referrer">
+<meta http-equiv=x-ua-compatible content="IE=Edge,chrome=1">
+<script>(!1||!!window.MSInputMethodContext&&!!document.documentMode)&&document.write('<script id="_iealwn_js" data-outver="11" src="https://support.dmeng.net/ie-alert-warning/latest.js"><\/script>')</script>
+<meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name=description content="面试 只是一个技术汇总 C++基础 [2 days] [课程- https://github.com/parallel101/course.git] 内存 内存结构 [https://segmentfault.com/a/1190000039348996] c++ 编译出来的是可执行文件，是ELF格式的，他本来就有一些格式上的划分，C++在他的基础上进行了更细的划分，分为五个部分，从高地址到底地址依次为： 1. 内核虚拟内存 进程的虚拟印象 2. 栈 程序自动控制，具体为程序的函数调用，保存局部变">
+<meta name=keywords content="程序员、码农、database、C++">
+<link href=/atom.xml title=Asky type=application/rss+xml>
+<link rel=canonical href=https://askyx.github.io/posts/log/>
+<link rel=stylesheet href=//cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.6.0/lxgwwenkaiscreen.css media=print onload="this.media='all'">
+<link rel=stylesheet href=/theme-20230215.css>
+<link rel="shortcut icon" href=https://askyx.github.io/favicon.ico>
+<link rel=apple-touch-icon href=https://askyx.github.io/favicon.ico>
+<meta name=apple-mobile-web-app-capable content="yes">
+<meta name=apple-mobile-web-app-status-bar-style content="black-translucent">
+<meta name=apple-mobile-web-app-title content="Asky">
+<link rel=bookmark href=https://askyx.github.io/favicon.ico>
+<link rel=apple-touch-icon-precomposed sizes=180x180 href=https://askyx.github.io/favicon.ico>
+<meta property="og:title" content="面试">
+<meta property="og:description" content="面试 只是一个技术汇总 C++基础 [2 days] [课程- https://github.com/parallel101/course.git] 内存 内存结构 [https://segmentfault.com/a/1190000039348996] c++ 编译出来的是可执行文件，是ELF格式的，他本来就有一些格式上的划分，C++在他的基础上进行了更细的划分，分为五个部分，从高地址到底地址依次为： 1. 内核虚拟内存 进程的虚拟印象 2. 栈 程序自动控制，具体为程序的函数调用，保存局部变">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://askyx.github.io/posts/log/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2022-03-24T20:26:11+08:00">
+<meta property="article:modified_time" content="2022-03-24T20:26:11+08:00">
+<script async defer data-website-id=c27bd84b-02a3-4c3f-a168-0d7fadec9c74 src=https://u.edui.fun/lmmtj.js></script>
+<link rel=prefetch href=https://askyx.github.io/posts/columbia-optimizer/>
+<link rel=prefetch href=https://askyx.github.io/posts/%E7%8E%B0%E4%BB%A3c-%E7%99%BD%E7%9A%AE%E4%B9%A6/>
+</head>
+<body>
+<script>var getTheme=localStorage.getItem("theme")||'';getTheme=='dark'?document.body.classList.add("dark"):getTheme=='light'&&document.body.classList.remove("dark")</script>
+<div class=container>
+<header class=header>
+<span class=header__inner>
+<a href=https://askyx.github.io/ class=logo style=text-decoration:none>
+<span class=logo__text>Asky</span>
+<span class=logo__cursor></span>
+</a>
+<span class=header__right>
+<nav class="menu hidden">
+<ul class="menu__inner menu__inner--desktop">
+<li><a href=/archives/>归档</a></li>
+<li><a href=/about/>关于我</a></li>
+<li><a href=/search/>🔍</a></li>
+<li><a href=javascript:; onclick=randomPost() title=随机访问一篇文章><svg t="1660103436159" class="icon search-box-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" p-id="1184" width="32" height="32"><path d="M421.376 481.28s117.248 24.576 175.104-8.704c0 0-89.6 70.144-89.6 166.4.512-.512-8.192-121.344-85.504-157.696zm17.408 487.936s68.608 6.656 68.608-80.896c0 0 3.072 88.576 65.024 78.336.0.512-50.688 22.016-133.632 2.56zM161.28 238.08s-30.208 65.536 11.264 91.648c0 0-67.072-17.408-81.408 37.376.0.0 8.704-82.944 70.144-129.024zM857.6 227.328s49.152 50.176 1.024 81.408c0 0 58.88-18.432 66.56 36.352.0.0 5.12-69.632-67.584-117.76z" p-id="1185"/><path d="M443.392 970.752c-5.632.0-10.752-1.024-15.36-3.072L157.184 810.496l-1.536-1.024s-1.024-1.024-4.608-2.56c-51.2-29.184-62.976-94.208-65.536-120.832V386.56c0-3.072.512-7.168 1.024-11.264l.512-3.584 1.024-2.56c19.456-50.688 76.8-51.2 103.936-44.032l-1.536 5.632 4.096-6.144L476.16 486.4l18.944 37.888c20.992 36.864 29.184 77.824 32.768 99.84v258.048c-4.608 56.32-36.864 76.288-55.808 82.944-1.024.512-15.36 5.632-28.672 5.632zM181.248 774.656l263.168 152.576c12.288-.512 36.864-6.656 40.448-48.128V628.736c-4.608-31.744-20.992-103.936-72.192-128L322.56 445.44l1.536 3.072L181.76 366.08c-2.048-.512-40.448-9.216-52.736 15.872-.512 2.56-.512 4.608-.512 6.144v294.4c1.536 16.896 9.728 67.072 43.52 86.528 3.584 2.048 6.656 4.096 9.216 5.632z" p-id="1186"/><path d="M837.632 212.992c6.656 4.096 12.8 7.168 18.432 10.752l1.536 1.024 1.536 1.536c5.12 4.096 10.752 9.216 16.384 15.36 6.144 11.776 5.632 33.28 4.608 49.152-1.024 12.288-6.656 30.208-26.624 44.544l-1.024.512-247.808 156.672c-26.624 14.336-62.976 18.432-96.256 18.432-40.96.0-77.824-6.656-89.088-8.704l-3.072-.512-245.248-142.336c-39.424-29.696-28.16-85.504-15.36-113.664l2.56-6.144 263.68-166.912c29.184-14.336 104.448-43.008 173.056-1.024 3.584 2.56 58.368 34.304 119.296 69.632M431.616 460.8c40.448 7.168 114.176 13.824 152.576-6.144L828.928 299.52c7.168-5.632 8.192-10.24 8.704-12.8 1.024-11.264-9.728-26.624-15.36-32.768-55.808-32.256-243.712-141.312-250.368-145.408-49.664-30.72-107.008-9.216-130.048 2.56L192.512 268.8c-4.096 12.288-12.288 42.496 3.584 55.808L431.616 460.8z" p-id="1187"/><path d="M831.488 299.008c4.096-1.024 38.4-11.264 66.048 6.144 7.168 4.608 17.92 11.776 24.064 24.576 1.024 5.632 4.096 10.752 4.608 16.896v2.048l-1.024 323.072c-5.12 35.328-22.528 91.648-77.312 125.44l-5.12 3.584h-1.024L579.584 966.656l-4.608.512c-4.096.512-8.704 1.024-12.8 1.024-15.872.0-30.208-5.12-41.984-14.848-24.576-20.48-32.768-55.808-35.328-73.728l-1.024-252.928h1.536c6.144-96.768 88.576-164.864 96.768-171.008l-.512-.512L829.44 299.52M528.384 867.328c.512 10.24 5.12 41.472 19.968 53.76 3.072 2.56 7.68 5.632 16.384 5.12L829.44 758.272c56.32-38.4 53.76-115.712 53.76-116.224l-.512-32.256 1.024-250.368h-.512c-1.536-12.8-7.168-16.384-8.704-17.408-8.704-5.632-23.552-3.072-28.672-2.048L610.304 488.96c-1.024.512-80.896 65.024-80.896 149.504h-1.536l.512 228.864zM435.2 264.192c0 27.648 31.744 50.176 71.168 50.176s71.168-22.528 71.168-50.176-31.744-50.176-71.168-50.176S435.2 236.544 435.2 264.192z" p-id="1188"/><path d="M663.552 782.848c0 30.72-22.528 67.072-49.664 80.384-27.648 13.824-50.176-.512-50.176-31.232s22.528-67.072 50.176-80.384c27.136-13.824 49.664.0 49.664 31.232zM760.32 602.624c0 30.72-22.528 67.072-49.664 80.384-27.648 13.824-49.664-.512-49.664-31.232s22.528-67.072 49.664-80.384c27.136-13.824 49.664.512 49.664 31.232zM867.84 428.032c0 30.72-22.528 67.072-49.664 80.384C790.528 522.24 768 507.904 768 477.184s22.528-67.072 50.176-80.384c27.136-13.824 49.664.0 49.664 31.232zM270.848 538.112c0 30.72-22.016 41.984-48.64 24.576-27.136-16.896-48.64-55.808-48.64-86.528s22.016-41.984 48.64-24.576c26.624 16.896 48.64 55.808 48.64 86.528zm161.28 285.184c0 30.72-22.016 41.984-48.64 24.576-26.624-17.408-48.64-55.808-48.64-86.528s22.016-41.984 48.64-24.576c26.624 16.896 48.64 55.808 48.64 86.528z" p-id="1189"/></svg></a></li>
+</ul>
+<ul class="menu__inner menu__inner--mobile">
+<li><a href=/archives/>归档</a></li>
+<li><a href=/about/>关于我</a></li>
+<li><a href=/search/>🔍</a></li>
+</ul>
+</nav>
+<span class="menu-trigger hidden"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</span>
+<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
+</span>
+</span>
+</span>
+</header>
+<div class=content>
+<div class="post personal">
+<div class=breadcrumb>
+<li>
+<a href=https://askyx.github.io/>首页</a>
+</li>
+<li>
+<a href=https://askyx.github.io/posts/>Posts</a>
+</li>
+<li class=active>
+<a href=https://askyx.github.io/posts/log/>面试</a>
+</li>
+</div>
+<h2 class=post-title><a href=https://askyx.github.io/posts/log/>面试</a></h2>
+<div class=post-meta>
+<span class=post-date>2022-03-24</span>
+</div>
+<div class=post-content>
+<h1 id=面试>面试</h1>
+<p>只是一个技术汇总</p>
+<hr>
+<ul>
+<li>
+<p>C++基础 [2 days] [课程- https://github.com/parallel101/course.git]</p>
+<ul>
+<li>内存
+<ul>
+<li>
+<p>内存结构 [https://segmentfault.com/a/1190000039348996]</p>
+<table>
+<thead>
+<tr>
+<th>c++ 编译出来的是可执行文件，是ELF格式的，他本来就有一些格式上的划分，C++在他的基础上进行了更细的划分，分为五个部分，从高地址到底地址依次为：</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. 内核虚拟内存</td>
+</tr>
+<tr>
+<td>进程的虚拟印象</td>
+</tr>
+<tr>
+<td>2. 栈</td>
+</tr>
+<tr>
+<td>程序自动控制，具体为程序的函数调用，保存局部变量，有大小，可以使用ulimit -s 查看，也可以自行设置，但是建议系统默认即可</td>
+</tr>
+<tr>
+<td>* 函数调用机制</td>
+</tr>
+<tr>
+<td>调用的时候是一个一个的栈帧，函数参数会在调用者的栈帧中开辟空间，从右到左，所以函数列表的默认值必须从右到左的初始化， 可能和这个有关系，然后被调用者构造栈帧，依次执行</td>
+</tr>
+</tbody>
+</table>
+<pre><code>  3. 共享库的内存印象
+  3. 堆  
+      空间有程序员自行维护，向上增长(TIPS: 由于C的历史原因，C++的内存结构还是说堆区，但是在区别new/malloc 和delete/free 的时候，他们的差别之一可能会在内存上有点区别
+      C的malloc/free可能会说是在堆上分配空间，但是对于C++可能会说的是在自由存储区上分配，自由存储区和堆是不同的概念，堆是操作系统上的概念，但是自由存储区是一个抽象概念
+      一般new可以是在堆上分配空间，但是可能存在在其他情况，例如在栈上使用new，所以他们不是一个概念，面试的时候说到这里，可以装逼😎)
+  4. 可写/全局区 
+      对应elf中data段和bss段，data段保存的是已初始化的全局变量或者静态变量，bss保存的是未初始化的数据
+  5. 只读区/代码段 
+      text段，保存编译之后的指令，不可变
+  6. 常量区 
+      保存全局变量，不可变，rodata段，记得使用其他手段去尝试修改常量的时候会报错。  
+      TIPS: const修饰的参数不一定是常量，例如他修饰一个函数的参数的时候，参数还是只是在栈中，只是约定不能修改。
+  7. 未使用
+</code></pre>
+</li>
+<li>
+<p>static<br>
+全局变量和静态变量存储位置一样，处于数据段，区别是全局变量项目可见， 静态变量当前文件可见<br>
+局部静态变量数据static变量，存储位置一样，但是限定作用域为当前声明范围<br>
+静态函数类似，全局函数全局可见，static函数当前文件可见<br>
+类static 属性和函数属于类，不属于具体的对象</p>
+</li>
+<li>
+<p>extern<br>
+表明此函数在其他文件中定义，这里避免重复声明，所以使用extern，仅仅是一种声明，不是定义</p>
+</li>
+<li>
+<p>内存管理</p>
+<ul>
+<li>new
+C++有对象的概念，所以他的new大意上是malloc的封装，先申请对象的内存空间，然后调用对象的构造函数构造对象，用在数组上是，先申请所有的空间，然后再依次调用构造函数</li>
+<li>delete
+删除对象，先调用析构函数，然后再释放空间
+<ul>
+<li>对象数组
+如果调用的是delete[]，如果是基础类型，则删除的时候使用delete和delete[] 都没有区别，因为空间连续的，有额外的空间记录内存的大小，直接使用delete的时候可以直接伤处 如果是自定义对象，如果有指针这类的属性，则必须调用delete[]，
+否则他只会调用第一个对象的析构函数，可能会导致内存泄露</li>
+</ul>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>&ndash; new malloc 的区别</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. 空间分配的概念上</td>
+</tr>
+<tr>
+<td>一个是堆区，一个是自由存储区</td>
+</tr>
+<tr>
+<td>2. 使用上</td>
+</tr>
+<tr>
+<td>new会调用构造函数，且new会自行计算对象所需的空间大小，malloc需要自行指定</td>
+</tr>
+<tr>
+<td>3. 概念上</td>
+</tr>
+<tr>
+<td>malloc是标准函数，而new是关键字</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p>虚表</p>
+<ul>
+<li><a href=https://www.zhihu.com/question/389546003/answer/1194780618 target=_blank rel="noopener nofollow noreferrer">实现</a><br>
+虚表是多态的一种实现，但是不是C++的规定，而是编译器的自行的实现方法，在函数中只要声明虚函数，则对象中就会有额外的空间用于保存虚表，他是一个指针，指向虚表，所以对于有虚表的对象
+sizeof的时候会计算这个指针的大小，指针指向虚表的第三个槽位，gdb查看地址的时候会显示+16的字样，因为这是实际的函数指针的开始位置，前两个槽位一个一般是0，另一个一般是typeinfo的地址，
+虚表和他的附属信息在内存中都是一起的，其实从根本原理上来说，他只是做了一层转换，实际上函数的调用最终的实现都是面向过程的函数的调用，函数才是C++ 的核心，<br>
+而且虚表由于调用的时候需要寻址，所以会导致性能问题，主要是由于需要进行地址跳转，跳转会有性能损耗，且由于局部性原理，指令会有预读机制，跳转之后可能导致cache miss，导致流水线失效
+<ul>
+<li>验证方法<br>
+编译的时候使用参数-fdump-lang-class，gdb调试的时候使用set print asm-demangle on，然后x/b打印地址
+或者使用 Compiler Explorer</li>
+</ul>
+</li>
+<li>虚继承
+同样使用到虚表，父类只有一份副本</li>
+<li>共享内存中的对象问题<br>
+由于各个进行地址映射不一样，所以再共享内存中得对象其他进行不能直接访问，主要原因是虚表映射错误，解决思路是本地维护一个全局变量，使用共享内存对象得时候可以把虚表指针替换掉，实际得数据并无影响</li>
+</ul>
+</li>
+<li>
+<p>智能指针</p>
+<ul>
+<li>unique_ptr 独占指针，只能使用 move ， 无法直接赋值，想要赋值，则需要实现对象的移动构造函数，可以使用 reset 进行重置，如果无参，则指针对象析构且指针置空，有对象，则原指针对象析构且重新赋值新指针</li>
+<li>shared_ptr 共享指针，只有最后一个引用释放之后才析构，存在相互引用导致无法正常释放的问题，使用 weak_ptr 解决</li>
+<li>weak_ptr std::weak_ptr 用来表达临时所有权的概念：当某个对象只有存在时才需要被访问，而且随时可能被他人删除时，可以使用 std::weak_ptr 来跟踪该对象。需要获得临时所有权时，则将其转换为 std::shared_ptr，此时如果原来的 std::shared_ptr 被销毁，则该对象的生命期将被延长至这个临时的 std::shared_ptr 同样被销毁为止。清晰明了，使用时需要 lock， 无法直接使用，不会增加引用计数</li>
+<li>可能面试的时候会要求手写 shared_ptr ， 后续可以看看stl的实现</li>
+</ul>
+</li>
+<li>
+<p>STL<br>
+两级情况，如果对象小于128K，则使用内存池，如果大于128K，则向系统申请空间，内存池使用链表维护</p>
+</li>
+<li>
+<p>构造函数</p>
+<ol>
+<li>构造函数 （<code>A();</code>）</li>
+<li>拷贝构造函数（<code>A(const A&);</code>）</li>
+<li>析构函数（<code>~A();</code>）</li>
+<li>重载赋值运算函数（<code>A& operator = (const A&);</code>）</li>
+<li>重载取址运算函数（<code>A* operator & ();</code>）</li>
+<li>重载取址const运算函数（<code>const A* operator & () const;</code>）</li>
+<li>移动构造函数（<code>A(A&&);</code>）</li>
+<li>重载移动复制函数（<code>A& operator = (const A&&);</code>）</li>
+</ol>
+</li>
+<li>
+<p>模板
+编译期按照实际的类型进行代码的动态扩展，遇到使用的新的模板类型的时候，就编译出对应的类型的代码。类似与在编译期对代码进行重载。</p>
+<ul>
+<li>模板参数除了类型，还支持整形，但是必须是常量</li>
+<li>模板使用的时候，会自动进行类型推导。无序声明参数</li>
+<li>模板是惰性编译的，只有使用到了才会编译。所以模板的实现最好写在头文件中</li>
+<li>lambda也支持模板</li>
+</ul>
+</li>
+<li>
+<p><a href=https://zh.cppreference.com/w/cpp/thread target=_blank rel="noopener nofollow noreferrer">原子操作</a></p>
+<ul>
+<li>当前 cpu 架构下，数据的操作不是原子操作，所以多核下对 临界区数据的操作需要却确保再并发的时候正确的话，可以</li>
+</ul>
+<ol>
+<li>使用 lock
+<ul>
+<li>使用互斥量，对于互斥量的操作，可以使用 raii 管理生命周期，有几个类似的操作</li>
+</ul>
+</li>
+<li>使用原子操作
+原子对象不具有数据竞争。常规概念
+<ul>
+<li><a href=https://blog.csdn.net/Darlingqiang/article/details/112253541 target=_blank rel="noopener nofollow noreferrer">CAS && TAS</a>
+compare_exchange 我认为V的值应该为A，如果是，那么将V的值更新为B，否则不修改并告诉V的值实际为多少</li>
+<li>fetch_and_set
+和原子量进行操作，返回原来的值</li>
+<li>ABA 问题
+A线程短时间需要cas某变量，连续多次读取都是同一个值，但是在中间可能有其他线程已经修改了值然后回退了
+<ol>
+<li>单一变量 | 多条件，使用递增参数标记操作次数</li>
+<li>值回退</li>
+<li>原子操作，没有上锁</li>
+</ol>
+</li>
+<li>自旋锁
+while 一个原子量，当其他操作持有锁，则原子量为 1，释放时 为 0， 则尝试加锁的操作会实时监控此原子量，避免长时间自旋消耗资源，使用 pause 指令，但是会导致唤醒时间增加，</li>
+<li>实际应用
+<ul>
+<li>pg 中的原子操作</li>
+<li>c++ atom</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+</li>
+<li>
+<p>多线程内存模型</p>
+<ul>
+<li>线程
+线程运行时有单独的运行栈，如果是局部变量，则无数竞争的情况，如果有数据竞争的情况，则需要了解
+0. 缓存架构
+多线程下数据竞争的问题几乎都是缓存导致，缓存当前普遍的模型是三层，L1L2单独对应cpu，L3对应一个核上的所有CPU，如果多线程的情况下，可能会有缓存不一致的情况，导致结果不符合预期，简单的例子是多线程的数据累加，解决方法是使用锁或者信号量或者把变量设置未原子类型。
+<ol>
+<li>指令重排
+有几种情况，一是编译器优化，二是cpu优化，三是cpu的乱序执行，它可以在一个始终周期内执行多条指令，所以可能看起来是无序的</li>
+<li>内存顺序</li>
+<li>volatile
+在使用某个变量的时候，会直接从变量地址取数据，但是不保证更改的时候的原子性，所以上面0中的场景不可以使用volatile解决。本意是禁止变量的优化</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>函数
+C++支持自定义对象，可以使用自己定义的函数，最终的是实现是把函数编译成为普通函数，只是函数的参数列表默认的会带上一个对象的指针，最底层实际上还是类似于C的面向过程。往大了说，早期C++大部分实现就是C的语法糖，但是现代C++引入非常多的理论，所以当前不能简单的持有这种思想</li>
+<li>语法</li>
+<li>编译</li>
+<li>STL
+<ul>
+<li>容器
+简单的理解就是具体的数据结构的实现，然后提供了具体的实现方法，对于通用的函数，则单独使用算法实现，
+<ul>
+<li>容器分类
+<ul>
+<li>序列式
+<ul>
+<li>array
+数组，空间上连续，预分配空间。不可自动扩容，简单的数组的封装</li>
+<li>vector
+解决array的问题，自动扩容，扩容时需要重新分配空间，然后移动数据到新空间，这个操作可能会导致迭代器失效，扩容因子不确定，有的是1.5倍增长，有的是2，扩容有性能问题，所以使用的时候明确场景，然后预先设置容量，避免扩容操作</li>
+<li>deque
+双向队列，是用多段数组和一个控制中心实现的</li>
+<li>stack/queue
+对列和栈，使用deque实现</li>
+<li>list
+双向链表</li>
+<li>单向链表</li>
+</ul>
+</li>
+<li>关联式
+<ul>
+<li>map
+底层有一个隐藏的红黑树容器，存储键值对，按键排序</li>
+<li>set
+同map，但是是键值和一的</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>迭代器
+迭代器在删除数据的时候可能会导致失效问题，对于内存空间上连续的容器，由于删除之后需要其他的数据填补空洞，所以迭代器会移动到下一个位置，对于关联式容器，当前元素迭代器失效，需要手动记录下一个元素位置</li>
+<li>容器使用</li>
+</ul>
+</li>
+<li>算法
+<ul>
+<li>STL中的一大项，由于是为了配合容器使用，所以几乎所有的算法都需要使用迭代器作为参数，然后大部分算法可以自行提供计算规则</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>特性
+<ul>
+<li>11新特性</li>
+</ul>
+</li>
+<li>GDB
+<ul>
+<li>调试技巧</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>数据结构与算法 [3 天整理知识列表，长期进行]</p>
+<ul>
+<li>树
+<ul>
+<li>二叉树</li>
+<li>堆</li>
+<li>234树</li>
+<li>红黑树</li>
+<li>B树</li>
+<li>B+树</li>
+</ul>
+</li>
+<li>hash</li>
+<li>线性表
+<ul>
+<li>数组</li>
+<li>链表</li>
+<li>队列</li>
+<li>栈</li>
+</ul>
+</li>
+<li>图
+<ul>
+<li>存储方式</li>
+</ul>
+</li>
+<li>跳表</li>
+<li>LRU</li>
+<li>排序</li>
+<li>dfs</li>
+<li>bfs</li>
+<li>二分</li>
+<li>&mldr;</li>
+</ul>
+</li>
+<li>
+<p>数据库 [3 天整理知识列表]</p>
+<ul>
+<li>
+<p>编译</p>
+<ul>
+<li>
+<p>编译原理</p>
+</li>
+<li>
+<p>SQL编译过程
+词法分析 语法分析之后得到ast，然后使用元数据堆ast进行类型绑定，同时进行常规检查，类似语义分析</p>
+<ul>
+<li><a href=https://juejin.cn/post/6844904121506463758 target=_blank rel="noopener nofollow noreferrer">词法分析</a><br>
+原文件分解为TOKEN，语法分析的前置，常见工具为lex
+<ul>
+<li>一般不会一次生成所有TOKEN，而是和语法分析器结合使用，在进行语法分析的时候，需要单词的是时候才使用词法分析器生成TOKEN
+词法分析和语法分析的大致过程为先堆语句进行分词，生成token，常见的工具为yacc，然后使用语法分析工具接收token，进行语法检查且生成语法树，语法分析有几种分析方法，一是自底向上，二是自顶向下，</li>
+</ul>
+</li>
+<li>文法
+<ul>
+<li><a href=https://blog.csdn.net/sinat_38816924/article/details/113749421 target=_blank rel="noopener nofollow noreferrer">LL(k)文法</a>，第一个L指的是left to right，第二个L指的是最左推导</li>
+<li>LR文法，R指的是最右推导，也成为最左规约</li>
+<li>ll就是自顶向下的规则推导过程，LR就是自底向上的规则推导过程</li>
+</ul>
+</li>
+<li>自顶向下
+从token序列的最左端开始，读入token，然后匹配已有的规则，如果匹配到最后正在匹配的规则和输入不匹配，则进行回溯，匹配下一个可以匹配的规则，如果没有可以匹配的，则失败，特点是可能需要进行大量的回溯
+<ul>
+<li>例from xx into 和 from xx where..，到后面解析不对需要回溯</li>
+</ul>
+</li>
+<li>自底向上
+从输入的token开始，依次入栈，称为移进操作，然后如果栈中的数据可以匹配某规则，则使用规则替换，称为规约，反复进行此动作，直到生成一个语法树，每一次规约都会产生一个节点，此方法使用比较广泛，因为没有回溯操作，
+<blockquote>
+<p><a href=https://zhuanlan.zhihu.com/p/94424139 target=_blank rel="noopener nofollow noreferrer">https://zhuanlan.zhihu.com/p/94424139</a></p>
+</blockquote>
+</li>
+</ul>
+<p>tip： SQL说到底也是一门语言，在编译阶段和其他的编译器结构类似，只是是可定制，大致分为前端和后端，对于前端，如果是老的项目，则只需要能添砖加瓦即可，</p>
+</li>
+</ul>
+</li>
+<li>
+<p>优化</p>
+<ul>
+<li><a href=https://developer.aliyun.com/article/689615 target=_blank rel="noopener nofollow noreferrer">背诵</a></li>
+<li>优化规则
+<ul>
+<li>
+<p>RBO
+基于规则的优化，基于经验主义，使用之前积累的优化的可以无条件优化的规则，实质上是关系代数的等价变换，变换的目的是尽可能的在下层把无用的数据消除掉，减少不必要的数据运算和传输<br>
+具体的案例可以参考pg，他在进行path生成之前，会进行一些规则变换</p>
+<ul>
+<li>
+<p>关系代数的优化
+一些明显的可以减少运算数据的优化方法，例如谓词下推，先投影等</p>
+</li>
+<li>
+<p>子查询和子链接的优化，需要知道pg中<code>SS_process_ctes pull_up_sublinks pull_up_subqueries</code>的优化细节，面试可以扯一波，但是重点可以放在关联子查询得优化上，需要调查其他数据库得实现
+子查询会出现的位置是不一定的，在语句中，语义上他可以作为一张表来看，子查询分为关联子查询和非关联子查询</p>
+<ol>
+<li>关联子查询
+子查询依赖外部属性</li>
+<li>非关联子查询
+子查询独立存在，pg中一般优化为initplan，没有外层引用</li>
+</ol>
+<ul>
+<li>优化方法
+最常用的方法是通过子查询展开消除子查询，把子查询变换为连接操作，然后进行连接操作的优化，如果没有聚合操作，大部分的语句可以优化，但是对于有排序聚合等操作，pg直接限制不能进行上拉操作，关联子查询重要技术为去关联化，可以参考下面文章
+<a href=https://zhuanlan.zhihu.com/p/60380557 target=_blank rel="noopener nofollow noreferrer">1</a>
+<a href=https://developer.aliyun.com/article/802290#slide-1 target=_blank rel="noopener nofollow noreferrer">2</a>
+<a href=https://blog.csdn.net/yunqiinsight/article/details/115323435 target=_blank rel="noopener nofollow noreferrer">3</a></li>
+</ul>
+</li>
+<li>
+<p>表达式优化
+常见等等价推导变形，常量折叠等</p>
+</li>
+<li>
+<p>视图重写</p>
+</li>
+<li>
+<p>连接消除</p>
+<ul>
+<li>外连接消除 <code>reduce_outer_joins</code>
+原因是外连接的连接顺序是不可变的，所以尽可能的把外连接转换为内连接，可转换的条件是可空侧没有null值输出，则可以直接转换为内连接，例如可空侧使用is not null 限制，</li>
+<li>内连接</li>
+</ul>
+</li>
+<li>
+<p><a href=https://statisticsglobe.com/r-dplyr-join-inner-left-right-full-semi-anti target=_blank rel="noopener nofollow noreferrer">join</a></p>
+<ul>
+<li>left join<br>
+左表全部输出，右表匹配的输出，不匹配的为null</li>
+<li>right join
+右表全部输出，左表匹配的输出，不匹配的为null</li>
+<li>inner join
+输出匹配数据</li>
+<li>fulljoin<br>
+left join 和right join的union</li>
+<li>semi join
+分为left和right，只输出左表或者右表中与另一个表匹配的数据
+<ul>
+<li>语法<br>
+in all exist some any</li>
+</ul>
+</li>
+<li>anti join
+输出不匹配的数据
+<ul>
+<li>语法<br>
+not exist, not in</li>
+</ul>
+</li>
+</ul>
+<p>子查询，在上面的semijoin和antijoin的时候，某些情况可以转换，
+外连接转内连接<br>
+- 外表限定is not null
+半连接转内连接
+- 限定查询字段</p>
+<p><a href=https://blog.csdn.net/xioayu96/article/details/107604338 target=_blank rel="noopener nofollow noreferrer">2</a>
+<a href=https://zhuanlan.zhihu.com/p/382416772 target=_blank rel="noopener nofollow noreferrer">3</a></p>
+</li>
+</ul>
+</li>
+<li>
+<p>CBO
+基于代价的优化，由于一个逻辑算子的物理实现可能有多个物理算子，所以需要在实际的使用场景中选择合适的物理算子，且在多个表达式的情况下，每个逻辑算子的最有的执行计划可能得到的结果也不是最优的，所以一般需要考虑数据统计信息，以及环境的io情况，内存大小，是否是分布式环境等，然后使用这些信息计算出cost最小的执行计划，cost只是一个变量，目的是为了对计划可以与一个具体的衡量指标</p>
+<ul>
+<li>标量，度量执行中IO和CPU的消耗</li>
+<li>io 为读取的page 数量， 以及可能存在的阻塞算子的溢出代价</li>
+<li>cpu 主要存在为谓词的代价，以及运行中其他消耗</li>
+<li>选择率是谓词过滤之后的估算的操作数，谓词操作是需要下层的所有数据，但是之后使用的是过滤之后的数据</li>
+<li>seq scan | pages * per_page_cost + tuples * per_tuple_cost，不受选择率影响</li>
+<li>index | 受到关联度的影响，范围选择率大的时候可能代价超过seq scan</li>
+<li>nest loop | Ni * No * CPU + No 条件理论上已经下推，所以这里不会有单表的谓词操作，代价主要为cmp的cpu cost，可以像pg一样细分为rescan 和 start cost</li>
+<li>merge join| (Ni + No) * cpu 无序的时候需要排序，对于join来说，排序是mj需要的一个操作，cost 另算</li>
+<li>hash | Ni * cpu + No * cpu + (Ni + No) * cpu 构建hash表的cost，和数据hash的cost，以及可能存在的内存溢出问题</li>
+<li>sort
+<ul>
+<li>内存中直接使用 qsort</li>
+<li>top k 使用堆排</li>
+<li>extern merge sort 需要计算 io</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>优化框架
+<ul>
+<li>
+<p><a href=https://zhuanlan.zhihu.com/p/73545345 target=_blank rel="noopener nofollow noreferrer">https://zhuanlan.zhihu.com/p/73545345</a></p>
+</li>
+<li>
+<p><a href=https://zhuanlan.zhihu.com/p/464717139 target=_blank rel="noopener nofollow noreferrer">https://zhuanlan.zhihu.com/p/464717139</a></p>
+</li>
+<li>
+<p>遗传算法
+pg默认在表数量大于12的时候使用遗传算法，可能得到的不是最优的执行计划，他是通过组合然后按计划代价排序，然后随机变异，淘汰最差解得到最后的执行计划的，不是全局最优解，但是搜索空间小</p>
+</li>
+<li>
+<p>tree 形状</p>
+<ul>
+<li>bushy tree 和左深树右深树的搜索空间不一样，pg优先结合liner tree</li>
+</ul>
+</li>
+<li>
+<p>自底向上
+自底向上的动态规划算法，可以得到全局最优解，但是搜索空间巨大，PG只有在表数量小于12的时候使用此方法。</p>
+<ul>
+<li>
+<p>初始化叶子节点，每个节点取得当前最优执行计划</p>
+</li>
+<li>
+<p>组合每个叶子节点的得到第二层，保留每个组合</p>
+</li>
+<li>
+<p>使用第一层和第二层组合得到第三层</p>
+</li>
+<li>
+<p>对于是否是order的，需要保留，上层算子可能需要排序的特性，不能只凭cost决定 path 的去留</p>
+</li>
+<li>
+<p>只能用于join order的优化，pg 使用此优化架构，所以他的优化可以分为spj和非spj优化两个阶段，聚合操作 无法提前参与下层优化，对于待聚合操作的子查询，只能使用subplan 优化</p>
+</li>
+<li>
+<p>join 优化最终只保留cost 最低的path，在处理Interesting Order问题时，不能覆盖所有的搜索空间</p>
+</li>
+<li>
+<p>没有剪枝</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Volcano\Cascades [The Volcano Optimizer Generator: Extensibility and Efficient Search http://www.cse.iitb.ac.in/infolab/Data/Courses/CS632/Papers/Volcano-graefe.pdf]
+一种优化器的框架。</p>
+<ul>
+<li>expression
+有逻辑表达式和物理表达式，他们在group中是等价的</li>
+<li>group
+等价表达式的集合，等价的意思是他们的输入和输出是一样的</li>
+<li>rule
+对expr的变换规则，有物理算子的实现规则，有逻辑算子的转换规则，目的是为了扩大搜索空间</li>
+<li>memo
+搜索空间，存放group</li>
+</ul>
+<ol>
+<li>
+<p>首先初始化搜索空间，即初始化所有group，把树分为不同的group</p>
+</li>
+<li>
+<p>从根节点开始，优化group每一个expr</p>
+</li>
+<li>
+<p>对expr 使用rule，同时对expr的child，尝试进行group 的优化</p>
+</li>
+<li>
+<p>这里是一个dfs的过程，在表达式优化完成之后，会添加得memo得group中，dfs得叶子就是表达式使用物理规则得时候</p>
+</li>
+<li>
+<p>可以设置代价阈值，搜索时间限制等，使优化过程提前终止，初始代价是经过规则优化之后得表达式的初始代价，优化的结果不能比这个更差，优化中，发现当前cost已经超过阈值，则stop</p>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>执行</p>
+<ul>
+<li>算子实现
+<ul>
+<li>join
+<ul>
+<li>merge join<br>
+如果表是有序的，则优先选择merge join，否则数据无序且强行走merge join的话，会导致数据进行排序，可能会有极大的性能损耗</li>
+<li>hash join
+<ol>
+<li>小表作为驱动表，构造hash表，然后使用此hash表对另一个表进行hash，如果存在，则匹配成功，此步称为probe|探测。代价主要是两个表的full scan和hash表的内存以及建立hash 的时间</li>
+<li>如果都是大表且内存无法方法构建之后的hash表，有几种方法
+<ol>
+<li>先对原表进行简单分区，然后再对各个分区单独进行hash匹配，相比之前，代价是被驱动表的full scan*n 和驱动表的scan和内存损耗</li>
+<li>同时对两表使用相同的分区方式进行分区，然后在各自的分区内进行hash，相比上面的方法，这里可以使用多线程或者多进程进行处理</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>nest loop join<br>
+小表驱动大表，小表为外表，大表为内表，外表的每一行都会导致内表被驱动一次，代价简单描述为 n*m + n，可以使用物化或者 index scan 加速</li>
+<li>如过是分布式的环境，则可能有数据的跨界点的传输的情况，有一张IO时间的表格表示，网络io的时间是非常长的，所以需要尽可能的保证数据在当前节点进行计算。如果必须传输数据，则
+<ol>
+<li>小表进行广播，各节点使用小表join</li>
+<li>常规的join运算<br>
+但是如果在表分区的是否，可以保证join的数据在同于一个分区上是相同的分区方式，则可以直接本节点join然后汇总数据，clickhouse的分区可以实现这种需求，分区对其</li>
+</ol>
+</li>
+</ul>
+</li>
+<li>sort<br>
+排序，数据是按块操作的，可以使用merge sort，也可以通过在内存中构造一个有序的数据结构然后输出，如果内存放不下数据，则可以把数据临时放在内存外，另外，由于是按块操作的，所以可以在块中存放当前块的min max，可以使用此信息加速排序等。</li>
+<li>窗口函数<br>
+<a href=https://zhuanlan.zhihu.com/p/80051518 target=_blank rel="noopener nofollow noreferrer">https://zhuanlan.zhihu.com/p/80051518</a></li>
+<li>常规函数</li>
+</ul>
+</li>
+<li>执行框架
+<ul>
+<li>火山模型/Volcano<br>
+每个算子实现next，open,close方法，tuple-at-a-time类似于迭代器，用于向上层节点向下层节点拉取数据，早期cpu和mem的新能还在增长所以当时这种技术几乎是首选，运行是时间耗时主要为io，且由于大量next的调用，都会导致流水线被破坏。</li>
+</ul>
+</li>
+<li>向量化<br>
+简单理解就是每个算子批量处理数据，早期的Volcano 模型的单行处理，会导致缓存，指令调度，分支预测错误等导致性能下降，在TP的场景中最为明显，因为AP是行存的，所以为了解决这些问题， MonetDB/X100: Hyper-Pipelining Query Execution提出 <strong>vector-at-a-time</strong> 执行模式，大致方向为：
+<ul>
+<li>保持Volcano模型大致结构基本不变，但是原来的tuple保存一行的操作使用vector替代，保存列，数据大小尽量可以都放在缓存中 <br>
+所以他更多的适用于列存，行存也可以使用类似的方法来加速，但是可能效果没有列存优秀</li>
+<li>使用向量化原语计算<br>
+上下文无关的计算逻辑，专门计算vector的数据</li>
+<li>使用延迟物化技术减少内存的读写开销<br>
+记录vector中的数据变动，尽可能晚的变动内存中的数据</li>
+<li>使用代码生成来避免类型转换代码的大量代码分支</li>
+<li>CPU在计算同类型数据的时候更容易使用simd优化<br>
+TIPS:
+<ol>
+<li>分支预测，局部性原理，会预加载多条指令，在遇到代码跳转的时候，清空当前流水线，加载其他流水线，导致性能问题，典型的场景是排序一组有序数据和无序数据之间的差距明显</li>
+<li>cache miss，使用的数据不在缓存中，需要去内存中读取，记得之前有测试AOS，SOA之间的差距可以达到四五倍</li>
+</ol>
+</li>
+</ul>
+</li>
+<li>编译执行<br>
+把执行计划中不需要物化的算子实现为一个表达式，而不是以task的方式调度，具体实现为：
+<ol>
+<li>对于算子树，使用深度优先遍历，生成一段代码
+pg 中表达式进行的优化，极大的方便后续表达式的 编译操作</li>
+<li>对于Volcano模型来说，就是task算子的调用层级是现在一段代码逻辑中</li>
+<li>数据流动的时候可以直接存储在寄存器中，而不需要物化操作，这里的物化指的是数据从寄存器取出再加载到内存<br>
+对于filter 过滤的数据，使用一个数据记录即可，不需要重新组织数据</li>
+<li>对于block算子，则必须物化</li>
+<li>由底层节点开始，向上推送数据</li>
+<li>适合计算场景，可以优化代码，提升寄存器的利用率</li>
+</ol>
+</li>
+</ul>
+<p>[Everything You Always Wanted to Know About Compiled and Vectorized Queries But Were Afraid to Ask https://www.bilibili.com/video/av50329586/]
+案例：
+tidb使用的是向量化，即使它使用的是行存，他会在数据读取出来之后转换数据模式为vector，以便于使用向量化</p>
+<pre><code>* 计算密集型，优先使用codegen，因为可以把数据缓存在寄存器中，这里不必区分TP或者AP，应改是要区分算子和表达式操作
+</code></pre>
+</li>
+<li>
+<p>存储</p>
+<ul>
+<li>存储格式
+<ul>
+<li>行存</li>
+<li>列存</li>
+</ul>
+</li>
+<li>存储的数据结构
+LSM<br>
+* 起源<br>
+- B+tree的异地更新，定期合并，垃圾回收，顺序写，最先由PG实现，但是由于实现复杂，所以后续的LSM重新设计了数据结构<br>
+* 数据分层<br>
+使用sstable保存数据，在内存中是memetable，在磁盘中是sstable，磁盘中sstable只是写，达到一定大小的时候和下层进行合并，典型的实现是leveldb<br>
+* 写<br>
+保证数据安全，先写wal<br>
+写内存中的memtable，当数据满之后。固化memtable<br>
+memtable落盘，落盘成功之后释放之前的WAL<br>
+如果此时磁盘中顶层的数据达到限定的阈值，则挑选一个sstable向下层compact，直到所有层都满足要求<br>
+* 读<br>
+从内存中的memtable读取数据<br>
+内存中没有则在磁盘中按层次查找<br>
+sstable可以使用额外的信息加速查找<br>
+* 问题<br>
+在写的时候会有多次IO操作，如果后台进行compact的时候，会导致前端的吞吐量，查询的时候会由读放大问题。
+* compact<br>
+定期compact
+* memtable 落盘是minor compcat。构造sstable 落盘，会占用一定的cpu和IO，leveldb此时是在适当的暂停写操作
+* sstable 合并是Major compact，
+LSM 优化<br>
+LSM适用于HDD，当前SSD中随机读写和顺序读写几乎无太大差距<br>
+B+tree<br>
+* 起源<br>
+目的是为了降低从磁盘中查询数据时候的次数<br>
+* 组织结构<br>
+按页大小为单位组织节点，逻辑上的树形结构，树的高度与数据的多少有关，节点满的时候进行分裂<br>
+* 操作<br>
+读取的时候按页读取，从根节点开始，定位到子页的时候再去读取子叶，直到叶子节点被读取，页的大小是4KB，假设key为8，地址大小为8，则一组key大小为16，则一页可以指向256页，则两层树高的树可以保存1kw的数据，此时磁盘io只有三次<br>
+写的时候会检测节点时候full，如果full，则需要split，如果当前层满了，则增加树的高度，<br>
+* 随机读性能高。如果没有额外的设计，则没有读写放大的问题，且易于实现lock，但是由于写的时候可能会导致树的变化，会有性能问题<br>
+<a href=https://zhuanlan.zhihu.com/p/613532094 target=_blank rel="noopener nofollow noreferrer">B-tree 并发控制的演进</a>
+* btree 并发存在的问题
+1. 读取的时候，子节点可能被修改了
+2. 读写的时候，当前节点被其他线程修改
+1. latch crabbing 普通BTREE
+* 读的时候自上而下加读锁，先读到子节点再释放父节点的读锁
+* 写的时候自上而下加写锁，判断子节点不会被修改导致分裂或者合并，释放所有父节点的锁
+2. optimistic latching
+* 写得时候加写锁，判断节点不安全则全部释放，使用写锁重试写操作
+3. Blink-tree
+* 节点记录当前节点得最大值
+* 节点记录右节点得位置
+* 读操作为原子操作
+* 读不加锁，如果读取得下层节点high key 小于查找值，则代表发生分裂，此时向右查找即可
+* 写对当前叶子节点加锁，如果需要分裂操作，则对父节点加锁，此时使用读规则查找父节点，向右查找得时候，先持有再查找，再释放</li>
+<li>事务
+<ul>
+<li>特性ACID
+<ul>
+<li>A 原子性</li>
+<li>C 一致性</li>
+<li>I 隔离性
+<ul>
+<li>隔离级别</li>
+</ul>
+<ul>
+<li>读未提交
+<ul>
+<li>脏读
+<ul>
+<li>长时间持有写锁，短时间持有读锁，只能读取别人已经释放锁的数据</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>读已提交
+<ul>
+<li>不可重复读
+<ul>
+<li>长时间持有读锁和写锁，保持数据独占</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>快照都</li>
+<li>可重复读
+<ul>
+<li>幻读</li>
+</ul>
+</li>
+<li>串行化</li>
+<li>写偏序
+<ul>
+<li>另一个事务修改数据，导致某事物在处理的数据的时候约束条件改变</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>D 持久性</li>
+</ul>
+</li>
+<li>MVCC
+使用版本号区分多个数据版本，让读不阻塞写</li>
+<li>两阶段加锁 2PL S2PL SS2PL
+<ul>
+<li>2PL 事务开始阶段，只能加锁不能释放锁，事务结束时只能释放锁</li>
+<li>S2PL 释放阶段，只能释放读锁</li>
+<li>SS2PL 只能在事务结束之后再释放锁</li>
+</ul>
+</li>
+<li>乐观悲观</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>数据库源码案例</p>
+<ul>
+<li>leveldb
+<ul>
+<li>lsm</li>
+<li>内存数据结构及其维护机制
+<ul>
+<li>跳表</li>
+<li>落盘</li>
+<li>读写</li>
+</ul>
+</li>
+<li>wal</li>
+<li>重要组件
+<ul>
+<li>内存 area</li>
+<li>各种压缩和编码方式</li>
+<li>lru</li>
+</ul>
+</li>
+<li>多版本机制</li>
+<li>compact</li>
+<li>面试常见问题</li>
+</ul>
+</li>
+<li>rocksdb</li>
+<li>pg</li>
+<li>trafodion</li>
+<li>mysql</li>
+</ul>
+</li>
+<li>
+<p>linux [2 天整理知识列表 https://www.bookstack.cn/books/webxiaohua-gitbook]</p>
+<ul>
+<li>
+<p>进程，线程
+可以通过init创建，也可以使用fork从父进程创建，fork返回值为0，则是子进程，子进程创建的时候使用写拷贝技术，初始化的时候除了pcb之外，其余的内存呢地址和父进程是一起的，只有当子进程需要修改的时候，才会copy修改为到自己的内存中去，</p>
+<ul>
+<li>调度方法
+抢占式和非抢占式
+时间片
+先进先出
+短作业优先
+长作业优先
+最短剩余时间优先等</li>
+<li>通信</li>
+<li>内存结构
+<ul>
+<li>虚拟内存
+为了给进程提供一个连续的内存空间，逻辑上连续，物理上不一定连续，由于进程的使用会申请和释放空间且空间有有限的，所以需要把一些页面置换出去
+<ol>
+<li>最佳置换
+把以后不会使用的页面置换掉，但是无法实现，不能保证那些页面不会使用</li>
+<li>先进先出</li>
+<li>时钟置换</li>
+<li>最近最久未使用
+置换最长时间没有使用的页面
+局部性原理，时间局部性和空间局部性，在操作各种资源的时候，可以把当前资源附近的资源一起使用，附近可以是空间，也可以是时间</li>
+</ol>
+</li>
+<li>共享内存
+所有页面都映射到相同的内存空间，多进程使用的时候存在竞争问题</li>
+<li>内存碎片
+内存可能会导致总体空足够，但是无法申请空间的问题，所以需要较为合适的内存分配算法，内存一般使用链表或者其他类似的数据结构维护
+<ol>
+<li>首次适应
+从链表的首段开始找到合适的内存</li>
+<li>最佳适应
+从链表的首段开始，找到最合适的空间</li>
+<li>最大适应
+查找到最大的内存空间，从他上面分配内存</li>
+<li>临近适应
+从当前的使用位置开始，寻找合适的空间</li>
+</ol>
+</li>
+</ul>
+</li>
+<li>进程间通信
+<ul>
+<li>线程由于公用地址空间，所以线程可以直接通信，进程由于资源隔离，所以需要额外的通信机制
+<ol>
+<li>匿名管道
+存在在父子进程中，因为fork之后的父子进程具有相同的内存印象，所以可以直接使用</li>
+<li>命名管道
+有名的管道，知道名字之后任意进程可以直接使用 mkfifo</li>
+<li>消息队列
+一个本质时存放在内核中的链表，消息发送和取消的时候遵循先进先出</li>
+<li>共享内存
+所有进程都会映射共享内存，所以可以借助它进行通信</li>
+<li>信号量</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>协程
+简单的理解就是函数调用的状态机？他会记录运行时的状态，在多个执行线路之间进行跳转。一种实现思路时使用堆区维护协程运行context，然后在协程调用的时候记录信息即可。出现时间早，C++最早面世的时候时支持协程的，d大致是在1980s左右，因为当时计算机没有线程的实现，而进程并发代价大，所以协程-用户态线程就出现了，</p>
+</li>
+<li>
+<p>IO多路复用
+单线程同时检测多io
+select
+底层使用数组保存fd，默认大小为1024，所以有操作上限，在使用的时候需要把数组从内核拷贝到用户空间
+poll
+对select 的改进，底层替换为链表，使用的时候，需要遍历链表
+epoll
+使用回调机制，当io完成之后放入就绪链表，使用预先注册的回调函数通知用户</p>
+</li>
+<li>
+<p>线程
+资源使用的基本单位，进程中的线程公用地址空间，生命周期和进程有关，运行时每一个线程都有自己的运行栈</p>
+</li>
+<li>
+<p>同步/异步</p>
+</li>
+<li>
+<p>并发/并行</p>
+</li>
+</ul>
+</li>
+<li>
+<p>分布式 [2 天整理知识列表]</p>
+<ul>
+<li>共识协议
+<ul>
+<li>拜占庭问题
+寻找一个方法，使得将军们能在一个有叛徒的非信任环境中建立战斗计划的共识。和对应的非拜占庭问题的区别是 是否会伪造信息， 两者都存在故障节点，所以对于非拜占庭问题，重点是故障容错，当前故障容错机制有raft，Paxos。而拜占庭问题重点是解决伪造消息的问题，应用场景是区块链</li>
+<li>raft
+分布式共识算法
+<ul>
+<li>成员选举</li>
+<li>日志复制</li>
+<li>安全性</li>
+</ul>
+</li>
+<li>Paxos</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>TPC
+一个组织，发布多项测试基准，用于测试SQL完整性和正确性及性能，</p>
+<ul>
+<li>TPC-DS<br>
+较新的测试基准，场景更贴合实际，但是大部分数据库不公布此测试结果，因为此测试涵盖范围广，大部分数据库要么性能达不到，要么语句不支持</li>
+<li>TPC-H
+可以通过index hack此测试，所以不能完全反映性能，但是SQL场景简单，</li>
+</ul>
+</li>
+<li>
+<p>项目经历 [1 天整理知识列表] &ndash; 大厂扯皮必备</p>
+<ul>
+<li>
+<p>分区表
+range分区，负责index的维护，split分区，同时后期维护整个分区表的dml实现</p>
+<ul>
+<li>index
+<ul>
+<li>global index
+一个分区表对应一个index，在使用的时候，例如index的全表查询等，就会使用GI</li>
+<li>local index
+一个分区对应一个index，在查询单个分区的时候，就会使用此index</li>
+</ul>
+</li>
+<li>split
+分裂分区，要求可以分裂任意分区，包括混合分区</li>
+<li>dml
+<ul>
+<li>
+<p>select
+分区查询，按照查询条件决定从那个分区查询，有跨分区的情况</p>
+</li>
+<li>
+<p>insert
+分区insert，无法限定insert的数据来源的边界，所以需要全表的分区都进行insert</p>
+</li>
+<li>
+<p>update</p>
+</li>
+<li>
+<p>delete</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>临时表</p>
+</li>
+<li>
+<p>只读表
+数据预加载进缓存，然后从缓存读取 [ 当前为只读，后期设计为懒同步，即数据访问从 ]</p>
+<ul>
+<li>难点
+数据存储模型
+memtableDB 维护内存中的表，使用的是hash表，key为table name，values为table
+- table 维护一个table对象，使用的是array，数据顺序和原表数据顺序一致
+- row 行数据
+内存使用
+使用内置的内存池，便于计算空间使用率
+多节点之间的数据同步，数据维护
+* 数据预加载的时候堆表加dml和ddl锁，防止期间外部操作数据变动
+* 提供数据一致性检测语法
+之前设计的时候，只是想简单的比对数据
+之后有一个想法，数据存储在hbase中，暂时没有找到hbase有没有所有数据的checksum实现，没有的话自行实现，然后memtable 中也实现一个checksum，比对的时候直接检测checksum即可，可以在每次查询的时候进行比对
+* 原表数据变动的时候，由于存储的架构问题，所以可以完整的追踪每个数据的变化，同时计算checksum
+多节点数据预加载时候的查询
+存在节点重启或者节点添加或者人工运维只读表的情况，此时禁止读取，使用锁，对共享内存加锁，禁止其他任何操作</li>
+<li>性能
+聚合语句的直接提升为上百倍</li>
+</ul>
+</li>
+<li>
+<p>大字段优化</p>
+</li>
+<li>
+<p>bug fix</p>
+</li>
+</ul>
+</li>
+<li>
+<p>pg</p>
+<ul>
+<li>优化器</li>
+<li>执行器</li>
+<li>存储</li>
+<li>mvcc</li>
+</ul>
+</li>
+<li>
+<p>共识算法</p>
+<ul>
+<li>理论知识</li>
+<li>raft</li>
+</ul>
+</li>
+<li>
+<p>算法数据结构</p>
+</li>
+<li>
+<p>MySQL八股</p>
+</li>
+<li>
+<p>数据分布不均匀</p>
+</li>
+</ul>
+</div>
+<div class=clear></div>
+<div class=pagination>
+<div class=pagination__title>
+<span class=pagination__title-h>阅读更多</span>
+<hr>
+</div>
+<div class=pagination__buttons>
+<span class="button previous">
+<a href=https://askyx.github.io/posts/columbia-optimizer/>
+<span class=button__icon>←</span>
+<span class=button__text>Columbia Optimizer</span>
+</a>
+</span>
+<span class="button next">
+<a href=https://askyx.github.io/posts/%E7%8E%B0%E4%BB%A3c-%E7%99%BD%E7%9A%AE%E4%B9%A6/>
+<span class=button__text>现代C++白皮书</span>
+<span class=button__icon>→</span>
+</a>
+</span>
+</div>
+</div>
+</div>
+</div>
+<footer class=footer>
+<div class=footer__inner>
+<div class="copyright copyright-font">
+<span>共 135545 字 <br> 写完一本 曹禺 的</br>《雷雨》了！</span>
+</div>
+<div class=copyright>
+<span>© 2024 Powered by <a href=https://gohugo.io target=_blank rel=noopener>Hugo</a> Theme by <a href=https://github.com/lmm214/immmmm/tree/master/themes/hello-friend target=_blank rel=noopener>immmmm</a></span>
+</div>
+</div>
+</footer>
+<script type=text/javascript src=/theme-main-1.js></script>
+<script type=text/javascript src=/lately.min.js></script>
+<script type=text/javascript src=/waterfall.min.js></script>
+<script type=text/javascript src=/imgStatus.min.js></script>
+<script type=text/javascript src=/view-image.js></script>
+<script type=text/javascript src=/theme-lmm-20230123.js></script>
+<script type=text/javascript src=/pangu.min.js></script>
+</div>
+</body>
+</html>

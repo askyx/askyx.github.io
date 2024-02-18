@@ -1,18 +1,1 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>存储 on Esoye</title><link>https://askyx.github.io/tags/%E5%AD%98%E5%82%A8/</link><description>Recent content in 存储 on Esoye</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><lastBuildDate>Thu, 21 Jul 2022 09:15:05 +0800</lastBuildDate><atom:link href="https://askyx.github.io/tags/%E5%AD%98%E5%82%A8/index.xml" rel="self" type="application/rss+xml"/><item><title>Postgres Storage</title><link>https://askyx.github.io/posts/postgres/storage/</link><pubDate>Thu, 21 Jul 2022 09:15:05 +0800</pubDate><guid>https://askyx.github.io/posts/postgres/storage/</guid><description>
-存储 # 内存 # 共享内存
-本地内存
-缓存
-内存上下文
-缓存空间管理
-数据块的缓存，减少磁盘IO，有共享缓存和进程缓存
-Cache
-数据块之外的缓存，例如系统表
-系统表缓存不会缓存整个表，是以block为单位缓存？ 虚拟文件描述符
-系统中文件有打开的上限，使用VFD可以突破这种限制，本质上是一个LRU缓存
-空闲空间定位
-快速定位磁盘中的空闲空间以插入数据
-进程间通信 使用共享内存或者信号量通信
-读取过程 # 从系统表中读取表的元数据信息构造元组信息 尝试从缓存读取数据 使用SMGR从磁盘读取数据到缓存中，SMGR是一个抽象层，用于实现不同存储介质的管理 SMGR和存储介质之间使用VFD来管理文件描述符，以突破系统的FD限制 标记删除，vacuum清理数据 FSM记录空闲空间 磁盘 # 表文件
-SMGR
-VFD
-FSM</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>存储 on Asky</title><link>https://askyx.github.io/tags/%E5%AD%98%E5%82%A8/</link><description>Recent content in 存储 on Asky</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><lastBuildDate>Thu, 21 Jul 2022 09:15:05 +0800</lastBuildDate><atom:link href="https://askyx.github.io/tags/%E5%AD%98%E5%82%A8/index.xml" rel="self" type="application/rss+xml"/><item><title>Postgres Storage</title><link>https://askyx.github.io/posts/storage/</link><pubDate>Thu, 21 Jul 2022 09:15:05 +0800</pubDate><guid>https://askyx.github.io/posts/storage/</guid><description>存储 内存 共享内存 本地内存 缓存 内存上下文 缓存空间管理 数据块的缓存，减少磁盘IO，有共享缓存和进程缓存 Cache 数据块之外的缓存，例如系统表 系统表缓存不会缓存整个表，是以block为单位缓存？ 虚拟文件描述符 系统中文件有打开的上限，使用VFD可以突破这种限制，本质上是一个LRU缓存 空闲空间定位</description></item></channel></rss>

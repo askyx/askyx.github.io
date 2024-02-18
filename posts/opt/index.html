@@ -1,61 +1,59 @@
 <!doctype html><html lang=en>
 <head>
-<title>Postgres Optimizer :: Asky</title>
+<title>
+Postgres Optimizer ::
+Asky — My note blog
+</title>
 <meta charset=utf-8>
-<meta charset=utf-8>
-<meta name=renderer content="webkit">
-<meta name=force-rendering content="webkit">
-<meta name=referrer content="no-referrer">
-<meta http-equiv=x-ua-compatible content="IE=Edge,chrome=1">
-<script>(!1||!!window.MSInputMethodContext&&!!document.documentMode)&&document.write('<script id="_iealwn_js" data-outver="11" src="https://support.dmeng.net/ie-alert-warning/latest.js"><\/script>')</script>
-<meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1">
-<meta name=description content="Postgres Optimizer Extend 对文章的技术性验证 These directories take the Query structure returned by the parser, and generate a plan used by the executor. The /plan directory generates the actual output plan, the /path code generates all possible ways to join the tables, and /prep handles various preprocessing steps for special cases. /util is utility stuff. /geqo is the separate &amp;ldquo;genetic optimization&amp;rdquo; planner &amp;mdash; it does a semi-random search through the join tree space, rather than exhaustively considering all possible join trees. (But each join considered by /geqo is given to /path to create paths for, so we consider all possible implementation paths for each specific join pair even in GEQO mode.) /plan directory generates the actual output plan /path code generates all possible ways to join the tables /prep handles various preprocessing steps">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="Postgres Optimizer Extend #  对文章的技术性验证
+These directories take the Query structure returned by the parser, and generate a plan used by the executor. The /plan directory generates the actual output plan, the /path code generates all possible ways to join the tables, and /prep handles various preprocessing steps for special cases. /util is utility stuff. /geqo is the separate &amp;ldquo;genetic optimization&amp;rdquo; planner &amp;mdash; it does a semi-random search through the join tree space, rather than exhaustively considering all possible join trees. (But each join considered by /geqo is given to /path to create paths for, so we consider all possible implementation paths for each specific join pair even in GEQO mode.">
 <meta name=keywords content="程序员、码农、database、C++">
-<link href=/atom.xml title=Asky type=application/rss+xml>
+<meta name=robots content="noodp">
 <link rel=canonical href=https://askyx.github.io/posts/opt/>
 <link rel=stylesheet href=//cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.6.0/lxgwwenkaiscreen.css media=print onload="this.media='all'">
-<link rel=stylesheet href=/theme-20230215.css>
+<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
+<link rel=stylesheet href=https://askyx.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
 <link rel="shortcut icon" href=https://askyx.github.io/favicon.ico>
 <link rel=apple-touch-icon href=https://askyx.github.io/favicon.ico>
-<meta name=apple-mobile-web-app-capable content="yes">
-<meta name=apple-mobile-web-app-status-bar-style content="black-translucent">
-<meta name=apple-mobile-web-app-title content="Asky">
 <link rel=bookmark href=https://askyx.github.io/favicon.ico>
 <link rel=apple-touch-icon-precomposed sizes=180x180 href=https://askyx.github.io/favicon.ico>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Postgres Optimizer">
+<meta name=twitter:description content="本文从源码级别进行优化器的分析，对Postgres优化器代码调研，具体包括他的数据结构，以及具体的代码架构实现以及核心算法等">
 <meta property="og:title" content="Postgres Optimizer">
 <meta property="og:description" content="本文从源码级别进行优化器的分析，对Postgres优化器代码调研，具体包括他的数据结构，以及具体的代码架构实现以及核心算法等">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://askyx.github.io/posts/opt/"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2022-07-22T09:24:24+08:00">
 <meta property="article:modified_time" content="2022-07-22T09:24:24+08:00">
-<script async defer data-website-id=c27bd84b-02a3-4c3f-a168-0d7fadec9c74 src=https://u.edui.fun/lmmtj.js></script>
-<link rel=prefetch href=https://askyx.github.io/posts/vacuum/>
-<link rel=prefetch href=https://askyx.github.io/posts/storage/>
 </head>
-<body>
-<script>var getTheme=localStorage.getItem("theme")||'';getTheme=='dark'?document.body.classList.add("dark"):getTheme=='light'&&document.body.classList.remove("dark")</script>
+<body class=light-theme>
 <div class=container>
 <header class=header>
 <span class=header__inner>
 <a href=https://askyx.github.io/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
 <span class=logo__text>Asky</span>
 <span class=logo__cursor></span>
 </a>
 <span class=header__right>
-<nav class="menu hidden">
+<nav class=menu>
 <ul class="menu__inner menu__inner--desktop">
-<li><a href=/archives/>归档</a></li>
-<li><a href=/about/>关于我</a></li>
-<li><a href=/search/>🔍</a></li>
+<li><a href=/about>About</a></li>
+<li><a href=/archive>Archive</a></li>
+<li><a href=/search>🔍</a></li>
 <li><a href=javascript:; onclick=randomPost() title=随机访问一篇文章><svg t="1660103436159" class="icon search-box-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" p-id="1184" width="32" height="32"><path d="M421.376 481.28s117.248 24.576 175.104-8.704c0 0-89.6 70.144-89.6 166.4.512-.512-8.192-121.344-85.504-157.696zm17.408 487.936s68.608 6.656 68.608-80.896c0 0 3.072 88.576 65.024 78.336.0.512-50.688 22.016-133.632 2.56zM161.28 238.08s-30.208 65.536 11.264 91.648c0 0-67.072-17.408-81.408 37.376.0.0 8.704-82.944 70.144-129.024zM857.6 227.328s49.152 50.176 1.024 81.408c0 0 58.88-18.432 66.56 36.352.0.0 5.12-69.632-67.584-117.76z" p-id="1185"/><path d="M443.392 970.752c-5.632.0-10.752-1.024-15.36-3.072L157.184 810.496l-1.536-1.024s-1.024-1.024-4.608-2.56c-51.2-29.184-62.976-94.208-65.536-120.832V386.56c0-3.072.512-7.168 1.024-11.264l.512-3.584 1.024-2.56c19.456-50.688 76.8-51.2 103.936-44.032l-1.536 5.632 4.096-6.144L476.16 486.4l18.944 37.888c20.992 36.864 29.184 77.824 32.768 99.84v258.048c-4.608 56.32-36.864 76.288-55.808 82.944-1.024.512-15.36 5.632-28.672 5.632zM181.248 774.656l263.168 152.576c12.288-.512 36.864-6.656 40.448-48.128V628.736c-4.608-31.744-20.992-103.936-72.192-128L322.56 445.44l1.536 3.072L181.76 366.08c-2.048-.512-40.448-9.216-52.736 15.872-.512 2.56-.512 4.608-.512 6.144v294.4c1.536 16.896 9.728 67.072 43.52 86.528 3.584 2.048 6.656 4.096 9.216 5.632z" p-id="1186"/><path d="M837.632 212.992c6.656 4.096 12.8 7.168 18.432 10.752l1.536 1.024 1.536 1.536c5.12 4.096 10.752 9.216 16.384 15.36 6.144 11.776 5.632 33.28 4.608 49.152-1.024 12.288-6.656 30.208-26.624 44.544l-1.024.512-247.808 156.672c-26.624 14.336-62.976 18.432-96.256 18.432-40.96.0-77.824-6.656-89.088-8.704l-3.072-.512-245.248-142.336c-39.424-29.696-28.16-85.504-15.36-113.664l2.56-6.144 263.68-166.912c29.184-14.336 104.448-43.008 173.056-1.024 3.584 2.56 58.368 34.304 119.296 69.632M431.616 460.8c40.448 7.168 114.176 13.824 152.576-6.144L828.928 299.52c7.168-5.632 8.192-10.24 8.704-12.8 1.024-11.264-9.728-26.624-15.36-32.768-55.808-32.256-243.712-141.312-250.368-145.408-49.664-30.72-107.008-9.216-130.048 2.56L192.512 268.8c-4.096 12.288-12.288 42.496 3.584 55.808L431.616 460.8z" p-id="1187"/><path d="M831.488 299.008c4.096-1.024 38.4-11.264 66.048 6.144 7.168 4.608 17.92 11.776 24.064 24.576 1.024 5.632 4.096 10.752 4.608 16.896v2.048l-1.024 323.072c-5.12 35.328-22.528 91.648-77.312 125.44l-5.12 3.584h-1.024L579.584 966.656l-4.608.512c-4.096.512-8.704 1.024-12.8 1.024-15.872.0-30.208-5.12-41.984-14.848-24.576-20.48-32.768-55.808-35.328-73.728l-1.024-252.928h1.536c6.144-96.768 88.576-164.864 96.768-171.008l-.512-.512L829.44 299.52M528.384 867.328c.512 10.24 5.12 41.472 19.968 53.76 3.072 2.56 7.68 5.632 16.384 5.12L829.44 758.272c56.32-38.4 53.76-115.712 53.76-116.224l-.512-32.256 1.024-250.368h-.512c-1.536-12.8-7.168-16.384-8.704-17.408-8.704-5.632-23.552-3.072-28.672-2.048L610.304 488.96c-1.024.512-80.896 65.024-80.896 149.504h-1.536l.512 228.864zM435.2 264.192c0 27.648 31.744 50.176 71.168 50.176s71.168-22.528 71.168-50.176-31.744-50.176-71.168-50.176S435.2 236.544 435.2 264.192z" p-id="1188"/><path d="M663.552 782.848c0 30.72-22.528 67.072-49.664 80.384-27.648 13.824-50.176-.512-50.176-31.232s22.528-67.072 50.176-80.384c27.136-13.824 49.664.0 49.664 31.232zM760.32 602.624c0 30.72-22.528 67.072-49.664 80.384-27.648 13.824-49.664-.512-49.664-31.232s22.528-67.072 49.664-80.384c27.136-13.824 49.664.512 49.664 31.232zM867.84 428.032c0 30.72-22.528 67.072-49.664 80.384C790.528 522.24 768 507.904 768 477.184s22.528-67.072 50.176-80.384c27.136-13.824 49.664.0 49.664 31.232zM270.848 538.112c0 30.72-22.016 41.984-48.64 24.576-27.136-16.896-48.64-55.808-48.64-86.528s22.016-41.984 48.64-24.576c26.624 16.896 48.64 55.808 48.64 86.528zm161.28 285.184c0 30.72-22.016 41.984-48.64 24.576-26.624-17.408-48.64-55.808-48.64-86.528s22.016-41.984 48.64-24.576c26.624 16.896 48.64 55.808 48.64 86.528z" p-id="1189"/></svg></a></li>
 </ul>
 <ul class="menu__inner menu__inner--mobile">
-<li><a href=/archives/>归档</a></li>
-<li><a href=/about/>关于我</a></li>
-<li><a href=/search/>🔍</a></li>
+<li><a href=/about>About</a></li>
+<li><a href=/archive>Archive</a></li>
+<li><a href=/search>🔍</a></li>
 </ul>
 </nav>
-<span class="menu-trigger hidden"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
 </span>
 <span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
 </span>
@@ -63,7 +61,7 @@
 </span>
 </header>
 <div class=content>
-<div class="post postgres">
+<div class=post>
 <div class=breadcrumb>
 <li>
 <a href=https://askyx.github.io/>首页</a>
@@ -77,10 +75,20 @@
 </div>
 <h2 class=post-title><a href=https://askyx.github.io/posts/opt/>Postgres Optimizer</a></h2>
 <div class=post-meta>
-<span class=post-date>2022-07-22</span>
+<span class=post-date>
+2022-07-22
+</span>
 </div>
+<span class=post-tags>
+<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
+<a href=https://askyx.github.io/tags/postgres/>#Postgres</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E4%BC%98%E5%8C%96%E5%99%A8/>#优化器</a>&nbsp;
+</span>
 <div class=post-content>
-<h1 id=postgres-optimizer-extend>Postgres Optimizer Extend</h1>
+<h1 id=postgres-optimizer-extend>
+Postgres Optimizer Extend
+<a href=#postgres-optimizer-extend class=h-anchor aria-hidden=true>#</a>
+</h1>
 <p>对文章的技术性验证</p>
 <p>These directories take the Query structure returned by the parser, and
 generate a plan used by the executor. The /plan directory generates the
@@ -98,7 +106,10 @@ implementation paths for each specific join pair even in GEQO mode.)</p>
 <li>/util is utility stuff</li>
 <li>/geqo is the separate &ldquo;genetic optimization&rdquo; planner</li>
 </ul>
-<h2 id=paths-and-join-pairs>Paths and Join Pairs</h2>
+<h2 id=paths-and-join-pairs>
+Paths and Join Pairs
+<a href=#paths-and-join-pairs class=h-anchor aria-hidden=true>#</a>
+</h2>
 <p>During the planning/optimizing process, we build &ldquo;Path&rdquo; trees representing
 the different ways of doing a query. We select the cheapest Path that
 generates the desired relation and turn it into a Plan to pass to the
@@ -154,7 +165,10 @@ key in the hashtable.</p>
 Path node representing the last-applied join method. It has left and right
 subpaths that represent the scan or join methods used for the two input
 relations.</p>
-<h2 id=join-tree-construction>Join Tree Construction</h2>
+<h2 id=join-tree-construction>
+Join Tree Construction
+<a href=#join-tree-construction class=h-anchor aria-hidden=true>#</a>
+</h2>
 <p>The optimizer generates optimal query plans by doing a more-or-less
 exhaustive search through the ways of executing the query. The best Path
 tree is found by a recursive process:</p>
@@ -268,7 +282,10 @@ by having join_is_legal consult a side list of such &ldquo;special&rdquo; joins 
 whether a proposed join is illegal. (The same consultation allows it to
 see which join style should be applied for a valid join, ie, JOIN_INNER,
 JOIN_LEFT, etc.)</p>
-<h2 id=valid-outer-join-optimizations>Valid OUTER JOIN Optimizations</h2>
+<h2 id=valid-outer-join-optimizations>
+Valid OUTER JOIN Optimizations
+<a href=#valid-outer-join-optimizations class=h-anchor aria-hidden=true>#</a>
+</h2>
 <p>The planner&rsquo;s treatment of outer join reordering is based on the following
 identities:</p>
 <ol>
@@ -294,7 +311,7 @@ where the second form would make those entries null.</p>
 <ul>
 <li>假设 B 在 Pbc 上的条件下没有输出，在 Pab 下有输出，在 语句 3.1 下 AjB 的输出可能在 Pbc 会输出部分 C</li>
 <li>但是语句 3.2 此时 BjC 是完全无输出，最终的结果中不存在任何 C，所以此时要求 Pbc 严格显示必须有输出</li>
-<li><a href=https://blog.csdn.net/gp_community/article/details/106860699 target=_blank rel="noopener nofollow noreferrer">外连接消除</a></li>
+<li><a href=https://blog.csdn.net/gp_community/article/details/106860699>外连接消除</a></li>
 </ul>
 <p>RIGHT JOIN is equivalent to LEFT JOIN after switching the two input
 tables, so the same identities work for right joins.</p>
@@ -346,7 +363,10 @@ join into the lower join&rsquo;s RHS, transforming the query to</p>
 for the upper join to include B. This is perhaps overly restrictive, but
 such cases don&rsquo;t arise often so it&rsquo;s not clear that it&rsquo;s worth developing a
 more complicated system.</p>
-<h2 id=pulling-up-subqueries>Pulling Up Subqueries</h2>
+<h2 id=pulling-up-subqueries>
+Pulling Up Subqueries
+<a href=#pulling-up-subqueries class=h-anchor aria-hidden=true>#</a>
+</h2>
 <p>As we described above, a subquery appearing in the range table is planned
 independently and treated as a &ldquo;black box&rdquo; during planning of the outer
 query. This is necessary when the subquery uses features such as
@@ -366,7 +386,10 @@ result in unpleasant growth of planning time, since the dynamic-programming
 search has runtime exponential in the number of FROM-items considered.
 Therefore, we don&rsquo;t merge FROM-lists if the result would have too many
 FROM-items in one list.</p>
-<h2 id=optimizer-functions>Optimizer Functions</h2>
+<h2 id=optimizer-functions>
+Optimizer Functions
+<a href=#optimizer-functions class=h-anchor aria-hidden=true>#</a>
+</h2>
 <p>The primary entry point is planner().</p>
 <p>planner()
 set up for recursive handling of subqueries
@@ -412,7 +435,10 @@ do limit (LIMIT/OFFSET)
 Back at planner():
 convert finished Path tree into a Plan tree
 do final cleanup after planning</p>
-<h2 id=optimizer-data-structures>Optimizer Data Structures</h2>
+<h2 id=optimizer-data-structures>
+Optimizer Data Structures
+<a href=#optimizer-data-structures class=h-anchor aria-hidden=true>#</a>
+</h2>
 <p>PlannerGlobal - global information for a single planner invocation</p>
 <p>PlannerInfo - information for planning a particular Query (we make
 a separate PlannerInfo node for each sub-Query)</p>
@@ -487,7 +513,10 @@ achieve a given sort order (without an explicit sort, that is). In this
 way, the next level up will have the maximum freedom to build mergejoins
 without sorting, since it can pick from any of the paths retained for its
 inputs.</p>
-<h2 id=equivalenceclasses>EquivalenceClasses</h2>
+<h2 id=equivalenceclasses>
+EquivalenceClasses
+<a href=#equivalenceclasses class=h-anchor aria-hidden=true>#</a>
+</h2>
 <p>During the deconstruct_jointree() scan of the query&rsquo;s qual clauses, we look
 for mergejoinable equality clauses A = B whose applicability is not delayed
 by an outer join; these are called &ldquo;equivalence clauses&rdquo;. When we find
@@ -594,7 +623,10 @@ members are <em>not</em> full-fledged members of the EquivalenceClass and do not
 affect the class&rsquo;s overall properties at all. They are kept only to
 simplify matching of child-relation expressions to EquivalenceClasses.
 Most operations on EquivalenceClasses should ignore child members.</p>
-<h2 id=pathkeys>PathKeys</h2>
+<h2 id=pathkeys>
+PathKeys
+<a href=#pathkeys class=h-anchor aria-hidden=true>#</a>
+</h2>
 <p>The PathKeys data structure represents what is known about the sort order
 of the tuples generated by a particular Path. A path&rsquo;s pathkeys field is a
 list of PathKey nodes, where the n&rsquo;th item represents the n&rsquo;th sort key of
@@ -706,7 +738,10 @@ an outer join destroys any ordering of its nullable inputs. Thus, even
 if a path was sorted by {a.x} below an outer join, we&rsquo;ll re-sort if that
 sort ordering was important; and so using the same PathKey for both sort
 orderings doesn&rsquo;t create any real problem.</p>
-<h2 id=order-of-processing-for-equivalenceclasses-and-pathkeys>Order of processing for EquivalenceClasses and PathKeys</h2>
+<h2 id=order-of-processing-for-equivalenceclasses-and-pathkeys>
+Order of processing for EquivalenceClasses and PathKeys
+<a href=#order-of-processing-for-equivalenceclasses-and-pathkeys class=h-anchor aria-hidden=true>#</a>
+</h2>
 <p>As alluded to above, there is a specific sequence of phases in the
 processing of EquivalenceClasses and PathKeys during planning. During the
 initial scanning of the query&rsquo;s quals (deconstruct_jointree followed by
@@ -734,7 +769,10 @@ minimized since it is impossible for query_planner to return a plan
 producing such a sort order, meaning an explicit sort will always be needed.
 Currently this happens only for queries involving multiple window functions
 with different orderings, for which extra sorts are needed anyway.</p>
-<h2 id=parameterized-paths>Parameterized Paths</h2>
+<h2 id=parameterized-paths>
+Parameterized Paths
+<a href=#parameterized-paths class=h-anchor aria-hidden=true>#</a>
+</h2>
 <p>The naive way to join two relations using a clause like WHERE A.X = B.Y
 is to generate a nestloop plan like this:</p>
 <pre><code>NestLoop
@@ -865,7 +903,10 @@ inside of a nestloop, so it seems not worth keeping extra paths solely for
 that. An exception occurs for parameterized paths for the RHS relation of
 a SEMI or ANTI join: in those cases, we can stop the inner scan after the
 first match, so it&rsquo;s primarily startup not total cost that we care about.</p>
-<h2 id=lateral-subqueries>LATERAL subqueries</h2>
+<h2 id=lateral-subqueries>
+LATERAL subqueries
+<a href=#lateral-subqueries class=h-anchor aria-hidden=true>#</a>
+</h2>
 <p>As of 9.3 we support SQL-standard LATERAL references from subqueries in
 FROM (and also functions in FROM). The planner implements these by
 generating parameterized paths for any RTE that contains lateral
@@ -888,7 +929,10 @@ PHV in the quals or targetlist of a plan node requires that node to appear
 on the inside of a nestloop join relative to the rel(s) supplying the
 lateral reference. (Perhaps now that that stuff works, we could relax the
 pullup restriction?)</p>
-<h2 id=security-level-constraints-on-qual-clauses>Security-level constraints on qual clauses</h2>
+<h2 id=security-level-constraints-on-qual-clauses>
+Security-level constraints on qual clauses
+<a href=#security-level-constraints-on-qual-clauses class=h-anchor aria-hidden=true>#</a>
+</h2>
 <p>To support row-level security and security-barrier views efficiently,
 we mark qual clauses (RestrictInfo nodes) with a &ldquo;security_level&rdquo; field.
 The basic concept is that a qual with a lower security_level must be
@@ -984,7 +1028,10 @@ handling of security levels among join quals, it should be possible to let
 security-barrier views be flattened into the parent query, allowing more
 flexibility of planning while still preserving required ordering of qual
 evaluation. But that will come later.</p>
-<h2 id=post-scanjoin-planning>Post scan/join planning</h2>
+<h2 id=post-scanjoin-planning>
+Post scan/join planning
+<a href=#post-scanjoin-planning class=h-anchor aria-hidden=true>#</a>
+</h2>
 <p>So far we have discussed only scan/join planning, that is, implementation
 of the FROM and WHERE clauses of a SQL query. But the planner must also
 determine how to deal with GROUP BY, aggregation, and other higher-level
@@ -1020,7 +1067,10 @@ particular group of Paths that are competing with each other.</p>
 <p>The result of subquery_planner() is always returned as a set of Paths
 stored in the UPPERREL_FINAL rel with NULL relids. The other types of
 upperrels are created only if needed for the particular query.</p>
-<h2 id=parallel-query-and-partial-paths>Parallel Query and Partial Paths</h2>
+<h2 id=parallel-query-and-partial-paths>
+Parallel Query and Partial Paths
+<a href=#parallel-query-and-partial-paths class=h-anchor aria-hidden=true>#</a>
+</h2>
 <p>Parallel query involves dividing up the work that needs to be performed
 either by an entire query or some portion of the query in such a way that
 some of that work can be done by one or more worker processes, which are
@@ -1067,7 +1117,10 @@ be desirable to postpone the Gather stage until as near to the top of the
 plan as possible. Expanding the range of cases in which more work can be
 pushed below the Gather (and costing them accurately) is likely to keep us
 busy for a long time to come.</p>
-<h2 id=partitionwise-joins>Partitionwise joins</h2>
+<h2 id=partitionwise-joins>
+Partitionwise joins
+<a href=#partitionwise-joins class=h-anchor aria-hidden=true>#</a>
+</h2>
 <p>A join between two similarly partitioned tables can be broken down into joins
 between their matching partitions if there exists an equi-join condition
 between the partition keys of the joining tables. The equi-join between
@@ -1115,7 +1168,10 @@ any two partitioned relations with same partitioning scheme point to the same
 PartitionSchemeData object. This reduces memory consumed by
 PartitionSchemeData objects and makes it easy to compare the partition schemes
 of joining relations.</p>
-<h2 id=partitionwise-aggregatesgrouping>Partitionwise aggregates/grouping</h2>
+<h2 id=partitionwise-aggregatesgrouping>
+Partitionwise aggregates/grouping
+<a href=#partitionwise-aggregatesgrouping class=h-anchor aria-hidden=true>#</a>
+</h2>
 <p>If the GROUP BY clause contains all of the partition keys, all the rows
 that belong to a given group must come from a single partition; therefore,
 aggregation can be done completely separately for each partition. Otherwise,
@@ -1131,7 +1187,7 @@ this can be significantly faster than the regular method.</p>
 <li>它不是 Volcano 优化模型的，所以灵活性不好</li>
 <li>它的很多优化复杂度很高（例如Join重排是System R风格的动态规划算法），所以性能不好</li>
 </ol>
-<p><a href=https://www.cnblogs.com/xiaohuizhenyoucai/p/10983783.html target=_blank rel="noopener nofollow noreferrer">Nested Loop，Hash Join，Merge Join</a></p>
+<p><a href=https://www.cnblogs.com/xiaohuizhenyoucai/p/10983783.html>Nested Loop，Hash Join，Merge Join</a></p>
 <pre tabindex=0><code>pg_plan_query 执行计划入口
 
 planner 实际执行计划调用
@@ -1419,14 +1475,20 @@ standard_planner 默认planner hook
   create_projection_path 创建执行预测path
   make_sort_input_target 判断是否可以跳过sort
   make_window_input_target 判断是否可以跳过grouping操作    
-</code></pre><h3 id=paths-and-join-pairs-1>Paths and Join Pairs</h3>
+</code></pre><h3 id=paths-and-join-pairs-1>
+Paths and Join Pairs
+<a href=#paths-and-join-pairs-1 class=h-anchor aria-hidden=true>#</a>
+</h3>
 <ul>
 <li>优化中生成的具体的执行计划的具体结构，只包含执行器的必要信息，和逻辑算子一一对应</li>
 <li>优化过程中对表或者join，自查询生成 reloptinfo 结构体，是一个高层次的抽象结构，包含基础的 reloptinfo 的组合，还会生成包含的 reloptinfo 的path，最终会输出 代价最小的 path</li>
 <li>一个 reloptinfo 可能包含多条 path</li>
 <li>A Path for a join relation is actually a tree structure</li>
 </ul>
-<h3 id=join-tree-construction-1>Join Tree Construction</h3>
+<h3 id=join-tree-construction-1>
+Join Tree Construction
+<a href=#join-tree-construction-1 class=h-anchor aria-hidden=true>#</a>
+</h3>
 <p>当前看下来，他的主要流程是先使用prep中的方法对query先进行预处理，执行常规的基于规则的优化，之后使用path中的方法，对处理之后的语法树进行处理，找到代价最小的path。
 对于path的，如果没有join，则直接查找table的path即可，如果有多表join的场景，则需要进行path的组合，使用一定的搜索策略来进行路径搜索，
 当前有三种主流的优化方法</p>
@@ -1436,7 +1498,10 @@ standard_planner 默认planner hook
 <li>gen
 pg使用自底向上的动态规划算法和基因算法，默认表数量大于12的时候，使用基因算法，所以这里我只关注system-R算法</li>
 </ol>
-<h3 id=优化器代码细节>优化器代码细节</h3>
+<h3 id=优化器代码细节>
+优化器代码细节
+<a href=#%e4%bc%98%e5%8c%96%e5%99%a8%e4%bb%a3%e7%a0%81%e7%bb%86%e8%8a%82 class=h-anchor aria-hidden=true>#</a>
+</h3>
 <p>具体的代码入口在exec_simple_query中，接受语句使用pg_parse_query编译，输出是一个list，具体的例子可以查看下面的语句，gdb中使用 <code>p pprint(parsetree_list)</code>可以打印list，对于具体的内部的数据结构，例如List,Node等，可以gdb调试pprint，可以查看他们之间的结构关系</p>
 <p>parser出来是list，在打印的时候，使用pprint，在内部判断list类型，取出实际的数据，然后按照NodeTag进行转换，NodeTag在几乎所有的数据结构中都在第一位，目的是为了便捷eider进行转换，以select为例<br>
 在语法文件中，selectstmt是一个结构体，具体生成如下，</p>
@@ -1551,7 +1616,10 @@ pg使用自底向上的动态规划算法和基因算法，默认表数量大于
 对于rewrite。貌似是和之前了解的不太一杨，之前的理解是进行基于规则的重写，但是这里好像是使用自定义的rule重写，类似于触发器，其他数据库中，只有sql server有类似的实现，但是已经声明在之后的版本中会移除这个东西，所以在代码中占据相当一部分分量的功能是否是必要的，</p>
 <p>TODO: 后续我自身会进行调研，如果确定是上述的东西，或许可以尝试移除这个功能</p>
 <p>之后结构为query，会参与到pg_plan_queries中</p>
-<h3 id=优化>优化</h3>
+<h3 id=优化>
+优化
+<a href=#%e4%bc%98%e5%8c%96 class=h-anchor aria-hidden=true>#</a>
+</h3>
 <p>对于utility语句，直接跳过，他只是代码函数的集合，对于DML，进行pg_plan_query优化，分为几个步骤</p>
 <ol>
 <li>基于规则的优化</li>
@@ -1689,9 +1757,9 @@ standard_join_search
 <li>子查询的上拉</li>
 </ol>
 <p>文章参考
-<a href=https://zhuanlan.zhihu.com/p/60380557 target=_blank rel="noopener nofollow noreferrer">1</a>
-<a href=https://developer.aliyun.com/article/802290#slide-1 target=_blank rel="noopener nofollow noreferrer">2</a>
-<a href=https://blog.csdn.net/yunqiinsight/article/details/115323435 target=_blank rel="noopener nofollow noreferrer">3</a></p>
+<a href=https://zhuanlan.zhihu.com/p/60380557>1</a>
+<a href=https://developer.aliyun.com/article/802290#slide-1>2</a>
+<a href=https://blog.csdn.net/yunqiinsight/article/details/115323435>3</a></p>
 <blockquote>
 <p>planner_hook使用cascade实现的可行性分析</p>
 </blockquote>
@@ -1738,15 +1806,9 @@ mem</p>
 <p>语法树的遍历
 1.</p>
 </div>
-<span class=post-tags>
-#<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>数据库</a>&nbsp;
-#<a href=https://askyx.github.io/tags/postgres/>Postgres</a>&nbsp;
-#<a href=https://askyx.github.io/tags/%E4%BC%98%E5%8C%96%E5%99%A8/>优化器</a>&nbsp;
-</span>
-<div class=clear></div>
 <div class=pagination>
 <div class=pagination__title>
-<span class=pagination__title-h>阅读更多</span>
+<span class=pagination__title-h>Read other posts</span>
 <hr>
 </div>
 <div class=pagination__buttons>
@@ -1768,21 +1830,22 @@ mem</p>
 </div>
 <footer class=footer>
 <div class=footer__inner>
-<div class="copyright copyright-font">
-<span>共 135545 字 <br> 写完一本 曹禺 的</br>《雷雨》了！</span>
-</div>
+<a href=https://askyx.github.io/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Asky</span>
+<span class=logo__cursor></span>
+</a>
 <div class=copyright>
-<span>© 2024 Powered by <a href=https://gohugo.io target=_blank rel=noopener>Hugo</a> Theme by <a href=https://github.com/lmm214/immmmm/tree/master/themes/hello-friend target=_blank rel=noopener>immmmm</a></span>
+<span>© 2024 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
 </div>
 </div>
 </footer>
-<script type=text/javascript src=/theme-main-1.js></script>
-<script type=text/javascript src=/lately.min.js></script>
-<script type=text/javascript src=/waterfall.min.js></script>
-<script type=text/javascript src=/imgStatus.min.js></script>
-<script type=text/javascript src=/view-image.js></script>
-<script type=text/javascript src=/theme-lmm-20230123.js></script>
-<script type=text/javascript src=/pangu.min.js></script>
+<script src=https://askyx.github.io/assets/main.js></script>
+<script src=https://askyx.github.io/assets/prism.js></script>
 </div>
 </body>
 </html>

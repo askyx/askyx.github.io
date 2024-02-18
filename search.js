@@ -82,8 +82,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const searchString = searchInput.value
     const fuse = await getFuse()
     const result = fuse.search(searchString)
-    const html = render(result)
-    updateDOM(html, result.length)
+
+    const uniqueResult = [...new Set(result.map(item => item.item.permalink))].map(permalink => result.find(item => item.item.permalink === permalink));
+    const html = render(uniqueResult)
+    updateDOM(html, uniqueResult.length)
   }
 
   function doSearch() {

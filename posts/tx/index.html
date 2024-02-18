@@ -1,61 +1,63 @@
 <!doctype html><html lang=en>
 <head>
-<title>事务知识简记 :: Asky</title>
+<title>
+事务知识简记 ::
+Asky — My note blog
+</title>
 <meta charset=utf-8>
-<meta charset=utf-8>
-<meta name=renderer content="webkit">
-<meta name=force-rendering content="webkit">
-<meta name=referrer content="no-referrer">
-<meta http-equiv=x-ua-compatible content="IE=Edge,chrome=1">
-<script>(!1||!!window.MSInputMethodContext&&!!document.documentMode)&&document.write('<script id="_iealwn_js" data-outver="11" src="https://support.dmeng.net/ie-alert-warning/latest.js"><\/script>')</script>
-<meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1">
-<meta name=description content="事务基础 ACID 事务演进 隔离级别 MVCC 2pl 主流数据库实现 PG事务 pg高链接数导致tps下降 1|2 简单总结 更新xmin的ping-pong问题，缓存失效，之前的结构设计不合理，xid存放位置不连续，且xmin每次都需要从 pgxact 中获取，此值会被频繁修改 修改 事务相关的组织格式，xids 现在单独存放在数组中">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="事务基础 #   ACID 事务演进 隔离级别 MVCC 2pl 主流数据库实现  PG事务 #  pg高链接数导致tps下降 1|2 #  简单总结
+ 更新xmin的ping-pong问题，缓存失效，之前的结构设计不合理，xid存放位置不连续，且xmin每次都需要从 pgxact 中获取，此值会被频繁修改 修改 事务相关的组织格式，xids 现在单独存放在数组中 使用 xactCompletionCount 进行事务计算，快照原则上只要没有变化，则不需要重新获取，所以在事务提交或者事务abort的时候，进行自增，只有检测到 xactCompletionCount 变化了才重新获取快照 之前需要 xmin 用于vacuum ，现在使用新机制判断，现在在循环中遍历 xids 取 min ， 不对立刻同步其他的 min， 所以这是一个粗略值，在之后可以简单进行判断，如果在之后获得了比 min 更大的值，才进行精确判断，且更新 min  无锁算法提交事务，减少proc加锁时间，提升并发 #  无锁算法是利用CPU的原子操作实现的数据结构和算法来解决原来只能用锁才能解决的并发控制问题
+ CAS Fetch-and-add Test-and-set  内存屏障 #  内存屏障相关函数，包括 compiler barrier 和 read/write barrier 语义上的布尔值（PG代码里叫flag，具体实现上可能映射到一个字节，或一个整数）的原子操作，包括：
+ pg_atomic_init_flag，初始化一个flag pg_atomic_test_set_flag, Test-And-Set，这也是flag的唯一支持的原子 操作函数 pg_atomic_unlocked_test_flag，检查flag是否没有被设置 pg_atomic_clear_flag，清除已设置的flag  32位无符号整数的原子操作，包括：
+ pg_atomic_init_u32, pg_atomic_read_u32, pg_atomic_write_u32，初始化、读、写操作 pg_atomic_exchange_u32，给原子变量赋值并返回原值 pg_atomic_compare_exchange_u32, 32位无符号整数的CAS操作，比较原子变量和另一个变量的值， 如果相等就赋一个新值到原子变量里，返回一个布尔值标识是否进行了赋值操作 pg_atomic_fetch_add_u32, pg_atomic_fetch_sub_u32, pg_atomic_fetch_and_u32, pg_atomic_fetch_or_u32 对某个原子变量进行加、减、与、或操作，并返回变量改变之前的值 pg_atomic_add_fetch_u32, pg_atomic_sub_fetch_u32 对某个原子变量进行加、减操作，并返回变量改变之后的值  64位无符号整数的原子操作，与32位的实现的操作函数相似，只是实现的是64位版本，这里需要注意的是， 64位版本并不保证所有平台的都支持，目前在PostgreSQL的源代码中还没有被使用。
+实际案例： #  pg中事务在结束之后，需要设置 PGPROC 中的事务信息，确保其他 session 中再次获取 snapshot 的时候，完成事务不会在活跃列表中。此时会使用 ProcArrayLock 尝试对 ProcArray 加排他锁，此时锁竞争严重，后来对此进行优化，使用无锁编程技术，批量进行xid的重置，具体函数为 ProcArrayEndTransaction">
 <meta name=keywords content="程序员、码农、database、C++">
-<link href=/atom.xml title=Asky type=application/rss+xml>
+<meta name=robots content="noodp">
 <link rel=canonical href=https://askyx.github.io/posts/tx/>
 <link rel=stylesheet href=//cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.6.0/lxgwwenkaiscreen.css media=print onload="this.media='all'">
-<link rel=stylesheet href=/theme-20230215.css>
+<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
+<link rel=stylesheet href=https://askyx.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
 <link rel="shortcut icon" href=https://askyx.github.io/favicon.ico>
 <link rel=apple-touch-icon href=https://askyx.github.io/favicon.ico>
-<meta name=apple-mobile-web-app-capable content="yes">
-<meta name=apple-mobile-web-app-status-bar-style content="black-translucent">
-<meta name=apple-mobile-web-app-title content="Asky">
 <link rel=bookmark href=https://askyx.github.io/favicon.ico>
 <link rel=apple-touch-icon-precomposed sizes=180x180 href=https://askyx.github.io/favicon.ico>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="事务知识简记">
+<meta name=twitter:description content="事务分析记录，源码分析，关键技术点简记，唬人专用">
 <meta property="og:title" content="事务知识简记">
 <meta property="og:description" content="事务分析记录，源码分析，关键技术点简记，唬人专用">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://askyx.github.io/posts/tx/"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2023-02-08T09:58:09+08:00">
 <meta property="article:modified_time" content="2023-02-08T09:58:09+08:00">
-<script async defer data-website-id=c27bd84b-02a3-4c3f-a168-0d7fadec9c74 src=https://u.edui.fun/lmmtj.js></script>
-<link rel=prefetch href=https://askyx.github.io/posts/postgres_executor/>
-<link rel=prefetch href=https://askyx.github.io/posts/note/>
 </head>
-<body>
-<script>var getTheme=localStorage.getItem("theme")||'';getTheme=='dark'?document.body.classList.add("dark"):getTheme=='light'&&document.body.classList.remove("dark")</script>
+<body class=light-theme>
 <div class=container>
 <header class=header>
 <span class=header__inner>
 <a href=https://askyx.github.io/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
 <span class=logo__text>Asky</span>
 <span class=logo__cursor></span>
 </a>
 <span class=header__right>
-<nav class="menu hidden">
+<nav class=menu>
 <ul class="menu__inner menu__inner--desktop">
-<li><a href=/archives/>归档</a></li>
-<li><a href=/about/>关于我</a></li>
-<li><a href=/search/>🔍</a></li>
+<li><a href=/about>About</a></li>
+<li><a href=/archive>Archive</a></li>
+<li><a href=/search>🔍</a></li>
 <li><a href=javascript:; onclick=randomPost() title=随机访问一篇文章><svg t="1660103436159" class="icon search-box-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" p-id="1184" width="32" height="32"><path d="M421.376 481.28s117.248 24.576 175.104-8.704c0 0-89.6 70.144-89.6 166.4.512-.512-8.192-121.344-85.504-157.696zm17.408 487.936s68.608 6.656 68.608-80.896c0 0 3.072 88.576 65.024 78.336.0.512-50.688 22.016-133.632 2.56zM161.28 238.08s-30.208 65.536 11.264 91.648c0 0-67.072-17.408-81.408 37.376.0.0 8.704-82.944 70.144-129.024zM857.6 227.328s49.152 50.176 1.024 81.408c0 0 58.88-18.432 66.56 36.352.0.0 5.12-69.632-67.584-117.76z" p-id="1185"/><path d="M443.392 970.752c-5.632.0-10.752-1.024-15.36-3.072L157.184 810.496l-1.536-1.024s-1.024-1.024-4.608-2.56c-51.2-29.184-62.976-94.208-65.536-120.832V386.56c0-3.072.512-7.168 1.024-11.264l.512-3.584 1.024-2.56c19.456-50.688 76.8-51.2 103.936-44.032l-1.536 5.632 4.096-6.144L476.16 486.4l18.944 37.888c20.992 36.864 29.184 77.824 32.768 99.84v258.048c-4.608 56.32-36.864 76.288-55.808 82.944-1.024.512-15.36 5.632-28.672 5.632zM181.248 774.656l263.168 152.576c12.288-.512 36.864-6.656 40.448-48.128V628.736c-4.608-31.744-20.992-103.936-72.192-128L322.56 445.44l1.536 3.072L181.76 366.08c-2.048-.512-40.448-9.216-52.736 15.872-.512 2.56-.512 4.608-.512 6.144v294.4c1.536 16.896 9.728 67.072 43.52 86.528 3.584 2.048 6.656 4.096 9.216 5.632z" p-id="1186"/><path d="M837.632 212.992c6.656 4.096 12.8 7.168 18.432 10.752l1.536 1.024 1.536 1.536c5.12 4.096 10.752 9.216 16.384 15.36 6.144 11.776 5.632 33.28 4.608 49.152-1.024 12.288-6.656 30.208-26.624 44.544l-1.024.512-247.808 156.672c-26.624 14.336-62.976 18.432-96.256 18.432-40.96.0-77.824-6.656-89.088-8.704l-3.072-.512-245.248-142.336c-39.424-29.696-28.16-85.504-15.36-113.664l2.56-6.144 263.68-166.912c29.184-14.336 104.448-43.008 173.056-1.024 3.584 2.56 58.368 34.304 119.296 69.632M431.616 460.8c40.448 7.168 114.176 13.824 152.576-6.144L828.928 299.52c7.168-5.632 8.192-10.24 8.704-12.8 1.024-11.264-9.728-26.624-15.36-32.768-55.808-32.256-243.712-141.312-250.368-145.408-49.664-30.72-107.008-9.216-130.048 2.56L192.512 268.8c-4.096 12.288-12.288 42.496 3.584 55.808L431.616 460.8z" p-id="1187"/><path d="M831.488 299.008c4.096-1.024 38.4-11.264 66.048 6.144 7.168 4.608 17.92 11.776 24.064 24.576 1.024 5.632 4.096 10.752 4.608 16.896v2.048l-1.024 323.072c-5.12 35.328-22.528 91.648-77.312 125.44l-5.12 3.584h-1.024L579.584 966.656l-4.608.512c-4.096.512-8.704 1.024-12.8 1.024-15.872.0-30.208-5.12-41.984-14.848-24.576-20.48-32.768-55.808-35.328-73.728l-1.024-252.928h1.536c6.144-96.768 88.576-164.864 96.768-171.008l-.512-.512L829.44 299.52M528.384 867.328c.512 10.24 5.12 41.472 19.968 53.76 3.072 2.56 7.68 5.632 16.384 5.12L829.44 758.272c56.32-38.4 53.76-115.712 53.76-116.224l-.512-32.256 1.024-250.368h-.512c-1.536-12.8-7.168-16.384-8.704-17.408-8.704-5.632-23.552-3.072-28.672-2.048L610.304 488.96c-1.024.512-80.896 65.024-80.896 149.504h-1.536l.512 228.864zM435.2 264.192c0 27.648 31.744 50.176 71.168 50.176s71.168-22.528 71.168-50.176-31.744-50.176-71.168-50.176S435.2 236.544 435.2 264.192z" p-id="1188"/><path d="M663.552 782.848c0 30.72-22.528 67.072-49.664 80.384-27.648 13.824-50.176-.512-50.176-31.232s22.528-67.072 50.176-80.384c27.136-13.824 49.664.0 49.664 31.232zM760.32 602.624c0 30.72-22.528 67.072-49.664 80.384-27.648 13.824-49.664-.512-49.664-31.232s22.528-67.072 49.664-80.384c27.136-13.824 49.664.512 49.664 31.232zM867.84 428.032c0 30.72-22.528 67.072-49.664 80.384C790.528 522.24 768 507.904 768 477.184s22.528-67.072 50.176-80.384c27.136-13.824 49.664.0 49.664 31.232zM270.848 538.112c0 30.72-22.016 41.984-48.64 24.576-27.136-16.896-48.64-55.808-48.64-86.528s22.016-41.984 48.64-24.576c26.624 16.896 48.64 55.808 48.64 86.528zm161.28 285.184c0 30.72-22.016 41.984-48.64 24.576-26.624-17.408-48.64-55.808-48.64-86.528s22.016-41.984 48.64-24.576c26.624 16.896 48.64 55.808 48.64 86.528z" p-id="1189"/></svg></a></li>
 </ul>
 <ul class="menu__inner menu__inner--mobile">
-<li><a href=/archives/>归档</a></li>
-<li><a href=/about/>关于我</a></li>
-<li><a href=/search/>🔍</a></li>
+<li><a href=/about>About</a></li>
+<li><a href=/archive>Archive</a></li>
+<li><a href=/search>🔍</a></li>
 </ul>
 </nav>
-<span class="menu-trigger hidden"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
 </span>
 <span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
 </span>
@@ -63,7 +65,7 @@
 </span>
 </header>
 <div class=content>
-<div class="post postgres">
+<div class=post>
 <div class=breadcrumb>
 <li>
 <a href=https://askyx.github.io/>首页</a>
@@ -77,10 +79,15 @@
 </div>
 <h2 class=post-title><a href=https://askyx.github.io/posts/tx/>事务知识简记</a></h2>
 <div class=post-meta>
-<span class=post-date>2023-02-08</span>
+<span class=post-date>
+2023-02-08
+</span>
 </div>
 <div class=post-content>
-<h2 id=事务基础>事务基础</h2>
+<h2 id=事务基础>
+事务基础
+<a href=#%e4%ba%8b%e5%8a%a1%e5%9f%ba%e7%a1%80 class=h-anchor aria-hidden=true>#</a>
+</h2>
 <ol>
 <li>ACID</li>
 <li>事务演进</li>
@@ -89,8 +96,14 @@
 <li>2pl</li>
 <li>主流数据库实现</li>
 </ol>
-<h2 id=pg事务>PG事务</h2>
-<h3 id=pg高链接数导致tps下降-1httpsmingjieblogcsdnnetarticledetails1259318812httpsmingjieblogcsdnnetarticledetails125935699>pg高链接数导致tps下降 <a href=https://mingjie.blog.csdn.net/article/details/125931881 target=_blank rel="noopener nofollow noreferrer">1</a>|<a href=https://mingjie.blog.csdn.net/article/details/125935699 target=_blank rel="noopener nofollow noreferrer">2</a></h3>
+<h2 id=pg事务>
+PG事务
+<a href=#pg%e4%ba%8b%e5%8a%a1 class=h-anchor aria-hidden=true>#</a>
+</h2>
+<h3 id=pg高链接数导致tps下降-1httpsmingjieblogcsdnnetarticledetails1259318812httpsmingjieblogcsdnnetarticledetails125935699>
+pg高链接数导致tps下降 <a href=https://mingjie.blog.csdn.net/article/details/125931881>1</a>|<a href=https://mingjie.blog.csdn.net/article/details/125935699>2</a>
+<a href=#pg%e9%ab%98%e9%93%be%e6%8e%a5%e6%95%b0%e5%af%bc%e8%87%b4tps%e4%b8%8b%e9%99%8d-1httpsmingjieblogcsdnnetarticledetails1259318812httpsmingjieblogcsdnnetarticledetails125935699 class=h-anchor aria-hidden=true>#</a>
+</h3>
 <p>简单总结</p>
 <ul>
 <li>更新xmin的ping-pong问题，缓存失效，之前的结构设计不合理，xid存放位置不连续，且xmin每次都需要从 pgxact 中获取，此值会被频繁修改</li>
@@ -98,14 +111,20 @@
 <li>使用 xactCompletionCount 进行事务计算，快照原则上只要没有变化，则不需要重新获取，所以在事务提交或者事务abort的时候，进行自增，只有检测到 xactCompletionCount 变化了才重新获取快照</li>
 <li>之前需要 xmin 用于vacuum ，现在使用新机制判断，现在在循环中遍历 xids 取 min ， 不对立刻同步其他的 min， 所以这是一个粗略值，在之后可以简单进行判断，如果在之后获得了比 min 更大的值，才进行精确判断，且更新 min</li>
 </ul>
-<h3 id=无锁算法提交事务减少proc加锁时间提升并发httpswwwbookstackcnreadaliyun-rds-corec3e73d0a666188d4md><a href=https://www.bookstack.cn/read/aliyun-rds-core/c3e73d0a666188d4.md target=_blank rel="noopener nofollow noreferrer">无锁算法提交事务，减少proc加锁时间，提升并发</a></h3>
+<h3 id=无锁算法提交事务减少proc加锁时间提升并发httpswwwbookstackcnreadaliyun-rds-corec3e73d0a666188d4md>
+<a href=https://www.bookstack.cn/read/aliyun-rds-core/c3e73d0a666188d4.md>无锁算法提交事务，减少proc加锁时间，提升并发</a>
+<a href=#%e6%97%a0%e9%94%81%e7%ae%97%e6%b3%95%e6%8f%90%e4%ba%a4%e4%ba%8b%e5%8a%a1%e5%87%8f%e5%b0%91proc%e5%8a%a0%e9%94%81%e6%97%b6%e9%97%b4%e6%8f%90%e5%8d%87%e5%b9%b6%e5%8f%91httpswwwbookstackcnreadaliyun-rds-corec3e73d0a666188d4md class=h-anchor aria-hidden=true>#</a>
+</h3>
 <p>无锁算法是利用CPU的原子操作实现的数据结构和算法来解决原来只能用锁才能解决的并发控制问题</p>
 <ul>
 <li>CAS</li>
 <li>Fetch-and-add</li>
 <li>Test-and-set</li>
 </ul>
-<h4 id=内存屏障>内存屏障</h4>
+<h4 id=内存屏障>
+内存屏障
+<a href=#%e5%86%85%e5%ad%98%e5%b1%8f%e9%9a%9c class=h-anchor aria-hidden=true>#</a>
+</h4>
 <p>内存屏障相关函数，包括 <code>compiler barrier</code> 和 <code>read/write barrier</code> <br>
 语义上的布尔值（PG代码里叫flag，具体实现上可能映射到一个字节，或一个整数）的原子操作，包括：</p>
 <pre><code>  pg_atomic_init_flag，初始化一个flag
@@ -121,7 +140,10 @@
   pg_atomic_add_fetch_u32, pg_atomic_sub_fetch_u32 对某个原子变量进行加、减操作，并返回变量改变之后的值
 </code></pre>
 <p>64位无符号整数的原子操作，与32位的实现的操作函数相似，只是实现的是64位版本，这里需要注意的是， 64位版本并不保证所有平台的都支持，目前在PostgreSQL的源代码中还没有被使用。</p>
-<h4 id=实际案例>实际案例：</h4>
+<h4 id=实际案例>
+实际案例：
+<a href=#%e5%ae%9e%e9%99%85%e6%a1%88%e4%be%8b class=h-anchor aria-hidden=true>#</a>
+</h4>
 <p>pg中事务在结束之后，需要设置 PGPROC 中的事务信息，确保其他 session 中再次获取 snapshot 的时候，完成事务不会在活跃列表中。此时会使用 ProcArrayLock 尝试对 ProcArray 加排他锁，此时锁竞争严重，后来对此进行优化，使用无锁编程技术，批量进行xid的重置，具体函数为 <code>ProcArrayEndTransaction</code></p>
 <pre><code>ProcArrayGroupClearXid
   大意为:
@@ -132,7 +154,7 @@
 </code></pre>
 <ul>
 <li>
-<p><a href=https://blog.csdn.net/jackgo73/article/details/121628739 target=_blank rel="noopener nofollow noreferrer">PGPROC数据结构</a></p>
+<p><a href=https://blog.csdn.net/jackgo73/article/details/121628739>PGPROC数据结构</a></p>
 <p>PGPROC 在共享内存中以 数组的形式组织，ProcArrayStruct 中 pgprocnos 字段记录映射关系，对应 PGPROC 中的 pgprocno 字段</p>
 </li>
 </ul>
@@ -185,9 +207,18 @@ $40 = {
   recoveryConflictPending = false,
   lwWaiting = false,
   lwWaitMode = 0 '\000',
-</code></pre><h3 id=事务实现框架>事务实现框架</h3>
-<h3 id=快照>快照</h3>
-<h3 id=wal>WAL</h3>
+</code></pre><h3 id=事务实现框架>
+事务实现框架
+<a href=#%e4%ba%8b%e5%8a%a1%e5%ae%9e%e7%8e%b0%e6%a1%86%e6%9e%b6 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<h3 id=快照>
+快照
+<a href=#%e5%bf%ab%e7%85%a7 class=h-anchor aria-hidden=true>#</a>
+</h3>
+<h3 id=wal>
+WAL
+<a href=#wal class=h-anchor aria-hidden=true>#</a>
+</h3>
 <p>数据写到buffer中时候，不会选择立刻刷盘，如果任何的数据改动都需要一次IO，则有性能损失，但是只是保留在磁盘中，在系统崩溃的时候，数据会丢失，所以一般都会使用wal保留一部分未刷盘的数据。</p>
 <ol>
 <li>
@@ -255,7 +286,10 @@ REDO point是PG启动恢复的起始点，是最后一次checkpoint启动时事�
 pg_control是磁盘上的物理文件，保存检查点的基本信息，在数据库恢复中使用，可通过命令pg_controldata查看该文件中的内容。</p>
 </li>
 </ol>
-<h4 id=test-pg_waldump调试和pg_walinspect插件>[test] <code>pg_waldump</code>调试和<code>pg_walinspect</code>插件</h4>
+<h4 id=test-pg_waldump调试和pg_walinspect插件>
+[test] <code>pg_waldump</code>调试和<code>pg_walinspect</code>插件
+<a href=#test-pg_waldump%e8%b0%83%e8%af%95%e5%92%8cpg_walinspect%e6%8f%92%e4%bb%b6 class=h-anchor aria-hidden=true>#</a>
+</h4>
 <p><code>pg_waldump</code>是一个读取wal文件结构的命令，<code>pg_walinspect</code>具有相同的作用，但是是SQL语句</p>
 <p>pg_walinspect
 pg_get_wal_record_info
@@ -342,8 +376,11 @@ pg_get_wal_stats_till_end_of_wal</p>
 <p>Continuous archiving</p>
 </li>
 </ul>
-<h3 id=可见性与隔离级别>可见性与隔离级别</h3>
-<p><a href=https://smartkeyerror.com/PostgreSQL-MVCC-01 target=_blank rel="noopener nofollow noreferrer">https://smartkeyerror.com/PostgreSQL-MVCC-01</a></p>
+<h3 id=可见性与隔离级别>
+可见性与隔离级别
+<a href=#%e5%8f%af%e8%a7%81%e6%80%a7%e4%b8%8e%e9%9a%94%e7%a6%bb%e7%ba%a7%e5%88%ab class=h-anchor aria-hidden=true>#</a>
+</h3>
+<p><a href=https://smartkeyerror.com/PostgreSQL-MVCC-01>https://smartkeyerror.com/PostgreSQL-MVCC-01</a></p>
 <p>mvcc</p>
 <p>pg使用直接数据插入，使用快照判断数据的可见性</p>
 <p>快照
@@ -354,8 +391,11 @@ pg_get_wal_stats_till_end_of_wal</p>
 * 所以后端的事务可见性的判别机制是一样的，只需要限制快照信息即可
 undo log
 mysql的innodb，oracle使用此机制</p>
-<p><a href=http://postgres.cn/docs/14/pageinspect.html target=_blank rel="noopener nofollow noreferrer">http://postgres.cn/docs/14/pageinspect.html</a></p>
-<h1 id=文章收藏>文章收藏</h1>
+<p><a href=http://postgres.cn/docs/14/pageinspect.html>http://postgres.cn/docs/14/pageinspect.html</a></p>
+<h1 id=文章收藏>
+文章收藏
+<a href=#%e6%96%87%e7%ab%a0%e6%94%b6%e8%97%8f class=h-anchor aria-hidden=true>#</a>
+</h1>
 <pre tabindex=0><code>作者：henry liang  
 链接：https://www.zhihu.com/question/449949351/answer/2692285376  
 来源：知乎  
@@ -363,11 +403,14 @@ mysql的innodb，oracle使用此机制</p>
 <li>数据库研究群体主要关注的是在单个主机的情况下，多个并发事务同时操作的情况下，如果保证数据库系统中数据项的一致性，包括：物理上数据不被破坏，数据的约束（唯一性约束，引用约束），或者业务约束（x + y == 10) 不被破坏。</li>
 <li>分布式系统主要关注在跨网络相互连接，且数据有多副本复制的集群中，对于逻辑上单个数据项（可能有多个物理副本）的操作，能否和单机系统中对于单个数据项操作的效果一样，始终看到正确的符合操作顺序的数据结果。</li>
 </ul>
-<p><a href=https://www.cnblogs.com/three-fighter/p/15293310.html target=_blank rel="noopener nofollow noreferrer">https://www.cnblogs.com/three-fighter/p/15293310.html</a>
-<a href=https://www.zhihu.com/question/449949351 target=_blank rel="noopener nofollow noreferrer">https://www.zhihu.com/question/449949351</a>
-<a href=https://zhuanlan.zhihu.com/p/573680047 target=_blank rel="noopener nofollow noreferrer">分布式事务，理论与实践</a></p>
-<h2 id=分布式一致性>分布式一致性</h2>
-<p><a href=https://jepsen.io/consistency target=_blank rel="noopener nofollow noreferrer">https://jepsen.io/consistency</a></p>
+<p><a href=https://www.cnblogs.com/three-fighter/p/15293310.html>https://www.cnblogs.com/three-fighter/p/15293310.html</a>
+<a href=https://www.zhihu.com/question/449949351>https://www.zhihu.com/question/449949351</a>
+<a href=https://zhuanlan.zhihu.com/p/573680047>分布式事务，理论与实践</a></p>
+<h2 id=分布式一致性>
+分布式一致性
+<a href=#%e5%88%86%e5%b8%83%e5%bc%8f%e4%b8%80%e8%87%b4%e6%80%a7 class=h-anchor aria-hidden=true>#</a>
+</h2>
+<p><a href=https://jepsen.io/consistency>https://jepsen.io/consistency</a></p>
 <p>事务的AICD和分布式的C是完全不一致的东西，事务的C要求的是事务的一致性约束不能被破坏，而分布式事务的C则是对系统整体正确性的描述，例如修改一个数据成功，且没有违背事务一致性，但是数据没有立刻同步到其他节点，导致分布式一致性被破坏</p>
 <ol>
 <li>分布式数据库中多副本的同步，需要确保一致性，需要一定的约束规则，不用角度的约束规则，可以理解为不同程度的一致性
@@ -406,12 +449,11 @@ mysql的innodb，oracle使用此机制</p>
 </ol>
 <p>中心化的授时机制和true time，可以保证线性一致性，但是TSO有单点问题，true time需要硬件支持。退而求其次的混合时钟，个人理解是使用事件之间消息传递机制来保证事件的先后顺序，这隐含一个必要条件就是需要是事件之间具有因果关系，所以
 CRDB能做到因果一致性，对于不相干的key，则无法保证事件顺序。</p>
-<p><a href=https://github.com/xitu/gold-miner/blob/master/TODO/postgres-atomicity.md target=_blank rel="noopener nofollow noreferrer">https://github.com/xitu/gold-miner/blob/master/TODO/postgres-atomicity.md</a></p>
+<p><a href=https://github.com/xitu/gold-miner/blob/master/TODO/postgres-atomicity.md>https://github.com/xitu/gold-miner/blob/master/TODO/postgres-atomicity.md</a></p>
 </div>
-<div class=clear></div>
 <div class=pagination>
 <div class=pagination__title>
-<span class=pagination__title-h>阅读更多</span>
+<span class=pagination__title-h>Read other posts</span>
 <hr>
 </div>
 <div class=pagination__buttons>
@@ -433,21 +475,22 @@ CRDB能做到因果一致性，对于不相干的key，则无法保证事件顺�
 </div>
 <footer class=footer>
 <div class=footer__inner>
-<div class="copyright copyright-font">
-<span>共 135545 字 <br> 写完一本 曹禺 的</br>《雷雨》了！</span>
-</div>
+<a href=https://askyx.github.io/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Asky</span>
+<span class=logo__cursor></span>
+</a>
 <div class=copyright>
-<span>© 2024 Powered by <a href=https://gohugo.io target=_blank rel=noopener>Hugo</a> Theme by <a href=https://github.com/lmm214/immmmm/tree/master/themes/hello-friend target=_blank rel=noopener>immmmm</a></span>
+<span>© 2024 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
 </div>
 </div>
 </footer>
-<script type=text/javascript src=/theme-main-1.js></script>
-<script type=text/javascript src=/lately.min.js></script>
-<script type=text/javascript src=/waterfall.min.js></script>
-<script type=text/javascript src=/imgStatus.min.js></script>
-<script type=text/javascript src=/view-image.js></script>
-<script type=text/javascript src=/theme-lmm-20230123.js></script>
-<script type=text/javascript src=/pangu.min.js></script>
+<script src=https://askyx.github.io/assets/main.js></script>
+<script src=https://askyx.github.io/assets/prism.js></script>
 </div>
 </body>
 </html>

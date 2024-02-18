@@ -1,0 +1,134 @@
+FROM centos
+
+LABEL description="build antdb regress env"
+
+RUN sed -e "s|^mirrorlist=|#mirrorlist=|g" \
+    -e "s|^#baseurl=http://mirror.centos.org/centos/\$releasever|baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.4.2105|g" \
+    -e "s|^#baseurl=http://mirror.centos.org/\$contentdir/\$releasever|baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-vault/8.4.2105|g" \
+    -i.bak \
+    /etc/yum.repos.d/CentOS-*.repo
+RUN yum makecache
+RUN yum update -y
+
+RUN yum install -y gcc flex bison make perl-ExtUtils-Embed glibc-locale-source python3 python3-devel readline-devel zlib-devel pam-devel libxml2 libxml2-devel libxslt libxslt-devel openldap openldap-devel wget git perl perl-devel sudo
+RUN dnf -y --enablerepo=powertools install perl-IPC-Run perl-Capture-Tiny perl-DateTime perl-namespace-autoclean
+
+WORKDIR /home
+RUN git clone --depth=1 https://gitee.com/guluyang/lcov.git -b v1.14 /home/lcov
+WORKDIR /home/lcov
+RUN make install
+RUN genhtml -V
+
+WORKDIR /home
+RUN wget https://libssh2.org/download/libssh2-1.11.0.tar.gz
+RUN tar -zxf libssh2-1.11.0.tar.gz
+WORKDIR /home/libssh2-1.11.0
+RUN ./configure
+RUN make install
+WORKDIR /home
+RUN rm -rf /home/lcov libssh2-1.11.0.tar.gz /home/libssh2-1.11.0
+
+RUN useradd -ms /bin/bash centos
+
+RUN echo 'centos ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+ENV LANG en_US.utf8
+
+RUN localedef -v -c -i en_US -f UTF-8 en_US.UTF-8
+
+USER centos
+
+RUN echo "export PATH=$HOME/bin:/usr/local/bin:$HOME/.local/bin:$PATH" >> $HOME/.bashrc
+
+
+
+
+
+cd /home/build
+/home/AntDB/configure --prefix=/home/app \
+--with-segsize=4 \
+--with-wal-blocksize=64 \
+--enable-grammar-oracle \
+--with-perl \
+--with-python \
+--with-pam \
+--with-ldap \
+--with-libxml \
+--with-libxslt \
+--enable-thread-safety \
+--enable-tap-tests \
+--enable-coverage \
+--enable-debug \
+--disable-cassert \
+--enable-depend  && \
+make -j16 && make install && \
+cd contrib && make -j16 && make install
+
+RUN ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa && cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys && \
+    chmod 0600 ~/.ssh/authorized_keys && \
+    echo -e "StrictHostKeyChecking no \nUserKnownHostsFile /dev/null" >> ~/.ssh/config
+
+
+
+
+https://blog.csdn.net/weixin_43252521/article/details/124409151
+
+cd /etc/yum.repos.d/
+
+sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+
+
+sed -e 's|^mirrorlist=|#mirrorlist=|g' \
+         -e 's|^#baseurl=http://mirror.centos.org/$contentdir|baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos|g' \
+         -i.bak \
+         /etc/yum.repos.d/CentOS-*.repo
+
+yum makecache
+
+yum update -y
+
+yum -y install vim
+yum install initscripts -y
+yum install openssh-server -y
+yum install -y epel-release
+yum install -y readline-devel redhat-lsb
+yum install -y alsa-lib-devel ant apr apr-devel apr-util apr-util-devel automake
+yum install -y bison boost-devel byacc
+yum install -y cmake
+yum install -y device-mapper-multipath 
+yum install -y flex htop
+yum install -y gcc-c++ gd git glibc-devel  gzip
+yum install -y libaio-devel libcurl-devel libevent-devel  libibumad-devel libiodbc
+yum install -y libiodbc-devel librdmacm-devel libtool libuuid-devel libX11-devel
+yum install -y libXau-devel libXext-devel libxml++ libxml2-devel
+yum install -y log4cxx log4cxx-devel
+yum install -y lzo-devel lzo-minilzo lzop
+yum install -y ncurses-devel ncurses-libs net-snmp-devel net-snmp-perl
+yum install -y openldap-clients openldap-devel openmotif openssl-devel 
+yum install -y snappy sqlite-devel protobuf-compiler
+yum install -y tog-pegasus libcgroup-tools.x86_64 libcgroup
+yum install -y unixODBC unixODBC-devel unzip wget xerces-c-devel xinetd zeromq zeromq-devel zlib-devel go
+yum install -y gdb sudo net-tools vim perl-DBD-SQLite perl-Math-Calc-Units perl-Config-Tiny perl-Parse-RecDescent
+
+
+
+
+systemctl
+
+
+./traf_tools_setup.sh -d /workspaces/.common/download_software_tools -i /workspaces/.common/installed_software_tools
+
+sudo ln -s /usr/bin/python3 /usr/bin/python
+sudo ln -s /usr/lib64/libsnappy.so.1 /usr/lib64/libsnappy.so
+
+  rm $TRAF_VAR/ms.env
+  sqgen
+  sqstart
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/workspaces/.common/installed_software_tools/protobuf-2.5.0/lib/
+export LIBRARY_PATH=$LIBRARY_PATH:/workspaces/.common/installed_software_tools/protobuf-2.5.0/lib/
+export PATH=$PATH:/workspaces/.common/installed_software_tools/protobuf-2.5.0/bin/
+export C_INCLUDE_PATH=$C_INCLUDE_PATH:/workspaces/.common/installed_software_tools/protobuf-2.5.0/include/
+export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/workspaces/.common/installed_software_tools/protobuf-2.5.0/include/
+export PKG_CONFIG_PATH=/workspaces/.common/installed_software_tools/protobuf-2.5.0/lib/pkgconfig/

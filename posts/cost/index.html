@@ -1,61 +1,62 @@
 <!doctype html><html lang=en>
 <head>
-<title>执行计划代价计算规则梳理 :: Asky</title>
+<title>
+执行计划代价计算规则梳理 ::
+Asky — My note blog
+</title>
 <meta charset=utf-8>
-<meta charset=utf-8>
-<meta name=renderer content="webkit">
-<meta name=force-rendering content="webkit">
-<meta name=referrer content="no-referrer">
-<meta http-equiv=x-ua-compatible content="IE=Edge,chrome=1">
-<script>(!1||!!window.MSInputMethodContext&&!!document.documentMode)&&document.write('<script id="_iealwn_js" data-outver="11" src="https://support.dmeng.net/ie-alert-warning/latest.js"><\/script>')</script>
-<meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1">
-<meta name=description content="表和各个index的物理结构及数据操作 统计信息 cost 计算 demo 选择率的计算 基表cost index cost pageinspect PostgreSQL索引系列文章链接汇总 统计信息与选择率与代价计算 当前统计信息会收集下面数据，可以使用视图 pg_stats 查看，在使用统计信息的时候，使用相关信息计算选择率 * Histogram：直方图，这个数据">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="表和各个index的物理结构及数据操作 统计信息 cost 计算 demo 选择率的计算 基表cost index cost  pageinspect
+PostgreSQL索引系列文章链接汇总
+统计信息与选择率与代价计算 #  当前统计信息会收集下面数据，可以使用视图 pg_stats 查看，在使用统计信息的时候，使用相关信息计算选择率
+* Histogram：直方图，这个数据结构用来描述数据的分布，当前pg中计算的是等高直方图，在每一个范围内，数据数量均等 * Most common values: 出现次数最多的一组值。将它们踢出直方图可以减少极端值造成的估算误差。 * Distinct Number: 即这一列一共有多少个不同的值。值得注意的是 PostgreSQL 并没有为直方图的 每个 bucket 维护一个 bucket 本身的不同的值。 * NULL values: 有多少行的值为 NULL。因为 NULL 是一个非常特殊的值，所以也会将 NULL 单独拿出来进行维护 * Average value width in bytes: 列平均长度，记录这个值可以用来对 SQL 使用的内存大小进行估算，以及 对 IO 开销进行更细致的估算。 * Correlation: 索引和主键（或者说 row id）之间的顺序相关程度。正相关为1，负相关为-1，实际上是统计的协方差  选择率 #  选择率用于计算约束条件过滤之后大的数据量大小，主要用于代价计算中估算执行代价，选择率的计算主要会使用到直方图统计信息和MCV
+ 对于等值约束，只会使用 MCV 进行计算，MCV是统计的高频值  首先需要判断列 isunique，如果是，则此时是没有mcv ，直接使用公式 selec = 1.0 / rel-&amp;gt;tuples  计算选择率 否则如果条件中常数刚好是 MCV ，则直接返回当前 MCV 对应的概率即可 否则他假设数据是均匀分布，先去除 MCV 和 nullfac 的概率之后，然后再除以 otherdistinct，计算公式为 selec = (1.0 - sumcommon - nullfrac) / otherdistinct     如下例子，100 不是 MCV，对应上面第三条规则">
 <meta name=keywords content="程序员、码农、database、C++">
-<link href=/atom.xml title=Asky type=application/rss+xml>
+<meta name=robots content="noodp">
 <link rel=canonical href=https://askyx.github.io/posts/cost/>
 <link rel=stylesheet href=//cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.6.0/lxgwwenkaiscreen.css media=print onload="this.media='all'">
-<link rel=stylesheet href=/theme-20230215.css>
+<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
+<link rel=stylesheet href=https://askyx.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
 <link rel="shortcut icon" href=https://askyx.github.io/favicon.ico>
 <link rel=apple-touch-icon href=https://askyx.github.io/favicon.ico>
-<meta name=apple-mobile-web-app-capable content="yes">
-<meta name=apple-mobile-web-app-status-bar-style content="black-translucent">
-<meta name=apple-mobile-web-app-title content="Asky">
 <link rel=bookmark href=https://askyx.github.io/favicon.ico>
 <link rel=apple-touch-icon-precomposed sizes=180x180 href=https://askyx.github.io/favicon.ico>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="执行计划代价计算规则梳理">
+<meta name=twitter:description content="pg中各个算子的代价计算">
 <meta property="og:title" content="执行计划代价计算规则梳理">
 <meta property="og:description" content="pg中各个算子的代价计算">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://askyx.github.io/posts/cost/"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2023-02-17T09:38:28+08:00">
 <meta property="article:modified_time" content="2023-02-17T09:38:28+08:00">
-<script async defer data-website-id=c27bd84b-02a3-4c3f-a168-0d7fadec9c74 src=https://u.edui.fun/lmmtj.js></script>
-<link rel=prefetch href=https://askyx.github.io/posts/defineinc/>
-<link rel=prefetch href=https://askyx.github.io/posts/postgres_executor/>
 </head>
-<body>
-<script>var getTheme=localStorage.getItem("theme")||'';getTheme=='dark'?document.body.classList.add("dark"):getTheme=='light'&&document.body.classList.remove("dark")</script>
+<body class=light-theme>
 <div class=container>
 <header class=header>
 <span class=header__inner>
 <a href=https://askyx.github.io/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
 <span class=logo__text>Asky</span>
 <span class=logo__cursor></span>
 </a>
 <span class=header__right>
-<nav class="menu hidden">
+<nav class=menu>
 <ul class="menu__inner menu__inner--desktop">
-<li><a href=/archives/>归档</a></li>
-<li><a href=/about/>关于我</a></li>
-<li><a href=/search/>🔍</a></li>
+<li><a href=/about>About</a></li>
+<li><a href=/archive>Archive</a></li>
+<li><a href=/search>🔍</a></li>
 <li><a href=javascript:; onclick=randomPost() title=随机访问一篇文章><svg t="1660103436159" class="icon search-box-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" p-id="1184" width="32" height="32"><path d="M421.376 481.28s117.248 24.576 175.104-8.704c0 0-89.6 70.144-89.6 166.4.512-.512-8.192-121.344-85.504-157.696zm17.408 487.936s68.608 6.656 68.608-80.896c0 0 3.072 88.576 65.024 78.336.0.512-50.688 22.016-133.632 2.56zM161.28 238.08s-30.208 65.536 11.264 91.648c0 0-67.072-17.408-81.408 37.376.0.0 8.704-82.944 70.144-129.024zM857.6 227.328s49.152 50.176 1.024 81.408c0 0 58.88-18.432 66.56 36.352.0.0 5.12-69.632-67.584-117.76z" p-id="1185"/><path d="M443.392 970.752c-5.632.0-10.752-1.024-15.36-3.072L157.184 810.496l-1.536-1.024s-1.024-1.024-4.608-2.56c-51.2-29.184-62.976-94.208-65.536-120.832V386.56c0-3.072.512-7.168 1.024-11.264l.512-3.584 1.024-2.56c19.456-50.688 76.8-51.2 103.936-44.032l-1.536 5.632 4.096-6.144L476.16 486.4l18.944 37.888c20.992 36.864 29.184 77.824 32.768 99.84v258.048c-4.608 56.32-36.864 76.288-55.808 82.944-1.024.512-15.36 5.632-28.672 5.632zM181.248 774.656l263.168 152.576c12.288-.512 36.864-6.656 40.448-48.128V628.736c-4.608-31.744-20.992-103.936-72.192-128L322.56 445.44l1.536 3.072L181.76 366.08c-2.048-.512-40.448-9.216-52.736 15.872-.512 2.56-.512 4.608-.512 6.144v294.4c1.536 16.896 9.728 67.072 43.52 86.528 3.584 2.048 6.656 4.096 9.216 5.632z" p-id="1186"/><path d="M837.632 212.992c6.656 4.096 12.8 7.168 18.432 10.752l1.536 1.024 1.536 1.536c5.12 4.096 10.752 9.216 16.384 15.36 6.144 11.776 5.632 33.28 4.608 49.152-1.024 12.288-6.656 30.208-26.624 44.544l-1.024.512-247.808 156.672c-26.624 14.336-62.976 18.432-96.256 18.432-40.96.0-77.824-6.656-89.088-8.704l-3.072-.512-245.248-142.336c-39.424-29.696-28.16-85.504-15.36-113.664l2.56-6.144 263.68-166.912c29.184-14.336 104.448-43.008 173.056-1.024 3.584 2.56 58.368 34.304 119.296 69.632M431.616 460.8c40.448 7.168 114.176 13.824 152.576-6.144L828.928 299.52c7.168-5.632 8.192-10.24 8.704-12.8 1.024-11.264-9.728-26.624-15.36-32.768-55.808-32.256-243.712-141.312-250.368-145.408-49.664-30.72-107.008-9.216-130.048 2.56L192.512 268.8c-4.096 12.288-12.288 42.496 3.584 55.808L431.616 460.8z" p-id="1187"/><path d="M831.488 299.008c4.096-1.024 38.4-11.264 66.048 6.144 7.168 4.608 17.92 11.776 24.064 24.576 1.024 5.632 4.096 10.752 4.608 16.896v2.048l-1.024 323.072c-5.12 35.328-22.528 91.648-77.312 125.44l-5.12 3.584h-1.024L579.584 966.656l-4.608.512c-4.096.512-8.704 1.024-12.8 1.024-15.872.0-30.208-5.12-41.984-14.848-24.576-20.48-32.768-55.808-35.328-73.728l-1.024-252.928h1.536c6.144-96.768 88.576-164.864 96.768-171.008l-.512-.512L829.44 299.52M528.384 867.328c.512 10.24 5.12 41.472 19.968 53.76 3.072 2.56 7.68 5.632 16.384 5.12L829.44 758.272c56.32-38.4 53.76-115.712 53.76-116.224l-.512-32.256 1.024-250.368h-.512c-1.536-12.8-7.168-16.384-8.704-17.408-8.704-5.632-23.552-3.072-28.672-2.048L610.304 488.96c-1.024.512-80.896 65.024-80.896 149.504h-1.536l.512 228.864zM435.2 264.192c0 27.648 31.744 50.176 71.168 50.176s71.168-22.528 71.168-50.176-31.744-50.176-71.168-50.176S435.2 236.544 435.2 264.192z" p-id="1188"/><path d="M663.552 782.848c0 30.72-22.528 67.072-49.664 80.384-27.648 13.824-50.176-.512-50.176-31.232s22.528-67.072 50.176-80.384c27.136-13.824 49.664.0 49.664 31.232zM760.32 602.624c0 30.72-22.528 67.072-49.664 80.384-27.648 13.824-49.664-.512-49.664-31.232s22.528-67.072 49.664-80.384c27.136-13.824 49.664.512 49.664 31.232zM867.84 428.032c0 30.72-22.528 67.072-49.664 80.384C790.528 522.24 768 507.904 768 477.184s22.528-67.072 50.176-80.384c27.136-13.824 49.664.0 49.664 31.232zM270.848 538.112c0 30.72-22.016 41.984-48.64 24.576-27.136-16.896-48.64-55.808-48.64-86.528s22.016-41.984 48.64-24.576c26.624 16.896 48.64 55.808 48.64 86.528zm161.28 285.184c0 30.72-22.016 41.984-48.64 24.576-26.624-17.408-48.64-55.808-48.64-86.528s22.016-41.984 48.64-24.576c26.624 16.896 48.64 55.808 48.64 86.528z" p-id="1189"/></svg></a></li>
 </ul>
 <ul class="menu__inner menu__inner--mobile">
-<li><a href=/archives/>归档</a></li>
-<li><a href=/about/>关于我</a></li>
-<li><a href=/search/>🔍</a></li>
+<li><a href=/about>About</a></li>
+<li><a href=/archive>Archive</a></li>
+<li><a href=/search>🔍</a></li>
 </ul>
 </nav>
-<span class="menu-trigger hidden"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
 </span>
 <span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
 </span>
@@ -63,7 +64,7 @@
 </span>
 </header>
 <div class=content>
-<div class="post postgres">
+<div class=post>
 <div class=breadcrumb>
 <li>
 <a href=https://askyx.github.io/>首页</a>
@@ -77,7 +78,9 @@
 </div>
 <h2 class=post-title><a href=https://askyx.github.io/posts/cost/>执行计划代价计算规则梳理</a></h2>
 <div class=post-meta>
-<span class=post-date>2023-02-17</span>
+<span class=post-date>
+2023-02-17
+</span>
 </div>
 <div class=post-content>
 <ol>
@@ -89,9 +92,12 @@
 <li>基表cost</li>
 <li>index cost</li>
 </ol>
-<p><a href=http://postgres.cn/docs/14/pageinspect.html target=_blank rel="noopener nofollow noreferrer">pageinspect</a></p>
-<p><a href=https://www.mengqingzhong.com/2020/10/01/postgresql-index-linnks/ target=_blank rel="noopener nofollow noreferrer">PostgreSQL索引系列文章链接汇总</a></p>
-<h2 id=统计信息与选择率与代价计算>统计信息与选择率与代价计算</h2>
+<p><a href=http://postgres.cn/docs/14/pageinspect.html>pageinspect</a></p>
+<p><a href=https://www.mengqingzhong.com/2020/10/01/postgresql-index-linnks/>PostgreSQL索引系列文章链接汇总</a></p>
+<h2 id=统计信息与选择率与代价计算>
+统计信息与选择率与代价计算
+<a href=#%e7%bb%9f%e8%ae%a1%e4%bf%a1%e6%81%af%e4%b8%8e%e9%80%89%e6%8b%a9%e7%8e%87%e4%b8%8e%e4%bb%a3%e4%bb%b7%e8%ae%a1%e7%ae%97 class=h-anchor aria-hidden=true>#</a>
+</h2>
 <p>当前统计信息会收集下面数据，可以使用视图 <code>pg_stats</code> 查看，在使用统计信息的时候，使用相关信息计算选择率</p>
 <pre><code>* Histogram：直方图，这个数据结构用来描述数据的分布，当前pg中计算的是等高直方图，在每一个范围内，数据数量均等
 * Most common values: 出现次数最多的一组值。将它们踢出直方图可以减少极端值造成的估算误差。
@@ -102,7 +108,10 @@
   对 IO 开销进行更细致的估算。
 * Correlation: 索引和主键（或者说 row id）之间的顺序相关程度。正相关为1，负相关为-1，实际上是统计的协方差
 </code></pre>
-<h3 id=选择率>选择率</h3>
+<h3 id=选择率>
+选择率
+<a href=#%e9%80%89%e6%8b%a9%e7%8e%87 class=h-anchor aria-hidden=true>#</a>
+</h3>
 <p>选择率用于计算约束条件过滤之后大的数据量大小，主要用于代价计算中估算执行代价，选择率的计算主要会使用到直方图统计信息和MCV</p>
 <ul>
 <li>对于等值约束，只会使用 MCV 进行计算，MCV是统计的高频值
@@ -194,7 +203,7 @@ p(a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span> <
 
 <span style=color:#ae81ff>1360000</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>28475185873552034</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>387262</span>.<span style=color:#ae81ff>52788030764</span>
 </code></pre></div><p>上面只是简单的例子，其他一些表达式这里不能简单的使用上面的方式计算，pg提供不同的计算函数，大致有下面几种，其他的复合条件，则是会递归或者循环调用这些函数单独计算，大致的调用关系如图</p>
-<p><img loading=lazy decoding=async src=/posts/postgres/images/cost.svg alt=xx></p>
+<p><img src=/posts/postgres/images/cost.svg alt=xx></p>
 <pre><code>  src/backend/utils/adt/selfuncs.c:
      217:  *     eqsel             - Selectivity of &quot;=&quot; for any data types.
      548:  *     neqsel            - Selectivity of &quot;!=&quot; for any data types.
@@ -210,8 +219,14 @@ p(a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span> <
     2162:  *     rowcomparesel     - Selectivity of RowCompareExpr Node.
 </code></pre>
 <p>选择率的主要入口是clauselist_selectivity，在最终构建path阶段，对于基表，会提前在函数 set_baserel_size_estimates 中计算 reloptinfo 的 rows，人、而对于一些path，会在其的cost阶段使用相关的约束条件计算选择率，用于估算其操作行数</p>
-<h2 id=cost-计算>cost 计算</h2>
-<h3 id=总结>总结</h3>
+<h2 id=cost-计算>
+cost 计算
+<a href=#cost-%e8%ae%a1%e7%ae%97 class=h-anchor aria-hidden=true>#</a>
+</h2>
+<h3 id=总结>
+总结
+<a href=#%e6%80%bb%e7%bb%93 class=h-anchor aria-hidden=true>#</a>
+</h3>
 <ol>
 <li>启动代价<br>
 算子在输出第一行可用tuple需要的代价
@@ -236,7 +251,10 @@ p(a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span> <
 <p>total_cost = startup_cost + cpu_run_cost + disk_run_cost + other
 cpu_run_cost = cpu_per_tuple * inputrows + target_cost_per_tuple * outputrows
 disk_run_cost = spc_page_cost * pages</p>
-<h4 id=简单的seqscan>简单的seqscan</h4>
+<h4 id=简单的seqscan>
+简单的seqscan
+<a href=#%e7%ae%80%e5%8d%95%e7%9a%84seqscan class=h-anchor aria-hidden=true>#</a>
+</h4>
 <p>seq scan 比较简单，在前期工作完成之后，直接构造 path 且估算其代价</p>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> <span style=color:#66d9ef>c</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span> ;
                         QUERY PLAN
@@ -260,7 +278,10 @@ disk_run_cost = spc_page_cost * pages</p>
    cpu_run_cost <span style=color:#f92672>+=</span> path<span style=color:#f92672>-&gt;</span>pathtarget<span style=color:#f92672>-&gt;</span>cost.per_tuple <span style=color:#f92672>*</span> path<span style=color:#f92672>-&gt;</span><span style=color:#66d9ef>rows</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>17000</span>
 
 <span style=color:#ae81ff>7</span>. total_cost <span style=color:#f92672>=</span> startup_cost <span style=color:#f92672>+</span> cpu_run_cost <span style=color:#f92672>+</span> disk_run_cost <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>17000</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>7053</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>24053</span>
-</code></pre></div><h4 id=复杂target-list>复杂target list</h4>
+</code></pre></div><h4 id=复杂target-list>
+复杂target list
+<a href=#%e5%a4%8d%e6%9d%82target-list class=h-anchor aria-hidden=true>#</a>
+</h4>
 <p>遵循前面总结的公式，这里targetlist 中有一个子查询，所以代价不为 0</p>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span>, (<span style=color:#66d9ef>select</span> <span style=color:#66d9ef>sum</span>(a) <span style=color:#66d9ef>from</span> t2) <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span> <span style=color:#66d9ef>and</span> <span style=color:#66d9ef>c</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>5566</span>;
                                 QUERY PLAN
@@ -296,7 +317,10 @@ esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span
 <span style=color:#ae81ff>6713</span>.<span style=color:#ae81ff>76</span>  <span style=color:#f92672>=</span> <span style=color:#ae81ff>6533</span>.<span style=color:#ae81ff>74</span>  <span style=color:#f92672>+</span> <span style=color:#ae81ff>180</span>.<span style=color:#ae81ff>01</span>
 <span style=color:#ae81ff>19349</span>.<span style=color:#ae81ff>72</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>19169</span>.<span style=color:#ae81ff>70</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>180</span>.<span style=color:#ae81ff>02</span>
 
-</code></pre></div><h4 id=使用-index-scan>使用 index scan</h4>
+</code></pre></div><h4 id=使用-index-scan>
+使用 index scan
+<a href=#%e4%bd%bf%e7%94%a8-index-scan class=h-anchor aria-hidden=true>#</a>
+</h4>
 <p>首先pg 对index 设计了一层抽象AM接口，下面实现有多种 index 引擎，常规的比如 btree index，hash index 等，不常见的比如 gin index，brin index 等，甚至还存在条件索引，接口中除了常规的 index 控制机访问方法外，还需要 index 实现其 cost 的计算方法，当前支持的 index cost 计算函数如下</p>
 <pre><code>amroutine-&gt;amcostestimate = blcostestimate;
 amroutine-&gt;amcostestimate = brincostestimate;
@@ -558,7 +582,9 @@ rows = 1000000,
 startup_cost = 132154.34284662094,
 total_cost = 134654.34284662094,
 pathkeys = 0x563be3d86de0</p>
-<h3 id=heading></h3>
+<h3 id=heading>
+<a href=#heading class=h-anchor aria-hidden=true>#</a>
+</h3>
 <ol>
 <li>FQS pgxc_FQS_create_remote_plan
 没有计算代价，cost为0</li>
@@ -571,8 +597,11 @@ Node/s: dn1, dn2
 <ol start=2>
 <li>remote create path</li>
 </ol>
-<h2 id=query-plan>benchmarksql=# explain verbose select * from t1 ;
-QUERY PLAN</h2>
+<h2 id=query-plan>
+benchmarksql=# explain verbose select * from t1 ;
+QUERY PLAN
+<a href=#query-plan class=h-anchor aria-hidden=true>#</a>
+</h2>
 <p>Data Node Scan on t1 &ldquo;<em>REMOTE_TABLE_QUERY</em>&rdquo; (cost=0.00..82037.50 rows=90005 width=12)
 Output: t1.c1, t1.c2, t1.c3
 Primary node/s: dn1
@@ -750,10 +779,9 @@ path-&gt;jpath.path.total_cost = startup_cost + run_cost;
   
 </code></pre>
 </div>
-<div class=clear></div>
 <div class=pagination>
 <div class=pagination__title>
-<span class=pagination__title-h>阅读更多</span>
+<span class=pagination__title-h>Read other posts</span>
 <hr>
 </div>
 <div class=pagination__buttons>
@@ -775,21 +803,22 @@ path-&gt;jpath.path.total_cost = startup_cost + run_cost;
 </div>
 <footer class=footer>
 <div class=footer__inner>
-<div class="copyright copyright-font">
-<span>共 135545 字 <br> 写完一本 曹禺 的</br>《雷雨》了！</span>
-</div>
+<a href=https://askyx.github.io/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Asky</span>
+<span class=logo__cursor></span>
+</a>
 <div class=copyright>
-<span>© 2024 Powered by <a href=https://gohugo.io target=_blank rel=noopener>Hugo</a> Theme by <a href=https://github.com/lmm214/immmmm/tree/master/themes/hello-friend target=_blank rel=noopener>immmmm</a></span>
+<span>© 2024 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
 </div>
 </div>
 </footer>
-<script type=text/javascript src=/theme-main-1.js></script>
-<script type=text/javascript src=/lately.min.js></script>
-<script type=text/javascript src=/waterfall.min.js></script>
-<script type=text/javascript src=/imgStatus.min.js></script>
-<script type=text/javascript src=/view-image.js></script>
-<script type=text/javascript src=/theme-lmm-20230123.js></script>
-<script type=text/javascript src=/pangu.min.js></script>
+<script src=https://askyx.github.io/assets/main.js></script>
+<script src=https://askyx.github.io/assets/prism.js></script>
 </div>
 </body>
 </html>

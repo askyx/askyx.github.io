@@ -1,61 +1,63 @@
 <!doctype html><html lang=en>
 <head>
-<title>postgres Parser :: Asky</title>
+<title>
+postgres Parser ::
+Asky — My note blog
+</title>
 <meta charset=utf-8>
-<meta charset=utf-8>
-<meta name=renderer content="webkit">
-<meta name=force-rendering content="webkit">
-<meta name=referrer content="no-referrer">
-<meta http-equiv=x-ua-compatible content="IE=Edge,chrome=1">
-<script>(!1||!!window.MSInputMethodContext&&!!document.documentMode)&&document.write('<script id="_iealwn_js" data-outver="11" src="https://support.dmeng.net/ie-alert-warning/latest.js"><\/script>')</script>
-<meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1">
-<meta name=description content="BISON 1.2 From Formal Rules to Bison Input Terminal Nonterminal 1.3 Semantic Values A formal grammar selects tokens only by their classifications each token in a Bison grammar has both a token kind and a semantic value 强类型，有类型和值的区别 1.4 Semantic Actions The action says how to produce the semantic value 1.5 Writing GLR Parsers 略，默认是LR文法，但是有RR和SR冲突，所以为了不那么严格限制语法，在一定程度上允许冲突。这里不做了解 1.6 Locations produce verbose and useful error messages 1.7 Bison Output: the Parser Implementation File The tokens come from a function called the">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="BISON #  1.2 From Formal Rules to Bison Input
+ Terminal Nonterminal  1.3 Semantic Values A formal grammar selects tokens only by their classifications each token in a Bison grammar has both a token kind and a semantic value 强类型，有类型和值的区别
+1.4 Semantic Actions The action says how to produce the semantic value
+1.5 Writing GLR Parsers 略，默认是LR文法，但是有RR和SR冲突，所以为了不那么严格限制语法，在一定程度上允许冲突。这里不做了解
+1.6 Locations produce verbose and useful error messages
+1.7 Bison Output: the Parser Implementation File The tokens come from a function called the lexical analyzer. The Bison parser calls the lexical analyzer each time it wants a new token supply some additional functions.">
 <meta name=keywords content="程序员、码农、database、C++">
-<link href=/atom.xml title=Asky type=application/rss+xml>
+<meta name=robots content="noodp">
 <link rel=canonical href=https://askyx.github.io/posts/parser/>
 <link rel=stylesheet href=//cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.6.0/lxgwwenkaiscreen.css media=print onload="this.media='all'">
-<link rel=stylesheet href=/theme-20230215.css>
+<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
+<link rel=stylesheet href=https://askyx.github.io/style.css>
+<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
 <link rel="shortcut icon" href=https://askyx.github.io/favicon.ico>
 <link rel=apple-touch-icon href=https://askyx.github.io/favicon.ico>
-<meta name=apple-mobile-web-app-capable content="yes">
-<meta name=apple-mobile-web-app-status-bar-style content="black-translucent">
-<meta name=apple-mobile-web-app-title content="Asky">
 <link rel=bookmark href=https://askyx.github.io/favicon.ico>
 <link rel=apple-touch-icon-precomposed sizes=180x180 href=https://askyx.github.io/favicon.ico>
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="postgres Parser">
+<meta name=twitter:description content="Postgres parser 模块解析，目的是为了学习parser实现机制。编译原理以及bison和flex的使用">
 <meta property="og:title" content="postgres Parser">
 <meta property="og:description" content="Postgres parser 模块解析，目的是为了学习parser实现机制。编译原理以及bison和flex的使用">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://askyx.github.io/posts/parser/"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2022-10-10T12:03:18+08:00">
 <meta property="article:modified_time" content="2022-10-10T12:03:18+08:00">
-<script async defer data-website-id=c27bd84b-02a3-4c3f-a168-0d7fadec9c74 src=https://u.edui.fun/lmmtj.js></script>
-<link rel=prefetch href=https://askyx.github.io/posts/rocksdb/>
-<link rel=prefetch href=https://askyx.github.io/posts/locks/>
 </head>
-<body>
-<script>var getTheme=localStorage.getItem("theme")||'';getTheme=='dark'?document.body.classList.add("dark"):getTheme=='light'&&document.body.classList.remove("dark")</script>
+<body class=light-theme>
 <div class=container>
 <header class=header>
 <span class=header__inner>
 <a href=https://askyx.github.io/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
 <span class=logo__text>Asky</span>
 <span class=logo__cursor></span>
 </a>
 <span class=header__right>
-<nav class="menu hidden">
+<nav class=menu>
 <ul class="menu__inner menu__inner--desktop">
-<li><a href=/archives/>归档</a></li>
-<li><a href=/about/>关于我</a></li>
-<li><a href=/search/>🔍</a></li>
+<li><a href=/about>About</a></li>
+<li><a href=/archive>Archive</a></li>
+<li><a href=/search>🔍</a></li>
 <li><a href=javascript:; onclick=randomPost() title=随机访问一篇文章><svg t="1660103436159" class="icon search-box-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" p-id="1184" width="32" height="32"><path d="M421.376 481.28s117.248 24.576 175.104-8.704c0 0-89.6 70.144-89.6 166.4.512-.512-8.192-121.344-85.504-157.696zm17.408 487.936s68.608 6.656 68.608-80.896c0 0 3.072 88.576 65.024 78.336.0.512-50.688 22.016-133.632 2.56zM161.28 238.08s-30.208 65.536 11.264 91.648c0 0-67.072-17.408-81.408 37.376.0.0 8.704-82.944 70.144-129.024zM857.6 227.328s49.152 50.176 1.024 81.408c0 0 58.88-18.432 66.56 36.352.0.0 5.12-69.632-67.584-117.76z" p-id="1185"/><path d="M443.392 970.752c-5.632.0-10.752-1.024-15.36-3.072L157.184 810.496l-1.536-1.024s-1.024-1.024-4.608-2.56c-51.2-29.184-62.976-94.208-65.536-120.832V386.56c0-3.072.512-7.168 1.024-11.264l.512-3.584 1.024-2.56c19.456-50.688 76.8-51.2 103.936-44.032l-1.536 5.632 4.096-6.144L476.16 486.4l18.944 37.888c20.992 36.864 29.184 77.824 32.768 99.84v258.048c-4.608 56.32-36.864 76.288-55.808 82.944-1.024.512-15.36 5.632-28.672 5.632zM181.248 774.656l263.168 152.576c12.288-.512 36.864-6.656 40.448-48.128V628.736c-4.608-31.744-20.992-103.936-72.192-128L322.56 445.44l1.536 3.072L181.76 366.08c-2.048-.512-40.448-9.216-52.736 15.872-.512 2.56-.512 4.608-.512 6.144v294.4c1.536 16.896 9.728 67.072 43.52 86.528 3.584 2.048 6.656 4.096 9.216 5.632z" p-id="1186"/><path d="M837.632 212.992c6.656 4.096 12.8 7.168 18.432 10.752l1.536 1.024 1.536 1.536c5.12 4.096 10.752 9.216 16.384 15.36 6.144 11.776 5.632 33.28 4.608 49.152-1.024 12.288-6.656 30.208-26.624 44.544l-1.024.512-247.808 156.672c-26.624 14.336-62.976 18.432-96.256 18.432-40.96.0-77.824-6.656-89.088-8.704l-3.072-.512-245.248-142.336c-39.424-29.696-28.16-85.504-15.36-113.664l2.56-6.144 263.68-166.912c29.184-14.336 104.448-43.008 173.056-1.024 3.584 2.56 58.368 34.304 119.296 69.632M431.616 460.8c40.448 7.168 114.176 13.824 152.576-6.144L828.928 299.52c7.168-5.632 8.192-10.24 8.704-12.8 1.024-11.264-9.728-26.624-15.36-32.768-55.808-32.256-243.712-141.312-250.368-145.408-49.664-30.72-107.008-9.216-130.048 2.56L192.512 268.8c-4.096 12.288-12.288 42.496 3.584 55.808L431.616 460.8z" p-id="1187"/><path d="M831.488 299.008c4.096-1.024 38.4-11.264 66.048 6.144 7.168 4.608 17.92 11.776 24.064 24.576 1.024 5.632 4.096 10.752 4.608 16.896v2.048l-1.024 323.072c-5.12 35.328-22.528 91.648-77.312 125.44l-5.12 3.584h-1.024L579.584 966.656l-4.608.512c-4.096.512-8.704 1.024-12.8 1.024-15.872.0-30.208-5.12-41.984-14.848-24.576-20.48-32.768-55.808-35.328-73.728l-1.024-252.928h1.536c6.144-96.768 88.576-164.864 96.768-171.008l-.512-.512L829.44 299.52M528.384 867.328c.512 10.24 5.12 41.472 19.968 53.76 3.072 2.56 7.68 5.632 16.384 5.12L829.44 758.272c56.32-38.4 53.76-115.712 53.76-116.224l-.512-32.256 1.024-250.368h-.512c-1.536-12.8-7.168-16.384-8.704-17.408-8.704-5.632-23.552-3.072-28.672-2.048L610.304 488.96c-1.024.512-80.896 65.024-80.896 149.504h-1.536l.512 228.864zM435.2 264.192c0 27.648 31.744 50.176 71.168 50.176s71.168-22.528 71.168-50.176-31.744-50.176-71.168-50.176S435.2 236.544 435.2 264.192z" p-id="1188"/><path d="M663.552 782.848c0 30.72-22.528 67.072-49.664 80.384-27.648 13.824-50.176-.512-50.176-31.232s22.528-67.072 50.176-80.384c27.136-13.824 49.664.0 49.664 31.232zM760.32 602.624c0 30.72-22.528 67.072-49.664 80.384-27.648 13.824-49.664-.512-49.664-31.232s22.528-67.072 49.664-80.384c27.136-13.824 49.664.512 49.664 31.232zM867.84 428.032c0 30.72-22.528 67.072-49.664 80.384C790.528 522.24 768 507.904 768 477.184s22.528-67.072 50.176-80.384c27.136-13.824 49.664.0 49.664 31.232zM270.848 538.112c0 30.72-22.016 41.984-48.64 24.576-27.136-16.896-48.64-55.808-48.64-86.528s22.016-41.984 48.64-24.576c26.624 16.896 48.64 55.808 48.64 86.528zm161.28 285.184c0 30.72-22.016 41.984-48.64 24.576-26.624-17.408-48.64-55.808-48.64-86.528s22.016-41.984 48.64-24.576c26.624 16.896 48.64 55.808 48.64 86.528z" p-id="1189"/></svg></a></li>
 </ul>
 <ul class="menu__inner menu__inner--mobile">
-<li><a href=/archives/>归档</a></li>
-<li><a href=/about/>关于我</a></li>
-<li><a href=/search/>🔍</a></li>
+<li><a href=/about>About</a></li>
+<li><a href=/archive>Archive</a></li>
+<li><a href=/search>🔍</a></li>
 </ul>
 </nav>
-<span class="menu-trigger hidden"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
 </span>
 <span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
 </span>
@@ -63,7 +65,7 @@
 </span>
 </header>
 <div class=content>
-<div class="post postgres">
+<div class=post>
 <div class=breadcrumb>
 <li>
 <a href=https://askyx.github.io/>首页</a>
@@ -77,20 +79,26 @@
 </div>
 <h2 class=post-title><a href=https://askyx.github.io/posts/parser/>postgres Parser</a></h2>
 <div class=post-meta>
-<span class=post-date>2022-10-10</span>
+<span class=post-date>
+2022-10-10
+</span>
 </div>
+<span class=post-tags>
+<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>#数据库</a>&nbsp;
+<a href=https://askyx.github.io/tags/postgres/>#Postgres</a>&nbsp;
+<a href=https://askyx.github.io/tags/parser/>#Parser</a>&nbsp;
+<a href=https://askyx.github.io/tags/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/>#编译原理</a>&nbsp;
+</span>
 <div class=post-content>
-<nav id=TableOfContents>
-<ul>
-<li>
+<aside class=table-of-contents><nav id=TableOfContents>
 <ul>
 <li><a href=#bison>BISON</a></li>
 </ul>
-</li>
-<li><a href=#stop-here-mon-nov-14-230418-cst-2022>stop here <code>Mon Nov 14 23:04:18 CST 2022</code></a></li>
-</ul>
-</nav>
-<h2 id=bison>BISON</h2>
+</nav></aside>
+<h2 id=bison>
+BISON
+<a href=#bison class=h-anchor aria-hidden=true>#</a>
+</h2>
 <p>1.2 From Formal Rules to Bison Input</p>
 <ul>
 <li>Terminal</li>
@@ -134,8 +142,11 @@ Bison declarations
 Grammar rules
 <span style=color:#f92672>%%</span>
 Epilogue
-</code></pre></div><h1 id=stop-here-mon-nov-14-230418-cst-2022>stop here <code>Mon Nov 14 23:04:18 CST 2022</code></h1>
-<p><a href=https://www.gnu.org/software/bison/manual/bison.html#Semantic-Values target=_blank rel="noopener nofollow noreferrer">https://www.gnu.org/software/bison/manual/bison.html#Semantic-Values</a></p>
+</code></pre></div><h1 id=stop-here-mon-nov-14-230418-cst-2022>
+stop here <code>Mon Nov 14 23:04:18 CST 2022</code>
+<a href=#stop-here-mon-nov-14-230418-cst-2022 class=h-anchor aria-hidden=true>#</a>
+</h1>
+<p><a href=https://www.gnu.org/software/bison/manual/bison.html#Semantic-Values>https://www.gnu.org/software/bison/manual/bison.html#Semantic-Values</a></p>
 <p>2 example
 You don’t have to give an action for every rule. When a rule has no action, Bison by default copies the value of $1 into $$</p>
 <p>3.3 Grammar Rules</p>
@@ -157,16 +168,9 @@ You don’t have to give an action for every rule. When a rule has no action, Bi
 </li>
 </ul>
 </div>
-<span class=post-tags>
-#<a href=https://askyx.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>数据库</a>&nbsp;
-#<a href=https://askyx.github.io/tags/postgres/>Postgres</a>&nbsp;
-#<a href=https://askyx.github.io/tags/parser/>Parser</a>&nbsp;
-#<a href=https://askyx.github.io/tags/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/>编译原理</a>&nbsp;
-</span>
-<div class=clear></div>
 <div class=pagination>
 <div class=pagination__title>
-<span class=pagination__title-h>阅读更多</span>
+<span class=pagination__title-h>Read other posts</span>
 <hr>
 </div>
 <div class=pagination__buttons>
@@ -188,21 +192,22 @@ You don’t have to give an action for every rule. When a rule has no action, Bi
 </div>
 <footer class=footer>
 <div class=footer__inner>
-<div class="copyright copyright-font">
-<span>共 135545 字 <br> 写完一本 曹禺 的</br>《雷雨》了！</span>
-</div>
+<a href=https://askyx.github.io/ class=logo style=text-decoration:none>
+<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
+</span>
+<span class=logo__text>Asky</span>
+<span class=logo__cursor></span>
+</a>
 <div class=copyright>
-<span>© 2024 Powered by <a href=https://gohugo.io target=_blank rel=noopener>Hugo</a> Theme by <a href=https://github.com/lmm214/immmmm/tree/master/themes/hello-friend target=_blank rel=noopener>immmmm</a></span>
+<span>© 2024 Powered by
+<a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
+<span>Theme created by
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
 </div>
 </div>
 </footer>
-<script type=text/javascript src=/theme-main-1.js></script>
-<script type=text/javascript src=/lately.min.js></script>
-<script type=text/javascript src=/waterfall.min.js></script>
-<script type=text/javascript src=/imgStatus.min.js></script>
-<script type=text/javascript src=/view-image.js></script>
-<script type=text/javascript src=/theme-lmm-20230123.js></script>
-<script type=text/javascript src=/pangu.min.js></script>
+<script src=https://askyx.github.io/assets/main.js></script>
+<script src=https://askyx.github.io/assets/prism.js></script>
 </div>
 </body>
 </html>

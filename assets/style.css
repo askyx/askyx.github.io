@@ -63,60 +63,6 @@ body.dark-theme {
     }
 }
 
-@font-face {
-    font-feature-settings: "liga", "tnum", "case", "calt", "zero", "ss01", "locl";
-    font-display: swap;
-    font-family: Inter;
-    font-style: normal;
-    font-weight: 400;
-    src: url(fonts/Inter-Regular.woff2) format("woff2")
-}
-
-@font-face {
-    font-feature-settings: "liga", "tnum", "case", "calt", "zero", "ss01", "locl";
-    font-display: swap;
-    font-family: Inter;
-    font-style: italic;
-    font-weight: 400;
-    src: url(fonts/Inter-Italic.woff2) format("woff2")
-}
-
-@font-face {
-    font-feature-settings: "liga", "tnum", "case", "calt", "zero", "ss01", "locl";
-    font-display: swap;
-    font-family: Inter;
-    font-style: normal;
-    font-weight: 600;
-    src: url(fonts/Inter-Medium.woff2) format("woff2")
-}
-
-@font-face {
-    font-feature-settings: "liga", "tnum", "case", "calt", "zero", "ss01", "locl";
-    font-display: swap;
-    font-family: Inter;
-    font-style: italic;
-    font-weight: 600;
-    src: url(fonts/Inter-MediumItalic.woff2) format("woff2")
-}
-
-@font-face {
-    font-feature-settings: "liga", "tnum", "case", "calt", "zero", "ss01", "locl";
-    font-display: swap;
-    font-family: Inter;
-    font-style: normal;
-    font-weight: 800;
-    src: url(fonts/Inter-Bold.woff2) format("woff2")
-}
-
-@font-face {
-    font-feature-settings: "liga", "tnum", "case", "calt", "zero", "ss01", "locl";
-    font-display: swap;
-    font-family: Inter;
-    font-style: italic;
-    font-weight: 800;
-    src: url(fonts/Inter-BoldItalic.woff2) format("woff2")
-}
-
 .button-container {
     display: table;
     margin-left: auto;

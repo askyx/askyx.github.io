@@ -1,357 +1,115 @@
-<!doctype html><html lang=en>
-<head>
-<title>
-Docker ::
+<!doctype html><html lang=en><head><title>Docker ::
 Asky — My note blog
-</title>
-<meta charset=utf-8>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta name=description content="基础概念 #  Docker使用go开发的一种沙箱工具，他使得应用可以单独运行在沙箱中，通过端口映射或者volumes与外界进行交互。这可以让一个机器上可以运行多种不同环境的应用且互不干扰，例如一个比较大型的引用，使用的此方式单独维护一个模块，使得系统的可靠性大大增强
- 容器
+</title><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="基础概念 # Docker使用go开发的一种沙箱工具，他使得应用可以单独运行在沙箱中，通过端口映射或者volumes与外界进行交互。这可以让一个机器上可以运行多种不同环境的应用且互不干扰，例如一个比较大型的引用，使用的此方式单独维护一个模块，使得系统的可靠性大大增强
+容器
 镜像运行的实例，一个镜像可以运行多个实例。 镜像
 一个完整的可运行的资源集合 仓库
-保存镜像  使用 #  这里记录高频次使用的功能，其他的后续记录
-  镜像的管理
- pull push commit
+保存镜像 使用 # 这里记录高频次使用的功能，其他的后续记录
+镜像的管理
+pull push commit
 修改一个容器之后，使用commit在此基础上构建自己的容器 build
-创建一个镜像，使用docker build语句创建，需要自己编写Dockerfile，具体的编写规则可以参考nosipage rmi    容器的管理
- run
+创建一个镜像，使用docker build语句创建，需要自己编写Dockerfile，具体的编写规则可以参考nosipage rmi 容器的管理
+run
 创建新的容器，且会使用run指定启动规则，例如端口的映射，volumes文件的指定，以及其他重要参数等，这个命令可以说重要，因为同一个镜像，使用不同参数启动之后，效果是不一样的，对于开发来时，更多的是参与后期的开发，如果不是前期的项目设计，这里了解即可，但是最好的是知道他的只要参数的意义，因为和其他命令有的是通用的，例如-i -t -p等 start stop restart exec
 使用此命令可以进入运行中的容器中区，exec -it xxx command attach rm logs cp
-在本地和容器中传输文件 export ps    其他命令基本在遇到的时候，再去查看
-权限问题 #  Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get &amp;#34;http://%2Fvar%2Frun%2Fdocker.sock/v1.39/containers/json&amp;#34;: dial unix /var/run/docker.sock: connect: permission denied sudo groupadd docker #添加docker用户组 sudo gpasswd -a $USER docker #将当前用户添加到docker用户组 newgrp docker #更新docker用户组 System has not been booted with systemd as init system (PID 1).">
-<meta name=keywords content="程序员、码农、database、C++">
-<meta name=robots content="noodp">
-<link rel=canonical href=https://askyx.github.io/posts/docker/>
-<link rel=stylesheet href=//cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.6.0/lxgwwenkaiscreen.css media=print onload="this.media='all'">
-<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
-<link rel=stylesheet href=https://askyx.github.io/style.css>
-<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
-<link rel="shortcut icon" href=https://askyx.github.io/favicon.ico>
-<link rel=apple-touch-icon href=https://askyx.github.io/favicon.ico>
-<link rel=bookmark href=https://askyx.github.io/favicon.ico>
-<link rel=apple-touch-icon-precomposed sizes=180x180 href=https://askyx.github.io/favicon.ico>
-<meta name=twitter:card content="summary">
-<meta name=twitter:title content="Docker">
-<meta name=twitter:description content="docker 常用命令速查，私用">
-<meta property="og:title" content="Docker">
-<meta property="og:description" content="docker 常用命令速查，私用">
-<meta property="og:type" content="article">
-<meta property="og:url" content="https://askyx.github.io/posts/docker/"><meta property="article:section" content="posts">
-<meta property="article:published_time" content="2022-02-20T21:17:58+08:00">
-<meta property="article:modified_time" content="2022-02-20T21:17:58+08:00">
-</head>
-<body class=light-theme>
-<div class=container>
-<header class=header>
-<span class=header__inner>
-<a href=https://askyx.github.io/ class=logo style=text-decoration:none>
-<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
-</span>
-<span class=logo__text>Asky</span>
+在本地和容器中传输文件 export ps 其他命令基本在遇到的时候，再去查看
+权限问题 # Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get &amp;#34;http://%2Fvar%2Frun%2Fdocker.sock/v1.39/containers/json&amp;#34;: dial unix /var/run/docker.sock: connect: permission denied sudo groupadd docker #添加docker用户组 sudo gpasswd -a $USER docker #将当前用户添加到docker用户组 newgrp docker #更新docker用户组 System has not been booted with systemd as init system (PID 1). Can’t operate. # 使用 &amp;ndash;privileged=true /sbin/init 从一开始就最基础的镜像手动构建，使用docker file 构建镜像之后，即使指定 privileged 也无效 systemctl 验证 docker file 指定用户之后， 后续即使容器 systemctl 失败，暂时没有解决方案，gitlab中又需要指定非root用户~~ gitlab 不支持指定容器用户，gitlab有issue，也有解决方案，但是当前版本runner不支持 指定user 解决方案 使用ssh到容器中执行， 无法任务并行，会有端口冲突这类的问题 ssh到宿主机中启动docker，然后copy代码到docker 中，或者build镜像然后执行 可任务并发，后续研究怎么实现 常用命令 # docker run -dit --name centos-p centos /sbin/init docker run \ --mount type=bind,source=/home/asky/asky,target=/workspaces/asky \ --mount type=bind,source=/home/asky/."><meta name=keywords content="程序员、码农、database、C++"><meta name=robots content="noodp"><link rel=canonical href=https://askyx.github.io/posts/docker/><link rel=stylesheet href=//cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.6.0/lxgwwenkaiscreen.css media=print onload='this.media="all"'><link rel=stylesheet href=https://askyx.github.io/assets/style.css><link rel=stylesheet href=https://askyx.github.io/style.css><link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png><link rel="shortcut icon" href=https://askyx.github.io/favicon.ico><link rel=apple-touch-icon href=https://askyx.github.io/favicon.ico><link rel=bookmark href=https://askyx.github.io/favicon.ico><link rel=apple-touch-icon-precomposed sizes=180x180 href=https://askyx.github.io/favicon.ico><meta name=twitter:card content="summary"><meta name=twitter:title content="Docker"><meta name=twitter:description content="docker 常用命令速查，私用"><meta property="og:title" content="Docker"><meta property="og:description" content="docker 常用命令速查，私用"><meta property="og:type" content="article"><meta property="og:url" content="https://askyx.github.io/posts/docker/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2022-02-20T21:17:58+08:00"><meta property="article:modified_time" content="2022-02-20T21:17:58+08:00"></head><body class=light-theme><div class=container><header class=header><span class=header__inner><a href=https://askyx.github.io/ class=logo style=text-decoration:none><span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg></span><span class=logo__text>Asky</span>
 <span class=logo__cursor></span>
-</a>
-<span class=header__right>
-<nav class=menu>
-<ul class="menu__inner menu__inner--desktop">
-<li><a href=/about>About</a></li>
-<li><a href=/archive>Archive</a></li>
-<li><a href=/search>🔍</a></li>
-<li><a href=javascript:; onclick=randomPost() title=随机访问一篇文章><svg t="1660103436159" class="icon search-box-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" p-id="1184" width="32" height="32"><path d="M421.376 481.28s117.248 24.576 175.104-8.704c0 0-89.6 70.144-89.6 166.4.512-.512-8.192-121.344-85.504-157.696zm17.408 487.936s68.608 6.656 68.608-80.896c0 0 3.072 88.576 65.024 78.336.0.512-50.688 22.016-133.632 2.56zM161.28 238.08s-30.208 65.536 11.264 91.648c0 0-67.072-17.408-81.408 37.376.0.0 8.704-82.944 70.144-129.024zM857.6 227.328s49.152 50.176 1.024 81.408c0 0 58.88-18.432 66.56 36.352.0.0 5.12-69.632-67.584-117.76z" p-id="1185"/><path d="M443.392 970.752c-5.632.0-10.752-1.024-15.36-3.072L157.184 810.496l-1.536-1.024s-1.024-1.024-4.608-2.56c-51.2-29.184-62.976-94.208-65.536-120.832V386.56c0-3.072.512-7.168 1.024-11.264l.512-3.584 1.024-2.56c19.456-50.688 76.8-51.2 103.936-44.032l-1.536 5.632 4.096-6.144L476.16 486.4l18.944 37.888c20.992 36.864 29.184 77.824 32.768 99.84v258.048c-4.608 56.32-36.864 76.288-55.808 82.944-1.024.512-15.36 5.632-28.672 5.632zM181.248 774.656l263.168 152.576c12.288-.512 36.864-6.656 40.448-48.128V628.736c-4.608-31.744-20.992-103.936-72.192-128L322.56 445.44l1.536 3.072L181.76 366.08c-2.048-.512-40.448-9.216-52.736 15.872-.512 2.56-.512 4.608-.512 6.144v294.4c1.536 16.896 9.728 67.072 43.52 86.528 3.584 2.048 6.656 4.096 9.216 5.632z" p-id="1186"/><path d="M837.632 212.992c6.656 4.096 12.8 7.168 18.432 10.752l1.536 1.024 1.536 1.536c5.12 4.096 10.752 9.216 16.384 15.36 6.144 11.776 5.632 33.28 4.608 49.152-1.024 12.288-6.656 30.208-26.624 44.544l-1.024.512-247.808 156.672c-26.624 14.336-62.976 18.432-96.256 18.432-40.96.0-77.824-6.656-89.088-8.704l-3.072-.512-245.248-142.336c-39.424-29.696-28.16-85.504-15.36-113.664l2.56-6.144 263.68-166.912c29.184-14.336 104.448-43.008 173.056-1.024 3.584 2.56 58.368 34.304 119.296 69.632M431.616 460.8c40.448 7.168 114.176 13.824 152.576-6.144L828.928 299.52c7.168-5.632 8.192-10.24 8.704-12.8 1.024-11.264-9.728-26.624-15.36-32.768-55.808-32.256-243.712-141.312-250.368-145.408-49.664-30.72-107.008-9.216-130.048 2.56L192.512 268.8c-4.096 12.288-12.288 42.496 3.584 55.808L431.616 460.8z" p-id="1187"/><path d="M831.488 299.008c4.096-1.024 38.4-11.264 66.048 6.144 7.168 4.608 17.92 11.776 24.064 24.576 1.024 5.632 4.096 10.752 4.608 16.896v2.048l-1.024 323.072c-5.12 35.328-22.528 91.648-77.312 125.44l-5.12 3.584h-1.024L579.584 966.656l-4.608.512c-4.096.512-8.704 1.024-12.8 1.024-15.872.0-30.208-5.12-41.984-14.848-24.576-20.48-32.768-55.808-35.328-73.728l-1.024-252.928h1.536c6.144-96.768 88.576-164.864 96.768-171.008l-.512-.512L829.44 299.52M528.384 867.328c.512 10.24 5.12 41.472 19.968 53.76 3.072 2.56 7.68 5.632 16.384 5.12L829.44 758.272c56.32-38.4 53.76-115.712 53.76-116.224l-.512-32.256 1.024-250.368h-.512c-1.536-12.8-7.168-16.384-8.704-17.408-8.704-5.632-23.552-3.072-28.672-2.048L610.304 488.96c-1.024.512-80.896 65.024-80.896 149.504h-1.536l.512 228.864zM435.2 264.192c0 27.648 31.744 50.176 71.168 50.176s71.168-22.528 71.168-50.176-31.744-50.176-71.168-50.176S435.2 236.544 435.2 264.192z" p-id="1188"/><path d="M663.552 782.848c0 30.72-22.528 67.072-49.664 80.384-27.648 13.824-50.176-.512-50.176-31.232s22.528-67.072 50.176-80.384c27.136-13.824 49.664.0 49.664 31.232zM760.32 602.624c0 30.72-22.528 67.072-49.664 80.384-27.648 13.824-49.664-.512-49.664-31.232s22.528-67.072 49.664-80.384c27.136-13.824 49.664.512 49.664 31.232zM867.84 428.032c0 30.72-22.528 67.072-49.664 80.384C790.528 522.24 768 507.904 768 477.184s22.528-67.072 50.176-80.384c27.136-13.824 49.664.0 49.664 31.232zM270.848 538.112c0 30.72-22.016 41.984-48.64 24.576-27.136-16.896-48.64-55.808-48.64-86.528s22.016-41.984 48.64-24.576c26.624 16.896 48.64 55.808 48.64 86.528zm161.28 285.184c0 30.72-22.016 41.984-48.64 24.576-26.624-17.408-48.64-55.808-48.64-86.528s22.016-41.984 48.64-24.576c26.624 16.896 48.64 55.808 48.64 86.528z" p-id="1189"/></svg></a></li>
-</ul>
-<ul class="menu__inner menu__inner--mobile">
-<li><a href=/about>About</a></li>
-<li><a href=/archive>Archive</a></li>
-<li><a href=/search>🔍</a></li>
-</ul>
-</nav>
-<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-</span>
-<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
-</span>
-</span>
-</span>
-</header>
-<div class=content>
-<div class=post>
-<div class=breadcrumb>
-<li>
-<a href=https://askyx.github.io/>首页</a>
-</li>
-<li>
-<a href=https://askyx.github.io/posts/>Posts</a>
-</li>
-<li class=active>
-<a href=https://askyx.github.io/posts/docker/>Docker</a>
-</li>
-</div>
-<h2 class=post-title><a href=https://askyx.github.io/posts/docker/>Docker</a></h2>
-<div class=post-meta>
-<span class=post-date>
-2022-02-20
-</span>
-</div>
-<span class=post-tags>
-<a href=https://askyx.github.io/tags/docker/>#Docker</a>&nbsp;
-</span>
-<div class=post-content>
-<aside class=table-of-contents><nav id=TableOfContents>
-<ul>
-<li><a href=#基础概念>基础概念</a></li>
-<li><a href=#使用>使用</a></li>
-<li><a href=#权限问题>权限问题</a></li>
-<li><a href=#system-has-not-been-booted-with-systemd-as-init-system-pid-1-cant-operate><code>System has not been booted with systemd as init system (PID 1). Can’t operate.</code></a></li>
-<li><a href=#常用命令>常用命令</a></li>
-<li><a href=#构建基础-pg-centos镜像>构建基础 pg centos镜像</a></li>
-<li><a href=#lcov-安装>lcov 安装</a></li>
-<li><a href=#查看-已案转perl-模块>查看 已案转perl 模块</a></li>
-</ul>
-</nav></aside>
-<h2 id=基础概念>
-基础概念
-<a href=#%e5%9f%ba%e7%a1%80%e6%a6%82%e5%bf%b5 class=h-anchor aria-hidden=true>#</a>
-</h2>
-<p>Docker使用go开发的一种沙箱工具，他使得应用可以单独运行在沙箱中，通过端口映射或者volumes与外界进行交互。这可以让一个机器上可以运行多种不同环境的应用且互不干扰，例如一个比较大型的引用，使用的此方式单独维护一个模块，使得系统的可靠性大大增强</p>
-<ul>
-<li>容器<br>
-镜像运行的实例，一个镜像可以运行多个实例。</li>
-<li>镜像<br>
-一个完整的可运行的资源集合</li>
-<li>仓库<br>
-保存镜像</li>
-</ul>
-<h2 id=使用>
-使用
-<a href=#%e4%bd%bf%e7%94%a8 class=h-anchor aria-hidden=true>#</a>
-</h2>
-<p>这里记录高频次使用的功能，其他的后续记录</p>
-<ul>
-<li>
-<p>镜像的管理</p>
-<ul>
-<li>pull</li>
-<li>push</li>
-<li>commit<br>
-修改一个容器之后，使用commit在此基础上构建自己的容器</li>
-<li>build<br>
-创建一个镜像，使用docker build语句创建，需要自己编写Dockerfile，具体的编写规则可以参考nosipage</li>
-<li>rmi</li>
-</ul>
-</li>
-<li>
-<p>容器的管理</p>
-<ul>
-<li>run<br>
-创建新的容器，且会使用run指定启动规则，例如端口的映射，volumes文件的指定，以及其他重要参数等，这个命令可以说重要，因为同一个镜像，使用不同参数启动之后，效果是不一样的，对于开发来时，更多的是参与后期的开发，如果不是前期的项目设计，这里了解即可，但是最好的是知道他的只要参数的意义，因为和其他命令有的是通用的，例如-i -t -p等</li>
-<li>start</li>
-<li>stop</li>
-<li>restart</li>
-<li>exec<br>
-使用此命令可以进入运行中的容器中区，exec -it xxx command</li>
-<li>attach</li>
-<li>rm</li>
-<li>logs</li>
-<li>cp<br>
-在本地和容器中传输文件</li>
-<li>export</li>
-<li>ps</li>
-</ul>
-</li>
-</ul>
-<p>其他命令基本在遇到的时候，再去查看</p>
-<h2 id=权限问题>
-权限问题
-<a href=#%e6%9d%83%e9%99%90%e9%97%ae%e9%a2%98 class=h-anchor aria-hidden=true>#</a>
-</h2>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell>Got permission denied <span style=color:#66d9ef>while</span> trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get <span style=color:#e6db74>&#34;http://%2Fvar%2Frun%2Fdocker.sock/v1.39/containers/json&#34;</span>: dial unix /var/run/docker.sock: connect: permission denied
-
-sudo groupadd docker         <span style=color:#75715e>#添加docker用户组</span>
-sudo gpasswd -a $USER docker <span style=color:#75715e>#将当前用户添加到docker用户组</span>
-newgrp docker                <span style=color:#75715e>#更新docker用户组</span>
-
-</code></pre></div><h2 id=system-has-not-been-booted-with-systemd-as-init-system-pid-1-cant-operate>
-<code>System has not been booted with systemd as init system (PID 1). Can’t operate.</code>
-<a href=#system-has-not-been-booted-with-systemd-as-init-system-pid-1-cant-operate class=h-anchor aria-hidden=true>#</a>
-</h2>
-<ul>
-<li>使用 &ndash;privileged=true</li>
-<li>/sbin/init</li>
-<li>从一开始就最基础的镜像手动构建，使用docker file 构建镜像之后，即使指定 privileged 也无效</li>
-<li>systemctl 验证</li>
-<li>docker file 指定用户之后， 后续即使容器 systemctl 失败，暂时没有解决方案，gitlab中又需要指定非root用户~~</li>
-<li>gitlab 不支持指定容器用户，gitlab有issue，也有解决方案，但是当前版本runner不支持 指定user</li>
-<li>解决方案
-<ul>
-<li>
-<ol>
-<li>使用ssh到容器中执行，</li>
-</ol>
-<ul>
-<li>无法任务并行，会有端口冲突这类的问题</li>
-</ul>
-</li>
-<li>
-<ol start=2>
-<li>ssh到宿主机中启动docker，然后copy代码到docker 中，或者build镜像然后执行</li>
-</ol>
-<ul>
-<li>可任务并发，后续研究怎么实现</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h2 id=常用命令>
-常用命令
-<a href=#%e5%b8%b8%e7%94%a8%e5%91%bd%e4%bb%a4 class=h-anchor aria-hidden=true>#</a>
-</h2>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell>
-docker run -dit --name centos-p centos /sbin/init
-
-docker run   <span style=color:#ae81ff>\
-</span><span style=color:#ae81ff></span> --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/asky/asky,target<span style=color:#f92672>=</span>/workspaces/asky <span style=color:#ae81ff>\
-</span><span style=color:#ae81ff></span> --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/asky/.workspaces,target<span style=color:#f92672>=</span>/workspaces/.common <span style=color:#ae81ff>\
-</span><span style=color:#ae81ff></span> --privileged<span style=color:#f92672>=</span>true  -itd regress:latest  /sbin/init
-
-/home/wen/.workspaces:/workspaces/.common:rw
-
-docker run   <span style=color:#ae81ff>\
-</span><span style=color:#ae81ff></span> --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/wen/.workspaces,target<span style=color:#f92672>=</span>/workspaces/.common <span style=color:#ae81ff>\
-</span><span style=color:#ae81ff></span> --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/var/lib/docker/volumes/runner-bpams8g-project-152-concurrent-0-cache-c33bcaa1fd2c77edfc3893b41966cea8/_data,target<span style=color:#f92672>=</span>/builds <span style=color:#ae81ff>\
-</span><span style=color:#ae81ff></span> --privileged<span style=color:#f92672>=</span>true  -itd asky:1  /sbin/init
-
-                <span style=color:#e6db74>&#34;Source&#34;</span>: <span style=color:#e6db74>&#34;/var/lib/docker/volumes/runner-a8wbhcvb-project-5-concurrent-1-cache-c33bcaa1fd2c77edfc3893b41966cea8/_data&#34;</span>,
-                <span style=color:#e6db74>&#34;Destination&#34;</span>: <span style=color:#e6db74>&#34;/builds&#34;</span>,
-
-docker run    --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/wen/.workspaces,target<span style=color:#f92672>=</span>/workspaces/.common --privileged<span style=color:#f92672>=</span>true -itd asky:latest
-docker run    --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/wen/.workspaces,target<span style=color:#f92672>=</span>/workspaces/.common --privileged<span style=color:#f92672>=</span>true -itd asky:1.0 /sbin/init
-
-docker run -d -p 443:443 -p 80:80 -p 22:22 --name gitlab --restart always <span style=color:#ae81ff>\
-</span><span style=color:#ae81ff></span>-v $GITLAB_HOME/config:/etc/gitlab:Z -v $GITLAB_HOME/logs:/var/log/gitlab:Z  -v $GITLAB_HOME/data:/var/opt/gitlab:Z gitlab/gitlab-ce
-
-docker exec -it centos-p /bin/bash
-
-docker commit -a <span style=color:#e6db74>&#34;xxx&#34;</span> -m <span style=color:#e6db74>&#34;a new centos 8 env&#34;</span> centos-p  centos-pre:1
-
-docker cp /home/wen/xxxxx/.git  centos-p:/home/xxxxx
-
-
-docker build -f DockerFile -t xxx ./
-
-
-</code></pre></div><h2 id=构建基础-pg-centos镜像>
-构建基础 pg centos镜像
-<a href=#%e6%9e%84%e5%bb%ba%e5%9f%ba%e7%a1%80-pg-centos%e9%95%9c%e5%83%8f class=h-anchor aria-hidden=true>#</a>
-</h2>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-DockerFile data-lang=DockerFile><span style=color:#66d9ef>FROM</span><span style=color:#e6db74> centos:8</span><span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>LABEL</span> description<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;build xxxxx regress env&#34;</span><span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> sed -i <span style=color:#e6db74>&#39;s/mirrorlist/#mirrorlist/g&#39;</span> /etc/yum.repos.d/CentOS-*<span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> sed -i <span style=color:#e6db74>&#39;s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g&#39;</span> /etc/yum.repos.d/CentOS-*<span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> sed -e <span style=color:#e6db74>&#39;s|^mirrorlist=|#mirrorlist=|g&#39;</span> <span style=color:#ae81ff>\
-</span><span style=color:#ae81ff></span>         -e <span style=color:#e6db74>&#39;s|^#baseurl=http://mirror.centos.org/$contentdir|baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos|g&#39;</span> <span style=color:#ae81ff>\
-</span><span style=color:#ae81ff></span>         -i.bak <span style=color:#ae81ff>\
-</span><span style=color:#ae81ff></span>         /etc/yum.repos.d/CentOS-*.repo<span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> yum makecache<span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> yum update -y<span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> yum install -y gcc flex bison make perl-ExtUtils-Embed python3 python3-devel readline-devel zlib-devel pam-devel libxml2 libxml2-devel libxslt libxslt-devel openldap openldap-devel wget git perl perl-devel sudo<span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> dnf -y --enablerepo<span style=color:#f92672>=</span>powertools install perl-IPC-Run perl-Capture-Tiny perl-DateTime<span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>WORKDIR</span><span style=color:#e6db74> /home</span><span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> git clone --depth<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> https://ghproxy.com/https://github.com/linux-test-project/lcov -b v1.14 /home/lcov<span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>WORKDIR</span><span style=color:#e6db74> /home/lcov</span><span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> make install<span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> genhtml<span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>WORKDIR</span><span style=color:#e6db74> /home</span><span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> wget https://libssh2.org/download/libssh2-1.11.0.tar.gz<span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> tar -zxf libssh2-1.11.0.tar.gz<span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>WORKDIR</span><span style=color:#e6db74> /home/libssh2-1.11.0</span><span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> ./configure<span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> make install<span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>WORKDIR</span><span style=color:#e6db74> /home</span><span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> rm -rf /home/lcov<span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> rm libssh2-1.11.0.tar.gz<span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> rm -rf /home/libssh2-1.11.0<span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> useradd -ms /bin/bash centos<span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> echo <span style=color:#e6db74>&#39;centos ALL=(ALL) NOPASSWD:ALL&#39;</span> &gt;&gt; /etc/sudoers<span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>USER</span><span style=color:#e6db74> centos</span><span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010>
-</span></code></pre></div><ul>
-<li>使用命令 <code>docker build -f DockerFile -t xxx ./</code></li>
-<li>构建失败时，存在中间镜像，可以从中间镜像开始构造</li>
-<li>后期需要修改的时候，如果是增量修改，可以直接从已构造的镜像继续</li>
-<li>file中需要改变路径不能直接cd，必须使用<code>WORKDIR</code></li>
-<li>指定用户使用 USER</li>
-<li>编写file过程中，如果需要添加某些操作，从文件尾部添加，尽量使用缓存</li>
-</ul>
-<h2 id=lcov-安装>
-lcov 安装
-<a href=#lcov-%e5%ae%89%e8%a3%85 class=h-anchor aria-hidden=true>#</a>
-</h2>
-<p>使用perl实现的，极度依赖perl 的某些模块，但是perl模块有的不能直接yum安装，需要使用 <code>powertools</code>，且有的模块使用 powertools 也无法直接安装。。。
-install 之后使用genhtml 验证是否安装完成</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell>
-
-git clone --depth<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> https://github.com/linux-test-project/lcov -b v1.14 /home/lcov
-make install
-
-genhtml
-
-</code></pre></div><h2 id=查看-已案转perl-模块>
-查看 已案转perl 模块
-<a href=#%e6%9f%a5%e7%9c%8b-%e5%b7%b2%e6%a1%88%e8%bd%acperl-%e6%a8%a1%e5%9d%97 class=h-anchor aria-hidden=true>#</a>
-</h2>
-<p>sudo find <code>perl -e 'print "@INC"'</code> -name &lsquo;*.pm&rsquo;</p>
-<p>docker run <br>
-&ndash;mount type=bind,source=/home/wen/.workspaces,target=/workspaces/.common <br>
--itd centos-antdb</p>
-</div>
-<div class=pagination>
-<div class=pagination__title>
-<span class=pagination__title-h>Read other posts</span>
-<hr>
-</div>
-<div class=pagination__buttons>
-<span class="button previous">
-<a href=https://askyx.github.io/posts/envs/>
-<span class=button__icon>←</span>
+</a><span class=header__right><nav class=menu><ul class="menu__inner menu__inner--desktop"><li><a href=/about>About</a></li><li><a href=/archive>Archive</a></li><li><a href=/search>🔍</a></li><li><a href=javascript:; onclick=randomPost() title=随机访问一篇文章><svg t="1660103436159" class="icon search-box-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" p-id="1184" width="32" height="32"><path d="M421.376 481.28s117.248 24.576 175.104-8.704c0 0-89.6 70.144-89.6 166.4.512-.512-8.192-121.344-85.504-157.696zm17.408 487.936s68.608 6.656 68.608-80.896c0 0 3.072 88.576 65.024 78.336.0.512-50.688 22.016-133.632 2.56zM161.28 238.08s-30.208 65.536 11.264 91.648c0 0-67.072-17.408-81.408 37.376.0.0 8.704-82.944 70.144-129.024zM857.6 227.328s49.152 50.176 1.024 81.408c0 0 58.88-18.432 66.56 36.352.0.0 5.12-69.632-67.584-117.76z" p-id="1185"/><path d="M443.392 970.752c-5.632.0-10.752-1.024-15.36-3.072L157.184 810.496l-1.536-1.024s-1.024-1.024-4.608-2.56c-51.2-29.184-62.976-94.208-65.536-120.832V386.56c0-3.072.512-7.168 1.024-11.264l.512-3.584 1.024-2.56c19.456-50.688 76.8-51.2 103.936-44.032l-1.536 5.632 4.096-6.144L476.16 486.4l18.944 37.888c20.992 36.864 29.184 77.824 32.768 99.84v258.048c-4.608 56.32-36.864 76.288-55.808 82.944-1.024.512-15.36 5.632-28.672 5.632zM181.248 774.656l263.168 152.576c12.288-.512 36.864-6.656 40.448-48.128V628.736c-4.608-31.744-20.992-103.936-72.192-128L322.56 445.44l1.536 3.072L181.76 366.08c-2.048-.512-40.448-9.216-52.736 15.872-.512 2.56-.512 4.608-.512 6.144v294.4c1.536 16.896 9.728 67.072 43.52 86.528 3.584 2.048 6.656 4.096 9.216 5.632z" p-id="1186"/><path d="M837.632 212.992c6.656 4.096 12.8 7.168 18.432 10.752l1.536 1.024 1.536 1.536c5.12 4.096 10.752 9.216 16.384 15.36 6.144 11.776 5.632 33.28 4.608 49.152-1.024 12.288-6.656 30.208-26.624 44.544l-1.024.512-247.808 156.672c-26.624 14.336-62.976 18.432-96.256 18.432-40.96.0-77.824-6.656-89.088-8.704l-3.072-.512-245.248-142.336c-39.424-29.696-28.16-85.504-15.36-113.664l2.56-6.144 263.68-166.912c29.184-14.336 104.448-43.008 173.056-1.024 3.584 2.56 58.368 34.304 119.296 69.632M431.616 460.8c40.448 7.168 114.176 13.824 152.576-6.144L828.928 299.52c7.168-5.632 8.192-10.24 8.704-12.8 1.024-11.264-9.728-26.624-15.36-32.768-55.808-32.256-243.712-141.312-250.368-145.408-49.664-30.72-107.008-9.216-130.048 2.56L192.512 268.8c-4.096 12.288-12.288 42.496 3.584 55.808L431.616 460.8z" p-id="1187"/><path d="M831.488 299.008c4.096-1.024 38.4-11.264 66.048 6.144 7.168 4.608 17.92 11.776 24.064 24.576 1.024 5.632 4.096 10.752 4.608 16.896v2.048l-1.024 323.072c-5.12 35.328-22.528 91.648-77.312 125.44l-5.12 3.584h-1.024L579.584 966.656l-4.608.512c-4.096.512-8.704 1.024-12.8 1.024-15.872.0-30.208-5.12-41.984-14.848-24.576-20.48-32.768-55.808-35.328-73.728l-1.024-252.928h1.536c6.144-96.768 88.576-164.864 96.768-171.008l-.512-.512L829.44 299.52M528.384 867.328c.512 10.24 5.12 41.472 19.968 53.76 3.072 2.56 7.68 5.632 16.384 5.12L829.44 758.272c56.32-38.4 53.76-115.712 53.76-116.224l-.512-32.256 1.024-250.368h-.512c-1.536-12.8-7.168-16.384-8.704-17.408-8.704-5.632-23.552-3.072-28.672-2.048L610.304 488.96c-1.024.512-80.896 65.024-80.896 149.504h-1.536l.512 228.864zM435.2 264.192c0 27.648 31.744 50.176 71.168 50.176s71.168-22.528 71.168-50.176-31.744-50.176-71.168-50.176S435.2 236.544 435.2 264.192z" p-id="1188"/><path d="M663.552 782.848c0 30.72-22.528 67.072-49.664 80.384-27.648 13.824-50.176-.512-50.176-31.232s22.528-67.072 50.176-80.384c27.136-13.824 49.664.0 49.664 31.232zM760.32 602.624c0 30.72-22.528 67.072-49.664 80.384-27.648 13.824-49.664-.512-49.664-31.232s22.528-67.072 49.664-80.384c27.136-13.824 49.664.512 49.664 31.232zM867.84 428.032c0 30.72-22.528 67.072-49.664 80.384C790.528 522.24 768 507.904 768 477.184s22.528-67.072 50.176-80.384c27.136-13.824 49.664.0 49.664 31.232zM270.848 538.112c0 30.72-22.016 41.984-48.64 24.576-27.136-16.896-48.64-55.808-48.64-86.528s22.016-41.984 48.64-24.576c26.624 16.896 48.64 55.808 48.64 86.528zm161.28 285.184c0 30.72-22.016 41.984-48.64 24.576-26.624-17.408-48.64-55.808-48.64-86.528s22.016-41.984 48.64-24.576c26.624 16.896 48.64 55.808 48.64 86.528z" p-id="1189"/></svg></a></li></ul><ul class="menu__inner menu__inner--mobile"><li><a href=/about>About</a></li><li><a href=/archive>Archive</a></li><li><a href=/search>🔍</a></li></ul></nav><span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></span><span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg></span></span></span></header><div class=content><div class=post><div class=breadcrumb><li><a href=https://askyx.github.io/>首页</a></li><li><a href=https://askyx.github.io/posts/>Posts</a></li><li class=active><a href=https://askyx.github.io/posts/docker/>Docker</a></li></div><h2 class=post-title><a href=https://askyx.github.io/posts/docker/>Docker</a></h2><div class=post-meta><span class=post-date>2022-02-20</span></div><span class=post-tags><a href=https://askyx.github.io/tags/docker/>#Docker</a>&nbsp;</span><div class=post-content><aside class=table-of-contents><nav id=TableOfContents><ul><li><a href=#基础概念>基础概念</a></li><li><a href=#使用>使用</a></li><li><a href=#权限问题>权限问题</a></li><li><a href=#system-has-not-been-booted-with-systemd-as-init-system-pid-1-cant-operate><code>System has not been booted with systemd as init system (PID 1). Can’t operate.</code></a></li><li><a href=#常用命令>常用命令</a></li><li><a href=#构建基础-pg-centos镜像>构建基础 pg centos镜像</a></li><li><a href=#lcov-安装>lcov 安装</a></li><li><a href=#查看-已案转perl-模块>查看 已案转perl 模块</a></li></ul></nav></aside><h2 id=基础概念>基础概念
+<a href=#%e5%9f%ba%e7%a1%80%e6%a6%82%e5%bf%b5 class=h-anchor aria-hidden=true>#</a></h2><p>Docker使用go开发的一种沙箱工具，他使得应用可以单独运行在沙箱中，通过端口映射或者volumes与外界进行交互。这可以让一个机器上可以运行多种不同环境的应用且互不干扰，例如一个比较大型的引用，使用的此方式单独维护一个模块，使得系统的可靠性大大增强</p><ul><li>容器<br>镜像运行的实例，一个镜像可以运行多个实例。</li><li>镜像<br>一个完整的可运行的资源集合</li><li>仓库<br>保存镜像</li></ul><h2 id=使用>使用
+<a href=#%e4%bd%bf%e7%94%a8 class=h-anchor aria-hidden=true>#</a></h2><p>这里记录高频次使用的功能，其他的后续记录</p><ul><li><p>镜像的管理</p><ul><li>pull</li><li>push</li><li>commit<br>修改一个容器之后，使用commit在此基础上构建自己的容器</li><li>build<br>创建一个镜像，使用docker build语句创建，需要自己编写Dockerfile，具体的编写规则可以参考nosipage</li><li>rmi</li></ul></li><li><p>容器的管理</p><ul><li>run<br>创建新的容器，且会使用run指定启动规则，例如端口的映射，volumes文件的指定，以及其他重要参数等，这个命令可以说重要，因为同一个镜像，使用不同参数启动之后，效果是不一样的，对于开发来时，更多的是参与后期的开发，如果不是前期的项目设计，这里了解即可，但是最好的是知道他的只要参数的意义，因为和其他命令有的是通用的，例如-i -t -p等</li><li>start</li><li>stop</li><li>restart</li><li>exec<br>使用此命令可以进入运行中的容器中区，exec -it xxx command</li><li>attach</li><li>rm</li><li>logs</li><li>cp<br>在本地和容器中传输文件</li><li>export</li><li>ps</li></ul></li></ul><p>其他命令基本在遇到的时候，再去查看</p><h2 id=权限问题>权限问题
+<a href=#%e6%9d%83%e9%99%90%e9%97%ae%e9%a2%98 class=h-anchor aria-hidden=true>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>Got permission denied <span style=color:#66d9ef>while</span> trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get <span style=color:#e6db74>&#34;http://%2Fvar%2Frun%2Fdocker.sock/v1.39/containers/json&#34;</span>: dial unix /var/run/docker.sock: connect: permission denied
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>sudo groupadd docker         <span style=color:#75715e>#添加docker用户组</span>
+</span></span><span style=display:flex><span>sudo gpasswd -a $USER docker <span style=color:#75715e>#将当前用户添加到docker用户组</span>
+</span></span><span style=display:flex><span>newgrp docker                <span style=color:#75715e>#更新docker用户组</span>
+</span></span></code></pre></div><h2 id=system-has-not-been-booted-with-systemd-as-init-system-pid-1-cant-operate><code>System has not been booted with systemd as init system (PID 1). Can’t operate.</code>
+<a href=#system-has-not-been-booted-with-systemd-as-init-system-pid-1-cant-operate class=h-anchor aria-hidden=true>#</a></h2><ul><li>使用 &ndash;privileged=true</li><li>/sbin/init</li><li>从一开始就最基础的镜像手动构建，使用docker file 构建镜像之后，即使指定 privileged 也无效</li><li>systemctl 验证</li><li>docker file 指定用户之后， 后续即使容器 systemctl 失败，暂时没有解决方案，gitlab中又需要指定非root用户~~</li><li>gitlab 不支持指定容器用户，gitlab有issue，也有解决方案，但是当前版本runner不支持 指定user</li><li>解决方案<ul><li><ol><li>使用ssh到容器中执行，</li></ol><ul><li>无法任务并行，会有端口冲突这类的问题</li></ul></li><li><ol start=2><li>ssh到宿主机中启动docker，然后copy代码到docker 中，或者build镜像然后执行</li></ol><ul><li>可任务并发，后续研究怎么实现</li></ul></li></ul></li></ul><h2 id=常用命令>常用命令
+<a href=#%e5%b8%b8%e7%94%a8%e5%91%bd%e4%bb%a4 class=h-anchor aria-hidden=true>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>
+</span></span><span style=display:flex><span>docker run -dit --name centos-p centos /sbin/init
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>docker run   <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span> --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/asky/asky,target<span style=color:#f92672>=</span>/workspaces/asky <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span> --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/asky/.workspaces,target<span style=color:#f92672>=</span>/workspaces/.common <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span> --privileged<span style=color:#f92672>=</span>true  -itd regress:latest  /sbin/init
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>/home/wen/.workspaces:/workspaces/.common:rw
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>docker run   <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span> --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/wen/.workspaces,target<span style=color:#f92672>=</span>/workspaces/.common <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span> --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/var/lib/docker/volumes/runner-bpams8g-project-152-concurrent-0-cache-c33bcaa1fd2c77edfc3893b41966cea8/_data,target<span style=color:#f92672>=</span>/builds <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span> --privileged<span style=color:#f92672>=</span>true  -itd asky:1  /sbin/init
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Source&#34;</span>: <span style=color:#e6db74>&#34;/var/lib/docker/volumes/runner-a8wbhcvb-project-5-concurrent-1-cache-c33bcaa1fd2c77edfc3893b41966cea8/_data&#34;</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Destination&#34;</span>: <span style=color:#e6db74>&#34;/builds&#34;</span>,
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>docker run    --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/wen/.workspaces,target<span style=color:#f92672>=</span>/workspaces/.common --privileged<span style=color:#f92672>=</span>true -itd asky:latest
+</span></span><span style=display:flex><span>docker run    --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/wen/.workspaces,target<span style=color:#f92672>=</span>/workspaces/.common --privileged<span style=color:#f92672>=</span>true -itd asky:1.0 /sbin/init
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>docker run -d -p 443:443 -p 80:80 -p 22:22 --name gitlab --restart always <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>-v $GITLAB_HOME/config:/etc/gitlab:Z -v $GITLAB_HOME/logs:/var/log/gitlab:Z  -v $GITLAB_HOME/data:/var/opt/gitlab:Z gitlab/gitlab-ce
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>docker exec -it centos-p /bin/bash
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>docker commit -a <span style=color:#e6db74>&#34;xxx&#34;</span> -m <span style=color:#e6db74>&#34;a new centos 8 env&#34;</span> centos-p  centos-pre:1
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>docker cp /home/wen/xxxxx/.git  centos-p:/home/xxxxx
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>docker build -f DockerFile -t xxx ./
+</span></span></code></pre></div><h2 id=构建基础-pg-centos镜像>构建基础 pg centos镜像
+<a href=#%e6%9e%84%e5%bb%ba%e5%9f%ba%e7%a1%80-pg-centos%e9%95%9c%e5%83%8f class=h-anchor aria-hidden=true>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-DockerFile data-lang=DockerFile><span style=display:flex><span><span style=color:#66d9ef>FROM</span><span style=color:#e6db74> centos:8</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>LABEL</span> description<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;build xxxxx regress env&#34;</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> sed -i <span style=color:#e6db74>&#39;s/mirrorlist/#mirrorlist/g&#39;</span> /etc/yum.repos.d/CentOS-*<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> sed -i <span style=color:#e6db74>&#39;s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g&#39;</span> /etc/yum.repos.d/CentOS-*<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> sed -e <span style=color:#e6db74>&#39;s|^mirrorlist=|#mirrorlist=|g&#39;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>         -e <span style=color:#e6db74>&#39;s|^#baseurl=http://mirror.centos.org/$contentdir|baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos|g&#39;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>         -i.bak <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>         /etc/yum.repos.d/CentOS-*.repo<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> yum makecache<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> yum update -y<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> yum install -y gcc flex bison make perl-ExtUtils-Embed python3 python3-devel readline-devel zlib-devel pam-devel libxml2 libxml2-devel libxslt libxslt-devel openldap openldap-devel wget git perl perl-devel sudo<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> dnf -y --enablerepo<span style=color:#f92672>=</span>powertools install perl-IPC-Run perl-Capture-Tiny perl-DateTime<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>WORKDIR</span><span style=color:#e6db74> /home</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> git clone --depth<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> https://ghproxy.com/https://github.com/linux-test-project/lcov -b v1.14 /home/lcov<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>WORKDIR</span><span style=color:#e6db74> /home/lcov</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> make install<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> genhtml<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>WORKDIR</span><span style=color:#e6db74> /home</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> wget https://libssh2.org/download/libssh2-1.11.0.tar.gz<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> tar -zxf libssh2-1.11.0.tar.gz<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>WORKDIR</span><span style=color:#e6db74> /home/libssh2-1.11.0</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> ./configure<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> make install<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>WORKDIR</span><span style=color:#e6db74> /home</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> rm -rf /home/lcov<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> rm libssh2-1.11.0.tar.gz<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> rm -rf /home/libssh2-1.11.0<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> useradd -ms /bin/bash centos<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> echo <span style=color:#e6db74>&#39;centos ALL=(ALL) NOPASSWD:ALL&#39;</span> &gt;&gt; /etc/sudoers<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>USER</span><span style=color:#e6db74> centos</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span></code></pre></div><ul><li>使用命令 <code>docker build -f DockerFile -t xxx ./</code></li><li>构建失败时，存在中间镜像，可以从中间镜像开始构造</li><li>后期需要修改的时候，如果是增量修改，可以直接从已构造的镜像继续</li><li>file中需要改变路径不能直接cd，必须使用<code>WORKDIR</code></li><li>指定用户使用 USER</li><li>编写file过程中，如果需要添加某些操作，从文件尾部添加，尽量使用缓存</li></ul><h2 id=lcov-安装>lcov 安装
+<a href=#lcov-%e5%ae%89%e8%a3%85 class=h-anchor aria-hidden=true>#</a></h2><p>使用perl实现的，极度依赖perl 的某些模块，但是perl模块有的不能直接yum安装，需要使用 <code>powertools</code>，且有的模块使用 powertools 也无法直接安装。。。
+install 之后使用genhtml 验证是否安装完成</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>git clone --depth<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> https://github.com/linux-test-project/lcov -b v1.14 /home/lcov
+</span></span><span style=display:flex><span>make install
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>genhtml
+</span></span></code></pre></div><h2 id=查看-已案转perl-模块>查看 已案转perl 模块
+<a href=#%e6%9f%a5%e7%9c%8b-%e5%b7%b2%e6%a1%88%e8%bd%acperl-%e6%a8%a1%e5%9d%97 class=h-anchor aria-hidden=true>#</a></h2><p>sudo find <code>perl -e 'print "@INC"'</code> -name &lsquo;*.pm&rsquo;</p><p>docker run<br>&ndash;mount type=bind,source=/home/wen/.workspaces,target=/workspaces/.common<br>-itd centos-antdb</p></div><div class=pagination><div class=pagination__title><span class=pagination__title-h>Read other posts</span><hr></div><div class=pagination__buttons><span class="button previous"><a href=https://askyx.github.io/posts/envs/><span class=button__icon>←</span>
 <span class=button__text>Envs</span>
-</a>
-</span>
-<span class="button next">
-<a href=https://askyx.github.io/posts/cpp/>
-<span class=button__text>C++ Primer Plus</span>
-<span class=button__icon>→</span>
-</a>
-</span>
-</div>
-</div>
-</div>
-</div>
-<footer class=footer>
-<div class=footer__inner>
-<a href=https://askyx.github.io/ class=logo style=text-decoration:none>
-<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
-</span>
-<span class=logo__text>Asky</span>
-<span class=logo__cursor></span>
-</a>
-<div class=copyright>
-<span>© 2024 Powered by
+</a></span><span class="button next"><a href=https://askyx.github.io/posts/cpp/><span class=button__text>C++ Primer Plus</span>
+<span class=button__icon>→</span></a></span></div></div></div></div><footer class=footer><div class=footer__inner><a href=https://askyx.github.io/ class=logo style=text-decoration:none><span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg></span><span class=logo__text>Asky</span>
+<span class=logo__cursor></span></a><div class=copyright><span>© 2024 Powered by
 <a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
 <span>Theme created by
-<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
-</div>
-</div>
-</footer>
-<script src=https://askyx.github.io/assets/main.js></script>
-<script src=https://askyx.github.io/assets/prism.js></script>
-</div>
-</body>
-</html>
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span></div></div></footer><script src=https://askyx.github.io/assets/main.js></script><script src=https://askyx.github.io/assets/prism.js></script></div></body></html>

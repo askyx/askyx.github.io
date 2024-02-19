@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Asky</title><link>https://askyx.github.io/posts/</link><description>Recent content in Posts on Asky</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><lastBuildDate>Fri, 05 Jan 2024 11:07:23 +0800</lastBuildDate><atom:link href="https://askyx.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>源码编译 GreenPlum 速通版</title><link>https://askyx.github.io/posts/build/</link><pubDate>Fri, 05 Jan 2024 11:07:23 +0800</pubDate><guid>https://askyx.github.io/posts/build/</guid><description>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Asky</title><link>https://askyx.github.io/posts/</link><description>Recent content in Posts on Asky</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Fri, 05 Jan 2024 11:07:23 +0800</lastBuildDate><atom:link href="https://askyx.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>源码编译 GreenPlum 速通版</title><link>https://askyx.github.io/posts/build/</link><pubDate>Fri, 05 Jan 2024 11:07:23 +0800</pubDate><guid>https://askyx.github.io/posts/build/</guid><description>
 docker GreenPlum 源码编译</description></item><item><title>源码编译 OpenTenBase 速通版</title><link>https://askyx.github.io/posts/build/</link><pubDate>Fri, 05 Jan 2024 11:07:23 +0800</pubDate><guid>https://askyx.github.io/posts/build/</guid><description>
 docker OpenTenBase 源码编译</description></item><item><title>源码编译环境准备文件</title><link>https://askyx.github.io/posts/env_common/</link><pubDate>Fri, 05 Jan 2024 09:07:23 +0800</pubDate><guid>https://askyx.github.io/posts/env_common/</guid><description>
 docker 源码编译 dockerfile 模板</description></item><item><title>名词一行解释</title><link>https://askyx.github.io/posts/one_line/</link><pubDate>Thu, 21 Dec 2023 16:28:35 +0800</pubDate><guid>https://askyx.github.io/posts/one_line/</guid><description>
@@ -45,7 +45,8 @@ output control 控制输出结果，例如order，limit等 窗口函数 CTE Comm
 可以参考lab1和slide，还是比较明显的
 buffer pool中的page可以用于上层的数据运算
 使用mmap可以完成类似的操作，但是实际上在使用中，如果在发生缺页中断的时候，mmap需要进行置换操作，所以会阻碍程序进程。且mmap是通用的组件，所以没有对数据库 的使用场景进行一些优化，
-You never want to use mmap in your DBMS if you need to write. The DBMS (almost) always wants to control things itself and can do a better job at it since it knows more about the data being accessed and the queries being processed.</description></item><item><title>Raft</title><link>https://askyx.github.io/posts/raft/</link><pubDate>Mon, 30 May 2022 18:51:02 +0800</pubDate><guid>https://askyx.github.io/posts/raft/</guid><description>
+You never want to use mmap in your DBMS if you need to write. The DBMS (almost) always wants to control things itself and can do a better job at it since it knows more about the data being accessed and the queries being processed. The operating system is not your friend. 最好是需要什么就自己实现什么，
+数据组织形式 # 文件</description></item><item><title>Raft</title><link>https://askyx.github.io/posts/raft/</link><pubDate>Mon, 30 May 2022 18:51:02 +0800</pubDate><guid>https://askyx.github.io/posts/raft/</guid><description>
 译文 原文 有用的飞书文档 和其他的算法相比 Strong leader
 日志只能从领导者发送到其他节点 Leader election
 随机计时器选举领导，在心跳机制上加上一些额外的工作 Membership changes
@@ -68,7 +69,21 @@ currentTerm
 当前获得选票的候选人的Id log[]
 日志条目集；每一个条目包含一个用户状态机执行的指令，和收到时的任期号 下面的参数在节点上是随时变化的
 commitIndex
-已知的最大的已经被提交的日志条目的索引值 lastApplied</description></item><item><title>GFS</title><link>https://askyx.github.io/posts/gfs/</link><pubDate>Mon, 30 May 2022 16:36:40 +0800</pubDate><guid>https://askyx.github.io/posts/gfs/</guid><description>
+已知的最大的已经被提交的日志条目的索引值 lastApplied
+最后被应用到状态机的日志条目索引值，初始化为 0，持续递增 下面的参数需要在leader重新选举之后变化的
+nextIndex[]
+对于每一个服务器，需要发送给他的下一个日志条目的索引值，初始化为领导人最后索引值加一 matchIndex[]
+对于每一个服务器，已经复制给他的日志的最高索引值 这篇图表示的是rpc的参数信息以及返回值，由领导人负责调用来复制日志指令；也会用作heartbeat 参数
+term
+领导人的任期号 leaderId
+领导人的 Id，以便于跟随者重定向请求 prevLogIndex
+新的日志条目紧随之前的索引值 prevLogTerm
+prevLogIndex 条目的任期号 entries[]
+准备存储的日志条目，表示心跳时为空；一次性发送多个是为了提高效率 leaderCommit
+领导人已经提交的日志的索引值 返回值
+term
+当前的任期号，用于领导人去更新自己 success
+跟随者包含了匹配上 prevLogIndex 和 prevLogTerm 的日志时为真 如果 term &amp;lt; currentTerm 就返回 false 如果日志在 prevLogIndex 位置处的日志条目的任期号和 prevLogTerm 不匹配，则返回 false 如果已经已经存在的日志条目和新的产生冲突（相同偏移量但是任期号不同），删除这一条和之后所有的 附加任何在已有的日志中不存在的条目 如果 leaderCommit &amp;gt; commitIndex，令 commitIndex 等于 leaderCommit 和 新日志条目索引值中较小的一个 由候选人负责调用用来征集选票</description></item><item><title>GFS</title><link>https://askyx.github.io/posts/gfs/</link><pubDate>Mon, 30 May 2022 16:36:40 +0800</pubDate><guid>https://askyx.github.io/posts/gfs/</guid><description>
 GFS是一个大规模可扩展的可容错的分布式文件系统。Google三大篇论文之一
 翻译文章在这里
 论文在这里
@@ -91,7 +106,9 @@ map reduce实现为简单的kv输出，其中map接受源数据，生成kv的中
 工作节点失败
 主机点定时检测工作节点状态，如果无法链接，此时需要把此丢失的工作节点上的所有的任务重新安排到其他节点上执行。包括已完成的map任务，因为mr任务是需要等所有map任务结束之后才能执行reduce任务，其map任务的数据在保存在worker节点上的。所以需要重新执行map任务。至于reduce任务，由于他的输出之最终的数据结果，且需要记录到文件。所以为了避免重复的数据产生，已完成的reduce任务不重试，前提是输出数据已经保存到其他节点上。 主节点错误 一般是直接重试整个mr任务，因为mr的主节点应该是需要选择集群中比较可靠的节点，此时有理由怀疑其他节点也可能出现问题，所以此时选择整个重新执行，当然也可以恢复主节点，从记录的回复点重新执行 backup task mr中由于任务切分不一定均衡或者不同节点计算能力不同，有的任务执行格外慢，此时可以在其他空闲节点上执行相同的任务，此时集群中可能有多个相同的任务，最终哪一个任务先完成，主节点就会终止其他未完成的工作节点。
 上面就是原始的mr描述，理所当然的可以想到一些提升的地方
-平均的划分任务文件，尽量任务均衡 流式计算，在中间结果产生的时候，直接保存中间文件到reduce节点，避免最后集中处理中间结果时候的网络带宽消耗 本地计算mr，有的mr任务没必要在不同节点上执行，直接划分到一个节点或把的某些任务划分到一个节点上，实现本地计算。避免网络IO 提前进行reduce操作，可以使用reduce任务提前处理中间结果，减少中间结果的大小 记录计算节点的状态，多次执行任务的时候，可以记录某节点的处理速度，在下一个mr任务划分的时候，按照此信息划分任务 https://www.</description></item><item><title>A Tour of Go速通</title><link>https://askyx.github.io/posts/go_1/</link><pubDate>Tue, 17 May 2022 22:34:11 +0800</pubDate><guid>https://askyx.github.io/posts/go_1/</guid><description>
+平均的划分任务文件，尽量任务均衡 流式计算，在中间结果产生的时候，直接保存中间文件到reduce节点，避免最后集中处理中间结果时候的网络带宽消耗 本地计算mr，有的mr任务没必要在不同节点上执行，直接划分到一个节点或把的某些任务划分到一个节点上，实现本地计算。避免网络IO 提前进行reduce操作，可以使用reduce任务提前处理中间结果，减少中间结果的大小 记录计算节点的状态，多次执行任务的时候，可以记录某节点的处理速度，在下一个mr任务划分的时候，按照此信息划分任务 https://www.zhihu.com/question/303101438
+map和reduce之间是完全串行的，如果有多个MR任务嵌套的话，由于每个mr必须实现map和reduce，会导致链路过长，实现和调试困难 性能无法达到要求 6.824 LAB # 先掌握go，重点为go的协程，管道，以及channel 代码框架已经给出来了，需要自己实现分布式的worker和master 可以先实现简单的无状态的mr，可以通过test-mr.sh中的前面的测试 worker # map和reduce的执行节点，需要从master获得任务，按照任务的类型，执行不同的job
+func Worker(mapf func(string, string) []KeyValue, reducef func(string, []string) string) { for { job := getJob() if job.</description></item><item><title>A Tour of Go速通</title><link>https://askyx.github.io/posts/go_1/</link><pubDate>Tue, 17 May 2022 22:34:11 +0800</pubDate><guid>https://askyx.github.io/posts/go_1/</guid><description>
 2022-05-17 基础语法 2022-05-24 复合类型，goroutine，channel 基础语法 # Packages # go使用Packages维护模块，使用import导入模块，import最后一个元素才是需要导入的模块
 import ( &amp;#34;fmt&amp;#34; &amp;#34;math/rand&amp;#34; ) import 可以单独一个导入一个模块，也可以批量导入， 与之对应的是export，go不显示声明export，首字母大写的变量或方法自动export，外部只能使用导出的变量或者方法，类似c++中类的私有和共有的概念。
 Functions # 与c++或者Java或者其他语言不同的是，go的函数签名格式为func func_name(parm1 [type], parm2 [type]....) retype {}，先声明名字，再声明变量的类型，参数列表中有多个参数且类型一致的时候，前面的参数类型可以省略，只需要保留之后一个
@@ -128,7 +145,9 @@ Implementation rules + Condition，满足Condition的前提下，可以尝试该
 Cost model + Cost formula，基于cost选择最优的物理算法
 Physical property，与logical property对应，物理属性是选择了特定的算法实现后，输出的数据所具有的物理上的特性，例如数据是否有序、是否具有唯一性，数据在多机上的分布情况等，不同的物理算法，会决定执行该operator产生的物理属性，例如sort merge join会在join key上产生有序属性
 Applicability function : 决定一个物理算法，其输出是否可以满足要求父算子对自身的physical property要求，且决定它对自身的输入具有什么样的physical property要求
-Enforcer是search engine中一个重要的概念，它用来强制产生某种物理属性。例如上层是join算子，在枚举时会考虑使用sort merge join的物理执行方式(Implementation），但当递归到下层时，子节点可以选择table scan（无序输出），或者index scan（目标序输出），当选择table scan时，由于输出不满足父算子对自身输出的物理属性要求，就可以通过Order Enforcer来产生目标输出，Enforcer表示了排序这个操作，同时也包含了排序操作会产生的代价。</description></item><item><title>Columbia Optimizer</title><link>https://askyx.github.io/posts/columbia-optimizer/</link><pubDate>Sat, 02 Apr 2022 16:55:12 +0800</pubDate><guid>https://askyx.github.io/posts/columbia-optimizer/</guid><description>
+Enforcer是search engine中一个重要的概念，它用来强制产生某种物理属性。例如上层是join算子，在枚举时会考虑使用sort merge join的物理执行方式(Implementation），但当递归到下层时，子节点可以选择table scan（无序输出），或者index scan（目标序输出），当选择table scan时，由于输出不满足父算子对自身输出的物理属性要求，就可以通过Order Enforcer来产生目标输出，Enforcer表示了排序这个操作，同时也包含了排序操作会产生的代价。
+The Search Engine # 搜索实现
+// PhysProp：： 此LogExpr锁具有的物理属性的要求 FindBestPlan (LogExpr, PhysProp, Limit) // 如果可以在look-up table找到满足的计划，则代表以及算过，直接返回 if the pair LogExpr and PhysProp is in the look-up table if the cost in the look-up table &amp;lt; Limit return Plan and Cost else return failure /* else: optimization required */ // 否则进行优化，由三种优化方式 // 1.</description></item><item><title>Columbia Optimizer</title><link>https://askyx.github.io/posts/columbia-optimizer/</link><pubDate>Sat, 02 Apr 2022 16:55:12 +0800</pubDate><guid>https://askyx.github.io/posts/columbia-optimizer/</guid><description>
 start # EFFICIENCY IN THE COLUMBIA DATABASE QUERY OPTIMIZER
 优化器发展版本 # 第一代
 模块化的，分层的，可扩展的，基于规则的优化器 扩展的复杂性，搜索性能 第二代
@@ -137,8 +156,12 @@ start # EFFICIENCY IN THE COLUMBIA DATABASE QUERY OPTIMIZER
 术语 #</description></item><item><title>面试</title><link>https://askyx.github.io/posts/log/</link><pubDate>Thu, 24 Mar 2022 20:26:11 +0800</pubDate><guid>https://askyx.github.io/posts/log/</guid><description>
 面试 # 只是一个技术汇总
 C++基础 [2 days] [课程- https://github.com/parallel101/course.git]
-内存 内存结构 [https://segmentfault.com/a/1190000039348996]
-c++ 编译出来的是可执行文件，是ELF格式的，他本来就有一些格式上的划分，C++在他的基础上进行了更细的划分，分为五个部分，从高地址到底地址依次为： 1. 内核虚拟内存 进程的虚拟印象 2. 栈 程序自动控制，具体为程序的函数调用，保存局部变量，有大小，可以使用ulimit -s 查看，也可以自行设置，但是建议系统默认即可 * 函数调用机制 调用的时候是一个一个的栈帧，函数参数会在调用者的栈帧中开辟空间，从右到左，所以函数列表的默认值必须从右到左的初始化， 可能和这个有关系，然后被调用者构造栈帧，依次执行 3. 共享库的内存印象 3. 堆 空间有程序员自行维护，向上增长(TIPS: 由于C的历史原因，C++的内存结构还是说堆区，但是在区别new/malloc 和delete/free 的时候，他们的差别之一可能会在内存上有点区别 C的malloc/free可能会说是在堆上分配空间，但是对于C++可能会说的是在自由存储区上分配，自由存储区和堆是不同的概念，堆是操作系统上的概念，但是自由存储区是一个抽象概念 一般new可以是在堆上分配空间，但是可能存在在其他情况，例如在栈上使用new，所以他们不是一个概念，面试的时候说到这里，可以装逼😎) 4. 可写/全局区 对应elf中data段和bss段，data段保存的是已初始化的全局变量或者静态变量，bss保存的是未初始化的数据 5. 只读区/代码段 text段，保存编译之后的指令，不可变 6. 常量区 保存全局变量，不可变，rodata段，记得使用其他手段去尝试修改常量的时候会报错。 TIPS: const修饰的参数不一定是常量，例如他修饰一个函数的参数的时候，参数还是只是在栈中，只是约定不能修改。 7. 未使用 static
+内存 内存结构 [https://segmentfault.com/a/1190000039348996] | c++ 编译出来的是可执行文件，是ELF格式的，他本来就有一些格式上的划分，C++在他的基础上进行了更细的划分，分为五个部分，从高地址到底地址依次为：
+&amp;mdash; 1. 内核虚拟内存
+进程的虚拟印象 2. 栈
+程序自动控制，具体为程序的函数调用，保存局部变量，有大小，可以使用ulimit -s 查看，也可以自行设置，但是建议系统默认即可 * 函数调用机制
+调用的时候是一个一个的栈帧，函数参数会在调用者的栈帧中开辟空间，从右到左，所以函数列表的默认值必须从右到左的初始化， 可能和这个有关系，然后被调用者构造栈帧，依次执行
+3. 共享库的内存印象 3. 堆 空间有程序员自行维护，向上增长(TIPS: 由于C的历史原因，C++的内存结构还是说堆区，但是在区别new/malloc 和delete/free 的时候，他们的差别之一可能会在内存上有点区别 C的malloc/free可能会说是在堆上分配空间，但是对于C++可能会说的是在自由存储区上分配，自由存储区和堆是不同的概念，堆是操作系统上的概念，但是自由存储区是一个抽象概念 一般new可以是在堆上分配空间，但是可能存在在其他情况，例如在栈上使用new，所以他们不是一个概念，面试的时候说到这里，可以装逼😎) 4. 可写/全局区 对应elf中data段和bss段，data段保存的是已初始化的全局变量或者静态变量，bss保存的是未初始化的数据 5. 只读区/代码段 text段，保存编译之后的指令，不可变 6. 常量区 保存全局变量，不可变，rodata段，记得使用其他手段去尝试修改常量的时候会报错。 TIPS: const修饰的参数不一定是常量，例如他修饰一个函数的参数的时候，参数还是只是在栈中，只是约定不能修改。 7. 未使用 static
 全局变量和静态变量存储位置一样，处于数据段，区别是全局变量项目可见， 静态变量当前文件可见
 局部静态变量数据static变量，存储位置一样，但是限定作用域为当前声明范围
 静态函数类似，全局函数全局可见，static函数当前文件可见
@@ -146,7 +169,12 @@ c++ 编译出来的是可执行文件，是ELF格式的，他本来就有一些�
 extern
 表明此函数在其他文件中定义，这里避免重复声明，所以使用extern，仅仅是一种声明，不是定义
 内存管理
-new C++有对象的概念，所以他的new大意上是malloc的封装，先申请对象的内存空间，然后调用对象的构造函数构造对象，用在数组上是，先申请所有的空间，然后再依次调用构造函数 delete 删除对象，先调用析构函数，然后再释放空间 对象数组 如果调用的是delete[]，如果是基础类型，则删除的时候使用delete和delete[] 都没有区别，因为空间连续的，有额外的空间记录内存的大小，直接使用delete的时候可以直接伤处 如果是自定义对象，如果有指针这类的属性，则必须调用delete[]， 否则他只会调用第一个对象的析构函数，可能会导致内存泄露 &amp;ndash; new malloc 的区别 1.</description></item><item><title>现代C++白皮书</title><link>https://askyx.github.io/posts/%E7%8E%B0%E4%BB%A3c-%E7%99%BD%E7%9A%AE%E4%B9%A6/</link><pubDate>Sun, 06 Mar 2022 20:46:08 +0800</pubDate><guid>https://askyx.github.io/posts/%E7%8E%B0%E4%BB%A3c-%E7%99%BD%E7%9A%AE%E4%B9%A6/</guid><description>
+new C++有对象的概念，所以他的new大意上是malloc的封装，先申请对象的内存空间，然后调用对象的构造函数构造对象，用在数组上是，先申请所有的空间，然后再依次调用构造函数 delete 删除对象，先调用析构函数，然后再释放空间 对象数组 如果调用的是delete[]，如果是基础类型，则删除的时候使用delete和delete[] 都没有区别，因为空间连续的，有额外的空间记录内存的大小，直接使用delete的时候可以直接伤处 如果是自定义对象，如果有指针这类的属性，则必须调用delete[]， 否则他只会调用第一个对象的析构函数，可能会导致内存泄露 &amp;ndash; new malloc 的区别 &amp;ndash; 1. 空间分配的概念上 一个是堆区，一个是自由存储区 2. 使用上 new会调用构造函数，且new会自行计算对象所需的空间大小，malloc需要自行指定 3. 概念上 malloc是标准函数，而new是关键字
+虚表
+实现
+虚表是多态的一种实现，但是不是C++的规定，而是编译器的自行的实现方法，在函数中只要声明虚函数，则对象中就会有额外的空间用于保存虚表，他是一个指针，指向虚表，所以对于有虚表的对象 sizeof的时候会计算这个指针的大小，指针指向虚表的第三个槽位，gdb查看地址的时候会显示+16的字样，因为这是实际的函数指针的开始位置，前两个槽位一个一般是0，另一个一般是typeinfo的地址， 虚表和他的附属信息在内存中都是一起的，其实从根本原理上来说，他只是做了一层转换，实际上函数的调用最终的实现都是面向过程的函数的调用，函数才是C++ 的核心，
+而且虚表由于调用的时候需要寻址，所以会导致性能问题，主要是由于需要进行地址跳转，跳转会有性能损耗，且由于局部性原理，指令会有预读机制，跳转之后可能导致cache miss，导致流水线失效 验证方法
+编译的时候使用参数-fdump-lang-class，gdb调试的时候使用set print asm-demangle on，然后x/b打印地址 或者使用 Compiler Explorer 虚继承 同样使用到虚表，父类只有一份副本 共享内存中的对象问题</description></item><item><title>现代C++白皮书</title><link>https://askyx.github.io/posts/%E7%8E%B0%E4%BB%A3c-%E7%99%BD%E7%9A%AE%E4%B9%A6/</link><pubDate>Sun, 06 Mar 2022 20:46:08 +0800</pubDate><guid>https://askyx.github.io/posts/%E7%8E%B0%E4%BB%A3c-%E7%99%BD%E7%9A%AE%E4%B9%A6/</guid><description>
 读者序 # 之前没有好好的阅读过一本任何技术书籍，一般都是打开前几张，然后慢慢的失去耐心，所有造成的问题是一些书籍上的知识，只会对前面的章节有记忆，而大多数的书籍前面的章节也只是他书籍的入门介绍而已，所以我是个半吊子程序员，工作两年半之后，这个问题越来越困扰着我，有时候看见别人的面帖，感觉那些问题其实都因该是知道答案的，但是当我想要在脑海中把答案整理出来的时候却无从说起，简单的来说就是有的东西我是知道的，但是无法表示出来，不成体系，这给我一个错觉就是我感觉我能力可以，但是落到实地的时候却啥也做不了，脱离了谷歌百度或者其他我之前的资料，我啥都不行。
 我个人觉得问题的解决方式是学会输出，把自己的知识整理输出，通过自己让别人知道一项新技能，新知识，那就代表自己其实已经有了闹靠的基础，知识的输出需要一个载体，我不是老师，公司也没有这个渠道，因为公司的知识交流与工作内容是密切相关的，所以这也是我搭建这个博客的原因，但愿我可以长期的坚持下去，说实话，之前已经有了还几次类似的经历，但是都半途而废了，我希望这是最后一次
 前言 # 书籍是Bjarne Stroustup为HOPL所撰写的论文，目的是介绍c++在过去到现在的发展历程，以及其中一些大的功能点的演化。促发展上来划分C++可以分为两个阶段，一是C++98之前的类C版C++，二是之后的C++11之后的现代C++，在进40年的时间里C++还没有被取代，还可以在如此多的编程语言中占据一些之地，引用Bjarne Stroustup大佬的话说就是因为他填补了编程语言中一个重要的生态位。C++的核心是直接映射硬件和林开销抽象，
@@ -158,7 +186,8 @@ C++最初是在1979年推出的，那时候是真正的带类的C。 Bjarne Stro
 之后就是平稳的发展到推出98版本的C++，不考虑最近的一些新特性的话，我们大部分人的C++ 知识就到这里了。此时C++实现了
 类 多态 运算符重载 类型安全连接 抽象类 模板 更好的泛型编程。大佬最初的时候使用宏实现的泛型编程 异常 RAII *_cast bool STL标准库 上述就是最初的98的C++实现的功能点，实际上也是大多是C++的开发人员知道的最详细的C++知识。之后就是漫长过渡期，直到11版本的推出，使C++进入新时代， 06年单核处理器新能几乎不再提升，所以大部分应用开始寻找可以提升性能的编程语言， C++11 新时代 # 许多新的特性的引入，使得C++类似一个新语言 特性如下
 内存模型 高效的为现代硬件设计的底层抽象，描述并发的基础， auto|declytype range for 更好的遍历容器 移动语义和右值引用 统一初始化 nullptrt constexpr 用户自定义字面量 原始字符串字面量 属性 lambda表达式 变参模板 模板别名 noexcept override和final static_assert longlong 默认成员初始化 enum class 组件如下
-智能指针 unique_ptr和shared_ptr atomic thread库 future，promise等 tuple type trait 正则 随机数 时间 容器 上面的东西就是后续C++在98 的基础上推出的新11功能点，在我自己写这边文档的时候，其实有些东西我是没概念的😂，这些看似不相关的东西，可以分为下面的几个大的主题</description></item><item><title>Envs</title><link>https://askyx.github.io/posts/envs/</link><pubDate>Mon, 21 Feb 2022 19:00:25 +0800</pubDate><guid>https://askyx.github.io/posts/envs/</guid><description>
+智能指针 unique_ptr和shared_ptr atomic thread库 future，promise等 tuple type trait 正则 随机数 时间 容器 上面的东西就是后续C++在98 的基础上推出的新11功能点，在我自己写这边文档的时候，其实有些东西我是没概念的😂，这些看似不相关的东西，可以分为下面的几个大的主题
+并发支持 简化使用 泛型编程的改进 增加静态类型的安全 支持对库的开发 标准库组件 1. 并发支持 #</description></item><item><title>Envs</title><link>https://askyx.github.io/posts/envs/</link><pubDate>Mon, 21 Feb 2022 19:00:25 +0800</pubDate><guid>https://askyx.github.io/posts/envs/</guid><description>
 hugo # wget https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb https://github.91chi.fun/https://github.com//gohugoio/hugo/releases/download/v0.92.2/hugo_extended_0.92.2_Linux-64bit.deb sudo dpkg -i hugo*.deb
 140.82.113.3
 aria2c -s 5 https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb
@@ -184,7 +213,8 @@ ranges https://zhuanlan.zhihu.com/p/350068132
 module
 raii 获取资源即初始化，释放资源即销毁，具体的实现是使用构造函数和析构函数，当前的实现为智能指针，其他用户自己管理的资源最好也使用raii，遮这样在函数有多个出口的时候，就不会有意外的情况，本质上还是自己管理资源，不想其他的语言有GC
 异常安全，C++中异常机制在回溯栈的时候会析构对象，所以如果没有实现RAII，则自己管理的内存则无法释放，C++的异常可以发生在任何地方，如果发生在析构函数中，则需要自己处理，不要在析构函数中抛出异常的，在构造函数中的时候，也需要捕获异常然后释放已经申请的资源，构造函数异常的时候，是不会调用析构函数的， 构造函数
-构造函数有时候会隐士的生成对象，即使没有显示声明，使用explicit避免这种情况，单参数的时候会，多参数使用{}，调用的时候也会 直接使用多参数的时候，()和{}是有区别的，()除了正常的使用外，其他情况不具备特殊含义 int a = (10, 11); int a = {10, 11}; tt t(1, 2); tt q{1, 3}; tt w = {1, 4}; tests({1,5}); ``` 上面的语句1正确，a的值为11，2错误，{}这种用法的意义是参数列表，是会构造对象的。ps，调用构造函数的时候，有具体的对象的时候两种括号无差别，但是无对象的时候有区别，如上，细品</description></item><item><title/><link>https://askyx.github.io/posts/adbplan/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://askyx.github.io/posts/adbplan/</guid><description>
+构造函数有时候会隐士的生成对象，即使没有显示声明，使用explicit避免这种情况，单参数的时候会，多参数使用{}，调用的时候也会 直接使用多参数的时候，()和{}是有区别的，()除了正常的使用外，其他情况不具备特殊含义 int a = (10, 11); int a = {10, 11}; tt t(1, 2); tt q{1, 3}; tt w = {1, 4}; tests({1,5}); ``` 上面的语句1正确，a的值为11，2错误，{}这种用法的意义是参数列表，是会构造对象的。ps，调用构造函数的时候，有具体的对象的时候两种括号无差别，但是无对象的时候有区别，如上，细品
+默认构造函数 拷贝构造( A(A const &amp;amp; a) ) A a = aa; 移动构造( A(A &amp;amp;&amp;amp; a) ) 赋值构造( A&amp;amp;operator=(A const&amp;amp; a) ) A a; a = aa; 移动赋值( A&amp;amp;operator=(A &amp;amp;&amp;amp; a) ) =delte和=default 类内部变量可以赋初值 三五法则 拷贝构造或者赋值构造需要区分深拷贝和浅拷贝，这也是构造函数肯可能引入的问题，例如浅拷贝导致内存的重复释放， 各种构造函数更多的是需要考虑当前对象的来源，如果是直接从零开始的，则是普通的构造函数，如果是从别的对象来的，则需要考虑深浅拷贝的问题，以及构造之后别的对象是否还需要的问题，简而言之，就是资源细节上的考虑，只要内涉及到资源的操作，则需要多话费一些心思区考虑， 函数返回多值</description></item><item><title/><link>https://askyx.github.io/posts/adbplan/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://askyx.github.io/posts/adbplan/</guid><description>
 issues # 1490 # 1921 # 1699 # http://10.20.16.216:9090/ADB/AntDB/-/issues/1490 http://10.20.16.216:9090/ADB/AntDB/-/issues/1921 http://10.20.16.216:9090/ADB/AntDB/-/issues/1699
 问题 # 使用到reduce的地方（包括查询）偶现以下错误，再次执行sql就正常；
 ERROR: remote node 16389 closed socket CONTEXT: dynamic reduce 复现方法 # 使用修改分布方式的方式去复现问题，过程如下： 创建100张表，然后并发100，不停执行下面的语句，5分钟之内会出现报错：
@@ -213,11 +243,15 @@ node_count = 2 Table &amp;#34;public.bmsql_new_order&amp;#34; Column | Type | Nu
 主要工作环境为Linux，掌握基础的Linux命令，掌握基础开发工具以及Linux下的调试工具的使用
 掌握基础数据结构和算法，具备常规操作系统知识
 CET-6
-项目经历 # AntDB</description></item><item><title/><link>https://askyx.github.io/posts/remotequery/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://askyx.github.io/posts/remotequery/</guid><description>
+项目经历 # AntDB
+2022.7-now
+主要工作范围为优化器及执行器部分 fast query ship功能优化 进入优化器之前快速判断语句能否从cn直接下发到dn，优化其判断规则，支持较复杂语句 odbc项目维护 项目支持 EsgynDB
+2019.7-2022.1
+分区表功能实现 兼容Oracle分区表实现 range 分区表功能 主要负责分区表的部分SQL DDL、DML语句，以及index的设计和实现，且后期负责分区表功能的主要维护工作 memtable(简易分布式内存表)功能实现 由于数据库的架构问题，导致语句执行链路过长，部分场景无法满足客户性能需求，所以设计实现内存表，加速查询 负责具体功能的实现，主要功能点为 内存表架构实现 缓存一致性的检查机制 缓存操作及维护的DDL语句，DML语句等 性能明显有比较大的提升，表宽为1K，大小为10W行的数据，进行查询操性能较原来提 升有10X，满足现场同事的性能需求 一些现场支援，需求开发、SQL兼容、SQL函数实现、SQL优化等，例如 greatest，least，beginkey，endkey等SQL函数实现 临时表，in语句，reverse scan，大字段查询的优化</description></item><item><title/><link>https://askyx.github.io/posts/remotequery/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://askyx.github.io/posts/remotequery/</guid><description>
 remote Query # 精确选择数据源，需要从语句的约束条件中计算出具体的执行数据源节点，然后把语句下发的对应的 DN 操作尽可能下推，下推一些操作到对应的DN上执行 remote query当前使用两阶段优化
 第一阶段是FQS，对语句进行简单的判断，如果语句可以完全在DN上执行，则直接在这里创建remote plan，然后直接返回，如下例子
 benchmarksql=# explain select * from t1; QUERY PLAN ---------------------------------------------------------------------------- Data Node Scan on &amp;#34;__REMOTE_FQS_QUERY__&amp;#34; (cost=0.00..0.00 rows=0 width=0) Primary node/s: dn1 Node/s: dn1, dn2 (3 rows) 第二阶段，FQS判断失败的语句，此时需要进行常规优化，一般是语句需要DN之间的数据发生交换的时候，例如join使用多表， 但是关联条件不是分区键，此时需要把DN的数据读取到 CN 上，然后进行关联，
-postgres=# explain select * from t1 join t2 on t1.c1 = t2.c1; QUERY PLAN --------------------------------------------------------------------------------------------------- Hash Join (cost=2752.50..5509.65 rows=3000 width=16) Hash Cond: (t2.c1 = t1.c1) -&amp;gt; Data Node Scan on t2 &amp;#34;_REMOTE_TABLE_QUERY_&amp;#34; (cost=0.00..2715.90 rows=3001 width=8) Primary node/s: dn1 Node/s: dn1, dn2, dn3 -&amp;gt; Hash (cost=2715.00..2715.00 rows=3000 width=8) -&amp;gt; Data Node Scan on t1 &amp;#34;_REMOTE_TABLE_QUERY__1&amp;#34; (cost=0.</description></item><item><title/><link>https://askyx.github.io/posts/sublink/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://askyx.github.io/posts/sublink/</guid><description>
+postgres=# explain select * from t1 join t2 on t1.c1 = t2.c1; QUERY PLAN --------------------------------------------------------------------------------------------------- Hash Join (cost=2752.50..5509.65 rows=3000 width=16) Hash Cond: (t2.c1 = t1.c1) -&amp;gt; Data Node Scan on t2 &amp;#34;_REMOTE_TABLE_QUERY_&amp;#34; (cost=0.00..2715.90 rows=3001 width=8) Primary node/s: dn1 Node/s: dn1, dn2, dn3 -&amp;gt; Hash (cost=2715.00..2715.00 rows=3000 width=8) -&amp;gt; Data Node Scan on t1 &amp;#34;_REMOTE_TABLE_QUERY__1&amp;#34; (cost=0.00..2715.00 rows=3000 width=8) Primary node/s: dn1 Node/s: dn1, dn2, dn3 (9 rows) 1.</description></item><item><title/><link>https://askyx.github.io/posts/sublink/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://askyx.github.io/posts/sublink/</guid><description>
 typedef struct SubPlan { pg_node_attr(no_query_jumble) Expr xpr; /* Fields copied from original SubLink: */ SubLinkType subLinkType; /* see above */ /* The combining operators, transformed to an executable expression: */ Node *testexpr; /* OpExpr or RowCompareExpr expression tree */ List *paramIds; /* IDs of Params embedded in the above */ /* Identification of the Plan tree to use: */ int plan_id; /* Index (from 1) in PlannedStmt.subplans */ /* Identification of the SubPlan for EXPLAIN and debugging purposes: */ char *plan_name; /* A name assigned during planning */ /* Extra data useful for determining subplan&amp;#39;s output type: */ Oid firstColType; /* Type of first column of subplan result */ int32 firstColTypmod; /* Typmod of first column of subplan result */ Oid firstColCollation; /* Collation of first column of subplan result */ /* Information about execution strategy: */ bool useHashTable; /* true to store subselect output in a hash table (implies we are doing &amp;#34;IN&amp;#34;) */ bool unknownEqFalse; /* true if it&amp;#39;s okay to return FALSE when the * spec result is UNKNOWN; this allows much * simpler handling of null values */ bool parallel_safe; /* is the subplan parallel-safe?</description></item><item><title/><link>https://askyx.github.io/posts/%E9%85%8D%E7%BD%AE/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://askyx.github.io/posts/%E9%85%8D%E7%BD%AE/</guid><description>
 配置文件guc.c
 http://www.postgres.cn/docs/12/view-pg-settings.html

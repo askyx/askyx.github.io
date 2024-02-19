@@ -1,105 +1,14 @@
-<!doctype html><html lang=en>
-<head>
-<title>
-执行计划代价计算规则梳理 ::
+<!doctype html><html lang=en><head><title>执行计划代价计算规则梳理 ::
 Asky — My note blog
-</title>
-<meta charset=utf-8>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta name=description content="表和各个index的物理结构及数据操作 统计信息 cost 计算 demo 选择率的计算 基表cost index cost  pageinspect
+</title><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="表和各个index的物理结构及数据操作 统计信息 cost 计算 demo 选择率的计算 基表cost index cost pageinspect
 PostgreSQL索引系列文章链接汇总
-统计信息与选择率与代价计算 #  当前统计信息会收集下面数据，可以使用视图 pg_stats 查看，在使用统计信息的时候，使用相关信息计算选择率
-* Histogram：直方图，这个数据结构用来描述数据的分布，当前pg中计算的是等高直方图，在每一个范围内，数据数量均等 * Most common values: 出现次数最多的一组值。将它们踢出直方图可以减少极端值造成的估算误差。 * Distinct Number: 即这一列一共有多少个不同的值。值得注意的是 PostgreSQL 并没有为直方图的 每个 bucket 维护一个 bucket 本身的不同的值。 * NULL values: 有多少行的值为 NULL。因为 NULL 是一个非常特殊的值，所以也会将 NULL 单独拿出来进行维护 * Average value width in bytes: 列平均长度，记录这个值可以用来对 SQL 使用的内存大小进行估算，以及 对 IO 开销进行更细致的估算。 * Correlation: 索引和主键（或者说 row id）之间的顺序相关程度。正相关为1，负相关为-1，实际上是统计的协方差  选择率 #  选择率用于计算约束条件过滤之后大的数据量大小，主要用于代价计算中估算执行代价，选择率的计算主要会使用到直方图统计信息和MCV
- 对于等值约束，只会使用 MCV 进行计算，MCV是统计的高频值  首先需要判断列 isunique，如果是，则此时是没有mcv ，直接使用公式 selec = 1.0 / rel-&amp;gt;tuples  计算选择率 否则如果条件中常数刚好是 MCV ，则直接返回当前 MCV 对应的概率即可 否则他假设数据是均匀分布，先去除 MCV 和 nullfac 的概率之后，然后再除以 otherdistinct，计算公式为 selec = (1.0 - sumcommon - nullfrac) / otherdistinct     如下例子，100 不是 MCV，对应上面第三条规则">
-<meta name=keywords content="程序员、码农、database、C++">
-<meta name=robots content="noodp">
-<link rel=canonical href=https://askyx.github.io/posts/cost/>
-<link rel=stylesheet href=//cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.6.0/lxgwwenkaiscreen.css media=print onload="this.media='all'">
-<link rel=stylesheet href=https://askyx.github.io/assets/style.css>
-<link rel=stylesheet href=https://askyx.github.io/style.css>
-<link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png>
-<link rel="shortcut icon" href=https://askyx.github.io/favicon.ico>
-<link rel=apple-touch-icon href=https://askyx.github.io/favicon.ico>
-<link rel=bookmark href=https://askyx.github.io/favicon.ico>
-<link rel=apple-touch-icon-precomposed sizes=180x180 href=https://askyx.github.io/favicon.ico>
-<meta name=twitter:card content="summary">
-<meta name=twitter:title content="执行计划代价计算规则梳理">
-<meta name=twitter:description content="pg中各个算子的代价计算">
-<meta property="og:title" content="执行计划代价计算规则梳理">
-<meta property="og:description" content="pg中各个算子的代价计算">
-<meta property="og:type" content="article">
-<meta property="og:url" content="https://askyx.github.io/posts/cost/"><meta property="article:section" content="posts">
-<meta property="article:published_time" content="2023-02-17T09:38:28+08:00">
-<meta property="article:modified_time" content="2023-02-17T09:38:28+08:00">
-</head>
-<body class=light-theme>
-<div class=container>
-<header class=header>
-<span class=header__inner>
-<a href=https://askyx.github.io/ class=logo style=text-decoration:none>
-<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
-</span>
-<span class=logo__text>Asky</span>
+统计信息与选择率与代价计算 # 当前统计信息会收集下面数据，可以使用视图 pg_stats 查看，在使用统计信息的时候，使用相关信息计算选择率
+* Histogram：直方图，这个数据结构用来描述数据的分布，当前pg中计算的是等高直方图，在每一个范围内，数据数量均等 * Most common values: 出现次数最多的一组值。将它们踢出直方图可以减少极端值造成的估算误差。 * Distinct Number: 即这一列一共有多少个不同的值。值得注意的是 PostgreSQL 并没有为直方图的 每个 bucket 维护一个 bucket 本身的不同的值。 * NULL values: 有多少行的值为 NULL。因为 NULL 是一个非常特殊的值，所以也会将 NULL 单独拿出来进行维护 * Average value width in bytes: 列平均长度，记录这个值可以用来对 SQL 使用的内存大小进行估算，以及 对 IO 开销进行更细致的估算。 * Correlation: 索引和主键（或者说 row id）之间的顺序相关程度。正相关为1，负相关为-1，实际上是统计的协方差 选择率 # 选择率用于计算约束条件过滤之后大的数据量大小，主要用于代价计算中估算执行代价，选择率的计算主要会使用到直方图统计信息和MCV
+对于等值约束，只会使用 MCV 进行计算，MCV是统计的高频值 首先需要判断列 isunique，如果是，则此时是没有mcv ，直接使用公式 selec = 1.0 / rel-&amp;gt;tuples 计算选择率 否则如果条件中常数刚好是 MCV ，则直接返回当前 MCV 对应的概率即可 否则他假设数据是均匀分布，先去除 MCV 和 nullfac 的概率之后，然后再除以 otherdistinct，计算公式为 selec = (1.0 - sumcommon - nullfrac) / otherdistinct 如下例子，100 不是 MCV，对应上面第三条规则
+esoye=# explain select * from t1 where a = 100; QUERY PLAN ------------------------------------------------------------------- Bitmap Heap Scan on t1 (cost=5."><meta name=keywords content="程序员、码农、database、C++"><meta name=robots content="noodp"><link rel=canonical href=https://askyx.github.io/posts/cost/><link rel=stylesheet href=//cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.6.0/lxgwwenkaiscreen.css media=print onload='this.media="all"'><link rel=stylesheet href=https://askyx.github.io/assets/style.css><link rel=stylesheet href=https://askyx.github.io/style.css><link rel=apple-touch-icon-precomposed sizes=144x144 href=https://askyx.github.io/img/apple-touch-icon-144-precomposed.png><link rel="shortcut icon" href=https://askyx.github.io/favicon.ico><link rel=apple-touch-icon href=https://askyx.github.io/favicon.ico><link rel=bookmark href=https://askyx.github.io/favicon.ico><link rel=apple-touch-icon-precomposed sizes=180x180 href=https://askyx.github.io/favicon.ico><meta name=twitter:card content="summary"><meta name=twitter:title content="执行计划代价计算规则梳理"><meta name=twitter:description content="pg中各个算子的代价计算"><meta property="og:title" content="执行计划代价计算规则梳理"><meta property="og:description" content="pg中各个算子的代价计算"><meta property="og:type" content="article"><meta property="og:url" content="https://askyx.github.io/posts/cost/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2023-02-17T09:38:28+08:00"><meta property="article:modified_time" content="2023-02-17T09:38:28+08:00"></head><body class=light-theme><div class=container><header class=header><span class=header__inner><a href=https://askyx.github.io/ class=logo style=text-decoration:none><span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg></span><span class=logo__text>Asky</span>
 <span class=logo__cursor></span>
-</a>
-<span class=header__right>
-<nav class=menu>
-<ul class="menu__inner menu__inner--desktop">
-<li><a href=/about>About</a></li>
-<li><a href=/archive>Archive</a></li>
-<li><a href=/search>🔍</a></li>
-<li><a href=javascript:; onclick=randomPost() title=随机访问一篇文章><svg t="1660103436159" class="icon search-box-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" p-id="1184" width="32" height="32"><path d="M421.376 481.28s117.248 24.576 175.104-8.704c0 0-89.6 70.144-89.6 166.4.512-.512-8.192-121.344-85.504-157.696zm17.408 487.936s68.608 6.656 68.608-80.896c0 0 3.072 88.576 65.024 78.336.0.512-50.688 22.016-133.632 2.56zM161.28 238.08s-30.208 65.536 11.264 91.648c0 0-67.072-17.408-81.408 37.376.0.0 8.704-82.944 70.144-129.024zM857.6 227.328s49.152 50.176 1.024 81.408c0 0 58.88-18.432 66.56 36.352.0.0 5.12-69.632-67.584-117.76z" p-id="1185"/><path d="M443.392 970.752c-5.632.0-10.752-1.024-15.36-3.072L157.184 810.496l-1.536-1.024s-1.024-1.024-4.608-2.56c-51.2-29.184-62.976-94.208-65.536-120.832V386.56c0-3.072.512-7.168 1.024-11.264l.512-3.584 1.024-2.56c19.456-50.688 76.8-51.2 103.936-44.032l-1.536 5.632 4.096-6.144L476.16 486.4l18.944 37.888c20.992 36.864 29.184 77.824 32.768 99.84v258.048c-4.608 56.32-36.864 76.288-55.808 82.944-1.024.512-15.36 5.632-28.672 5.632zM181.248 774.656l263.168 152.576c12.288-.512 36.864-6.656 40.448-48.128V628.736c-4.608-31.744-20.992-103.936-72.192-128L322.56 445.44l1.536 3.072L181.76 366.08c-2.048-.512-40.448-9.216-52.736 15.872-.512 2.56-.512 4.608-.512 6.144v294.4c1.536 16.896 9.728 67.072 43.52 86.528 3.584 2.048 6.656 4.096 9.216 5.632z" p-id="1186"/><path d="M837.632 212.992c6.656 4.096 12.8 7.168 18.432 10.752l1.536 1.024 1.536 1.536c5.12 4.096 10.752 9.216 16.384 15.36 6.144 11.776 5.632 33.28 4.608 49.152-1.024 12.288-6.656 30.208-26.624 44.544l-1.024.512-247.808 156.672c-26.624 14.336-62.976 18.432-96.256 18.432-40.96.0-77.824-6.656-89.088-8.704l-3.072-.512-245.248-142.336c-39.424-29.696-28.16-85.504-15.36-113.664l2.56-6.144 263.68-166.912c29.184-14.336 104.448-43.008 173.056-1.024 3.584 2.56 58.368 34.304 119.296 69.632M431.616 460.8c40.448 7.168 114.176 13.824 152.576-6.144L828.928 299.52c7.168-5.632 8.192-10.24 8.704-12.8 1.024-11.264-9.728-26.624-15.36-32.768-55.808-32.256-243.712-141.312-250.368-145.408-49.664-30.72-107.008-9.216-130.048 2.56L192.512 268.8c-4.096 12.288-12.288 42.496 3.584 55.808L431.616 460.8z" p-id="1187"/><path d="M831.488 299.008c4.096-1.024 38.4-11.264 66.048 6.144 7.168 4.608 17.92 11.776 24.064 24.576 1.024 5.632 4.096 10.752 4.608 16.896v2.048l-1.024 323.072c-5.12 35.328-22.528 91.648-77.312 125.44l-5.12 3.584h-1.024L579.584 966.656l-4.608.512c-4.096.512-8.704 1.024-12.8 1.024-15.872.0-30.208-5.12-41.984-14.848-24.576-20.48-32.768-55.808-35.328-73.728l-1.024-252.928h1.536c6.144-96.768 88.576-164.864 96.768-171.008l-.512-.512L829.44 299.52M528.384 867.328c.512 10.24 5.12 41.472 19.968 53.76 3.072 2.56 7.68 5.632 16.384 5.12L829.44 758.272c56.32-38.4 53.76-115.712 53.76-116.224l-.512-32.256 1.024-250.368h-.512c-1.536-12.8-7.168-16.384-8.704-17.408-8.704-5.632-23.552-3.072-28.672-2.048L610.304 488.96c-1.024.512-80.896 65.024-80.896 149.504h-1.536l.512 228.864zM435.2 264.192c0 27.648 31.744 50.176 71.168 50.176s71.168-22.528 71.168-50.176-31.744-50.176-71.168-50.176S435.2 236.544 435.2 264.192z" p-id="1188"/><path d="M663.552 782.848c0 30.72-22.528 67.072-49.664 80.384-27.648 13.824-50.176-.512-50.176-31.232s22.528-67.072 50.176-80.384c27.136-13.824 49.664.0 49.664 31.232zM760.32 602.624c0 30.72-22.528 67.072-49.664 80.384-27.648 13.824-49.664-.512-49.664-31.232s22.528-67.072 49.664-80.384c27.136-13.824 49.664.512 49.664 31.232zM867.84 428.032c0 30.72-22.528 67.072-49.664 80.384C790.528 522.24 768 507.904 768 477.184s22.528-67.072 50.176-80.384c27.136-13.824 49.664.0 49.664 31.232zM270.848 538.112c0 30.72-22.016 41.984-48.64 24.576-27.136-16.896-48.64-55.808-48.64-86.528s22.016-41.984 48.64-24.576c26.624 16.896 48.64 55.808 48.64 86.528zm161.28 285.184c0 30.72-22.016 41.984-48.64 24.576-26.624-17.408-48.64-55.808-48.64-86.528s22.016-41.984 48.64-24.576c26.624 16.896 48.64 55.808 48.64 86.528z" p-id="1189"/></svg></a></li>
-</ul>
-<ul class="menu__inner menu__inner--mobile">
-<li><a href=/about>About</a></li>
-<li><a href=/archive>Archive</a></li>
-<li><a href=/search>🔍</a></li>
-</ul>
-</nav>
-<span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-</span>
-<span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg>
-</span>
-</span>
-</span>
-</header>
-<div class=content>
-<div class=post>
-<div class=breadcrumb>
-<li>
-<a href=https://askyx.github.io/>首页</a>
-</li>
-<li>
-<a href=https://askyx.github.io/posts/>Posts</a>
-</li>
-<li class=active>
-<a href=https://askyx.github.io/posts/cost/>执行计划代价计算规则梳理</a>
-</li>
-</div>
-<h2 class=post-title><a href=https://askyx.github.io/posts/cost/>执行计划代价计算规则梳理</a></h2>
-<div class=post-meta>
-<span class=post-date>
-2023-02-17
-</span>
-</div>
-<div class=post-content>
-<ol>
-<li>表和各个index的物理结构及数据操作</li>
-<li>统计信息</li>
-<li>cost 计算</li>
-<li>demo</li>
-<li>选择率的计算</li>
-<li>基表cost</li>
-<li>index cost</li>
-</ol>
-<p><a href=http://postgres.cn/docs/14/pageinspect.html>pageinspect</a></p>
-<p><a href=https://www.mengqingzhong.com/2020/10/01/postgresql-index-linnks/>PostgreSQL索引系列文章链接汇总</a></p>
-<h2 id=统计信息与选择率与代价计算>
-统计信息与选择率与代价计算
-<a href=#%e7%bb%9f%e8%ae%a1%e4%bf%a1%e6%81%af%e4%b8%8e%e9%80%89%e6%8b%a9%e7%8e%87%e4%b8%8e%e4%bb%a3%e4%bb%b7%e8%ae%a1%e7%ae%97 class=h-anchor aria-hidden=true>#</a>
-</h2>
-<p>当前统计信息会收集下面数据，可以使用视图 <code>pg_stats</code> 查看，在使用统计信息的时候，使用相关信息计算选择率</p>
-<pre><code>* Histogram：直方图，这个数据结构用来描述数据的分布，当前pg中计算的是等高直方图，在每一个范围内，数据数量均等
+</a><span class=header__right><nav class=menu><ul class="menu__inner menu__inner--desktop"><li><a href=/about>About</a></li><li><a href=/archive>Archive</a></li><li><a href=/search>🔍</a></li><li><a href=javascript:; onclick=randomPost() title=随机访问一篇文章><svg t="1660103436159" class="icon search-box-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" p-id="1184" width="32" height="32"><path d="M421.376 481.28s117.248 24.576 175.104-8.704c0 0-89.6 70.144-89.6 166.4.512-.512-8.192-121.344-85.504-157.696zm17.408 487.936s68.608 6.656 68.608-80.896c0 0 3.072 88.576 65.024 78.336.0.512-50.688 22.016-133.632 2.56zM161.28 238.08s-30.208 65.536 11.264 91.648c0 0-67.072-17.408-81.408 37.376.0.0 8.704-82.944 70.144-129.024zM857.6 227.328s49.152 50.176 1.024 81.408c0 0 58.88-18.432 66.56 36.352.0.0 5.12-69.632-67.584-117.76z" p-id="1185"/><path d="M443.392 970.752c-5.632.0-10.752-1.024-15.36-3.072L157.184 810.496l-1.536-1.024s-1.024-1.024-4.608-2.56c-51.2-29.184-62.976-94.208-65.536-120.832V386.56c0-3.072.512-7.168 1.024-11.264l.512-3.584 1.024-2.56c19.456-50.688 76.8-51.2 103.936-44.032l-1.536 5.632 4.096-6.144L476.16 486.4l18.944 37.888c20.992 36.864 29.184 77.824 32.768 99.84v258.048c-4.608 56.32-36.864 76.288-55.808 82.944-1.024.512-15.36 5.632-28.672 5.632zM181.248 774.656l263.168 152.576c12.288-.512 36.864-6.656 40.448-48.128V628.736c-4.608-31.744-20.992-103.936-72.192-128L322.56 445.44l1.536 3.072L181.76 366.08c-2.048-.512-40.448-9.216-52.736 15.872-.512 2.56-.512 4.608-.512 6.144v294.4c1.536 16.896 9.728 67.072 43.52 86.528 3.584 2.048 6.656 4.096 9.216 5.632z" p-id="1186"/><path d="M837.632 212.992c6.656 4.096 12.8 7.168 18.432 10.752l1.536 1.024 1.536 1.536c5.12 4.096 10.752 9.216 16.384 15.36 6.144 11.776 5.632 33.28 4.608 49.152-1.024 12.288-6.656 30.208-26.624 44.544l-1.024.512-247.808 156.672c-26.624 14.336-62.976 18.432-96.256 18.432-40.96.0-77.824-6.656-89.088-8.704l-3.072-.512-245.248-142.336c-39.424-29.696-28.16-85.504-15.36-113.664l2.56-6.144 263.68-166.912c29.184-14.336 104.448-43.008 173.056-1.024 3.584 2.56 58.368 34.304 119.296 69.632M431.616 460.8c40.448 7.168 114.176 13.824 152.576-6.144L828.928 299.52c7.168-5.632 8.192-10.24 8.704-12.8 1.024-11.264-9.728-26.624-15.36-32.768-55.808-32.256-243.712-141.312-250.368-145.408-49.664-30.72-107.008-9.216-130.048 2.56L192.512 268.8c-4.096 12.288-12.288 42.496 3.584 55.808L431.616 460.8z" p-id="1187"/><path d="M831.488 299.008c4.096-1.024 38.4-11.264 66.048 6.144 7.168 4.608 17.92 11.776 24.064 24.576 1.024 5.632 4.096 10.752 4.608 16.896v2.048l-1.024 323.072c-5.12 35.328-22.528 91.648-77.312 125.44l-5.12 3.584h-1.024L579.584 966.656l-4.608.512c-4.096.512-8.704 1.024-12.8 1.024-15.872.0-30.208-5.12-41.984-14.848-24.576-20.48-32.768-55.808-35.328-73.728l-1.024-252.928h1.536c6.144-96.768 88.576-164.864 96.768-171.008l-.512-.512L829.44 299.52M528.384 867.328c.512 10.24 5.12 41.472 19.968 53.76 3.072 2.56 7.68 5.632 16.384 5.12L829.44 758.272c56.32-38.4 53.76-115.712 53.76-116.224l-.512-32.256 1.024-250.368h-.512c-1.536-12.8-7.168-16.384-8.704-17.408-8.704-5.632-23.552-3.072-28.672-2.048L610.304 488.96c-1.024.512-80.896 65.024-80.896 149.504h-1.536l.512 228.864zM435.2 264.192c0 27.648 31.744 50.176 71.168 50.176s71.168-22.528 71.168-50.176-31.744-50.176-71.168-50.176S435.2 236.544 435.2 264.192z" p-id="1188"/><path d="M663.552 782.848c0 30.72-22.528 67.072-49.664 80.384-27.648 13.824-50.176-.512-50.176-31.232s22.528-67.072 50.176-80.384c27.136-13.824 49.664.0 49.664 31.232zM760.32 602.624c0 30.72-22.528 67.072-49.664 80.384-27.648 13.824-49.664-.512-49.664-31.232s22.528-67.072 49.664-80.384c27.136-13.824 49.664.512 49.664 31.232zM867.84 428.032c0 30.72-22.528 67.072-49.664 80.384C790.528 522.24 768 507.904 768 477.184s22.528-67.072 50.176-80.384c27.136-13.824 49.664.0 49.664 31.232zM270.848 538.112c0 30.72-22.016 41.984-48.64 24.576-27.136-16.896-48.64-55.808-48.64-86.528s22.016-41.984 48.64-24.576c26.624 16.896 48.64 55.808 48.64 86.528zm161.28 285.184c0 30.72-22.016 41.984-48.64 24.576-26.624-17.408-48.64-55.808-48.64-86.528s22.016-41.984 48.64-24.576c26.624 16.896 48.64 55.808 48.64 86.528z" p-id="1189"/></svg></a></li></ul><ul class="menu__inner menu__inner--mobile"><li><a href=/about>About</a></li><li><a href=/archive>Archive</a></li><li><a href=/search>🔍</a></li></ul></nav><span class=menu-trigger><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></span><span class=theme-toggle><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 41c10.4934.0 19-8.5066 19-19C41 11.5066 32.4934 3 22 3 11.5066 3 3 11.5066 3 22s8.5066 19 19 19zM7 22C7 13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22z"/></svg></span></span></span></header><div class=content><div class=post><div class=breadcrumb><li><a href=https://askyx.github.io/>首页</a></li><li><a href=https://askyx.github.io/posts/>Posts</a></li><li class=active><a href=https://askyx.github.io/posts/cost/>执行计划代价计算规则梳理</a></li></div><h2 class=post-title><a href=https://askyx.github.io/posts/cost/>执行计划代价计算规则梳理</a></h2><div class=post-meta><span class=post-date>2023-02-17</span></div><div class=post-content><ol><li>表和各个index的物理结构及数据操作</li><li>统计信息</li><li>cost 计算</li><li>demo</li><li>选择率的计算</li><li>基表cost</li><li>index cost</li></ol><p><a href=http://postgres.cn/docs/14/pageinspect.html>pageinspect</a></p><p><a href=https://www.mengqingzhong.com/2020/10/01/postgresql-index-linnks/>PostgreSQL索引系列文章链接汇总</a></p><h2 id=统计信息与选择率与代价计算>统计信息与选择率与代价计算
+<a href=#%e7%bb%9f%e8%ae%a1%e4%bf%a1%e6%81%af%e4%b8%8e%e9%80%89%e6%8b%a9%e7%8e%87%e4%b8%8e%e4%bb%a3%e4%bb%b7%e8%ae%a1%e7%ae%97 class=h-anchor aria-hidden=true>#</a></h2><p>当前统计信息会收集下面数据，可以使用视图 <code>pg_stats</code> 查看，在使用统计信息的时候，使用相关信息计算选择率</p><pre><code>* Histogram：直方图，这个数据结构用来描述数据的分布，当前pg中计算的是等高直方图，在每一个范围内，数据数量均等
 * Most common values: 出现次数最多的一组值。将它们踢出直方图可以减少极端值造成的估算误差。
 * Distinct Number: 即这一列一共有多少个不同的值。值得注意的是 PostgreSQL 并没有为直方图的
   每个 bucket 维护一个 bucket 本身的不同的值。
@@ -107,104 +16,68 @@ PostgreSQL索引系列文章链接汇总
 * Average value width in bytes: 列平均长度，记录这个值可以用来对 SQL 使用的内存大小进行估算，以及
   对 IO 开销进行更细致的估算。
 * Correlation: 索引和主键（或者说 row id）之间的顺序相关程度。正相关为1，负相关为-1，实际上是统计的协方差
-</code></pre>
-<h3 id=选择率>
-选择率
-<a href=#%e9%80%89%e6%8b%a9%e7%8e%87 class=h-anchor aria-hidden=true>#</a>
-</h3>
-<p>选择率用于计算约束条件过滤之后大的数据量大小，主要用于代价计算中估算执行代价，选择率的计算主要会使用到直方图统计信息和MCV</p>
-<ul>
-<li>对于等值约束，只会使用 MCV 进行计算，MCV是统计的高频值
-<ul>
-<li>首先需要判断列 isunique，如果是，则此时是没有mcv ，直接使用公式 <code>selec = 1.0 / rel->tuples </code> 计算选择率</li>
-<li>否则如果条件中常数刚好是 MCV ，则直接返回当前 MCV 对应的概率即可</li>
-<li>否则他假设数据是均匀分布，先去除 MCV 和 nullfac 的概率之后，然后再除以 otherdistinct，计算公式为 <code>selec = (1.0 - sumcommon - nullfrac) / otherdistinct </code></li>
-</ul>
-</li>
-</ul>
-<p>如下例子，100 不是 MCV，对应上面第三条规则</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> a <span style=color:#f92672>=</span> <span style=color:#ae81ff>100</span>;
-                            QUERY PLAN
-<span style=color:#75715e>-------------------------------------------------------------------
-</span><span style=color:#75715e></span> Bitmap Heap Scan <span style=color:#66d9ef>on</span> t1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>5</span>.<span style=color:#ae81ff>19</span>..<span style=color:#ae81ff>362</span>.<span style=color:#ae81ff>44</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>99</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
-   <span style=color:#66d9ef>Recheck</span> Cond: (a <span style=color:#f92672>=</span> <span style=color:#ae81ff>100</span>)
-   <span style=color:#f92672>-&gt;</span>  Bitmap <span style=color:#66d9ef>Index</span> Scan <span style=color:#66d9ef>on</span> idx  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>5</span>.<span style=color:#ae81ff>17</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>99</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
-         <span style=color:#66d9ef>Index</span> Cond: (a <span style=color:#f92672>=</span> <span style=color:#ae81ff>100</span>)
-(<span style=color:#ae81ff>4</span> <span style=color:#66d9ef>rows</span>)
-
-n_distinct             <span style=color:#f92672>|</span> <span style=color:#ae81ff>10037</span>
-most_common_vals       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#ae81ff>6531</span>,<span style=color:#ae81ff>9646</span>,<span style=color:#ae81ff>4220</span>,<span style=color:#ae81ff>5958</span>,<span style=color:#ae81ff>710</span>,<span style=color:#ae81ff>933</span>,<span style=color:#ae81ff>1058</span>,<span style=color:#ae81ff>1082</span>,<span style=color:#ae81ff>3047</span>,<span style=color:#ae81ff>5060</span>,<span style=color:#ae81ff>6971</span>,<span style=color:#ae81ff>7584</span>,<span style=color:#ae81ff>8043</span>,<span style=color:#ae81ff>9110</span><span style=color:#960050;background-color:#1e0010>}</span>
-most_common_freqs      <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0004</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0004</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00036666667</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00036666667</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00033333333</span>,
-                          <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00033333333</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00033333333</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00033333333</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00033333333</span>,
-                          <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00033333333</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00033333333</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00033333333</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00033333333</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00033333333</span><span style=color:#960050;background-color:#1e0010>}</span>
-<span style=color:#960050;background-color:#1e0010>此时在函数</span> eqsel_internal <span style=color:#960050;background-color:#1e0010>调用的函数</span> var_eq_const <span style=color:#960050;background-color:#1e0010>中，大致的计算过程为</span>
-selec <span style=color:#f92672>=</span> (<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>0</span> <span style=color:#f92672>-</span> sumcommon <span style=color:#f92672>-</span> nullfrac) <span style=color:#f92672>/</span> otherdistinct 
-      <span style=color:#f92672>=</span> (<span style=color:#ae81ff>1</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0048666666261851788</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>99513333337381482</span>) <span style=color:#f92672>/</span> (<span style=color:#ae81ff>10037</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>14</span>) 
-      <span style=color:#f92672>=</span> <span style=color:#ae81ff>9</span>.<span style=color:#ae81ff>9284977888238531</span>e<span style=color:#f92672>-</span><span style=color:#ae81ff>05</span>
-
-<span style=color:#ae81ff>9</span>.<span style=color:#ae81ff>9284977888238531</span>e<span style=color:#f92672>-</span><span style=color:#ae81ff>05</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1000000</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>99</span>
-
-<span style=color:#960050;background-color:#1e0010>对于不等于，也是同样的计算逻辑</span>
-</code></pre></div><ul>
-<li>对于 &ldquo;&lt;&rdquo;, &ldquo;&lt;=&rdquo;, &ldquo;>&rdquo;, &ldquo;>="，分为下面三种情况
-<ol>
-<li>如果数据是唯一约束的，则此时统计信息没有 MCV，此时直接使用 直方图计算占比</li>
-<li>否则计算时会使用直方图和和 MCV 一起计算
-<ol>
-<li>MCV 计算选择率的方法为，假如此时是 <code>a &lt; 1000</code>，则 MCV 中所有小于 1000 的值的概率相加</li>
-<li>直方图会计算当前常数在所在桶中得区间比例，然后加上前面桶得数量再除以所有桶的数量，计算公式为 <code>((i - 1) + ((val - low) / (high - low))) / (sslot.nvalues - 1)</code></li>
-<li>使用公式 <code>selec = selec * hist_selec + mcv_selec</code> 计算最终的选择率，selec 的初始值为 <code>1.0 - sumcommon - nullfrac</code>，这里是因为需要去除 MCV 中重复计算的部分，然后乘上直方图计算的结果再加上MCV计算的选择率即可</li>
-</ol>
-</li>
-</ol>
-</li>
-</ul>
-<p>如下面的例子中，插入大量1和2</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>;
-                                QUERY PLAN
-<span style=color:#75715e>--------------------------------------------------------------------------
-</span><span style=color:#75715e></span> Bitmap Heap Scan <span style=color:#66d9ef>on</span> t1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>6588</span>.<span style=color:#ae81ff>95</span>..<span style=color:#ae81ff>18294</span>.<span style=color:#ae81ff>42</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>372197</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
-   <span style=color:#66d9ef>Recheck</span> Cond: (a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>)
-   <span style=color:#f92672>-&gt;</span>  Bitmap <span style=color:#66d9ef>Index</span> Scan <span style=color:#66d9ef>on</span> idx  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>6495</span>.<span style=color:#ae81ff>90</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>372197</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
-         <span style=color:#66d9ef>Index</span> Cond: (a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>)
-(<span style=color:#ae81ff>4</span> <span style=color:#66d9ef>rows</span>)
-
-
-n_distinct             <span style=color:#f92672>|</span> <span style=color:#ae81ff>9674</span>
-most_common_vals       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#ae81ff>2</span>,<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>16</span>,<span style=color:#ae81ff>821</span>,<span style=color:#ae81ff>4871</span>,<span style=color:#ae81ff>4903</span>,<span style=color:#ae81ff>5141</span>,<span style=color:#ae81ff>8049</span><span style=color:#960050;background-color:#1e0010>}</span>
-most_common_freqs      <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>2432</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>022566667</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span><span style=color:#960050;background-color:#1e0010>}</span>
-histogram_bounds       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>95</span>,<span style=color:#ae81ff>197</span>,<span style=color:#ae81ff>291</span>,<span style=color:#ae81ff>400</span>,<span style=color:#ae81ff>504</span>,<span style=color:#ae81ff>593</span>,<span style=color:#ae81ff>700</span>,<span style=color:#ae81ff>794</span>,<span style=color:#ae81ff>901</span>,<span style=color:#ae81ff>1001</span>,<span style=color:#ae81ff>1098</span>,<span style=color:#ae81ff>1192</span>,<span style=color:#ae81ff>1305</span>,<span style=color:#ae81ff>1410</span>.....<span style=color:#960050;background-color:#1e0010>}</span>
-
-<span style=color:#960050;background-color:#1e0010>在</span> scalarineqsel <span style=color:#960050;background-color:#1e0010>中，使用函数</span> mcv_selectivity <span style=color:#960050;background-color:#1e0010>和</span> ineq_histogram_selectivity <span style=color:#960050;background-color:#1e0010>分别计算选择率，然后再汇总</span>
-mcv_selec <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>26606667094165459</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>2432</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>022566667</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>
-sumcommon <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>26756667101290077</span>
-binfrac <span style=color:#f92672>=</span> (val <span style=color:#f92672>-</span> low) <span style=color:#f92672>/</span> (high <span style=color:#f92672>-</span> low) <span style=color:#f92672>=</span> <span style=color:#ae81ff>100</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>95</span>  <span style=color:#f92672>/</span> <span style=color:#ae81ff>197</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>95</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>049019607843137254</span>
-histfrac <span style=color:#f92672>=</span> ((double) (i <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>) <span style=color:#f92672>+</span> binfrac ) <span style=color:#f92672>/</span> (double) (sslot.nvalues <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>04901</span> <span style=color:#f92672>/</span> <span style=color:#ae81ff>100</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>01049</span>
-<span style=color:#960050;background-color:#1e0010>最终使用公式</span>
-selec <span style=color:#f92672>=</span> selec <span style=color:#f92672>*</span> hist_selec <span style=color:#f92672>+</span> mcv_selec <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>27367426598623362</span>
-<span style=color:#ae81ff>1360000</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>273</span> <span style=color:#f92672>=</span>  <span style=color:#ae81ff>372197</span>.<span style=color:#ae81ff>00174127775</span>
-
-</code></pre></div><ul>
-<li>对于多个约束条件，PG假设条件独立，会使用简单的概率对单个约束条件进行汇总</li>
-</ul>
-<pre tabindex=0><code>P(A+B) = P(A) + P(B) - P(AB) 
+</code></pre><h3 id=选择率>选择率
+<a href=#%e9%80%89%e6%8b%a9%e7%8e%87 class=h-anchor aria-hidden=true>#</a></h3><p>选择率用于计算约束条件过滤之后大的数据量大小，主要用于代价计算中估算执行代价，选择率的计算主要会使用到直方图统计信息和MCV</p><ul><li>对于等值约束，只会使用 MCV 进行计算，MCV是统计的高频值<ul><li>首先需要判断列 isunique，如果是，则此时是没有mcv ，直接使用公式 <code>selec = 1.0 / rel->tuples </code>计算选择率</li><li>否则如果条件中常数刚好是 MCV ，则直接返回当前 MCV 对应的概率即可</li><li>否则他假设数据是均匀分布，先去除 MCV 和 nullfac 的概率之后，然后再除以 otherdistinct，计算公式为 <code>selec = (1.0 - sumcommon - nullfrac) / otherdistinct</code></li></ul></li></ul><p>如下例子，100 不是 MCV，对应上面第三条规则</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> a <span style=color:#f92672>=</span> <span style=color:#ae81ff>100</span>;
+</span></span><span style=display:flex><span>                            QUERY PLAN
+</span></span><span style=display:flex><span><span style=color:#75715e>-------------------------------------------------------------------
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span> Bitmap Heap Scan <span style=color:#66d9ef>on</span> t1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>5</span>.<span style=color:#ae81ff>19</span>..<span style=color:#ae81ff>362</span>.<span style=color:#ae81ff>44</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>99</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>Recheck</span> Cond: (a <span style=color:#f92672>=</span> <span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>   <span style=color:#f92672>-&gt;</span>  Bitmap <span style=color:#66d9ef>Index</span> Scan <span style=color:#66d9ef>on</span> idx  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>5</span>.<span style=color:#ae81ff>17</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>99</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>         <span style=color:#66d9ef>Index</span> Cond: (a <span style=color:#f92672>=</span> <span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>4</span> <span style=color:#66d9ef>rows</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>n_distinct             <span style=color:#f92672>|</span> <span style=color:#ae81ff>10037</span>
+</span></span><span style=display:flex><span>most_common_vals       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#ae81ff>6531</span>,<span style=color:#ae81ff>9646</span>,<span style=color:#ae81ff>4220</span>,<span style=color:#ae81ff>5958</span>,<span style=color:#ae81ff>710</span>,<span style=color:#ae81ff>933</span>,<span style=color:#ae81ff>1058</span>,<span style=color:#ae81ff>1082</span>,<span style=color:#ae81ff>3047</span>,<span style=color:#ae81ff>5060</span>,<span style=color:#ae81ff>6971</span>,<span style=color:#ae81ff>7584</span>,<span style=color:#ae81ff>8043</span>,<span style=color:#ae81ff>9110</span><span style=color:#960050;background-color:#1e0010>}</span>
+</span></span><span style=display:flex><span>most_common_freqs      <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0004</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0004</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00036666667</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00036666667</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00033333333</span>,
+</span></span><span style=display:flex><span>                          <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00033333333</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00033333333</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00033333333</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00033333333</span>,
+</span></span><span style=display:flex><span>                          <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00033333333</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00033333333</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00033333333</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00033333333</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00033333333</span><span style=color:#960050;background-color:#1e0010>}</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>此时在函数</span> eqsel_internal <span style=color:#960050;background-color:#1e0010>调用的函数</span> var_eq_const <span style=color:#960050;background-color:#1e0010>中，大致的计算过程为</span>
+</span></span><span style=display:flex><span>selec <span style=color:#f92672>=</span> (<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>0</span> <span style=color:#f92672>-</span> sumcommon <span style=color:#f92672>-</span> nullfrac) <span style=color:#f92672>/</span> otherdistinct 
+</span></span><span style=display:flex><span>      <span style=color:#f92672>=</span> (<span style=color:#ae81ff>1</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0048666666261851788</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>99513333337381482</span>) <span style=color:#f92672>/</span> (<span style=color:#ae81ff>10037</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>14</span>) 
+</span></span><span style=display:flex><span>      <span style=color:#f92672>=</span> <span style=color:#ae81ff>9</span>.<span style=color:#ae81ff>9284977888238531</span>e<span style=color:#f92672>-</span><span style=color:#ae81ff>05</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>9</span>.<span style=color:#ae81ff>9284977888238531</span>e<span style=color:#f92672>-</span><span style=color:#ae81ff>05</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1000000</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>99</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>对于不等于，也是同样的计算逻辑</span>
+</span></span></code></pre></div><ul><li>对于 &ldquo;&lt;&rdquo;, &ldquo;&lt;=&rdquo;, &ldquo;>&rdquo;, &ldquo;>="，分为下面三种情况<ol><li>如果数据是唯一约束的，则此时统计信息没有 MCV，此时直接使用 直方图计算占比</li><li>否则计算时会使用直方图和和 MCV 一起计算<ol><li>MCV 计算选择率的方法为，假如此时是 <code>a &lt; 1000</code>，则 MCV 中所有小于 1000 的值的概率相加</li><li>直方图会计算当前常数在所在桶中得区间比例，然后加上前面桶得数量再除以所有桶的数量，计算公式为 <code>((i - 1) + ((val - low) / (high - low))) / (sslot.nvalues - 1)</code></li><li>使用公式 <code>selec = selec * hist_selec + mcv_selec</code> 计算最终的选择率，selec 的初始值为 <code>1.0 - sumcommon - nullfrac</code>，这里是因为需要去除 MCV 中重复计算的部分，然后乘上直方图计算的结果再加上MCV计算的选择率即可</li></ol></li></ol></li></ul><p>如下面的例子中，插入大量1和2</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>;
+</span></span><span style=display:flex><span>                                QUERY PLAN
+</span></span><span style=display:flex><span><span style=color:#75715e>--------------------------------------------------------------------------
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span> Bitmap Heap Scan <span style=color:#66d9ef>on</span> t1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>6588</span>.<span style=color:#ae81ff>95</span>..<span style=color:#ae81ff>18294</span>.<span style=color:#ae81ff>42</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>372197</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>Recheck</span> Cond: (a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>   <span style=color:#f92672>-&gt;</span>  Bitmap <span style=color:#66d9ef>Index</span> Scan <span style=color:#66d9ef>on</span> idx  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>6495</span>.<span style=color:#ae81ff>90</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>372197</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>         <span style=color:#66d9ef>Index</span> Cond: (a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>4</span> <span style=color:#66d9ef>rows</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>n_distinct             <span style=color:#f92672>|</span> <span style=color:#ae81ff>9674</span>
+</span></span><span style=display:flex><span>most_common_vals       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#ae81ff>2</span>,<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>16</span>,<span style=color:#ae81ff>821</span>,<span style=color:#ae81ff>4871</span>,<span style=color:#ae81ff>4903</span>,<span style=color:#ae81ff>5141</span>,<span style=color:#ae81ff>8049</span><span style=color:#960050;background-color:#1e0010>}</span>
+</span></span><span style=display:flex><span>most_common_freqs      <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>2432</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>022566667</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span><span style=color:#960050;background-color:#1e0010>}</span>
+</span></span><span style=display:flex><span>histogram_bounds       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>95</span>,<span style=color:#ae81ff>197</span>,<span style=color:#ae81ff>291</span>,<span style=color:#ae81ff>400</span>,<span style=color:#ae81ff>504</span>,<span style=color:#ae81ff>593</span>,<span style=color:#ae81ff>700</span>,<span style=color:#ae81ff>794</span>,<span style=color:#ae81ff>901</span>,<span style=color:#ae81ff>1001</span>,<span style=color:#ae81ff>1098</span>,<span style=color:#ae81ff>1192</span>,<span style=color:#ae81ff>1305</span>,<span style=color:#ae81ff>1410</span>.....<span style=color:#960050;background-color:#1e0010>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>在</span> scalarineqsel <span style=color:#960050;background-color:#1e0010>中，使用函数</span> mcv_selectivity <span style=color:#960050;background-color:#1e0010>和</span> ineq_histogram_selectivity <span style=color:#960050;background-color:#1e0010>分别计算选择率，然后再汇总</span>
+</span></span><span style=display:flex><span>mcv_selec <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>26606667094165459</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>2432</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>022566667</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>
+</span></span><span style=display:flex><span>sumcommon <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>26756667101290077</span>
+</span></span><span style=display:flex><span>binfrac <span style=color:#f92672>=</span> (val <span style=color:#f92672>-</span> low) <span style=color:#f92672>/</span> (high <span style=color:#f92672>-</span> low) <span style=color:#f92672>=</span> <span style=color:#ae81ff>100</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>95</span>  <span style=color:#f92672>/</span> <span style=color:#ae81ff>197</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>95</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>049019607843137254</span>
+</span></span><span style=display:flex><span>histfrac <span style=color:#f92672>=</span> ((double) (i <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>) <span style=color:#f92672>+</span> binfrac ) <span style=color:#f92672>/</span> (double) (sslot.nvalues <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>04901</span> <span style=color:#f92672>/</span> <span style=color:#ae81ff>100</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>01049</span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>最终使用公式</span>
+</span></span><span style=display:flex><span>selec <span style=color:#f92672>=</span> selec <span style=color:#f92672>*</span> hist_selec <span style=color:#f92672>+</span> mcv_selec <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>27367426598623362</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1360000</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>273</span> <span style=color:#f92672>=</span>  <span style=color:#ae81ff>372197</span>.<span style=color:#ae81ff>00174127775</span>
+</span></span></code></pre></div><ul><li>对于多个约束条件，PG假设条件独立，会使用简单的概率对单个约束条件进行汇总</li></ul><pre tabindex=0><code>P(A+B) = P(A) + P(B) - P(AB) 
 P(AB) = P(A) × P(B) 
-</code></pre><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span> <span style=color:#66d9ef>or</span> <span style=color:#66d9ef>c</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>9800</span>;
-                         QUERY PLAN
-<span style=color:#75715e>------------------------------------------------------------
-</span><span style=color:#75715e></span> Seq Scan <span style=color:#66d9ef>on</span> t1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>27453</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>387263</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
-   Filter: ((a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>) <span style=color:#66d9ef>OR</span> (<span style=color:#66d9ef>c</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>9800</span>))
-(<span style=color:#ae81ff>2</span> <span style=color:#66d9ef>rows</span>)
-
-<span style=color:#960050;background-color:#1e0010>假设</span> <span style=color:#66d9ef>or</span> <span style=color:#960050;background-color:#1e0010>左右两端约束条件不想关，则会使用概率加法公式进行计算，在函数</span> clauselist_selectivity_or <span style=color:#960050;background-color:#1e0010>中，</span>
-p(a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>273</span>
-p(<span style=color:#66d9ef>c</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>9800</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>015</span>
-p(a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span> <span style=color:#66d9ef>or</span> <span style=color:#66d9ef>c</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>9800</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>273</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0152</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>015</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>273</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>28475185873552034</span>
-
-<span style=color:#ae81ff>1360000</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>28475185873552034</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>387262</span>.<span style=color:#ae81ff>52788030764</span>
-</code></pre></div><p>上面只是简单的例子，其他一些表达式这里不能简单的使用上面的方式计算，pg提供不同的计算函数，大致有下面几种，其他的复合条件，则是会递归或者循环调用这些函数单独计算，大致的调用关系如图</p>
-<p><img src=/posts/postgres/images/cost.svg alt=xx></p>
-<pre><code>  src/backend/utils/adt/selfuncs.c:
+</code></pre><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span> <span style=color:#66d9ef>or</span> <span style=color:#66d9ef>c</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>9800</span>;
+</span></span><span style=display:flex><span>                         QUERY PLAN
+</span></span><span style=display:flex><span><span style=color:#75715e>------------------------------------------------------------
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span> Seq Scan <span style=color:#66d9ef>on</span> t1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>27453</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>387263</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+</span></span><span style=display:flex><span>   Filter: ((a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>) <span style=color:#66d9ef>OR</span> (<span style=color:#66d9ef>c</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>9800</span>))
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>2</span> <span style=color:#66d9ef>rows</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>假设</span> <span style=color:#66d9ef>or</span> <span style=color:#960050;background-color:#1e0010>左右两端约束条件不想关，则会使用概率加法公式进行计算，在函数</span> clauselist_selectivity_or <span style=color:#960050;background-color:#1e0010>中，</span>
+</span></span><span style=display:flex><span>p(a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>273</span>
+</span></span><span style=display:flex><span>p(<span style=color:#66d9ef>c</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>9800</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>015</span>
+</span></span><span style=display:flex><span>p(a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span> <span style=color:#66d9ef>or</span> <span style=color:#66d9ef>c</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>9800</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>273</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0152</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>015</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>273</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>28475185873552034</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1360000</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>28475185873552034</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>387262</span>.<span style=color:#ae81ff>52788030764</span>
+</span></span></code></pre></div><p>上面只是简单的例子，其他一些表达式这里不能简单的使用上面的方式计算，pg提供不同的计算函数，大致有下面几种，其他的复合条件，则是会递归或者循环调用这些函数单独计算，大致的调用关系如图</p><p><img src=/posts/postgres/images/cost.svg alt=xx></p><pre><code>  src/backend/utils/adt/selfuncs.c:
      217:  *     eqsel             - Selectivity of &quot;=&quot; for any data types.
      548:  *     neqsel            - Selectivity of &quot;!=&quot; for any data types.
      561:  *     scalarineqsel     - Selectivity of &quot;&lt;&quot;, &quot;&lt;=&quot;, &quot;&gt;&quot;, &quot;&gt;=&quot; for scalars.
@@ -217,149 +90,100 @@ p(a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span> <
     1693:  *     nulltestsel       - Selectivity of NullTest Node.
     1811:  *     scalararraysel    - Selectivity of ScalarArrayOpExpr Node.
     2162:  *     rowcomparesel     - Selectivity of RowCompareExpr Node.
-</code></pre>
-<p>选择率的主要入口是clauselist_selectivity，在最终构建path阶段，对于基表，会提前在函数 set_baserel_size_estimates 中计算 reloptinfo 的 rows，人、而对于一些path，会在其的cost阶段使用相关的约束条件计算选择率，用于估算其操作行数</p>
-<h2 id=cost-计算>
-cost 计算
-<a href=#cost-%e8%ae%a1%e7%ae%97 class=h-anchor aria-hidden=true>#</a>
-</h2>
-<h3 id=总结>
-总结
-<a href=#%e6%80%bb%e7%bb%93 class=h-anchor aria-hidden=true>#</a>
-</h3>
-<ol>
-<li>启动代价<br>
-算子在输出第一行可用tuple需要的代价
-<ul>
-<li>对于非阻塞算子，代价通用的计算规则为约束条件的启动代价 加上 targetlist的启动代价，具体的表达式的代价计算使用函数 cost_qual_eval_node 计算，具体主要计算 startup cost 和 per_tuple cost</li>
-<li>对于阻塞算子，例如join，sort等，则会再加上一些准备工作需要的代价，例如如果hash join的 hashtable 的构造代价，或者是 sort 算子的排序代价</li>
-</ul>
-</li>
-<li>总代价为所有数据输出开始到结束的代价，需要计算当前算子操作tuple的总代价和从下层节点获取数据的代价
-<ul>
-<li>此时需要使用选择率估算算子操作的tuple，在reloptinfo 中，baserel->tuples 代表得是统计信息收集得表得行数，baserel->rows 是使用选择率计算的行数</li>
-</ul>
-</li>
-<li>cost 代价计算简单公式总结为
-<ul>
-<li><code>startup_cost = qpqual_cost.startup + pathtarget->cost.startup + other</code></li>
-<li><code>total_cost = startup_cost + cpu_run_cost + disk_run_cost + other</code></li>
-<li>other 对于具体的算子有不同的实现</li>
-</ul>
-</li>
-</ol>
-<p>total_cost = startup_cost + cpu_run_cost + disk_run_cost + other
+</code></pre><p>选择率的主要入口是clauselist_selectivity，在最终构建path阶段，对于基表，会提前在函数 set_baserel_size_estimates 中计算 reloptinfo 的 rows，人、而对于一些path，会在其的cost阶段使用相关的约束条件计算选择率，用于估算其操作行数</p><h2 id=cost-计算>cost 计算
+<a href=#cost-%e8%ae%a1%e7%ae%97 class=h-anchor aria-hidden=true>#</a></h2><h3 id=总结>总结
+<a href=#%e6%80%bb%e7%bb%93 class=h-anchor aria-hidden=true>#</a></h3><ol><li>启动代价<br>算子在输出第一行可用tuple需要的代价<ul><li>对于非阻塞算子，代价通用的计算规则为约束条件的启动代价 加上 targetlist的启动代价，具体的表达式的代价计算使用函数 cost_qual_eval_node 计算，具体主要计算 startup cost 和 per_tuple cost</li><li>对于阻塞算子，例如join，sort等，则会再加上一些准备工作需要的代价，例如如果hash join的 hashtable 的构造代价，或者是 sort 算子的排序代价</li></ul></li><li>总代价为所有数据输出开始到结束的代价，需要计算当前算子操作tuple的总代价和从下层节点获取数据的代价<ul><li>此时需要使用选择率估算算子操作的tuple，在reloptinfo 中，baserel->tuples 代表得是统计信息收集得表得行数，baserel->rows 是使用选择率计算的行数</li></ul></li><li>cost 代价计算简单公式总结为<ul><li><code>startup_cost = qpqual_cost.startup + pathtarget->cost.startup + other</code></li><li><code>total_cost = startup_cost + cpu_run_cost + disk_run_cost + other</code></li><li>other 对于具体的算子有不同的实现</li></ul></li></ol><p>total_cost = startup_cost + cpu_run_cost + disk_run_cost + other
 cpu_run_cost = cpu_per_tuple * inputrows + target_cost_per_tuple * outputrows
-disk_run_cost = spc_page_cost * pages</p>
-<h4 id=简单的seqscan>
-简单的seqscan
-<a href=#%e7%ae%80%e5%8d%95%e7%9a%84seqscan class=h-anchor aria-hidden=true>#</a>
-</h4>
-<p>seq scan 比较简单，在前期工作完成之后，直接构造 path 且估算其代价</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> <span style=color:#66d9ef>c</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span> ;
-                        QUERY PLAN
-<span style=color:#75715e>----------------------------------------------------------
-</span><span style=color:#75715e></span> Seq Scan <span style=color:#66d9ef>on</span> t1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>24053</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>9770</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
-   Filter: (<span style=color:#66d9ef>c</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>)
-(<span style=color:#ae81ff>2</span> <span style=color:#66d9ef>rows</span>)
-
- relpages <span style=color:#f92672>|</span> reltuples
-<span style=color:#75715e>----------+-----------
-</span><span style=color:#75715e></span>     <span style=color:#ae81ff>7053</span> <span style=color:#f92672>|</span>  <span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>36</span>e<span style=color:#f92672>+</span><span style=color:#ae81ff>06</span>
-
-<span style=color:#ae81ff>1</span>. <span style=color:#960050;background-color:#1e0010>使用函数</span> cost_qual_eval_node <span style=color:#960050;background-color:#1e0010>计算表达式的启动代价和操作每一行数据的代价</span>
-    cost<span style=color:#f92672>-&gt;</span>per_tuple <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0025</span>
-    cost<span style=color:#f92672>-&gt;</span>startup <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
-<span style=color:#ae81ff>2</span>. targetlist <span style=color:#960050;background-color:#1e0010>只是简单的输出，所以两个值都为</span> <span style=color:#ae81ff>0</span> 
-<span style=color:#ae81ff>3</span>. <span style=color:#960050;background-color:#1e0010>不同的磁盘介质有不同的</span>IO代价<span style=color:#960050;background-color:#1e0010>，使用函数</span> get_tablespace_page_costs <span style=color:#960050;background-color:#1e0010>获得</span> <span style=color:#960050;background-color:#1e0010>磁盘</span> io <span style=color:#960050;background-color:#1e0010>的</span> page <span style=color:#960050;background-color:#1e0010>代价</span> spc_seq_page_cost <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>
-<span style=color:#ae81ff>4</span>. startup_cost <span style=color:#f92672>=</span> qpqual_cost.startup <span style=color:#f92672>+</span> path<span style=color:#f92672>-&gt;</span>pathtarget<span style=color:#f92672>-&gt;</span>cost.startup <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
-<span style=color:#ae81ff>5</span>. disk_run_cost <span style=color:#f92672>=</span> spc_seq_page_cost <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>pages <span style=color:#f92672>=</span> <span style=color:#ae81ff>7053</span>
-   cpu_run_cost <span style=color:#f92672>=</span> (cpu_tuple_cost <span style=color:#f92672>+</span> qpqual_cost.per_tuple)  <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>tuples <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0125</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>36</span>e<span style=color:#f92672>+</span><span style=color:#ae81ff>06</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>17000</span>
-   cpu_run_cost <span style=color:#f92672>+=</span> path<span style=color:#f92672>-&gt;</span>pathtarget<span style=color:#f92672>-&gt;</span>cost.per_tuple <span style=color:#f92672>*</span> path<span style=color:#f92672>-&gt;</span><span style=color:#66d9ef>rows</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>17000</span>
-
-<span style=color:#ae81ff>7</span>. total_cost <span style=color:#f92672>=</span> startup_cost <span style=color:#f92672>+</span> cpu_run_cost <span style=color:#f92672>+</span> disk_run_cost <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>17000</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>7053</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>24053</span>
-</code></pre></div><h4 id=复杂target-list>
-复杂target list
-<a href=#%e5%a4%8d%e6%9d%82target-list class=h-anchor aria-hidden=true>#</a>
-</h4>
-<p>遵循前面总结的公式，这里targetlist 中有一个子查询，所以代价不为 0</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span>, (<span style=color:#66d9ef>select</span> <span style=color:#66d9ef>sum</span>(a) <span style=color:#66d9ef>from</span> t2) <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span> <span style=color:#66d9ef>and</span> <span style=color:#66d9ef>c</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>5566</span>;
-                                QUERY PLAN
-<span style=color:#75715e>--------------------------------------------------------------------------
-</span><span style=color:#75715e></span> Bitmap Heap Scan <span style=color:#66d9ef>on</span> t1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>6713</span>.<span style=color:#ae81ff>76</span>..<span style=color:#ae81ff>19349</span>.<span style=color:#ae81ff>72</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>151344</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>20</span>)
-   <span style=color:#66d9ef>Recheck</span> Cond: (a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>)
-   Filter: (<span style=color:#66d9ef>c</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>5566</span>)
-   InitPlan <span style=color:#ae81ff>1</span> (<span style=color:#66d9ef>returns</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>0</span>)
-     <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Aggregate</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>180</span>.<span style=color:#ae81ff>01</span>..<span style=color:#ae81ff>180</span>.<span style=color:#ae81ff>02</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
-           <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> t2  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>155</span>.<span style=color:#ae81ff>01</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>10001</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
-   <span style=color:#f92672>-&gt;</span>  Bitmap <span style=color:#66d9ef>Index</span> Scan <span style=color:#66d9ef>on</span> idx  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>6495</span>.<span style=color:#ae81ff>90</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>372197</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
-         <span style=color:#66d9ef>Index</span> Cond: (a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>)
-(<span style=color:#ae81ff>8</span> <span style=color:#66d9ef>rows</span>)
-
-esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span> <span style=color:#66d9ef>and</span> <span style=color:#66d9ef>c</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>5566</span>;
-                                QUERY PLAN
-<span style=color:#75715e>--------------------------------------------------------------------------
-</span><span style=color:#75715e></span> Bitmap Heap Scan <span style=color:#66d9ef>on</span> t1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>6533</span>.<span style=color:#ae81ff>74</span>..<span style=color:#ae81ff>19169</span>.<span style=color:#ae81ff>70</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>151344</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
-   <span style=color:#66d9ef>Recheck</span> Cond: (a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>)
-   Filter: (<span style=color:#66d9ef>c</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>5566</span>)
-   <span style=color:#f92672>-&gt;</span>  Bitmap <span style=color:#66d9ef>Index</span> Scan <span style=color:#66d9ef>on</span> idx  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>6495</span>.<span style=color:#ae81ff>90</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>372197</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
-         <span style=color:#66d9ef>Index</span> Cond: (a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>)
-(<span style=color:#ae81ff>5</span> <span style=color:#66d9ef>rows</span>)
-
-esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#66d9ef>sum</span>(a) <span style=color:#66d9ef>from</span> t2;
-                          QUERY PLAN
-<span style=color:#75715e>--------------------------------------------------------------
-</span><span style=color:#75715e></span> <span style=color:#66d9ef>Aggregate</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>180</span>.<span style=color:#ae81ff>01</span>..<span style=color:#ae81ff>180</span>.<span style=color:#ae81ff>02</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
-   <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> t2  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>155</span>.<span style=color:#ae81ff>01</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>10001</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
-(<span style=color:#ae81ff>2</span> <span style=color:#66d9ef>rows</span>)
-
-
-<span style=color:#ae81ff>6713</span>.<span style=color:#ae81ff>76</span>  <span style=color:#f92672>=</span> <span style=color:#ae81ff>6533</span>.<span style=color:#ae81ff>74</span>  <span style=color:#f92672>+</span> <span style=color:#ae81ff>180</span>.<span style=color:#ae81ff>01</span>
-<span style=color:#ae81ff>19349</span>.<span style=color:#ae81ff>72</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>19169</span>.<span style=color:#ae81ff>70</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>180</span>.<span style=color:#ae81ff>02</span>
-
-</code></pre></div><h4 id=使用-index-scan>
-使用 index scan
-<a href=#%e4%bd%bf%e7%94%a8-index-scan class=h-anchor aria-hidden=true>#</a>
-</h4>
-<p>首先pg 对index 设计了一层抽象AM接口，下面实现有多种 index 引擎，常规的比如 btree index，hash index 等，不常见的比如 gin index，brin index 等，甚至还存在条件索引，接口中除了常规的 index 控制机访问方法外，还需要 index 实现其 cost 的计算方法，当前支持的 index cost 计算函数如下</p>
-<pre><code>amroutine-&gt;amcostestimate = blcostestimate;
+disk_run_cost = spc_page_cost * pages</p><h4 id=简单的seqscan>简单的seqscan
+<a href=#%e7%ae%80%e5%8d%95%e7%9a%84seqscan class=h-anchor aria-hidden=true>#</a></h4><p>seq scan 比较简单，在前期工作完成之后，直接构造 path 且估算其代价</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> <span style=color:#66d9ef>c</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span> ;
+</span></span><span style=display:flex><span>                        QUERY PLAN
+</span></span><span style=display:flex><span><span style=color:#75715e>----------------------------------------------------------
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span> Seq Scan <span style=color:#66d9ef>on</span> t1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>24053</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>9770</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+</span></span><span style=display:flex><span>   Filter: (<span style=color:#66d9ef>c</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>2</span> <span style=color:#66d9ef>rows</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span> relpages <span style=color:#f92672>|</span> reltuples
+</span></span><span style=display:flex><span><span style=color:#75715e>----------+-----------
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>     <span style=color:#ae81ff>7053</span> <span style=color:#f92672>|</span>  <span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>36</span>e<span style=color:#f92672>+</span><span style=color:#ae81ff>06</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1</span>. <span style=color:#960050;background-color:#1e0010>使用函数</span> cost_qual_eval_node <span style=color:#960050;background-color:#1e0010>计算表达式的启动代价和操作每一行数据的代价</span>
+</span></span><span style=display:flex><span>    cost<span style=color:#f92672>-&gt;</span>per_tuple <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0025</span>
+</span></span><span style=display:flex><span>    cost<span style=color:#f92672>-&gt;</span>startup <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>2</span>. targetlist <span style=color:#960050;background-color:#1e0010>只是简单的输出，所以两个值都为</span> <span style=color:#ae81ff>0</span> 
+</span></span><span style=display:flex><span><span style=color:#ae81ff>3</span>. <span style=color:#960050;background-color:#1e0010>不同的磁盘介质有不同的</span>IO代价<span style=color:#960050;background-color:#1e0010>，使用函数</span> get_tablespace_page_costs <span style=color:#960050;background-color:#1e0010>获得</span> <span style=color:#960050;background-color:#1e0010>磁盘</span> io <span style=color:#960050;background-color:#1e0010>的</span> page <span style=color:#960050;background-color:#1e0010>代价</span> spc_seq_page_cost <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>4</span>. startup_cost <span style=color:#f92672>=</span> qpqual_cost.startup <span style=color:#f92672>+</span> path<span style=color:#f92672>-&gt;</span>pathtarget<span style=color:#f92672>-&gt;</span>cost.startup <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>5</span>. disk_run_cost <span style=color:#f92672>=</span> spc_seq_page_cost <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>pages <span style=color:#f92672>=</span> <span style=color:#ae81ff>7053</span>
+</span></span><span style=display:flex><span>   cpu_run_cost <span style=color:#f92672>=</span> (cpu_tuple_cost <span style=color:#f92672>+</span> qpqual_cost.per_tuple)  <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>tuples <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0125</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>36</span>e<span style=color:#f92672>+</span><span style=color:#ae81ff>06</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>17000</span>
+</span></span><span style=display:flex><span>   cpu_run_cost <span style=color:#f92672>+=</span> path<span style=color:#f92672>-&gt;</span>pathtarget<span style=color:#f92672>-&gt;</span>cost.per_tuple <span style=color:#f92672>*</span> path<span style=color:#f92672>-&gt;</span><span style=color:#66d9ef>rows</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>17000</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>7</span>. total_cost <span style=color:#f92672>=</span> startup_cost <span style=color:#f92672>+</span> cpu_run_cost <span style=color:#f92672>+</span> disk_run_cost <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>17000</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>7053</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>24053</span>
+</span></span></code></pre></div><h4 id=复杂target-list>复杂target list
+<a href=#%e5%a4%8d%e6%9d%82target-list class=h-anchor aria-hidden=true>#</a></h4><p>遵循前面总结的公式，这里targetlist 中有一个子查询，所以代价不为 0</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span>, (<span style=color:#66d9ef>select</span> <span style=color:#66d9ef>sum</span>(a) <span style=color:#66d9ef>from</span> t2) <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span> <span style=color:#66d9ef>and</span> <span style=color:#66d9ef>c</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>5566</span>;
+</span></span><span style=display:flex><span>                                QUERY PLAN
+</span></span><span style=display:flex><span><span style=color:#75715e>--------------------------------------------------------------------------
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span> Bitmap Heap Scan <span style=color:#66d9ef>on</span> t1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>6713</span>.<span style=color:#ae81ff>76</span>..<span style=color:#ae81ff>19349</span>.<span style=color:#ae81ff>72</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>151344</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>20</span>)
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>Recheck</span> Cond: (a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>   Filter: (<span style=color:#66d9ef>c</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>5566</span>)
+</span></span><span style=display:flex><span>   InitPlan <span style=color:#ae81ff>1</span> (<span style=color:#66d9ef>returns</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>     <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Aggregate</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>180</span>.<span style=color:#ae81ff>01</span>..<span style=color:#ae81ff>180</span>.<span style=color:#ae81ff>02</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
+</span></span><span style=display:flex><span>           <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> t2  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>155</span>.<span style=color:#ae81ff>01</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>10001</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>   <span style=color:#f92672>-&gt;</span>  Bitmap <span style=color:#66d9ef>Index</span> Scan <span style=color:#66d9ef>on</span> idx  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>6495</span>.<span style=color:#ae81ff>90</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>372197</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>         <span style=color:#66d9ef>Index</span> Cond: (a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>8</span> <span style=color:#66d9ef>rows</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span> <span style=color:#66d9ef>and</span> <span style=color:#66d9ef>c</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>5566</span>;
+</span></span><span style=display:flex><span>                                QUERY PLAN
+</span></span><span style=display:flex><span><span style=color:#75715e>--------------------------------------------------------------------------
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span> Bitmap Heap Scan <span style=color:#66d9ef>on</span> t1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>6533</span>.<span style=color:#ae81ff>74</span>..<span style=color:#ae81ff>19169</span>.<span style=color:#ae81ff>70</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>151344</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>Recheck</span> Cond: (a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>   Filter: (<span style=color:#66d9ef>c</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>5566</span>)
+</span></span><span style=display:flex><span>   <span style=color:#f92672>-&gt;</span>  Bitmap <span style=color:#66d9ef>Index</span> Scan <span style=color:#66d9ef>on</span> idx  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>6495</span>.<span style=color:#ae81ff>90</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>372197</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>         <span style=color:#66d9ef>Index</span> Cond: (a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>5</span> <span style=color:#66d9ef>rows</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#66d9ef>sum</span>(a) <span style=color:#66d9ef>from</span> t2;
+</span></span><span style=display:flex><span>                          QUERY PLAN
+</span></span><span style=display:flex><span><span style=color:#75715e>--------------------------------------------------------------
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span> <span style=color:#66d9ef>Aggregate</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>180</span>.<span style=color:#ae81ff>01</span>..<span style=color:#ae81ff>180</span>.<span style=color:#ae81ff>02</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
+</span></span><span style=display:flex><span>   <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> t2  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>155</span>.<span style=color:#ae81ff>01</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>10001</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>2</span> <span style=color:#66d9ef>rows</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>6713</span>.<span style=color:#ae81ff>76</span>  <span style=color:#f92672>=</span> <span style=color:#ae81ff>6533</span>.<span style=color:#ae81ff>74</span>  <span style=color:#f92672>+</span> <span style=color:#ae81ff>180</span>.<span style=color:#ae81ff>01</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>19349</span>.<span style=color:#ae81ff>72</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>19169</span>.<span style=color:#ae81ff>70</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>180</span>.<span style=color:#ae81ff>02</span>
+</span></span></code></pre></div><h4 id=使用-index-scan>使用 index scan
+<a href=#%e4%bd%bf%e7%94%a8-index-scan class=h-anchor aria-hidden=true>#</a></h4><p>首先pg 对index 设计了一层抽象AM接口，下面实现有多种 index 引擎，常规的比如 btree index，hash index 等，不常见的比如 gin index，brin index 等，甚至还存在条件索引，接口中除了常规的 index 控制机访问方法外，还需要 index 实现其 cost 的计算方法，当前支持的 index cost 计算函数如下</p><pre><code>amroutine-&gt;amcostestimate = blcostestimate;
 amroutine-&gt;amcostestimate = brincostestimate;
 amroutine-&gt;amcostestimate = gincostestimate;
 amroutine-&gt;amcostestimate = gistcostestimate;
 amroutine-&gt;amcostestimate = hashcostestimate;
 amroutine-&gt;amcostestimate = btcostestimate;
 amroutine-&gt;amcostestimate = spgcostestimate;
-</code></pre>
-<p>主要目的是计算下面几个关键参数，用于后续得 cost 计算</p>
-<pre><code>indexStartupCost 
+</code></pre><p>主要目的是计算下面几个关键参数，用于后续得 cost 计算</p><pre><code>indexStartupCost 
 indexTotalCost   
 indexSelectivity 
 indexCorrelation 
 index_pages      
-</code></pre>
-<p>下面是几个简单的例子，说明下 index 的 cost 的计算过程</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span> <span style=color:#66d9ef>and</span> <span style=color:#66d9ef>c</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>5566</span>;
-                                QUERY PLAN
-<span style=color:#75715e>--------------------------------------------------------------------------
-</span><span style=color:#75715e></span> Bitmap Heap Scan <span style=color:#66d9ef>on</span> t1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>6533</span>.<span style=color:#ae81ff>74</span>..<span style=color:#ae81ff>19169</span>.<span style=color:#ae81ff>70</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>151344</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
-   <span style=color:#66d9ef>Recheck</span> Cond: (a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>)
-   Filter: (<span style=color:#66d9ef>c</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>5566</span>)
-   <span style=color:#f92672>-&gt;</span>  Bitmap <span style=color:#66d9ef>Index</span> Scan <span style=color:#66d9ef>on</span> idx  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>6495</span>.<span style=color:#ae81ff>90</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>372197</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
-         <span style=color:#66d9ef>Index</span> Cond: (a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>)
-(<span style=color:#ae81ff>5</span> <span style=color:#66d9ef>rows</span>)
-
- relpages <span style=color:#f92672>|</span> reltuples
-<span style=color:#75715e>----------+-----------
-</span><span style=color:#75715e></span>     <span style=color:#ae81ff>3382</span> <span style=color:#f92672>|</span>  <span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>36</span>e<span style=color:#f92672>+</span><span style=color:#ae81ff>06</span>
-
-n_distinct             <span style=color:#f92672>|</span> <span style=color:#ae81ff>9674</span>
-most_common_vals       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#ae81ff>2</span>,<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>16</span>,<span style=color:#ae81ff>821</span>,<span style=color:#ae81ff>4871</span>,<span style=color:#ae81ff>4903</span>,<span style=color:#ae81ff>5141</span>,<span style=color:#ae81ff>8049</span><span style=color:#960050;background-color:#1e0010>}</span>
-most_common_freqs      <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>2432</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>022566667</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span><span style=color:#960050;background-color:#1e0010>}</span>
-histogram_bounds       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>95</span>,<span style=color:#ae81ff>197</span>,<span style=color:#ae81ff>291</span>,<span style=color:#ae81ff>400</span>,<span style=color:#ae81ff>504</span>,<span style=color:#ae81ff>593</span>,<span style=color:#ae81ff>700</span>,<span style=color:#ae81ff>794</span>,<span style=color:#ae81ff>901</span>,<span style=color:#ae81ff>1001</span>,<span style=color:#ae81ff>1098</span>,<span style=color:#ae81ff>1192</span>......<span style=color:#960050;background-color:#1e0010>}</span>
-correlation            <span style=color:#f92672>|</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>5632166</span>
-
-</code></pre></div><p>追踪add_path查看其路径的生成过程的日志如下，可以看出他生成了三种不同的path，然后通过代价比较选出最优的 path</p>
-<pre tabindex=0><code>accept_new
+</code></pre><p>下面是几个简单的例子，说明下 index 的 cost 的计算过程</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>explain</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> t1 <span style=color:#66d9ef>where</span> a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span> <span style=color:#66d9ef>and</span> <span style=color:#66d9ef>c</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>5566</span>;
+</span></span><span style=display:flex><span>                                QUERY PLAN
+</span></span><span style=display:flex><span><span style=color:#75715e>--------------------------------------------------------------------------
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span> Bitmap Heap Scan <span style=color:#66d9ef>on</span> t1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>6533</span>.<span style=color:#ae81ff>74</span>..<span style=color:#ae81ff>19169</span>.<span style=color:#ae81ff>70</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>151344</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>)
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>Recheck</span> Cond: (a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>   Filter: (<span style=color:#66d9ef>c</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>5566</span>)
+</span></span><span style=display:flex><span>   <span style=color:#f92672>-&gt;</span>  Bitmap <span style=color:#66d9ef>Index</span> Scan <span style=color:#66d9ef>on</span> idx  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>6495</span>.<span style=color:#ae81ff>90</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>372197</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>         <span style=color:#66d9ef>Index</span> Cond: (a <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>5</span> <span style=color:#66d9ef>rows</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span> relpages <span style=color:#f92672>|</span> reltuples
+</span></span><span style=display:flex><span><span style=color:#75715e>----------+-----------
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>     <span style=color:#ae81ff>3382</span> <span style=color:#f92672>|</span>  <span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>36</span>e<span style=color:#f92672>+</span><span style=color:#ae81ff>06</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>n_distinct             <span style=color:#f92672>|</span> <span style=color:#ae81ff>9674</span>
+</span></span><span style=display:flex><span>most_common_vals       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#ae81ff>2</span>,<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>16</span>,<span style=color:#ae81ff>821</span>,<span style=color:#ae81ff>4871</span>,<span style=color:#ae81ff>4903</span>,<span style=color:#ae81ff>5141</span>,<span style=color:#ae81ff>8049</span><span style=color:#960050;background-color:#1e0010>}</span>
+</span></span><span style=display:flex><span>most_common_freqs      <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>2432</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>022566667</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span>,<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>0003</span><span style=color:#960050;background-color:#1e0010>}</span>
+</span></span><span style=display:flex><span>histogram_bounds       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>{</span><span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>95</span>,<span style=color:#ae81ff>197</span>,<span style=color:#ae81ff>291</span>,<span style=color:#ae81ff>400</span>,<span style=color:#ae81ff>504</span>,<span style=color:#ae81ff>593</span>,<span style=color:#ae81ff>700</span>,<span style=color:#ae81ff>794</span>,<span style=color:#ae81ff>901</span>,<span style=color:#ae81ff>1001</span>,<span style=color:#ae81ff>1098</span>,<span style=color:#ae81ff>1192</span>......<span style=color:#960050;background-color:#1e0010>}</span>
+</span></span><span style=display:flex><span>correlation            <span style=color:#f92672>|</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>5632166</span>
+</span></span></code></pre></div><p>追踪add_path查看其路径的生成过程的日志如下，可以看出他生成了三种不同的path，然后通过代价比较选出最优的 path</p><pre tabindex=0><code>accept_new
         SeqScan(t1) rows=151344 cost=0.00..27453.00
 reject_new
         IdxScan(t1) rows=151344 cost=0.43..31024.65
@@ -367,210 +191,155 @@ remove_old
         SeqScan(t1) rows=151344 cost=0.00..27453.00
 accept_new
         BitmapHeapScan(t1) rows=151344 cost=6533.74..19169.70
-</code></pre><p>对于 <code>IdxScan(t1) rows=151344 cost=0.43..31024.65</code></p>
-<ul>
-<li>首先对于 path.rows， 使用的是baserel 估计约束条件之后计算的结果，这里为 151344</li>
-<li>amcostestimate 是 index 实现的 cost 的计算函数，这里是 btree index ， 使用的是 btcostestimate
-<ul>
-<li>indexSelectivity 是 index 的选择率，这里 index 的执行条件为 <code>a &lt; 100</code>， 前面的例子中已经说明此表达式的选择率的计算过程，结果为 0.27367426598623362</li>
-<li>indexCorrelation 为统计信息中关联度，这里直接查表为 -0.5632166</li>
-<li>index_pages 需要使用公式 <code>numIndexPages = ceil((index->tuples * indexSelectivity) * index->pages / index->tuples)</code>计算，表示的是 index 在当前条件下需要读取的 page 数量，
-带入数据计算得 <code>index_pages = (1360000 * 0.27367) * 3382 / 1360000 = 926</code></li>
-<li>indexStartupCost 可以粗略得使用公式 <code>indexStartupCost = {ceil( log2(N) ) + ( H+1 ) * 50} * cpu_operator_cost</code>计算，但是实际上他的每一步都是分开单独计算得，因为其中参杂着一些特殊判断，
-但是目前这个例子并没有涉及到这些特殊处理
-<ul>
-<li><code>log2(N) * cpu_operator_cost</code> 代表是叶子节点的代价</li>
-<li><code>( H+1 ) * 50 * cpu_operator_cost</code> 代表的是处理内部节点的代价，这里的50是直接代码写死的</li>
-<li>带入参数计算得 <code>indexStartupCost = 0.42749999999999999</code></li>
-</ul>
-</li>
-<li>indexTotalCost 需要计算得代价和前面 seqscan 类似，需要计算 io cost 加上 CPU cost， index 使用的是随机读写， 这里大致通用公式
-为 <code>indexTotalCost = indexStartupCost + numIndexPages * spc_random_page_cost + numIndexTuples * (cpu_index_tuple_cost + qual_op_cost)</code>，带入参数计算得 <code>indexTotalCost = 6495.4775</code>
-<pre tabindex=0><code>  indexStartupCost = 0.4274
+</code></pre><p>对于 <code>IdxScan(t1) rows=151344 cost=0.43..31024.65</code></p><ul><li>首先对于 path.rows， 使用的是baserel 估计约束条件之后计算的结果，这里为 151344</li><li>amcostestimate 是 index 实现的 cost 的计算函数，这里是 btree index ， 使用的是 btcostestimate<ul><li>indexSelectivity 是 index 的选择率，这里 index 的执行条件为 <code>a &lt; 100</code>， 前面的例子中已经说明此表达式的选择率的计算过程，结果为 0.27367426598623362</li><li>indexCorrelation 为统计信息中关联度，这里直接查表为 -0.5632166</li><li>index_pages 需要使用公式 <code>numIndexPages = ceil((index->tuples * indexSelectivity) * index->pages / index->tuples)</code>计算，表示的是 index 在当前条件下需要读取的 page 数量，
+带入数据计算得 <code>index_pages = (1360000 * 0.27367) * 3382 / 1360000 = 926</code></li><li>indexStartupCost 可以粗略得使用公式 <code>indexStartupCost = {ceil( log2(N) ) + ( H+1 ) * 50} * cpu_operator_cost</code>计算，但是实际上他的每一步都是分开单独计算得，因为其中参杂着一些特殊判断，
+但是目前这个例子并没有涉及到这些特殊处理<ul><li><code>log2(N) * cpu_operator_cost</code> 代表是叶子节点的代价</li><li><code>( H+1 ) * 50 * cpu_operator_cost</code> 代表的是处理内部节点的代价，这里的50是直接代码写死的</li><li>带入参数计算得 <code>indexStartupCost = 0.42749999999999999</code></li></ul></li><li>indexTotalCost 需要计算得代价和前面 seqscan 类似，需要计算 io cost 加上 CPU cost， index 使用的是随机读写， 这里大致通用公式
+为 <code>indexTotalCost = indexStartupCost + numIndexPages * spc_random_page_cost + numIndexTuples * (cpu_index_tuple_cost + qual_op_cost)</code>，带入参数计算得 <code>indexTotalCost = 6495.4775</code><pre tabindex=0><code>  indexStartupCost = 0.4274
   indexTotalCost   = 6495.904
   indexSelectivity = 0.27367
   indexCorrelation = -0.5632166
   index_pages      = 926
-</code></pre></li>
-</ul>
-</li>
-<li>之后回到 cost_index 中，对 cost 进行最终的计算，计算的方式和常规 cost 计算方式几乎一致
-<ul>
-<li><code>startup_cost = indexStartupCost + qpqual_cost.startup + path->path.pathtarget->cost.startup = 0.4274</code></li>
-<li>total_cost 需要计算 index 回表时候的代价，包括 IO COST 和 CPU cost
-<ul>
-<li>这里需要使用 index 和 table 的关联度计算 table_IO_cost，大致公式为 <code>table_IO_cost = max_IO_cost + indexCorrelation^2 * (min_IO_cost − max_IO_cost)</code>
-<ul>
-<li>这里使用协方差计算代价，max_IO_cost 代表的是最差的时候全表扫描的代价，min_IO_cost 代表的最优的时候，表扫描的代价</li>
-<li>带入参数 计算得 table_IO_cost = 19876.277613</li>
-</ul>
-</li>
-<li>还需要计算 cpu cost 的代价，和之前通用的计算公式一样，对表来说，需要使用 filter 过滤的行数是 index 查询的行数，是 372197， 最终输出的行数是加上其他 条件之后过滤的行数是 151344，带入参数计算
-得 cpu_run_cost = 4652.4625</li>
-<li>indexTotalCost + table_IO_cost + cpu_run_cost + startup_cost = 6495.904 + 19876.277613 + 4652.4625 + 0.4274 = 31025.071513</li>
-</ul>
-</li>
-<li>最终计算结果为
-<pre tabindex=0><code>  startup_cost = 0.4274
+</code></pre></li></ul></li><li>之后回到 cost_index 中，对 cost 进行最终的计算，计算的方式和常规 cost 计算方式几乎一致<ul><li><code>startup_cost = indexStartupCost + qpqual_cost.startup + path->path.pathtarget->cost.startup = 0.4274</code></li><li>total_cost 需要计算 index 回表时候的代价，包括 IO COST 和 CPU cost<ul><li>这里需要使用 index 和 table 的关联度计算 table_IO_cost，大致公式为 <code>table_IO_cost = max_IO_cost + indexCorrelation^2 * (min_IO_cost − max_IO_cost)</code><ul><li>这里使用协方差计算代价，max_IO_cost 代表的是最差的时候全表扫描的代价，min_IO_cost 代表的最优的时候，表扫描的代价</li><li>带入参数 计算得 table_IO_cost = 19876.277613</li></ul></li><li>还需要计算 cpu cost 的代价，和之前通用的计算公式一样，对表来说，需要使用 filter 过滤的行数是 index 查询的行数，是 372197， 最终输出的行数是加上其他 条件之后过滤的行数是 151344，带入参数计算
+得 cpu_run_cost = 4652.4625</li><li>indexTotalCost + table_IO_cost + cpu_run_cost + startup_cost = 6495.904 + 19876.277613 + 4652.4625 + 0.4274 = 31025.071513</li></ul></li><li>最终计算结果为<pre tabindex=0><code>  startup_cost = 0.4274
   total_cost = 31025.071513
-</code></pre></li>
-</ul>
-</li>
-</ul>
-<p>对于 <code>BitmapHeapScan(t1) =151344 cost=6533.74..19169.70</code></p>
-<ul>
-<li>bitmap index 需要使用之前的生成的 index path，对于上面的例子中，可用的index path 只有 <code>a &lt; 100</code>这个，他在
-函数 <code>cost_bitmap_heap_scan</code> 中的 bitmapqual 是 <code>IdxScan(t1) rows=151344 cost=0.43..31024.65</code></li>
-<li>对于 indexTotalCost ，他会从下层使用函数 cost_bitmap_tree_node 计算 cost，这里 path 是 IndexPath 使用
-公式 <code>cost = ((IndexPath *) path)->indextotalcost + 0.1 * cpu_operator_cost * path->rows</code> 计算，带入参数得 <code>cost = 6495.9049 + 0.1 * 0.0025 * 151344 = 6533.741</code></li>
-<li>对于 total_cost，使用常规公式计算， <code>total_cost = startup_cost + pages_fetched * cost_per_page + pathtarget->cost.per_tuple * path->rows + cpu_per_tuple * tuples_fetched</code>，tuples_fetched
-是节点传入得行数，path->rows是输出行数，分别为 372197 和 151344 ， <code>total_cost = 6533.741 + 7053 + 0 * 151344 + 0.015 * 372197 = 19169.696</code></li>
-</ul>
-<hr>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
-btree
-
-startup_cost  <span style=color:#f92672>=</span> indexStartupCost <span style=color:#f92672>+</span> qpqual_cost.startup <span style=color:#f92672>+</span> path<span style=color:#f92672>-&gt;</span>path.pathtarget<span style=color:#f92672>-&gt;</span>cost.startup
-  <span style=color:#f92672>*</span> indexStartupCost <span style=color:#f92672>=</span> {ceil( log2(index<span style=color:#f92672>-&gt;</span>tuples) ) <span style=color:#f92672>+</span> ( H<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span> ) <span style=color:#f92672>*</span> <span style=color:#ae81ff>50</span>} <span style=color:#f92672>*</span> cpu_operator_cost
-  <span style=color:#f92672>*</span> H <span style=color:#f92672>=</span> select level from bt_metap(<span style=color:#960050;background-color:#1e0010>&#39;</span>idx_cm_base_customer_1<span style=color:#960050;background-color:#1e0010>&#39;</span>);
-
-total_cost    <span style=color:#f92672>=</span> startup_cost <span style=color:#f92672>+</span> run_cost;
-  <span style=color:#f92672>*</span> run_cost <span style=color:#f92672>=</span> cpu_run_cost <span style=color:#f92672>+</span> max_IO_cost <span style=color:#f92672>+</span> csquared <span style=color:#f92672>*</span> (min_IO_cost <span style=color:#f92672>-</span> max_IO_cost) <span style=color:#f92672>+</span> indexTotalCost <span style=color:#f92672>-</span> indexStartupCost
-    <span style=color:#f92672>*</span> indexTotalCost <span style=color:#f92672>=</span> indexStartupCost
-    <span style=color:#f92672>*</span> csquared <span style=color:#f92672>=</span> indexCorrelation <span style=color:#f92672>*</span> indexCorrelation
-      <span style=color:#f92672>*</span> indexCorrelation <span style=color:#f92672>=</span> 
-    <span style=color:#f92672>*</span> min_IO_cost <span style=color:#f92672>=</span> (pages_fetched <span style=color:#f92672>*</span> spc_random_page_cost) <span style=color:#f92672>/</span> loop_count
-                     <span style=color:#66d9ef>if</span> (pages_fetched <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span>)
-                        min_IO_cost <span style=color:#f92672>=</span> spc_random_page_cost;
-                        <span style=color:#66d9ef>if</span> (pages_fetched <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>1</span>)
-                          min_IO_cost <span style=color:#f92672>+=</span> (pages_fetched <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>) <span style=color:#f92672>*</span> spc_seq_page_cost;
-                      <span style=color:#66d9ef>else</span>
-                        min_IO_cost <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
-    <span style=color:#f92672>*</span> max_IO_cost <span style=color:#f92672>=</span> 
-      <span style=color:#66d9ef>if</span> (loop_count <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>1</span>)
-        (pages_fetched <span style=color:#f92672>*</span> spc_random_page_cost) <span style=color:#f92672>/</span> loop_count
-      <span style=color:#66d9ef>else</span>
-        pages_fetched <span style=color:#f92672>*</span> spc_random_page_cost
-
-      <span style=color:#f92672>*</span> pages_fetched <span style=color:#f92672>=</span> index_pages_fetched(tuples_fetched <span style=color:#f92672>*</span> loop_count, baserel<span style=color:#f92672>-&gt;</span>pages, (<span style=color:#66d9ef>double</span>) index<span style=color:#f92672>-&gt;</span>pages)
-        <span style=color:#66d9ef>if</span> (indexonly)
-          pages_fetched <span style=color:#f92672>=</span> ceil(pages_fetched <span style=color:#f92672>*</span> (<span style=color:#ae81ff>1.0</span> <span style=color:#f92672>-</span> baserel<span style=color:#f92672>-&gt;</span>allvisfrac));
-          baserel<span style=color:#f92672>-&gt;</span>allvisfrac <span style=color:#f92672>=</span> select relallvisible from pg_class where relname <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>&#39;</span>idx_cm_base_customer_1<span style=color:#960050;background-color:#1e0010>&#39;</span>
-        <span style=color:#f92672>*</span> tuples_fetched <span style=color:#f92672>=</span> indexSelectivity <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>tuples
-        <span style=color:#f92672>*</span> indexSelectivity <span style=color:#f92672>=</span> 
-    <span style=color:#f92672>*</span> cpu_run_cost <span style=color:#f92672>=</span> cpu_per_tuple <span style=color:#f92672>*</span> tuples_fetched <span style=color:#f92672>+</span> path<span style=color:#f92672>-&gt;</span>path.pathtarget<span style=color:#f92672>-&gt;</span>cost.per_tuple <span style=color:#f92672>*</span> path<span style=color:#f92672>-&gt;</span>path.rows
-      <span style=color:#f92672>*</span> tuples_fetched <span style=color:#f92672>=</span> indexSelectivity <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>tuples
-
-
-cost_bitmap_or_node
-  <span style=color:#66d9ef>for</span> path in bitmapquals
-    startup_cost <span style=color:#f92672>=</span> total_cost
-    totalCost <span style=color:#f92672>+=</span> subCost
-      subCost 
-        IndexPath       <span style=color:#ae81ff>0.1</span> <span style=color:#f92672>*</span> cpu_operator_cost <span style=color:#f92672>*</span> path<span style=color:#f92672>-&gt;</span>rows
-        BitmapAndPath   path<span style=color:#f92672>-&gt;</span>total_cost
-        BitmapOrPath    path<span style=color:#f92672>-&gt;</span>total_cost
-      <span style=color:#66d9ef>if</span> (l <span style=color:#f92672>!=</span> list_head(path<span style=color:#f92672>-&gt;</span>bitmapquals) <span style=color:#f92672>&amp;&amp;</span>
-        <span style=color:#f92672>!</span>IsA(subpath, IndexPath))
-        totalCost <span style=color:#f92672>+=</span> <span style=color:#ae81ff>100.0</span> <span style=color:#f92672>*</span> cpu_operator_cost;
-
-
-cost_bitmap_and_node
-  <span style=color:#66d9ef>for</span> path in bitmapquals
-    startup_cost <span style=color:#f92672>=</span> total_cost
-    totalCost <span style=color:#f92672>+=</span> subCost
-      subCost 
-        IndexPath       <span style=color:#ae81ff>0.1</span> <span style=color:#f92672>*</span> cpu_operator_cost <span style=color:#f92672>*</span> path<span style=color:#f92672>-&gt;</span>rows
-        BitmapAndPath   path<span style=color:#f92672>-&gt;</span>total_cost
-        BitmapOrPath    path<span style=color:#f92672>-&gt;</span>total_cost
-      <span style=color:#66d9ef>if</span> (l <span style=color:#f92672>!=</span> list_head(path<span style=color:#f92672>-&gt;</span>bitmapquals) <span style=color:#f92672>&amp;&amp;</span>
-        <span style=color:#f92672>!</span>IsA(subpath, IndexPath))
-        totalCost <span style=color:#f92672>+=</span> <span style=color:#ae81ff>100.0</span> <span style=color:#f92672>*</span> cpu_operator_cost;
-
-cost_bitmap_heap_scan
-  startup_cost <span style=color:#f92672>=</span> path<span style=color:#f92672>-&gt;</span>pathtarget<span style=color:#f92672>-&gt;</span>cost.startup <span style=color:#f92672>+</span> qpqual_cost.startup <span style=color:#f92672>+</span> indexTotalCost
-  total_cost <span style=color:#f92672>=</span> startup_cost <span style=color:#f92672>+</span> run_cost
-    run_cost <span style=color:#f92672>=</span> cpu_run_cost <span style=color:#f92672>+</span> path<span style=color:#f92672>-&gt;</span>pathtarget<span style=color:#f92672>-&gt;</span>cost.per_tuple <span style=color:#f92672>*</span> path<span style=color:#f92672>-&gt;</span>rows <span style=color:#f92672>+</span> pages_fetched <span style=color:#f92672>*</span> cost_per_page
-      cpu_run_cost <span style=color:#f92672>=</span> cpu_per_tuple <span style=color:#f92672>*</span> tuples_fetched 
-        tuples_fetched <span style=color:#f92672>=</span> indexSelectivity <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>tuples <span style=color:#f92672>+</span> 
-
-</code></pre></div><p>58.81 = 28.55 +
+</code></pre></li></ul></li></ul><p>对于 <code>BitmapHeapScan(t1) =151344 cost=6533.74..19169.70</code></p><ul><li>bitmap index 需要使用之前的生成的 index path，对于上面的例子中，可用的index path 只有 <code>a &lt; 100</code>这个，他在
+函数 <code>cost_bitmap_heap_scan</code> 中的 bitmapqual 是 <code>IdxScan(t1) rows=151344 cost=0.43..31024.65</code></li><li>对于 indexTotalCost ，他会从下层使用函数 cost_bitmap_tree_node 计算 cost，这里 path 是 IndexPath 使用
+公式 <code>cost = ((IndexPath *) path)->indextotalcost + 0.1 * cpu_operator_cost * path->rows</code> 计算，带入参数得 <code>cost = 6495.9049 + 0.1 * 0.0025 * 151344 = 6533.741</code></li><li>对于 total_cost，使用常规公式计算， <code>total_cost = startup_cost + pages_fetched * cost_per_page + pathtarget->cost.per_tuple * path->rows + cpu_per_tuple * tuples_fetched</code>，tuples_fetched
+是节点传入得行数，path->rows是输出行数，分别为 372197 和 151344 ， <code>total_cost = 6533.741 + 7053 + 0 * 151344 + 0.015 * 372197 = 19169.696</code></li></ul><hr><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span>
+</span></span><span style=display:flex><span>btree
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>startup_cost  <span style=color:#f92672>=</span> indexStartupCost <span style=color:#f92672>+</span> qpqual_cost.startup <span style=color:#f92672>+</span> path<span style=color:#f92672>-&gt;</span>path.pathtarget<span style=color:#f92672>-&gt;</span>cost.startup
+</span></span><span style=display:flex><span>  <span style=color:#f92672>*</span> indexStartupCost <span style=color:#f92672>=</span> {ceil( log2(index<span style=color:#f92672>-&gt;</span>tuples) ) <span style=color:#f92672>+</span> ( H<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span> ) <span style=color:#f92672>*</span> <span style=color:#ae81ff>50</span>} <span style=color:#f92672>*</span> cpu_operator_cost
+</span></span><span style=display:flex><span>  <span style=color:#f92672>*</span> H <span style=color:#f92672>=</span> select level from bt_metap(<span style=color:#960050;background-color:#1e0010>&#39;</span>idx_cm_base_customer_1<span style=color:#960050;background-color:#1e0010>&#39;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>total_cost    <span style=color:#f92672>=</span> startup_cost <span style=color:#f92672>+</span> run_cost;
+</span></span><span style=display:flex><span>  <span style=color:#f92672>*</span> run_cost <span style=color:#f92672>=</span> cpu_run_cost <span style=color:#f92672>+</span> max_IO_cost <span style=color:#f92672>+</span> csquared <span style=color:#f92672>*</span> (min_IO_cost <span style=color:#f92672>-</span> max_IO_cost) <span style=color:#f92672>+</span> indexTotalCost <span style=color:#f92672>-</span> indexStartupCost
+</span></span><span style=display:flex><span>    <span style=color:#f92672>*</span> indexTotalCost <span style=color:#f92672>=</span> indexStartupCost
+</span></span><span style=display:flex><span>    <span style=color:#f92672>*</span> csquared <span style=color:#f92672>=</span> indexCorrelation <span style=color:#f92672>*</span> indexCorrelation
+</span></span><span style=display:flex><span>      <span style=color:#f92672>*</span> indexCorrelation <span style=color:#f92672>=</span> 
+</span></span><span style=display:flex><span>    <span style=color:#f92672>*</span> min_IO_cost <span style=color:#f92672>=</span> (pages_fetched <span style=color:#f92672>*</span> spc_random_page_cost) <span style=color:#f92672>/</span> loop_count
+</span></span><span style=display:flex><span>                     <span style=color:#66d9ef>if</span> (pages_fetched <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>                        min_IO_cost <span style=color:#f92672>=</span> spc_random_page_cost;
+</span></span><span style=display:flex><span>                        <span style=color:#66d9ef>if</span> (pages_fetched <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>                          min_IO_cost <span style=color:#f92672>+=</span> (pages_fetched <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>) <span style=color:#f92672>*</span> spc_seq_page_cost;
+</span></span><span style=display:flex><span>                      <span style=color:#66d9ef>else</span>
+</span></span><span style=display:flex><span>                        min_IO_cost <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>    <span style=color:#f92672>*</span> max_IO_cost <span style=color:#f92672>=</span> 
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (loop_count <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>        (pages_fetched <span style=color:#f92672>*</span> spc_random_page_cost) <span style=color:#f92672>/</span> loop_count
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>else</span>
+</span></span><span style=display:flex><span>        pages_fetched <span style=color:#f92672>*</span> spc_random_page_cost
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>*</span> pages_fetched <span style=color:#f92672>=</span> index_pages_fetched(tuples_fetched <span style=color:#f92672>*</span> loop_count, baserel<span style=color:#f92672>-&gt;</span>pages, (<span style=color:#66d9ef>double</span>) index<span style=color:#f92672>-&gt;</span>pages)
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (indexonly)
+</span></span><span style=display:flex><span>          pages_fetched <span style=color:#f92672>=</span> ceil(pages_fetched <span style=color:#f92672>*</span> (<span style=color:#ae81ff>1.0</span> <span style=color:#f92672>-</span> baserel<span style=color:#f92672>-&gt;</span>allvisfrac));
+</span></span><span style=display:flex><span>          baserel<span style=color:#f92672>-&gt;</span>allvisfrac <span style=color:#f92672>=</span> select relallvisible from pg_class where relname <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>&#39;</span>idx_cm_base_customer_1<span style=color:#960050;background-color:#1e0010>&#39;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>*</span> tuples_fetched <span style=color:#f92672>=</span> indexSelectivity <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>tuples
+</span></span><span style=display:flex><span>        <span style=color:#f92672>*</span> indexSelectivity <span style=color:#f92672>=</span> 
+</span></span><span style=display:flex><span>    <span style=color:#f92672>*</span> cpu_run_cost <span style=color:#f92672>=</span> cpu_per_tuple <span style=color:#f92672>*</span> tuples_fetched <span style=color:#f92672>+</span> path<span style=color:#f92672>-&gt;</span>path.pathtarget<span style=color:#f92672>-&gt;</span>cost.per_tuple <span style=color:#f92672>*</span> path<span style=color:#f92672>-&gt;</span>path.rows
+</span></span><span style=display:flex><span>      <span style=color:#f92672>*</span> tuples_fetched <span style=color:#f92672>=</span> indexSelectivity <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>tuples
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>cost_bitmap_or_node
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>for</span> path in bitmapquals
+</span></span><span style=display:flex><span>    startup_cost <span style=color:#f92672>=</span> total_cost
+</span></span><span style=display:flex><span>    totalCost <span style=color:#f92672>+=</span> subCost
+</span></span><span style=display:flex><span>      subCost 
+</span></span><span style=display:flex><span>        IndexPath       <span style=color:#ae81ff>0.1</span> <span style=color:#f92672>*</span> cpu_operator_cost <span style=color:#f92672>*</span> path<span style=color:#f92672>-&gt;</span>rows
+</span></span><span style=display:flex><span>        BitmapAndPath   path<span style=color:#f92672>-&gt;</span>total_cost
+</span></span><span style=display:flex><span>        BitmapOrPath    path<span style=color:#f92672>-&gt;</span>total_cost
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (l <span style=color:#f92672>!=</span> list_head(path<span style=color:#f92672>-&gt;</span>bitmapquals) <span style=color:#f92672>&amp;&amp;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>!</span>IsA(subpath, IndexPath))
+</span></span><span style=display:flex><span>        totalCost <span style=color:#f92672>+=</span> <span style=color:#ae81ff>100.0</span> <span style=color:#f92672>*</span> cpu_operator_cost;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>cost_bitmap_and_node
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>for</span> path in bitmapquals
+</span></span><span style=display:flex><span>    startup_cost <span style=color:#f92672>=</span> total_cost
+</span></span><span style=display:flex><span>    totalCost <span style=color:#f92672>+=</span> subCost
+</span></span><span style=display:flex><span>      subCost 
+</span></span><span style=display:flex><span>        IndexPath       <span style=color:#ae81ff>0.1</span> <span style=color:#f92672>*</span> cpu_operator_cost <span style=color:#f92672>*</span> path<span style=color:#f92672>-&gt;</span>rows
+</span></span><span style=display:flex><span>        BitmapAndPath   path<span style=color:#f92672>-&gt;</span>total_cost
+</span></span><span style=display:flex><span>        BitmapOrPath    path<span style=color:#f92672>-&gt;</span>total_cost
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (l <span style=color:#f92672>!=</span> list_head(path<span style=color:#f92672>-&gt;</span>bitmapquals) <span style=color:#f92672>&amp;&amp;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>!</span>IsA(subpath, IndexPath))
+</span></span><span style=display:flex><span>        totalCost <span style=color:#f92672>+=</span> <span style=color:#ae81ff>100.0</span> <span style=color:#f92672>*</span> cpu_operator_cost;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>cost_bitmap_heap_scan
+</span></span><span style=display:flex><span>  startup_cost <span style=color:#f92672>=</span> path<span style=color:#f92672>-&gt;</span>pathtarget<span style=color:#f92672>-&gt;</span>cost.startup <span style=color:#f92672>+</span> qpqual_cost.startup <span style=color:#f92672>+</span> indexTotalCost
+</span></span><span style=display:flex><span>  total_cost <span style=color:#f92672>=</span> startup_cost <span style=color:#f92672>+</span> run_cost
+</span></span><span style=display:flex><span>    run_cost <span style=color:#f92672>=</span> cpu_run_cost <span style=color:#f92672>+</span> path<span style=color:#f92672>-&gt;</span>pathtarget<span style=color:#f92672>-&gt;</span>cost.per_tuple <span style=color:#f92672>*</span> path<span style=color:#f92672>-&gt;</span>rows <span style=color:#f92672>+</span> pages_fetched <span style=color:#f92672>*</span> cost_per_page
+</span></span><span style=display:flex><span>      cpu_run_cost <span style=color:#f92672>=</span> cpu_per_tuple <span style=color:#f92672>*</span> tuples_fetched 
+</span></span><span style=display:flex><span>        tuples_fetched <span style=color:#f92672>=</span> indexSelectivity <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>tuples <span style=color:#f92672>+</span> 
+</span></span></code></pre></div><p>58.81 = 28.55 +
 + 28.55
 + qpqual_cost.startup
-+ path->pathtarget->cost.startup</p>
-<p>6113.85 = pages_fetched * cost_per_page
++ path->pathtarget->cost.startup</p><p>6113.85 = pages_fetched * cost_per_page
 + (cpu_per_tuple * tuples_fetched) / parallel_divisor
-+ 0 * 5405</p>
-<p>25.43 - 0.57 + (44 - 1) * inner_rescan_start_cost + 6113.85 - 58.81 + (44 - 1) * inner_rescan_run_cost + cpu_per_tuple * 3440 * 44</p>
-<p>25.43 + 6113.85 * 44 + 0.01 * 44 * 3440
++ 0 * 5405</p><p>25.43 - 0.57 + (44 - 1) * inner_rescan_start_cost + 6113.85 - 58.81 + (44 - 1) * inner_rescan_run_cost + cpu_per_tuple * 3440 * 44</p><p>25.43 + 6113.85 * 44 + 0.01 * 44 * 3440
 95106.65 = 6113.85
 + 25.43 * 3440
-+ 0.01 * 44 * 3440</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++>
-seq scan
-<span style=color:#f92672>---</span>
-startup_cost  <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
-total_cost    <span style=color:#f92672>=</span> <span style=color:#ae81ff>0.0125</span> <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>tuples <span style=color:#f92672>+</span> baserel<span style=color:#f92672>-&gt;</span>pages
-
-
-btree
-btcostestimate
-
-create extension pageinspect;
-
-select level from <span style=color:#a6e22e>bt_metap</span>(<span style=color:#960050;background-color:#1e0010>&#39;</span>idx_cm_base_customer_1<span style=color:#960050;background-color:#1e0010>&#39;</span>);
-<span style=color:#f92672>---</span>
-<span style=color:#75715e>// log2(index-&gt;tuples) 指的是叶子二分查找的cost，H + 1 指的是树的高度，50 是代码写死的定值 0.0025 = cpu_operator_cost
-</span><span style=color:#75715e></span>startup_cost    <span style=color:#f92672>=</span> {ceil( log2(index<span style=color:#f92672>-&gt;</span>tuples) ) <span style=color:#f92672>+</span> ( H <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span> ) <span style=color:#f92672>*</span> <span style=color:#ae81ff>50</span>} <span style=color:#f92672>*</span> <span style=color:#ae81ff>0.0025</span>   
-<span style=color:#75715e>// max_IO_cost + csquared * (min_IO_cost - max_IO_cost) 是disk cost， 这里使用相关度计算，后面是 cpu cost, 0.01 是 cpu_per_tuple
-</span><span style=color:#75715e></span>indexSelectivity <span style=color:#f92672>=</span> genericcostestimate(xxx)
-indexTotalCost  <span style=color:#f92672>=</span> startup_cost <span style=color:#f92672>+</span> ceil(indexSelectivity <span style=color:#f92672>*</span> index<span style=color:#f92672>-&gt;</span>pages) <span style=color:#f92672>*</span> <span style=color:#ae81ff>4</span> <span style=color:#f92672>+</span> (indexSelectivity <span style=color:#f92672>*</span> index<span style=color:#f92672>-&gt;</span>tuples) <span style=color:#f92672>*</span> <span style=color:#ae81ff>0.0075</span>
-max_IO_cost     <span style=color:#f92672>=</span> PF <span style=color:#f92672>*</span> <span style=color:#ae81ff>4</span>
-min_IO_cost     <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> <span style=color:#f92672>+</span> (ceil(indexSelectivity <span style=color:#f92672>*</span> (<span style=color:#66d9ef>double</span>) baserel<span style=color:#f92672>-&gt;</span>pages) <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>)
-csquared        <span style=color:#f92672>=</span> indexCorrelation <span style=color:#f92672>*</span> indexCorrelation
-
-total_cost      <span style=color:#f92672>=</span> indexTotalCost <span style=color:#f92672>+</span> max_IO_cost <span style=color:#f92672>+</span> csquared <span style=color:#f92672>*</span> (min_IO_cost <span style=color:#f92672>-</span> max_IO_cost) <span style=color:#f92672>+</span> <span style=color:#ae81ff>0.01</span> <span style=color:#f92672>*</span> ceil(indexSelectivity <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>tuples) 
-<span style=color:#75715e>// Btree 的 indexSelectivity 就是其 cond 计算的结果
-</span><span style=color:#75715e>// PF = page fetch, 指的是语句最差的情况下需要最大读取的page，4为random io cost
-</span><span style=color:#75715e>// 最优时读取的page cost，这两个表达式分别对应关联度最优和最差时的代价
-</span><span style=color:#75715e></span>
-  PF <span style=color:#f92672>=</span>
-    min(<span style=color:#ae81ff>2</span>TNs<span style=color:#f92672>/</span>(<span style=color:#ae81ff>2</span>T<span style=color:#f92672>+</span>Ns), T)              when T <span style=color:#f92672>&lt;=</span> b
-    <span style=color:#ae81ff>2</span>TNs<span style=color:#f92672>/</span>(<span style=color:#ae81ff>2</span>T<span style=color:#f92672>+</span>Ns)                      when T <span style=color:#f92672>&gt;</span> b and Ns <span style=color:#f92672>&lt;=</span> <span style=color:#ae81ff>2</span>Tb<span style=color:#f92672>/</span>(<span style=color:#ae81ff>2</span>T<span style=color:#f92672>-</span>b)
-    b <span style=color:#f92672>+</span> (Ns <span style=color:#f92672>-</span> <span style=color:#ae81ff>2</span>Tb<span style=color:#f92672>/</span>(<span style=color:#ae81ff>2</span>T<span style=color:#f92672>-</span>b))<span style=color:#f92672>*</span>(T<span style=color:#f92672>-</span>b)<span style=color:#f92672>/</span>T     when T <span style=color:#f92672>&gt;</span> b and Ns <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>2</span>Tb<span style=color:#f92672>/</span>(<span style=color:#ae81ff>2</span>T<span style=color:#f92672>-</span>b)
- where
-    T <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>#</span> pages in table
-    N <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>#</span> tuples in table
-    s <span style=color:#f92672>=</span> selectivity <span style=color:#f92672>=</span> fraction of table to be scanned
-    b <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>#</span> buffer pages available (we include kernel space here)
-      <span style=color:#f92672>=</span> (<span style=color:#66d9ef>double</span>) effective_cache_size <span style=color:#f92672>*</span> T <span style=color:#f92672>/</span> (root<span style=color:#f92672>-&gt;</span>total_table_pages <span style=color:#f92672>+</span> index_pages);
-      effective_cache_size <span style=color:#f92672>=</span> <span style=color:#ae81ff>524288</span> KB <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span>Gb
-
-
-brin
-<span style=color:#f92672>---</span>
-startup_cost      <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span> <span style=color:#f92672>*</span> statsData.revmapNumPages
-total_cost        <span style=color:#f92672>=</span> indexTotalCost <span style=color:#f92672>+</span> max_IO_cost <span style=color:#f92672>+</span> csquared <span style=color:#f92672>*</span> (min_IO_cost <span style=color:#f92672>-</span> max_IO_cost) <span style=color:#f92672>+</span> <span style=color:#ae81ff>0.01</span> <span style=color:#f92672>*</span> ceil(indexSelectivity <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>tuples) 
-indexTotalCost    <span style=color:#f92672>=</span> startup_cost <span style=color:#f92672>+</span> <span style=color:#ae81ff>4</span> <span style=color:#f92672>*</span> (index<span style=color:#f92672>-&gt;</span>pages <span style=color:#f92672>-</span> statsData.revmapNumPages) <span style=color:#f92672>+</span> <span style=color:#ae81ff>0.00025</span> <span style=color:#f92672>*</span> estimatedRanges <span style=color:#f92672>*</span> statsData.pagesPerRange
-indexRanges       <span style=color:#f92672>=</span> max(ceil((<span style=color:#66d9ef>double</span>) baserel<span style=color:#f92672>-&gt;</span>pages <span style=color:#f92672>/</span> statsData.pagesPerRange), <span style=color:#ae81ff>1.0</span>)  
-minimalRanges     <span style=color:#f92672>=</span> ceil(indexRanges <span style=color:#f92672>*</span> qualSelectivity)   
-estimatedRanges   <span style=color:#f92672>=</span> min(minimalRanges <span style=color:#f92672>/</span> indexCorrelation, indexRanges)  
-indexSelectivity  <span style=color:#f92672>=</span> estimatedRanges <span style=color:#f92672>/</span> indexRanges  
-max_IO_cost     <span style=color:#f92672>=</span> PF <span style=color:#f92672>*</span> <span style=color:#ae81ff>4</span>
-min_IO_cost     <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> <span style=color:#f92672>+</span> (ceil(indexSelectivity <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>pages) <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>)
-csquared        <span style=color:#f92672>=</span> indexCorrelation <span style=color:#f92672>*</span> indexCorrelation
-
-bitmap
-<span style=color:#f92672>---</span>
-startup_cost  <span style=color:#f92672>=</span> ((IndexPath <span style=color:#f92672>*</span>) path)<span style=color:#f92672>-&gt;</span>indextotalcost <span style=color:#f92672>+</span>  <span style=color:#ae81ff>0.1</span> <span style=color:#f92672>*</span> cpu_operator_cost <span style=color:#f92672>*</span> path<span style=color:#f92672>-&gt;</span>rows
-total_cost    <span style=color:#f92672>=</span> startup_cost <span style=color:#f92672>+</span> pages_fetched <span style=color:#f92672>*</span> cost_per_page <span style=color:#f92672>+</span> pathtarget<span style=color:#f92672>-&gt;</span>cost.per_tuple <span style=color:#f92672>*</span> path<span style=color:#f92672>-&gt;</span>rows <span style=color:#f92672>+</span> cpu_per_tuple <span style=color:#f92672>*</span> tuples_fetched
-
-
-</code></pre></div><p>SELECT * FROM brin_page_items(get_raw_page(&lsquo;idxb&rsquo;, 2),&lsquo;idxb&rsquo;);
++ 0.01 * 44 * 3440</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span>
+</span></span><span style=display:flex><span>seq scan
+</span></span><span style=display:flex><span><span style=color:#f92672>---</span>
+</span></span><span style=display:flex><span>startup_cost  <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>total_cost    <span style=color:#f92672>=</span> <span style=color:#ae81ff>0.0125</span> <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>tuples <span style=color:#f92672>+</span> baserel<span style=color:#f92672>-&gt;</span>pages
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>btree
+</span></span><span style=display:flex><span>btcostestimate
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>create extension pageinspect;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>select level from <span style=color:#a6e22e>bt_metap</span>(<span style=color:#960050;background-color:#1e0010>&#39;</span>idx_cm_base_customer_1<span style=color:#960050;background-color:#1e0010>&#39;</span>);
+</span></span><span style=display:flex><span><span style=color:#f92672>---</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// log2(index-&gt;tuples) 指的是叶子二分查找的cost，H + 1 指的是树的高度，50 是代码写死的定值 0.0025 = cpu_operator_cost
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>startup_cost    <span style=color:#f92672>=</span> {ceil( log2(index<span style=color:#f92672>-&gt;</span>tuples) ) <span style=color:#f92672>+</span> ( H <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span> ) <span style=color:#f92672>*</span> <span style=color:#ae81ff>50</span>} <span style=color:#f92672>*</span> <span style=color:#ae81ff>0.0025</span>   
+</span></span><span style=display:flex><span><span style=color:#75715e>// max_IO_cost + csquared * (min_IO_cost - max_IO_cost) 是disk cost， 这里使用相关度计算，后面是 cpu cost, 0.01 是 cpu_per_tuple
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>indexSelectivity <span style=color:#f92672>=</span> genericcostestimate(xxx)
+</span></span><span style=display:flex><span>indexTotalCost  <span style=color:#f92672>=</span> startup_cost <span style=color:#f92672>+</span> ceil(indexSelectivity <span style=color:#f92672>*</span> index<span style=color:#f92672>-&gt;</span>pages) <span style=color:#f92672>*</span> <span style=color:#ae81ff>4</span> <span style=color:#f92672>+</span> (indexSelectivity <span style=color:#f92672>*</span> index<span style=color:#f92672>-&gt;</span>tuples) <span style=color:#f92672>*</span> <span style=color:#ae81ff>0.0075</span>
+</span></span><span style=display:flex><span>max_IO_cost     <span style=color:#f92672>=</span> PF <span style=color:#f92672>*</span> <span style=color:#ae81ff>4</span>
+</span></span><span style=display:flex><span>min_IO_cost     <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> <span style=color:#f92672>+</span> (ceil(indexSelectivity <span style=color:#f92672>*</span> (<span style=color:#66d9ef>double</span>) baserel<span style=color:#f92672>-&gt;</span>pages) <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>csquared        <span style=color:#f92672>=</span> indexCorrelation <span style=color:#f92672>*</span> indexCorrelation
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>total_cost      <span style=color:#f92672>=</span> indexTotalCost <span style=color:#f92672>+</span> max_IO_cost <span style=color:#f92672>+</span> csquared <span style=color:#f92672>*</span> (min_IO_cost <span style=color:#f92672>-</span> max_IO_cost) <span style=color:#f92672>+</span> <span style=color:#ae81ff>0.01</span> <span style=color:#f92672>*</span> ceil(indexSelectivity <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>tuples) 
+</span></span><span style=display:flex><span><span style=color:#75715e>// Btree 的 indexSelectivity 就是其 cond 计算的结果
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// PF = page fetch, 指的是语句最差的情况下需要最大读取的page，4为random io cost
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// 最优时读取的page cost，这两个表达式分别对应关联度最优和最差时的代价
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span>  PF <span style=color:#f92672>=</span>
+</span></span><span style=display:flex><span>    min(<span style=color:#ae81ff>2</span>TNs<span style=color:#f92672>/</span>(<span style=color:#ae81ff>2</span>T<span style=color:#f92672>+</span>Ns), T)              when T <span style=color:#f92672>&lt;=</span> b
+</span></span><span style=display:flex><span>    <span style=color:#ae81ff>2</span>TNs<span style=color:#f92672>/</span>(<span style=color:#ae81ff>2</span>T<span style=color:#f92672>+</span>Ns)                      when T <span style=color:#f92672>&gt;</span> b and Ns <span style=color:#f92672>&lt;=</span> <span style=color:#ae81ff>2</span>Tb<span style=color:#f92672>/</span>(<span style=color:#ae81ff>2</span>T<span style=color:#f92672>-</span>b)
+</span></span><span style=display:flex><span>    b <span style=color:#f92672>+</span> (Ns <span style=color:#f92672>-</span> <span style=color:#ae81ff>2</span>Tb<span style=color:#f92672>/</span>(<span style=color:#ae81ff>2</span>T<span style=color:#f92672>-</span>b))<span style=color:#f92672>*</span>(T<span style=color:#f92672>-</span>b)<span style=color:#f92672>/</span>T     when T <span style=color:#f92672>&gt;</span> b and Ns <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>2</span>Tb<span style=color:#f92672>/</span>(<span style=color:#ae81ff>2</span>T<span style=color:#f92672>-</span>b)
+</span></span><span style=display:flex><span> where
+</span></span><span style=display:flex><span>    T <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>#</span> pages in table
+</span></span><span style=display:flex><span>    N <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>#</span> tuples in table
+</span></span><span style=display:flex><span>    s <span style=color:#f92672>=</span> selectivity <span style=color:#f92672>=</span> fraction of table to be scanned
+</span></span><span style=display:flex><span>    b <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>#</span> buffer pages available (we include kernel space here)
+</span></span><span style=display:flex><span>      <span style=color:#f92672>=</span> (<span style=color:#66d9ef>double</span>) effective_cache_size <span style=color:#f92672>*</span> T <span style=color:#f92672>/</span> (root<span style=color:#f92672>-&gt;</span>total_table_pages <span style=color:#f92672>+</span> index_pages);
+</span></span><span style=display:flex><span>      effective_cache_size <span style=color:#f92672>=</span> <span style=color:#ae81ff>524288</span> KB <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span>Gb
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>brin
+</span></span><span style=display:flex><span><span style=color:#f92672>---</span>
+</span></span><span style=display:flex><span>startup_cost      <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span> <span style=color:#f92672>*</span> statsData.revmapNumPages
+</span></span><span style=display:flex><span>total_cost        <span style=color:#f92672>=</span> indexTotalCost <span style=color:#f92672>+</span> max_IO_cost <span style=color:#f92672>+</span> csquared <span style=color:#f92672>*</span> (min_IO_cost <span style=color:#f92672>-</span> max_IO_cost) <span style=color:#f92672>+</span> <span style=color:#ae81ff>0.01</span> <span style=color:#f92672>*</span> ceil(indexSelectivity <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>tuples) 
+</span></span><span style=display:flex><span>indexTotalCost    <span style=color:#f92672>=</span> startup_cost <span style=color:#f92672>+</span> <span style=color:#ae81ff>4</span> <span style=color:#f92672>*</span> (index<span style=color:#f92672>-&gt;</span>pages <span style=color:#f92672>-</span> statsData.revmapNumPages) <span style=color:#f92672>+</span> <span style=color:#ae81ff>0.00025</span> <span style=color:#f92672>*</span> estimatedRanges <span style=color:#f92672>*</span> statsData.pagesPerRange
+</span></span><span style=display:flex><span>indexRanges       <span style=color:#f92672>=</span> max(ceil((<span style=color:#66d9ef>double</span>) baserel<span style=color:#f92672>-&gt;</span>pages <span style=color:#f92672>/</span> statsData.pagesPerRange), <span style=color:#ae81ff>1.0</span>)  
+</span></span><span style=display:flex><span>minimalRanges     <span style=color:#f92672>=</span> ceil(indexRanges <span style=color:#f92672>*</span> qualSelectivity)   
+</span></span><span style=display:flex><span>estimatedRanges   <span style=color:#f92672>=</span> min(minimalRanges <span style=color:#f92672>/</span> indexCorrelation, indexRanges)  
+</span></span><span style=display:flex><span>indexSelectivity  <span style=color:#f92672>=</span> estimatedRanges <span style=color:#f92672>/</span> indexRanges  
+</span></span><span style=display:flex><span>max_IO_cost     <span style=color:#f92672>=</span> PF <span style=color:#f92672>*</span> <span style=color:#ae81ff>4</span>
+</span></span><span style=display:flex><span>min_IO_cost     <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> <span style=color:#f92672>+</span> (ceil(indexSelectivity <span style=color:#f92672>*</span> baserel<span style=color:#f92672>-&gt;</span>pages) <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>csquared        <span style=color:#f92672>=</span> indexCorrelation <span style=color:#f92672>*</span> indexCorrelation
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>bitmap
+</span></span><span style=display:flex><span><span style=color:#f92672>---</span>
+</span></span><span style=display:flex><span>startup_cost  <span style=color:#f92672>=</span> ((IndexPath <span style=color:#f92672>*</span>) path)<span style=color:#f92672>-&gt;</span>indextotalcost <span style=color:#f92672>+</span>  <span style=color:#ae81ff>0.1</span> <span style=color:#f92672>*</span> cpu_operator_cost <span style=color:#f92672>*</span> path<span style=color:#f92672>-&gt;</span>rows
+</span></span><span style=display:flex><span>total_cost    <span style=color:#f92672>=</span> startup_cost <span style=color:#f92672>+</span> pages_fetched <span style=color:#f92672>*</span> cost_per_page <span style=color:#f92672>+</span> pathtarget<span style=color:#f92672>-&gt;</span>cost.per_tuple <span style=color:#f92672>*</span> path<span style=color:#f92672>-&gt;</span>rows <span style=color:#f92672>+</span> cpu_per_tuple <span style=color:#f92672>*</span> tuples_fetched
+</span></span></code></pre></div><p>SELECT * FROM brin_page_items(get_raw_page(&lsquo;idxb&rsquo;, 2),&lsquo;idxb&rsquo;);
 SELECT * FROM brin_revmap_data(get_raw_page(&lsquo;idxb&rsquo;, 1)) ;
-SELECT * FROM brin_metapage_info(get_raw_page(&lsquo;idxb&rsquo;, 0));</p>
-<p>cost_sort (path=0x7ffccbfceae0, root=0x563be3d33940, pathkeys=0x0, input_cost=15406, tuples=1000000, width=12, comparison_cost=0, sort_mem=4096, limit_tuples=-1)</p>
-<p>type = 3821921280,
+SELECT * FROM brin_metapage_info(get_raw_page(&lsquo;idxb&rsquo;, 0));</p><p>cost_sort (path=0x7ffccbfceae0, root=0x563be3d33940, pathkeys=0x0, input_cost=15406, tuples=1000000, width=12, comparison_cost=0, sort_mem=4096, limit_tuples=-1)</p><p>type = 3821921280,
 pathtype = 22075,
 parent = 0x563be3cde400,
 pathtarget = 0x563be3cacd40,
@@ -581,56 +350,33 @@ parallel_workers = 1,
 rows = 1000000,
 startup_cost = 132154.34284662094,
 total_cost = 134654.34284662094,
-pathkeys = 0x563be3d86de0</p>
-<h3 id=heading>
-<a href=#heading class=h-anchor aria-hidden=true>#</a>
-</h3>
-<ol>
-<li>FQS pgxc_FQS_create_remote_plan
-没有计算代价，cost为0</li>
-</ol>
-<hr>
-<p>Data Node Scan on &ldquo;<strong>REMOTE_FQS_QUERY</strong>&rdquo; (cost=0.00..0.00 rows=0 width=0)
+pathkeys = 0x563be3d86de0</p><h3 id=heading><a href=#heading class=h-anchor aria-hidden=true>#</a></h3><ol><li>FQS pgxc_FQS_create_remote_plan
+没有计算代价，cost为0</li></ol><hr><p>Data Node Scan on &ldquo;<strong>REMOTE_FQS_QUERY</strong>&rdquo; (cost=0.00..0.00 rows=0 width=0)
 Primary node/s: dn1
 Node/s: dn1, dn2
-(3 rows)</p>
-<ol start=2>
-<li>remote create path</li>
-</ol>
-<h2 id=query-plan>
-benchmarksql=# explain verbose select * from t1 ;
+(3 rows)</p><ol start=2><li>remote create path</li></ol><h2 id=query-plan>benchmarksql=# explain verbose select * from t1 ;
 QUERY PLAN
-<a href=#query-plan class=h-anchor aria-hidden=true>#</a>
-</h2>
-<p>Data Node Scan on t1 &ldquo;<em>REMOTE_TABLE_QUERY</em>&rdquo; (cost=0.00..82037.50 rows=90005 width=12)
+<a href=#query-plan class=h-anchor aria-hidden=true>#</a></h2><p>Data Node Scan on t1 &ldquo;<em>REMOTE_TABLE_QUERY</em>&rdquo; (cost=0.00..82037.50 rows=90005 width=12)
 Output: t1.c1, t1.c2, t1.c3
 Primary node/s: dn1
 Node/s: dn1, dn2
 Remote query: SELECT c1, c2, c3 FROM ONLY public.t1 t1 WHERE true
-(5 rows)</p>
-<pre tabindex=0><code>使用seq scan 的代价计算方法，只是tuple_cost 为0.9，cluster这里还是使用的seq 的数据计算代价，最后再判断添加什么算子
+(5 rows)</p><pre tabindex=0><code>使用seq scan 的代价计算方法，只是tuple_cost 为0.9，cluster这里还是使用的seq 的数据计算代价，最后再判断添加什么算子
 run cost = cpu run cost + disk run cost
          = (cpu_tuple_cost + cpu_operator_cost) × Ntuple + seq_page_cost × Npage
          = 0.9 * 90005 + (1 * 1033)
          = 82037.50
-</code></pre><ol start=2>
-<li>cluster cost_cluster_gather
+</code></pre><ol start=2><li>cluster cost_cluster_gather
 单表执行计划为gather
 rows = allrows / count(dn)
 startup_cost = subpath->startup_cost
 run_cost = subpath->run_cost + (remote_tuple_cost * rows)
-total_cost = (startup_cost + run_cost)</li>
-</ol>
-<hr>
-<p>Cluster Gather (cost=0.00..28934.25 rows=90004 width=12)
+total_cost = (startup_cost + run_cost)</li></ol><hr><p>Cluster Gather (cost=0.00..28934.25 rows=90004 width=12)
 -> Seq Scan on t1 (cost=0.00..1933.05 rows=45002 width=12)
-(2 rows)</p>
-<pre><code>startup_cost = 0
+(2 rows)</p><pre><code>startup_cost = 0
 run_cost = 1933.05 + (0.3 * 90004) = 28934.25
 total_cost = (0 + 28934.25) = 28934.25
-</code></pre>
-<p>2.1 单表的scan</p>
-<pre tabindex=0><code>数据的读取，tuple的cpu代价，targetlist 的 eval 代价
+</code></pre><p>2.1 单表的scan</p><pre tabindex=0><code>数据的读取，tuple的cpu代价，targetlist 的 eval 代价
 
 run cost = cpu run cost + disk run cost
          = (cpu_tuple_cost + cpu_operator_cost) × Ntuple + seq_page_cost × Npage
@@ -674,7 +420,7 @@ benchmarksql=# explain verbose  select * from t1 join t2 on t1.c1 = t2.c2;
          -&gt;  Hash  (cost=562.00..562.00 rows=50 width=12)
                Output: t2.c1, t2.c2, t2.c3
                -&gt;  Cluster Reduce  (cost=1.00..562.00 rows=50 width=12)
-                     Reduce: ('[0:1]={16386,16387}'::oid[])[COALESCE(hash_combin_mod(2, hashint4(t2.c2)), 0)]
+                     Reduce: (&#39;[0:1]={16386,16387}&#39;::oid[])[COALESCE(hash_combin_mod(2, hashint4(t2.c2)), 0)]
                      -&gt;  Seq Scan on public.t2  (cost=0.00..543.00 rows=50 width=12)
                            Output: t2.c1, t2.c2, t2.c3
                            Remote node: 16386,16387
@@ -768,57 +514,18 @@ run_cost += path-&gt;jpath.path.pathtarget-&gt;cost.per_tuple * path-&gt;jpath.p
 
 path-&gt;jpath.path.startup_cost = startup_cost;
 path-&gt;jpath.path.total_cost = startup_cost + run_cost;
-
-</code></pre><p>输出日志</p>
-<pre tabindex=0><code class=language-log data-lang=log>
+</code></pre><p>输出日志</p><pre tabindex=0><code class=language-log data-lang=log>
   HashJoin(supplier nation) id 0x5574bc399c18 reduce_info_list ( storage_nodes: { 16386,16387,16388}, exclude_exec: {}, type: H storage_nodes: { 16386,16387,16388}, exclude_exec: {}, type: H) rows=356 cost=(4.35..943.53)=startup_cost:{workspace-&gt;startup_cost(4.35) + hash_qual_cost.startup(0.00) + qp_qual_cost.startup(0.00) + pathtarget-&gt;cost.startup(0.00)}..total_cost:{startup_cost(4.35) + workspace-&gt;run_cost(937.28) + qual_run_cost(1.33) + pathtarget_run_cost(0.00)}
     clauses: supplier.s_nationkey = nation.n_nationkey
     ClusterReducePath(supplier) id 0x5574bc3975f8 reduce_info_list ( storage_nodes: { 16386,16387,16388}, exclude_exec: {}, type: H) rows=3333 cost=(1.00..929.95)=startup_cost:{subpath-&gt;startup_cost(0.00) + reduce_conn_cost(1.00) + sort}..total_cost:{subpath-&gt;total_cost(324.00) + startup_cost(1.00) + reduce_r}
       SeqScan(supplier) id 0x5574bc35aa98 reduce_info_list ( storage_nodes: { 16386,16387,16388}, exclude_exec: {}, type: H) rows=3333 cost=(0.00..324.00)=startup_cost:{qpqual_cost.startup(0.00) + pathtarget-&gt;cost.startup(0.00)}..total_cost:{startup_cost(0.00) + cpu_run_cost(100.00) + disk_run_cost(224.00)}
     SeqScan(nation) id 0x5574bc362928 reduce_info_list ( storage_nodes: { 16386,16387,16388}, exclude_exec: {}, type: H) rows=8 cost=(0.00..3.25)=startup_cost:{qpqual_cost.startup(0.00) + pathtarget-&gt;cost.startup(0.00)}..total_cost:{startup_cost(0.00) + cpu_run_cost(0.25) + disk_run_cost(3.00)}
   
-</code></pre>
-</div>
-<div class=pagination>
-<div class=pagination__title>
-<span class=pagination__title-h>Read other posts</span>
-<hr>
-</div>
-<div class=pagination__buttons>
-<span class="button previous">
-<a href=https://askyx.github.io/posts/defineinc/>
-<span class=button__icon>←</span>
+</code></pre></div><div class=pagination><div class=pagination__title><span class=pagination__title-h>Read other posts</span><hr></div><div class=pagination__buttons><span class="button previous"><a href=https://askyx.github.io/posts/defineinc/><span class=button__icon>←</span>
 <span class=button__text>宏使用模板速查</span>
-</a>
-</span>
-<span class="button next">
-<a href=https://askyx.github.io/posts/postgres_executor/>
-<span class=button__text>Postgres Executor</span>
-<span class=button__icon>→</span>
-</a>
-</span>
-</div>
-</div>
-</div>
-</div>
-<footer class=footer>
-<div class=footer__inner>
-<a href=https://askyx.github.io/ class=logo style=text-decoration:none>
-<span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg>
-</span>
-<span class=logo__text>Asky</span>
-<span class=logo__cursor></span>
-</a>
-<div class=copyright>
-<span>© 2024 Powered by
+</a></span><span class="button next"><a href=https://askyx.github.io/posts/postgres_executor/><span class=button__text>Postgres Executor</span>
+<span class=button__icon>→</span></a></span></div></div></div></div><footer class=footer><div class=footer__inner><a href=https://askyx.github.io/ class=logo style=text-decoration:none><span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg></span><span class=logo__text>Asky</span>
+<span class=logo__cursor></span></a><div class=copyright><span>© 2024 Powered by
 <a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
 <span>Theme created by
-<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span>
-</div>
-</div>
-</footer>
-<script src=https://askyx.github.io/assets/main.js></script>
-<script src=https://askyx.github.io/assets/prism.js></script>
-</div>
-</body>
-</html>
+<a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span></div></div></footer><script src=https://askyx.github.io/assets/main.js></script><script src=https://askyx.github.io/assets/prism.js></script></div></body></html>

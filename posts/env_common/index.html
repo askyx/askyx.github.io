@@ -40,6 +40,14 @@ Asky — My note blog
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>docker run  -itd  --name xx_name --hostname vscode --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/asky/xx_source,target<span style=color:#f92672>=</span>/workspaces/xx_target  runner  bash
 </span></span><span style=display:flex><span>docker exec -it -u vscode xx_name bash
+</span></span></code></pre></div><h2 id=一些简单的有用的命令>一些简单的有用的命令
+<a href=#%e4%b8%80%e4%ba%9b%e7%ae%80%e5%8d%95%e7%9a%84%e6%9c%89%e7%94%a8%e7%9a%84%e5%91%bd%e4%bb%a4 class=h-anchor aria-hidden=true>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span><span style=color:#66d9ef>function</span> tlog<span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    tail -f <span style=color:#66d9ef>$(</span>ls -tp | grep -v / | awk <span style=color:#e6db74>&#39;{print $1}&#39;</span> | grep <span style=color:#e6db74>&#39;log&#39;</span> | head -n 1<span style=color:#66d9ef>)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> tcsv<span style=color:#f92672>()</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    tail -f <span style=color:#66d9ef>$(</span>ls -tp | grep -v / | awk <span style=color:#e6db74>&#39;{print $1}&#39;</span> | grep <span style=color:#e6db74>&#39;csv&#39;</span> | head -n 1<span style=color:#66d9ef>)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
 </span></span></code></pre></div></div><div class=pagination><div class=pagination__title><span class=pagination__title-h>Read other posts</span><hr></div><div class=pagination__buttons><span class="button previous"><a href=https://askyx.github.io/posts/build/><span class=button__icon>←</span>
 <span class=button__text>源码编译 OpenTenBase 速通版</span>
 </a></span><span class="button next"><a href=https://askyx.github.io/posts/one_line/><span class=button__text>名词一行解释</span>

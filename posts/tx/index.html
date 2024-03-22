@@ -159,7 +159,22 @@ mysql的innodb，oracle使用此机制</p><p><a href=http://postgres.cn/docs/14/
 <a href=https://www.zhihu.com/question/449949351>https://www.zhihu.com/question/449949351</a>
 <a href=https://zhuanlan.zhihu.com/p/573680047>分布式事务，理论与实践</a></p><h2 id=分布式一致性>分布式一致性
 <a href=#%e5%88%86%e5%b8%83%e5%bc%8f%e4%b8%80%e8%87%b4%e6%80%a7 class=h-anchor aria-hidden=true>#</a></h2><p><a href=https://jepsen.io/consistency>https://jepsen.io/consistency</a></p><p>事务的AICD和分布式的C是完全不一致的东西，事务的C要求的是事务的一致性约束不能被破坏，而分布式事务的C则是对系统整体正确性的描述，例如修改一个数据成功，且没有违背事务一致性，但是数据没有立刻同步到其他节点，导致分布式一致性被破坏</p><ol><li>分布式数据库中多副本的同步，需要确保一致性，需要一定的约束规则，不用角度的约束规则，可以理解为不同程度的一致性<ul><li>强一致性，任何读写都可以确保得到的是最新的数据，简而言之，所有的读写都是原子性，不存在中间状态</li><li>弱一致性<ul><li>最终一致性，不能确保数据写下之后立刻得到最新的数据，但是保证一段时间之后，数据对所有节点是同步的，不过此时间不确定</li><li>读写一致性，在某节点写了数据，但是自己读的时候是从另一节点读取的，但是数据尚未同步，导致读到老的数据，此时应该限定读取节点，或者使用其他机制保证自己的读写是一致的</li><li>单调一致性，类似读写一致性，后面的读操作没有读到之前读的数据，可能是不同的节点读的结果</li><li>因果一致性，相同key的数据，应当保证顺序和实际的操作顺序是一致的，因为不同的操作之间，具有因果关系，</li></ul></li></ul></li><li>网络通信时间不一致，实际的执行发出时间，执行时间，和结果的接收时间不能单纯的确定先后，实际的事件存在重叠现象</li><li>主流分布式理论<ul><li>CAP理论，一致性，可用性，分区容错性三者最多只能支持两个，且由于P问题的客观存在，所以不能一定确保P，最多只能在CA中二选一</li><li>BASE理论，BA为基本可用，S为软状态，即中间状态，E为最终一致性，他认为，强一致性无法达到的情况下的，可以在一定程度上允许最终一致性即可</li></ul></li></ol><blockquote><p>强一制性是最终的追求，但是实际上可以进行一定的妥协，就像事务的不同隔离级别，大多数场景只要求可重复读即可</p></blockquote><p>当前绝大多数分布式系统默认支持的最终一致性<br>即使无法做到强一致性（Strong consistency），但每个应用都可以根据自身的业务特点，采用适当的方式来使系统达到最终一致性（Eventual consistency）。</p><p>分布式一致性的核心是事件的先后顺序，可以想下单机数据库的顺序保证，一般都是提供一个单调递增的事务号</p><ol><li>TSO，Timestamp Oracle，中心授时服务，由于是中心化的，所以肯定存在单点问题，但是也是由于中心化，所以可以在确保线性一致性，所以当前大部分数据库使用的是TSO，例如polarDB，TIDB等</li><li>true time，spanner为了实现数据库的全球部署，并且为了保证线性一致性，使用原子钟加GPS实现误差仅为7ms的时间戳和commit waite机制，但是需要硬件的配合，所以貌似只此一家</li><li>NTP，软同步，做不到true time，那就尽量的避免误差过大，毕竟即使是true time，也还是有7ms的误差</li><li>混合时钟，CRDB的解决方案，在软同步的基础上使用消息传递的机制进行事件顺序同步，只要有消息交互，则可以保证先后顺序</li><li>各种优化机制</li></ol><p>中心化的授时机制和true time，可以保证线性一致性，但是TSO有单点问题，true time需要硬件支持。退而求其次的混合时钟，个人理解是使用事件之间消息传递机制来保证事件的先后顺序，这隐含一个必要条件就是需要是事件之间具有因果关系，所以
-CRDB能做到因果一致性，对于不相干的key，则无法保证事件顺序。</p><p><a href=https://github.com/xitu/gold-miner/blob/master/TODO/postgres-atomicity.md>https://github.com/xitu/gold-miner/blob/master/TODO/postgres-atomicity.md</a></p></div><div class=pagination><div class=pagination__title><span class=pagination__title-h>Read other posts</span><hr></div><div class=pagination__buttons><span class="button previous"><a href=https://askyx.github.io/posts/postgres_executor/><span class=button__icon>←</span>
+CRDB能做到因果一致性，对于不相干的key，则无法保证事件顺序。</p><p><a href=https://github.com/xitu/gold-miner/blob/master/TODO/postgres-atomicity.md>https://github.com/xitu/gold-miner/blob/master/TODO/postgres-atomicity.md</a></p><pre tabindex=0><code>快照		
+    改造快照数据结构				
+            新增全局时间戳、prepare列表等等						
+						改造视图、函数						
+		改造申请快照的接口				
+            添加获取全局时间戳的接口						
+						删除目前的全局活跃列表的处理						
+						调整RecentGlobalXmin的更新逻辑，涉及Vacuum						
+		改造可见性判断逻辑				
+            调整快照以start_ts和commit_ts判断的逻辑						
+						所有的判断接口有HeapTupleSatisfiesMVCC等8个都需要改造						
+		改造commit_ts日志				
+            默认要开启commit_ts，且不允许关闭						
+						梳理一下目前commit_ts的功能和antdb分布式是否适配，从没启用过，可能本来功能就有缺陷						
+						吕亚宁建议不修改tuple的存储结构，每次都从cts日志读取。那高并发下，应该会有锁争用的情况，需要优化						
+</code></pre></div><div class=pagination><div class=pagination__title><span class=pagination__title-h>Read other posts</span><hr></div><div class=pagination__buttons><span class="button previous"><a href=https://askyx.github.io/posts/postgres_executor/><span class=button__icon>←</span>
 <span class=button__text>Postgres Executor</span>
 </a></span><span class="button next"><a href=https://askyx.github.io/posts/note/><span class=button__text>Bison Note</span>
 <span class=button__icon>→</span></a></span></div></div></div></div><footer class=footer><div class=footer__inner><a href=https://askyx.github.io/ class=logo style=text-decoration:none><span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg></span><span class=logo__text>Asky</span>

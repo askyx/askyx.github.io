@@ -149,27 +149,7 @@ Physical property，与logical property对应，物理属性是选择了特定�
 Applicability function : 决定一个物理算法，其输出是否可以满足要求父算子对自身的physical property要求，且决定它对自身的输入具有什么样的physical property要求
 Enforcer是search engine中一个重要的概念，它用来强制产生某种物理属性。例如上层是join算子，在枚举时会考虑使用sort merge join的物理执行方式(Implementation），但当递归到下层时，子节点可以选择table scan（无序输出），或者index scan（目标序输出），当选择table scan时，由于输出不满足父算子对自身输出的物理属性要求，就可以通过Order Enforcer来产生目标输出，Enforcer表示了排序这个操作，同时也包含了排序操作会产生的代价。
 The Search Engine # 搜索实现
-// PhysProp：： 此LogExpr锁具有的物理属性的要求 FindBestPlan (LogExpr, PhysProp, Limit) // 如果可以在look-up table找到满足的计划，则代表以及算过，直接返回 if the pair LogExpr and PhysProp is in the look-up table if the cost in the look-up table &lt; Limit return Plan and Cost else return failure /* else: optimization required */ // 否则进行优化，由三种优化方式 // 1.</div><div><a class="read-more button" href=/posts/volcanooptimizer/>Read more →</a></div></div><div class="post on-list"><h1 class=post-title><a href=https://askyx.github.io/posts/columbia-optimizer/>Columbia Optimizer</a></h1><div class=post-meta><span class=post-date>2022-04-02</span></div><div class=post-content></div><div><a class="read-more button" href=/posts/columbia-optimizer/>Read more →</a></div></div><div class="post on-list"><h1 class=post-title><a href=https://askyx.github.io/posts/log/>面试</a></h1><div class=post-meta><span class=post-date>2022-03-24</span></div><div class=post-content>面试 # 只是一个技术汇总
-C++基础 [2 days] [课程- https://github.com/parallel101/course.git]
-内存 内存结构 [https://segmentfault.com/a/1190000039348996] | c++ 编译出来的是可执行文件，是ELF格式的，他本来就有一些格式上的划分，C++在他的基础上进行了更细的划分，分为五个部分，从高地址到底地址依次为：
-&mdash; 1. 内核虚拟内存
-进程的虚拟印象 2. 栈
-程序自动控制，具体为程序的函数调用，保存局部变量，有大小，可以使用ulimit -s 查看，也可以自行设置，但是建议系统默认即可 * 函数调用机制
-调用的时候是一个一个的栈帧，函数参数会在调用者的栈帧中开辟空间，从右到左，所以函数列表的默认值必须从右到左的初始化， 可能和这个有关系，然后被调用者构造栈帧，依次执行
-3. 共享库的内存印象 3. 堆 空间有程序员自行维护，向上增长(TIPS: 由于C的历史原因，C++的内存结构还是说堆区，但是在区别new/malloc 和delete/free 的时候，他们的差别之一可能会在内存上有点区别 C的malloc/free可能会说是在堆上分配空间，但是对于C++可能会说的是在自由存储区上分配，自由存储区和堆是不同的概念，堆是操作系统上的概念，但是自由存储区是一个抽象概念 一般new可以是在堆上分配空间，但是可能存在在其他情况，例如在栈上使用new，所以他们不是一个概念，面试的时候说到这里，可以装逼😎) 4. 可写/全局区 对应elf中data段和bss段，data段保存的是已初始化的全局变量或者静态变量，bss保存的是未初始化的数据 5. 只读区/代码段 text段，保存编译之后的指令，不可变 6. 常量区 保存全局变量，不可变，rodata段，记得使用其他手段去尝试修改常量的时候会报错。 TIPS: const修饰的参数不一定是常量，例如他修饰一个函数的参数的时候，参数还是只是在栈中，只是约定不能修改。 7. 未使用 static
-全局变量和静态变量存储位置一样，处于数据段，区别是全局变量项目可见， 静态变量当前文件可见
-局部静态变量数据static变量，存储位置一样，但是限定作用域为当前声明范围
-静态函数类似，全局函数全局可见，static函数当前文件可见
-类static 属性和函数属于类，不属于具体的对象
-extern
-表明此函数在其他文件中定义，这里避免重复声明，所以使用extern，仅仅是一种声明，不是定义
-内存管理
-new C++有对象的概念，所以他的new大意上是malloc的封装，先申请对象的内存空间，然后调用对象的构造函数构造对象，用在数组上是，先申请所有的空间，然后再依次调用构造函数 delete 删除对象，先调用析构函数，然后再释放空间 对象数组 如果调用的是delete[]，如果是基础类型，则删除的时候使用delete和delete[] 都没有区别，因为空间连续的，有额外的空间记录内存的大小，直接使用delete的时候可以直接伤处 如果是自定义对象，如果有指针这类的属性，则必须调用delete[]， 否则他只会调用第一个对象的析构函数，可能会导致内存泄露 &ndash; new malloc 的区别 &ndash; 1. 空间分配的概念上 一个是堆区，一个是自由存储区 2. 使用上 new会调用构造函数，且new会自行计算对象所需的空间大小，malloc需要自行指定 3. 概念上 malloc是标准函数，而new是关键字
-虚表
-实现
-虚表是多态的一种实现，但是不是C++的规定，而是编译器的自行的实现方法，在函数中只要声明虚函数，则对象中就会有额外的空间用于保存虚表，他是一个指针，指向虚表，所以对于有虚表的对象 sizeof的时候会计算这个指针的大小，指针指向虚表的第三个槽位，gdb查看地址的时候会显示+16的字样，因为这是实际的函数指针的开始位置，前两个槽位一个一般是0，另一个一般是typeinfo的地址， 虚表和他的附属信息在内存中都是一起的，其实从根本原理上来说，他只是做了一层转换，实际上函数的调用最终的实现都是面向过程的函数的调用，函数才是C++ 的核心，
-而且虚表由于调用的时候需要寻址，所以会导致性能问题，主要是由于需要进行地址跳转，跳转会有性能损耗，且由于局部性原理，指令会有预读机制，跳转之后可能导致cache miss，导致流水线失效 验证方法
-编译的时候使用参数-fdump-lang-class，gdb调试的时候使用set print asm-demangle on，然后x/b打印地址 或者使用 Compiler Explorer 虚继承 同样使用到虚表，父类只有一份副本 共享内存中的对象问题</div><div><a class="read-more button" href=/posts/log/>Read more →</a></div></div><div class="post on-list"><h1 class=post-title><a href=https://askyx.github.io/posts/%E7%8E%B0%E4%BB%A3c-%E7%99%BD%E7%9A%AE%E4%B9%A6/>现代C++白皮书</a></h1><div class=post-meta><span class=post-date>2022-03-06</span></div><span class=post-tags><a href=https://askyx.github.io/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/>#读书笔记</a>&nbsp;
+// PhysProp：： 此LogExpr锁具有的物理属性的要求 FindBestPlan (LogExpr, PhysProp, Limit) // 如果可以在look-up table找到满足的计划，则代表以及算过，直接返回 if the pair LogExpr and PhysProp is in the look-up table if the cost in the look-up table &lt; Limit return Plan and Cost else return failure /* else: optimization required */ // 否则进行优化，由三种优化方式 // 1.</div><div><a class="read-more button" href=/posts/volcanooptimizer/>Read more →</a></div></div><div class="post on-list"><h1 class=post-title><a href=https://askyx.github.io/posts/columbia-optimizer/>Columbia Optimizer</a></h1><div class=post-meta><span class=post-date>2022-04-02</span></div><div class=post-content></div><div><a class="read-more button" href=/posts/columbia-optimizer/>Read more →</a></div></div><div class="post on-list"><h1 class=post-title><a href=https://askyx.github.io/posts/%E7%8E%B0%E4%BB%A3c-%E7%99%BD%E7%9A%AE%E4%B9%A6/>现代C++白皮书</a></h1><div class=post-meta><span class=post-date>2022-03-06</span></div><span class=post-tags><a href=https://askyx.github.io/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/>#读书笔记</a>&nbsp;
 <a href=https://askyx.github.io/tags/c++/>#C++</a>&nbsp;</span><div class=post-content></div><div><a class="read-more button" href=/posts/%E7%8E%B0%E4%BB%A3c-%E7%99%BD%E7%9A%AE%E4%B9%A6/>Read more →</a></div></div><div class="post on-list"><h1 class=post-title><a href=https://askyx.github.io/posts/envs/>Envs</a></h1><div class=post-meta><span class=post-date>2022-02-21</span></div><div class=post-content>hugo # wget https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb https://github.91chi.fun/https://github.com//gohugoio/hugo/releases/download/v0.92.2/hugo_extended_0.92.2_Linux-64bit.deb sudo dpkg -i hugo*.deb
 140.82.113.3
 aria2c -s 5 https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb

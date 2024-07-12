@@ -96,7 +96,7 @@ Asky — My note blog
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><h2 id=使用docker>使用Docker
 <a href=#%e4%bd%bf%e7%94%a8docker class=h-anchor aria-hidden=true>#</a></h2><p>vscode 安装<code>Remote - Containers</code>插件之后，可以方便的在docker中进行开发，postgres也可以运行在docker中，下载源码之后，vscode打开项目，<code>shift-p</code>输入<code>Open Workspace in Containe</code>，然后选择系统即可，我选择的是Ubuntu22，如果没有特殊配置，上面的例子直接抄，然后看看我有啥没写的，自己摸索执行下就可以了，也估计不差啥了。</p><hr><h2 id=分布式pg>分布式PG
-<a href=#%e5%88%86%e5%b8%83%e5%bc%8fpg class=h-anchor aria-hidden=true>#</a></h2><p>分布式PG版本 postgres-xc和postgres-xl，源码内部使用宏控制，编译分布式的时候。需要使用分布式环境运行，官网上有个指导步骤可以运行一个极简集群，且是在单机上，但是我是用Ubuntu一直无法搭建成功</p><p>最后使用docker搭建成功，具体的文件在<a href=git@github.com:Esoye/postgres-docker.git>这里</a>，下载仓库之后，可以使用postges-xl，也可以使用postgres-xc，两者之间在编译方式上无太大区别</p><p>具体参考README</p><p>直接配置好对应的文件位置，直接<code>docker-compose up</code>然后就可以咬着手指甲等就可以了。</p><ul><li>关于调试，docker为了安全考虑，禁止了容器中的大部分功能，需要在运行的时候手动放开，否则GDB无法正常调试，可以参考下面的材料</li></ul><pre tabindex=0><code>https://docs.docker.com/compose/compose-file/compose-file-v2/#cap_add-cap_drop
+<a href=#%e5%88%86%e5%b8%83%e5%bc%8fpg class=h-anchor aria-hidden=true>#</a></h2><p>分布式PG版本 postgres-xc和postgres-xl，源码内部使用宏控制，编译分布式的时候。需要使用分布式环境运行，官网上有个指导步骤可以运行一个极简集群，且是在单机上，但是我是用Ubuntu一直无法搭建成功</p><p>最后使用docker搭建成功，具体的文件在<a href>这里</a>，下载仓库之后，可以使用postges-xl，也可以使用postgres-xc，两者之间在编译方式上无太大区别</p><p>具体参考README</p><p>直接配置好对应的文件位置，直接<code>docker-compose up</code>然后就可以咬着手指甲等就可以了。</p><ul><li>关于调试，docker为了安全考虑，禁止了容器中的大部分功能，需要在运行的时候手动放开，否则GDB无法正常调试，可以参考下面的材料</li></ul><pre tabindex=0><code>https://docs.docker.com/compose/compose-file/compose-file-v2/#cap_add-cap_drop
 https://www.cnblogs.com/davis12/p/14453690.html
 https://zhoubofsy.github.io/2019/09/24/linux/gdb-in-docker/
 

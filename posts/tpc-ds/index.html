@@ -23,21 +23,40 @@ make OS=LINUX
 <a href=#%e6%b5%8b%e8%af%95-1 class=h-anchor aria-hidden=true>#</a></h2><ul><li><p>duckdb 把 tpcds 做成一个插件，开箱即用，pg 也可以实现类似的一个插件</p><ul><li>但是有必要吗？</li></ul></li><li><p>github 上 tpcds-postgres 支持根据执行计划统计各个 Node 的执行情况，并可视化，也许可以集合到插件中</p></li><li><p>插件实现建表， 加载数据， 执行 SQL， 可视化统计信息等功能</p><ul><li>插件中执行语句<ul><li>直接读取文件，然后执行</li><li>或者调用 psql，类似回归</li></ul></li></ul></li><li><p>插件默认使用固化的 SQL 测试，但是支持替换使用 模板生成的 SQL</p></li></ul><p>EXPORT DATABASE &lsquo;/home/asky/duckdb/build&rsquo; (FORMAT CSV);</p><p>alter table customer rename to customer_old;
 alter table lineitem rename to lineitem_old;
 alter table nation rename to nation_old;<br>alter table orders rename to orders_old;<br>alter table part rename to part_old;<br>alter table partsupp rename to partsupp_old;
-alter table region rename to region_old;<br>alter table supplier rename to supplier_old;</p><p>COPY part FROM &lsquo;/tmp/dss-data/part.csv&rsquo; WITH csv DELIMITER &lsquo;|&rsquo;;</p><p>copy customer from &lsquo;/home/asky/tpch-kit/dbgen/customer.tbl&rsquo; with DELIMITER &lsquo;|&rsquo;;
-copy lineitem from &lsquo;/home/asky/tpch-kit/dbgen/lineitem.tbl&rsquo; with DELIMITER &lsquo;|&rsquo;;
-copy nation from &lsquo;/home/asky/tpch-kit/dbgen/nation.tbl&rsquo; with DELIMITER &lsquo;|&rsquo;;
-copy orders from &lsquo;/home/asky/tpch-kit/dbgen/orders.tbl&rsquo; with DELIMITER &lsquo;|&rsquo;;
-copy part from &lsquo;/home/asky/tpch-kit/dbgen/part.tbl&rsquo; with DELIMITER &lsquo;|&rsquo;;
-copy partsupp from &lsquo;/home/asky/tpch-kit/dbgen/partsupp.tbl&rsquo; with DELIMITER &lsquo;|&rsquo;;
-copy region from &lsquo;/home/asky/tpch-kit/dbgen/region.tbl&rsquo; with DELIMITER &lsquo;|&rsquo;;
-copy supplier from &lsquo;/home/asky/tpch-kit/dbgen/supplier.tbl&rsquo; with DELIMITER &lsquo;|&rsquo;;</p><p>SELECT * FROM CUSTOMER EXCEPT SELECT * FROM customer_old;
+alter table region rename to region_old;<br>alter table supplier rename to supplier_old;</p><p>COPY part FROM &lsquo;/tmp/dss-data/part.csv&rsquo; WITH csv DELIMITER &lsquo;|&rsquo;;</p><p>COPY customer TO &lsquo;/path/to/output/file.csv&rsquo; WITH CSV DELIMITER &lsquo;|&rsquo;;
+COPY table_name TO &lsquo;/path/to/output/file.csv&rsquo; WITH CSV DELIMITER &lsquo;|&rsquo;;
+COPY table_name TO &lsquo;/path/to/output/file.csv&rsquo; WITH CSV DELIMITER &lsquo;|&rsquo;;
+COPY table_name TO &lsquo;/path/to/output/file.csv&rsquo; WITH CSV DELIMITER &lsquo;|&rsquo;;
+COPY table_name TO &lsquo;/path/to/output/file.csv&rsquo; WITH CSV DELIMITER &lsquo;|&rsquo;;
+COPY table_name TO &lsquo;/path/to/output/file.csv&rsquo; WITH CSV DELIMITER &lsquo;|&rsquo;;</p><p>copy customer to &lsquo;/home/asky/tpch_data/customer.csv&rsquo; with DELIMITER &lsquo;|&rsquo;;
+copy lineitem to &lsquo;/home/asky/tpch_data/lineitem.csv&rsquo; with DELIMITER &lsquo;|&rsquo;;
+copy nation to &lsquo;/home/asky/tpch_data/nation.csv&rsquo; with DELIMITER &lsquo;|&rsquo;;
+copy orders to &lsquo;/home/asky/tpch_data/orders.csv&rsquo; with DELIMITER &lsquo;|&rsquo;;
+copy part to &lsquo;/home/asky/tpch_data/part.csv&rsquo; with DELIMITER &lsquo;|&rsquo;;
+copy partsupp to &lsquo;/home/asky/tpch_data/partsupp.csv&rsquo; with DELIMITER &lsquo;|&rsquo;;
+copy region to &lsquo;/home/asky/tpch_data/region.csv&rsquo; with DELIMITER &lsquo;|&rsquo;;
+copy supplier to &lsquo;/home/asky/tpch_data/supplier.csv&rsquo; with DELIMITER &lsquo;|&rsquo;;</p><p>copy lineitem from &lsquo;/workspaces/AntDB/tpch_data/lineitem.csv&rsquo; with csv DELIMITER &lsquo;|&rsquo;;
+copy customer from &lsquo;/workspaces/AntDB/tpch_data/customer.csv&rsquo; with csv DELIMITER &lsquo;|&rsquo;;
+copy nation from &lsquo;/workspaces/AntDB/tpch_data/nation.csv&rsquo; with csv DELIMITER &lsquo;|&rsquo;;
+copy orders from &lsquo;/workspaces/AntDB/tpch_data/orders.csv&rsquo; with csv DELIMITER &lsquo;|&rsquo;;
+copy part from &lsquo;/workspaces/AntDB/tpch_data/part.csv&rsquo; with csv DELIMITER &lsquo;|&rsquo;;
+copy partsupp from &lsquo;/workspaces/AntDB/tpch_data/partsupp.csv&rsquo; with csv DELIMITER &lsquo;|&rsquo;;
+copy region from &lsquo;/workspaces/AntDB/tpch_data/region.csv&rsquo; with csv DELIMITER &lsquo;|&rsquo;;
+copy supplier from &lsquo;/workspaces/AntDB/tpch_data/supplier.csv&rsquo; with csv DELIMITER &lsquo;|&rsquo;;</p><p>SELECT * FROM CUSTOMER EXCEPT SELECT * FROM customer_old;
 SELECT * FROM lineitem EXCEPT SELECT * FROM lineitem_old;
 SELECT * FROM nation EXCEPT SELECT * FROM nation_old;
 SELECT * FROM orders EXCEPT SELECT * FROM orders_old;
 SELECT * FROM part EXCEPT SELECT * FROM part_old;
 SELECT * FROM partsupp EXCEPT SELECT * FROM partsupp_old;
 SELECT * FROM region EXCEPT SELECT * FROM region_old;
-SELECT * FROM supplier EXCEPT SELECT * FROM supplier_old;</p><pre><code>/*
+SELECT * FROM supplier EXCEPT SELECT * FROM supplier_old;</p><p>drop table customer;
+drop table lineitem;
+drop table nation;
+drop table orders;
+drop table part;
+drop table partsupp;
+drop table region;
+drop table supplier;</p><p>character varying 查询有问题 copy</p><pre><code>/*
 
 
 regclassin
@@ -66,7 +85,9 @@ date    date_in
 
 DirectFunctionCall1(date_in, CStringGetDatum())
 DirectFunctionCall1(date_in, CStringGetDatum())
-*/</code></pre></div><div class=pagination><div class=pagination__title><span class=pagination__title-h>Read other posts</span><hr></div><div class=pagination__buttons><span class="button next"><a href=https://askyx.github.io/posts/hashjoin/><span class=button__text>Postgres Hash Join</span>
+*/</code></pre></div><div class=pagination><div class=pagination__title><span class=pagination__title-h>Read other posts</span><hr></div><div class=pagination__buttons><span class="button previous"><a href=https://askyx.github.io/posts/orca/><span class=button__icon>←</span>
+<span class=button__text>orca 简记</span>
+</a></span><span class="button next"><a href=https://askyx.github.io/posts/hashjoin/><span class=button__text>Postgres Hash Join</span>
 <span class=button__icon>→</span></a></span></div></div></div></div><footer class=footer><div class=footer__inner><a href=https://askyx.github.io/ class=logo style=text-decoration:none><span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg></span><span class=logo__text>Asky</span>
 <span class=logo__cursor></span></a><div class=copyright><span>© 2024 Powered by
 <a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>

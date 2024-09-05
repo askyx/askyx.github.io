@@ -112,7 +112,8 @@ yum install -y unixODBC unixODBC-devel unzip wget xerces-c-devel xinetd zeromq z
 yum install -y gdb sudo net-tools vim perl-DBD-SQLite perl-Math-Calc-Units perl-Config-Tiny perl-Parse-RecDescent
 
 
-
+sudo apt-get install -y locales
+sudo locale-gen
 
 systemctl
 

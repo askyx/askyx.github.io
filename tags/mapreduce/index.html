@@ -19,7 +19,7 @@ map reduce实现为简单的kv输出，其中map接受源数据，生成kv的中
 平均的划分任务文件，尽量任务均衡 流式计算，在中间结果产生的时候，直接保存中间文件到reduce节点，避免最后集中处理中间结果时候的网络带宽消耗 本地计算mr，有的mr任务没必要在不同节点上执行，直接划分到一个节点或把的某些任务划分到一个节点上，实现本地计算。避免网络IO 提前进行reduce操作，可以使用reduce任务提前处理中间结果，减少中间结果的大小 记录计算节点的状态，多次执行任务的时候，可以记录某节点的处理速度，在下一个mr任务划分的时候，按照此信息划分任务 https://www.zhihu.com/question/303101438
 map和reduce之间是完全串行的，如果有多个MR任务嵌套的话，由于每个mr必须实现map和reduce，会导致链路过长，实现和调试困难 性能无法达到要求 6.824 LAB # 先掌握go，重点为go的协程，管道，以及channel 代码框架已经给出来了，需要自己实现分布式的worker和master 可以先实现简单的无状态的mr，可以通过test-mr.sh中的前面的测试 worker # map和reduce的执行节点，需要从master获得任务，按照任务的类型，执行不同的job
 func Worker(mapf func(string, string) []KeyValue, reducef func(string, []string) string) { for { job := getJob() if job.</div><div><a class="read-more button" href=/posts/mapreduce/>Read more →</a></div></div><div class=pagination><div class=pagination__buttons></div></div></div></div><footer class=footer><div class=footer__inner><a href=https://askyx.github.io/ class=logo style=text-decoration:none><span class=logo__mark><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44"><path fill="none" d="M15 8l14.729 14.382L15 35.367"/></svg></span><span class=logo__text>Asky</span>
-<span class=logo__cursor></span></a><div class=copyright><span>© 2024 Powered by
+<span class=logo__cursor></span></a><div class=copyright><span>© 2025 Powered by
 <a href=https://gohugo.io target=_blank rel=noopener>Hugo</a></span>
 <span>Theme created by
 <a href=https://twitter.com/panr target=_blank rel=noopener>panr</a></span></div></div></footer><script src=https://askyx.github.io/assets/main.js></script><script src=https://askyx.github.io/assets/prism.js></script></div></body></html>

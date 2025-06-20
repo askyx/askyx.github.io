@@ -167,6 +167,29 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="scan"><a class="header" href="#scan">scan</a></h1>
+<p>duckdb 支持多种scan 类型，</p>
+<pre><code class="language-c++">	// -----------------------------
+	// Scans
+	// -----------------------------
+	TABLE_SCAN,
+	DUMMY_SCAN,
+	COLUMN_DATA_SCAN,
+	CHUNK_SCAN,
+	RECURSIVE_CTE_SCAN,
+	RECURSIVE_RECURRING_CTE_SCAN,
+	CTE_SCAN,
+	DELIM_SCAN,
+	EXPRESSION_SCAN,
+	POSITIONAL_SCAN,
+
+execution/operator/scan/physical_column_data_scan.hpp
+execution/operator/scan/physical_dummy_scan.hpp
+execution/operator/scan/physical_empty_result.hpp
+execution/operator/scan/physical_expression_scan.hpp
+execution/operator/scan/physical_positional_scan.hpp
+execution/operator/scan/physical_table_scan.hpp
+
+</code></pre>
 
                     </main>
 

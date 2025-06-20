@@ -174,6 +174,7 @@
 <div style="break-before: page; page-break-before: always;"></div><h1 id="install-duckdb-from-source"><a class="header" href="#install-duckdb-from-source">install duckdb from source</a></h1>
 <p>duckdb 使用 CMake 构建，也提供一个 make 文件， 下载之后直接 make 即可</p>
 <p>git@github.com:duckdb/duckdb.git</p>
+<p>make debug BUILD_TPCH=1 GEN=ninja</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="架构"><a class="header" href="#架构">架构</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="调试技巧"><a class="header" href="#调试技巧">调试技巧</a></h1>
 <ol>
@@ -194,6 +195,10 @@
 </ul>
 </li>
 </ol>
+<pre><code>set print static-members off
+set scheduler-locking step
+
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="parser"><a class="header" href="#parser">parser</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="标准sql支持"><a class="header" href="#标准sql支持">标准SQL支持</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="扩展sql支持"><a class="header" href="#扩展sql支持">扩展SQL支持</a></h1>
@@ -208,11 +213,47 @@
 <div style="break-before: page; page-break-before: always;"></div><h1 id="统计信息"><a class="header" href="#统计信息">统计信息</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="查询计划生成"><a class="header" href="#查询计划生成">查询计划生成</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="executor"><a class="header" href="#executor">executor</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="概述-1"><a class="header" href="#概述-1">概述</a></h1>
+<p>详情查看 DuckDB Internals (2023)<sup class="footnote-reference" id="fr-1-1"><a href="#footnote-1">1</a></sup></p>
+<ol>
+<li>执行计划怎么转换为 pipeline 的</li>
+<li>pipeline 的具体实现</li>
+<li>如何执行 pipeline</li>
+<li>如何调度，如何设置 dop</li>
+<li>operator 的具体表现</li>
+<li>表达式怎么执行</li>
+</ol>
+<hr>
+<ol class="footnote-definition"><li id="footnote-1">
+<p><a href="https://tinfoil-knight.github.io/notes/duckdb-internals-2023">DuckDB Internals (2023)</a> <a href="#fr-1-1">↩</a></p>
+</li>
+</ol><div style="break-before: page; page-break-before: always;"></div><h1 id="概述-1"><a class="header" href="#概述-1">概述</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="pipeline"><a class="header" href="#pipeline">pipeline</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="vectorized-execution"><a class="header" href="#vectorized-execution">vectorized execution</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="查询执行"><a class="header" href="#查询执行">查询执行</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="scan"><a class="header" href="#scan">scan</a></h1>
+<p>duckdb 支持多种scan 类型，</p>
+<pre><code class="language-c++">	// -----------------------------
+	// Scans
+	// -----------------------------
+	TABLE_SCAN,
+	DUMMY_SCAN,
+	COLUMN_DATA_SCAN,
+	CHUNK_SCAN,
+	RECURSIVE_CTE_SCAN,
+	RECURSIVE_RECURRING_CTE_SCAN,
+	CTE_SCAN,
+	DELIM_SCAN,
+	EXPRESSION_SCAN,
+	POSITIONAL_SCAN,
+
+execution/operator/scan/physical_column_data_scan.hpp
+execution/operator/scan/physical_dummy_scan.hpp
+execution/operator/scan/physical_empty_result.hpp
+execution/operator/scan/physical_expression_scan.hpp
+execution/operator/scan/physical_positional_scan.hpp
+execution/operator/scan/physical_table_scan.hpp
+
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="filter"><a class="header" href="#filter">filter</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="projection"><a class="header" href="#projection">projection</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="aggregate"><a class="header" href="#aggregate">aggregate</a></h1>

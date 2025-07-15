@@ -1,0 +1,968 @@
+<!doctype html><html lang=zh-Hans x-data :class=$store.darkMode.class() :data-theme=$store.darkMode.theme()><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>| Askyx's Blog</title>
+<link rel=icon href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%2210 0 100 100%22><text y=%22.90em%22 font-size=%2290%22>🌱</text></svg>"></link>
+<link rel=canonical href=https://askyx.github.io/posts/others/log/><meta name=author content="Askyx"><meta name=description content="语句 prepare s3(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc; QUERY PLAN --------------------------------------------------------------------------------------------------- Cluster Gather (cost=291.52..430.37 rows=459 width=4) Remote node: 16386 -&amp;gt; Sort (cost=291.52..292.67 rows=459 width=4) Output: no_o_id Sort Key: bmsql_new_order.no_o_id -&amp;gt; Bitmap Heap Scan on public.bmsql_new_order (cost=13.46..271.23 rows=459 width=4) Output: no_o_id Recheck Cond: ((bmsql_new_order.no_w_id = 1) AND (bmsql_new_order.no_d_id = 1)) -&amp;gt; Bitmap Index Scan on bmsql_new_order_pkey (cost=0.00..13.34"><meta name=keywords content><meta name=generator content="Hugo 0.121.0"><meta property="og:title" content><meta property="og:description" content="语句 prepare s3(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc; QUERY PLAN --------------------------------------------------------------------------------------------------- Cluster Gather (cost=291.52..430.37 rows=459 width=4) Remote node: 16386 -> Sort (cost=291.52..292.67 rows=459 width=4) Output: no_o_id Sort Key: bmsql_new_order.no_o_id -> Bitmap Heap Scan on public.bmsql_new_order (cost=13.46..271.23 rows=459 width=4) Output: no_o_id Recheck Cond: ((bmsql_new_order.no_w_id = 1) AND (bmsql_new_order.no_d_id = 1)) -> Bitmap Index Scan on bmsql_new_order_pkey (cost=0.00..13.34"><meta property="og:type" content="article"><meta property="og:url" content="https://askyx.github.io/posts/others/log/"><meta property="og:image" content="https://askyx.github.io/img/global-background.jpg"><meta property="article:section" content="posts"><meta property="article:modified_time" content="2025-07-15T23:03:54+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://askyx.github.io/img/global-background.jpg"><meta name=twitter:title content><meta name=twitter:description content="语句 prepare s3(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc; QUERY PLAN --------------------------------------------------------------------------------------------------- Cluster Gather (cost=291.52..430.37 rows=459 width=4) Remote node: 16386 -> Sort (cost=291.52..292.67 rows=459 width=4) Output: no_o_id Sort Key: bmsql_new_order.no_o_id -> Bitmap Heap Scan on public.bmsql_new_order (cost=13.46..271.23 rows=459 width=4) Output: no_o_id Recheck Cond: ((bmsql_new_order.no_w_id = 1) AND (bmsql_new_order.no_d_id = 1)) -> Bitmap Index Scan on bmsql_new_order_pkey (cost=0.00..13.34"><link rel=stylesheet href=/css/output.min.css><style>pre{padding:1em;overflow:auto}</style><link rel=stylesheet href=/css/custom.css><script defer src=https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js integrity="sha256-PtHu0lJIiSHfZeNj1nFd6wTX+Squ255SGZ/fc8seCtM=" crossorigin=anonymous></script></head><body x-data="{
+    flip: false,
+  }"><div id=dream-global-bg></div><nav x-data="{ isSticky: false }" x-init="window.addEventListener('scroll', () => { isSticky = window.scrollY > 30 })" class="sticky top-0 z-30 mt-4 lg:mt-8 py-4" :class="{ 'bg-base-100 shadow-lg dark:border-b dark:border-base-content/30': isSticky }"><div class="container flex justify-between px-4"><section class="flex items-center gap-4"><div class="avatar cursor-pointer hover:avatar-online" @click="flip = !flip" title="Flip it!"><div class="h-10 rounded-full"><img src=/img/personal/avatar.jpg alt="Askyx's Blog"></div></div><div><a href=https://askyx.github.io/ class="text-lg font-semibold cursor-pointer">Askyx's Blog</a><div class="text-base-content/60 text-sm">life is short, use Python</div></div></section><div class="dropdown dropdown-end sm:hidden"><div tabindex=0 role=button class="btn btn-ghost btn-square" aria-label="Select an option"><ion-icon name=menu class=text-2xl></ion-icon></div><ul tabindex=0 class="dropdown-content menu w-36 bg-base-100 rounded-box z-1 shadow-md"><li><div role=link tabindex=0 class="inline-flex items-center p-2 cursor-pointer" @click="flip = !flip" title=About><ion-icon name=information-circle></ion-icon>About</div></li><li><a class="group inline-flex items-center p-2 cursor-pointer" href=/search title=Search><ion-icon name=search></ion-icon>Search</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=https://github.com/askyx target=_blank title=GitHub><ion-icon name=logo-github></ion-icon>GitHub</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/posts title=Archives><ion-icon name=archive></ion-icon>Archives</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/tags title="All Tags"><ion-icon name=pricetags></ion-icon>All Tags</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/index.xml title=RSS><ion-icon name=logo-rss></ion-icon>RSS</a></li></ul></div><section class="hidden sm:flex sm:items-center sm:gap-2 md:gap-4"><div role=link tabindex=0 class="text-sm font-semibold cursor-pointer hover:underline" @click="flip = !flip" title=About>About</div><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href=/search title=Search><ion-icon class=group-hover:text-primary-content name=search></ion-icon></a><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href=https://github.com/askyx target=_blank title=GitHub><ion-icon class=group-hover:text-primary-content name=logo-github></ion-icon></a><div class="dropdown dropdown-end dropdown-hover"><div tabindex=0 role=button class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" aria-label="Select an option"><ion-icon class="group-hover:text-primary-content text-xl" name=menu></ion-icon></div><ul tabindex=0 class="dropdown-content menu w-36 bg-base-100 rounded-box z-1 shadow-xl"><li><a class="inline-flex items-center p-2 cursor-pointer" href=/posts title=Archives><ion-icon name=archive></ion-icon>Archives</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/tags title="All Tags"><ion-icon name=pricetags></ion-icon>All Tags</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/index.xml title=RSS><ion-icon name=logo-rss></ion-icon>RSS</a></li></ul></div></section></div></nav><div class=flip-container :class="{ 'flip-it': flip }"><div class=flipper><div class=front><div class=container><div class="lg:grid lg:grid-cols-4 gap-4 mt-4 px-4"><div class="hidden lg:block"></div><div class=lg:col-span-2><article class="mx-auto prose prose-quoteless dark:prose-invert" id=dream-single-post-main itemscope itemtype=http://schema.org/Article><meta itemprop=name content><meta itemprop=description content="语句 prepare s3(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc; QUERY PLAN --------------------------------------------------------------------------------------------------- Cluster Gather (cost=291.52..430.37 rows=459 width=4) Remote node: 16386 -> Sort (cost=291.52..292.67 rows=459 width=4) Output: no_o_id Sort Key: bmsql_new_order.no_o_id -> Bitmap Heap Scan on public.bmsql_new_order (cost=13.46..271.23 rows=459 width=4) Output: no_o_id Recheck Cond: ((bmsql_new_order.no_w_id = 1) AND (bmsql_new_order.no_d_id = 1)) -> Bitmap Index Scan on bmsql_new_order_pkey (cost=0.00..13.34"><meta itemprop=dateModified content="2025-07-15T23:03:54+08:00"><meta itemprop=wordCount content="7761"><meta itemprop=image content="https://askyx.github.io/img/global-background.jpg"><meta itemprop=keywords content><header><h1 itemprop=headline></h1><p class=text-sm><span data-format=luxon>0001-01-01T00:00:00Z</span>
+| <span>16 minute read</span>
+| <span>Updated at
+<span data-format=luxon>2025-07-15T23:03:54+08:00</span></span></p><div class="flex justify-between"><div class="flex items-center"><span>@</span>
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=name>Askyx</span></span></div><div class="flex items-center gap-2"><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href="https://x.com/intent/post?text=&amp;url=https://askyx.github.io/posts/others/log/" target=_blank rel="noopener noreferrer" title="Share on X"><ion-icon class=group-hover:text-primary-content name=logo-x></ion-icon></a><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href="https://facebook.com/sharer/sharer.php?u=https://askyx.github.io/posts/others/log/" target=_blank rel="noopener noreferrer" title="Share on Facebook"><ion-icon class=group-hover:text-primary-content name=logo-facebook></ion-icon></a><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href="https://wa.me/?text=%20https://askyx.github.io/posts/others/log/" target=_blank rel="noopener noreferrer" title="Share on WhatsApp"><ion-icon class=group-hover:text-primary-content name=logo-whatsapp></ion-icon></a></div></div></header><section id=dream-single-post-content itemprop=articleBody><p>语句</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span><span style=color:#66d9ef>prepare</span> s3(int, int) <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>select</span> no_o_id <span style=color:#66d9ef>from</span> bmsql_new_order <span style=color:#66d9ef>where</span> no_w_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>1</span> <span style=color:#66d9ef>and</span> no_d_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>2</span> <span style=color:#66d9ef>order</span> <span style=color:#66d9ef>by</span> no_o_id <span style=color:#66d9ef>asc</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                                            QUERY PLAN                                             
+</span></span><span style=display:flex><span><span style=color:#75715e>---------------------------------------------------------------------------------------------------
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span> <span style=color:#66d9ef>Cluster</span> Gather  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>291</span>.<span style=color:#ae81ff>52</span>..<span style=color:#ae81ff>430</span>.<span style=color:#ae81ff>37</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>459</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>   Remote node: <span style=color:#ae81ff>16386</span>
+</span></span><span style=display:flex><span>   <span style=color:#f92672>-&gt;</span>  Sort  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>291</span>.<span style=color:#ae81ff>52</span>..<span style=color:#ae81ff>292</span>.<span style=color:#ae81ff>67</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>459</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>         <span style=color:#66d9ef>Output</span>: no_o_id
+</span></span><span style=display:flex><span>         Sort <span style=color:#66d9ef>Key</span>: bmsql_new_order.no_o_id
+</span></span><span style=display:flex><span>         <span style=color:#f92672>-&gt;</span>  Bitmap Heap Scan <span style=color:#66d9ef>on</span> <span style=color:#66d9ef>public</span>.bmsql_new_order  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>13</span>.<span style=color:#ae81ff>46</span>..<span style=color:#ae81ff>271</span>.<span style=color:#ae81ff>23</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>459</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>               <span style=color:#66d9ef>Output</span>: no_o_id
+</span></span><span style=display:flex><span>               <span style=color:#66d9ef>Recheck</span> Cond: ((bmsql_new_order.no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>) <span style=color:#66d9ef>AND</span> (bmsql_new_order.no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>))
+</span></span><span style=display:flex><span>               <span style=color:#f92672>-&gt;</span>  Bitmap <span style=color:#66d9ef>Index</span> Scan <span style=color:#66d9ef>on</span> bmsql_new_order_pkey  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>13</span>.<span style=color:#ae81ff>34</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>918</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>                     <span style=color:#66d9ef>Index</span> Cond: ((bmsql_new_order.no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>) <span style=color:#66d9ef>AND</span> (bmsql_new_order.no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>))
+</span></span><span style=display:flex><span>                     Remote node: <span style=color:#ae81ff>16386</span>
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>11</span> <span style=color:#66d9ef>rows</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                                                     QUERY PLAN                                                     
+</span></span><span style=display:flex><span><span style=color:#75715e>--------------------------------------------------------------------------------------------------------------------
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span> <span style=color:#66d9ef>Data</span> Node Scan <span style=color:#66d9ef>on</span> <span style=color:#e6db74>&#34;__REMOTE_SORT_QUERY__&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>   <span style=color:#66d9ef>Output</span>: bmsql_new_order.no_o_id
+</span></span><span style=display:flex><span>   Node<span style=color:#f92672>/</span>s: data_1
+</span></span><span style=display:flex><span>   Remote query: <span style=color:#66d9ef>SELECT</span> no_o_id <span style=color:#66d9ef>FROM</span> <span style=color:#66d9ef>ONLY</span> <span style=color:#66d9ef>public</span>.bmsql_new_order <span style=color:#66d9ef>WHERE</span> ((no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>) <span style=color:#66d9ef>AND</span> (no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>)) <span style=color:#66d9ef>ORDER</span> <span style=color:#66d9ef>BY</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>4</span> <span style=color:#66d9ef>rows</span>)
+</span></span></code></pre></div><p>最直接原因是优化器代码变动，antdb使用的内核代码比xc的新，antdb在添加remote query 功能的时候由于代码变动，有部分函数由于代码变动，可能没有覆盖到，
+以上面的例子为例
+在pgxc中，grouping_planner中对sort的处理逻辑如下，直接使用创建sort的path之后使用create_remotesort_plan，在处理后的执行计划中有一个<code>__REMOTE_SORT_QUERY__</code>的rte，这里抓取了pgxc和antdb关键节点的执行计划，可以直接对比<code>grouping_planner</code>前后的执行计划的变化</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span>	<span style=color:#66d9ef>if</span> (parse<span style=color:#f92672>-&gt;</span>sortClause)
+</span></span><span style=display:flex><span>	{
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span>pathkeys_contained_in(root<span style=color:#f92672>-&gt;</span>sort_pathkeys, current_pathkeys))
+</span></span><span style=display:flex><span>		{
+</span></span><span style=display:flex><span>			result_plan <span style=color:#f92672>=</span> (Plan <span style=color:#f92672>*</span>) make_sort_from_pathkeys(root,
+</span></span><span style=display:flex><span>														   result_plan,
+</span></span><span style=display:flex><span>														 root<span style=color:#f92672>-&gt;</span>sort_pathkeys,
+</span></span><span style=display:flex><span>														   limit_tuples);
+</span></span><span style=display:flex><span><span style=color:#75715e>#ifdef PGXC
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>			<span style=color:#66d9ef>if</span> (IS_PGXC_COORDINATOR <span style=color:#f92672>&amp;&amp;</span> <span style=color:#f92672>!</span>IsConnFromCoord())
+</span></span><span style=display:flex><span>				result_plan <span style=color:#f92672>=</span> (Plan <span style=color:#f92672>*</span>) create_remotesort_plan(root,
+</span></span><span style=display:flex><span>														result_plan);
+</span></span><span style=display:flex><span><span style=color:#75715e>#endif </span><span style=color:#75715e>/* PGXC */</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>			current_pathkeys <span style=color:#f92672>=</span> root<span style=color:#f92672>-&gt;</span>sort_pathkeys;
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>	}
+</span></span></code></pre></div><p>postgres 主线在 3fc6e2d7f5b652b417fa6937c34de2438d60fa9f 这个提交中修改了sort的部分逻辑，修改有上万行代码</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>wen@wen:~/postgres/postgres$ git show 3fc6e2d7f5b652b417fa6937c34de2438d60fa9f | wc -l
+</span></span><span style=display:flex><span><span style=color:#ae81ff>11932</span>
+</span></span></code></pre></div><p>antdb中对sort的修改可能没有覆盖到所有的sort功能，毕竟这里的逻辑和xc的差别太大了，也有可能是之前在实现antdb中的相关方法的时候有什么特殊的考虑</p><p>简单SQL没有执行RemoteQuery
+prepare s3(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc;
+explain verbose execute s3(1, 1);</p><p>prepare s7(int, int, char(32)) as select c_id from bmsql_customer where c_w_id = $1 and c_d_id = $2 and c_last = $3 order by c_first;
+explain verbose execute s7(1, 1, &lsquo;OUGHTBARPRES’);</p><p>prepare s19(int, int, int) as select ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_delivery_d from bmsql_order_line where ol_w_id = $1 and ol_d_id = $2 and ol_o_id = $3 order by ol_w_id, ol_d_id, ol_o_id, ol_number;
+explain verbose execute s19(1, 1, 1);</p><p>对比正常的简单SQL执行RemoteQuery ：
+prepare s1(int, int) as select d_tax, d_next_o_id from bmsql_district where d_w_id = $1 and d_id = $2 for update;
+explain verbose execute s1(1, 1);</p><ul><li><p>pgxc_FQS_planner
+remote query的优化逻辑，判断语句是否可以直接发送到datanode执行，而coordinate只负责代理</p><ol><li>select * from a; a的数据可以从一个节点获取到，即使表是分布式的</li><li>select count(*) from a; 需要统计所有几点的数据 &mdash;-原注释是这样的，但是我觉得确定数据分布情况然后可以再做决定</li><li>复制表</li></ol></li><li><p>pgxc_is_query_shippable
+收集信息，判断语句能否发送到指定节点执行</p></li><li><p>pgxc_shippability_walker
+遍历语法树，收集每个节点的shippable信息到Shippability_context中，主要为了判断子查询是否可以shippable，即使院语句无法ship，但是还是尽量尝试子语句
+Shippability_context 中sc_exec_nodes代表语句应该执行的节点，</p></li></ul><p>pgxc_set_exprtype_shippability
+if (RELKIND_SEQUENCE || RELKIND_FOREIGN_TABLE || RELKIND_VIEW)
+SS_UNSHIPPABLE_TYPE</p><p>case T_Const pgxc_set_exprtype_shippability<br>case T_CaseTestExpr pgxc_set_exprtype_shippability
+case T_Var // 如果子语句引用父语句，则not shippable， sc_max_varlevelsup代表 Shippability_context的层级</p><p>pgxc_is_func_shippable</p><p>query_tree_walker</p><p>expression_tree_walker</p><h1 id=上面遍历语法树找到不允许ship的节点且记录原因>上面遍历语法树找到不允许ship的节点且记录原因</h1><p>pgxc_FQS_find_datanodes
+更具语法树找到执行节点</p><p>pgxc_FQS_find_datanodes_recurse
+递归查找join tree查找可以ship的子查询</p><p>pgxc_FQS_datanodes_for_rtr
+如果只有一个表，上面递归到这里，这里操作的是一个ref</p><pre><code>pgxc_FQS_get_relation_nodes
+
+  GetRelationLocInfo
+    获取表的信息  
+   {relid = 16412, locatorType = 72 'H', keys = 0x55ead304d888, nodeids = 0x55ead304d8d8, values = 0x0, masternodeids = 0x55ead304d8d8, slavenodeids = 0x55ead304d928}
+
+  relation_remote_by_constraints_base
+    获得数据分布信息？
+
+  predicate_refuted_by
+    检查某表达式是否满足给定的约束
+
+eval_const_expressions
+常量折叠
+</code></pre><p>mutator_equal_expr
+构造表达式，column = val 需要使用hash 判断是否在 某节点上
+let column=val to (like) hash(column)%remote_count = hash(value)%remote_count to hash(column)%remote_count = new_value
+column [not] in (v1,v2) to hash(column)%remote [not] in (new_v1,new_v2)</p><p>hash(x) % node =</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span>node_count <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span>                              Table <span style=color:#e6db74>&#34;public.bmsql_new_order&#34;</span>
+</span></span><span style=display:flex><span> Column  <span style=color:#f92672>|</span>  Type   <span style=color:#f92672>|</span> Nullable <span style=color:#f92672>|</span> Storage <span style=color:#f92672>|</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>---------+---------+----------+---------+</span>
+</span></span><span style=display:flex><span> no_w_id <span style=color:#f92672>|</span> integer <span style=color:#f92672>|</span> not null <span style=color:#f92672>|</span> plain   <span style=color:#f92672>|</span> 
+</span></span><span style=display:flex><span> no_d_id <span style=color:#f92672>|</span> integer <span style=color:#f92672>|</span> not null <span style=color:#f92672>|</span> plain   <span style=color:#f92672>|</span> 
+</span></span><span style=display:flex><span> no_o_id <span style=color:#f92672>|</span> integer <span style=color:#f92672>|</span> not null <span style=color:#f92672>|</span> plain   <span style=color:#f92672>|</span> 
+</span></span><span style=display:flex><span>Indexes:
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;bmsql_new_order_pkey&#34;</span> PRIMARY KEY, btree (no_w_id, no_d_id, no_o_id)
+</span></span><span style=display:flex><span>Foreign<span style=color:#f92672>-</span>key constraints:
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;no_order_fkey&#34;</span> FOREIGN KEY (no_w_id, no_d_id, no_o_id) REFERENCES bmsql_oorder(o_w_id, o_d_id, o_id)
+</span></span><span style=display:flex><span>DISTRIBUTE BY HASH(no_w_id) TO NODE(dn1, dn2)
+</span></span><span style=display:flex><span>Access method: heap
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>数据分布</span>
+</span></span><span style=display:flex><span>benchmarksql<span style=color:#f92672>=</span><span style=color:#960050;background-color:#1e0010>#</span> execute direct on (dn1) <span style=color:#960050;background-color:#1e0010>&#39;</span>select distinct no_w_id from <span style=color:#66d9ef>public</span>.bmsql_new_order<span style=color:#960050;background-color:#1e0010>&#39;</span>;
+</span></span><span style=display:flex><span> no_w_id 
+</span></span><span style=display:flex><span><span style=color:#f92672>---------</span>
+</span></span><span style=display:flex><span>       <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>       <span style=color:#ae81ff>5</span>
+</span></span><span style=display:flex><span>       <span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>3</span> rows)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>benchmarksql<span style=color:#f92672>=</span><span style=color:#960050;background-color:#1e0010>#</span> execute direct on (dn2) <span style=color:#960050;background-color:#1e0010>&#39;</span>select distinct no_w_id from <span style=color:#66d9ef>public</span>.bmsql_new_order<span style=color:#960050;background-color:#1e0010>&#39;</span>;
+</span></span><span style=display:flex><span> no_w_id 
+</span></span><span style=display:flex><span><span style=color:#f92672>---------</span>
+</span></span><span style=display:flex><span>       <span style=color:#ae81ff>4</span>
+</span></span><span style=display:flex><span>       <span style=color:#ae81ff>3</span>
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>2</span> rows)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>语句</span>select no_o_id from bmsql_new_order where no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> and no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span> order by no_o_id asc;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>========================================</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>(no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> and no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>COALESCE(hash_combin_mod(<span style=color:#ae81ff>2</span>, hash(no_w_id)), <span style=color:#ae81ff>0</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span> and (no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>hash(no_w_id) <span style=color:#f92672>%</span> node_count <span style=color:#f92672>=</span> hash(<span style=color:#ae81ff>4</span>) <span style=color:#f92672>%</span> node_count
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>===============</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>(no_w_id, no_d_id, no_o_id) is not null 
+</span></span><span style=display:flex><span>XC_NODE_ID is not null
+</span></span><span style=display:flex><span>ABLE.XC_NODE_ID<span style=color:#f92672>=</span>id
+</span></span><span style=display:flex><span>COALESCE(hash_combin_mod(<span style=color:#ae81ff>2</span>, hash(no_w_id))<span style=color:#960050;background-color:#1e0010>，</span> <span style=color:#ae81ff>0</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>第一轮，检测条件</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span> <span style=color:#960050;background-color:#1e0010>限制条件为</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1.</span> <span style=color:#960050;background-color:#1e0010>主键不为</span>NULL<span style=color:#960050;background-color:#1e0010>，</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>2.</span> <span style=color:#960050;background-color:#1e0010>节点</span>XC_NODE_ID不为null
+</span></span><span style=display:flex><span><span style=color:#ae81ff>3.</span> XC_NODE_ID<span style=color:#f92672>=</span>loc_info.nodeid
+</span></span><span style=display:flex><span><span style=color:#ae81ff>4.</span> hash(no_w_id) <span style=color:#f92672>%</span> node_count <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span> <span style=color:#960050;background-color:#1e0010>输入表达式为</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1.</span> (no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> and no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span><span style=color:#ae81ff>2.</span> (hash(no_w_id) <span style=color:#f92672>%</span> node_count <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>) and no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span> (<span style=color:#960050;background-color:#1e0010>语句条件根据分布方式计算的</span>hash)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>由于</span>hash出来判断的节点不一致<span style=color:#960050;background-color:#1e0010>，所以无法通过判断</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>=============================================</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>(no_w_id, no_d_id, no_o_id) is not null 
+</span></span><span style=display:flex><span>XC_NODE_ID is not null
+</span></span><span style=display:flex><span>XC_NODE_ID<span style=color:#f92672>=</span>id
+</span></span><span style=display:flex><span>COALESCE(hash_combin_mod(<span style=color:#ae81ff>2</span>, hash(no_w_id))<span style=color:#960050;background-color:#1e0010>，</span> <span style=color:#ae81ff>0</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>(no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> and no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>COALESCE(hash_combin_mod(<span style=color:#ae81ff>2</span>, hash(no_w_id)), <span style=color:#ae81ff>0</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span> and (no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>第而轮，检测条件</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span> <span style=color:#960050;background-color:#1e0010>限制条件为</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1.</span> <span style=color:#960050;background-color:#1e0010>主键不为</span>NULL<span style=color:#960050;background-color:#1e0010>，</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>2.</span> <span style=color:#960050;background-color:#1e0010>节点</span>XC_NODE_ID不为null
+</span></span><span style=display:flex><span><span style=color:#ae81ff>3.</span> XC_NODE_ID<span style=color:#f92672>=</span>loc_info.nodeid
+</span></span><span style=display:flex><span><span style=color:#ae81ff>4.</span> hash(no_w_id) <span style=color:#f92672>%</span> node_count <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span> <span style=color:#960050;background-color:#1e0010>输入表达式为</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1.</span> (no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> and no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span><span style=color:#ae81ff>2.</span> (hash(no_w_id) <span style=color:#f92672>%</span> node_count <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>) and no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span> (<span style=color:#960050;background-color:#1e0010>语句条件根据分布方式计算的</span>hash)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>判定表达式是否可以通过约束的检查</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>判定通过</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// 递归地检查子句clause_list中的子句是否驳斥给定的predicate_list(也就是说，证明它为 false)。
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>/*
+</span></span></span><span style=display:flex><span><span style=color:#75715e>predicate_list
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_w_id is not null
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_d_id is not null
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_o_id is not null
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* XC_NODE_ID is not null
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* XC_NODE_ID = nodeid
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* hash(no_w_id) % node_count = 0
+</span></span></span><span style=display:flex><span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>clause_list
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_w_id = 4
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_d_id = 1
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* hash(no_w_id) % node_count = 1
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_d_id = 1
+</span></span></span><span style=display:flex><span><span style=color:#75715e>*/</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>/*
+</span></span></span><span style=display:flex><span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>predicate_list
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_w_id is not null
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_d_id is not null
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_o_id is not null
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* XC_NODE_ID is not null
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* XC_NODE_ID = nodeid
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* hash(no_w_id) % node_count = 0
+</span></span></span><span style=display:flex><span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>clause_list
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_w_id = $1
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_d_id = $2
+</span></span></span><span style=display:flex><span><span style=color:#75715e>*/</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>predicate_refuted_by(<span style=color:#f92672>*</span>predicate_list, <span style=color:#f92672>*</span>clause_list) {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  predicate_refuted_by_recurse() {
+</span></span><span style=display:flex><span>    pclass <span style=color:#f92672>=</span> predicate_classify(predicate, <span style=color:#f92672>&amp;</span>pred_info);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 拆解表达式，最终不能拆解的表达书为atom
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>switch</span> (predicate_classify(clause, <span style=color:#f92672>&amp;</span>clause_info)) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>case</span> CLASS_AND:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>switch</span> (pclass) {
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>case</span> CLASS_AND: 
+</span></span><span style=display:flex><span>            iterate_begin(pitem, predicate, pred_info) {
+</span></span><span style=display:flex><span>              <span style=color:#66d9ef>if</span> (predicate_refuted_by_recurse(clause, pitem, weak)) {
+</span></span><span style=display:flex><span>                result <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>              }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            iterate_begin(citem, clause, clause_info) {
+</span></span><span style=display:flex><span>              <span style=color:#66d9ef>if</span> (predicate_refuted_by_recurse(citem, predicate, weak)) {
+</span></span><span style=display:flex><span>                result <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>              }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>case</span> CLASS_OR:
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>case</span> CLASS_ATOM:
+</span></span><span style=display:flex><span>            not_arg <span style=color:#f92672>=</span> extract_not_arg(predicate);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> (not_arg <span style=color:#f92672>&amp;&amp;</span> predicate_implied_by_recurse(clause, not_arg, false))
+</span></span><span style=display:flex><span>              <span style=color:#66d9ef>return</span> true;
+</span></span><span style=display:flex><span>            iterate_begin(citem, clause, clause_info) {
+</span></span><span style=display:flex><span>              <span style=color:#66d9ef>if</span> (predicate_refuted_by_recurse(citem, predicate, weak)) {
+</span></span><span style=display:flex><span>                result <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>              }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>        .....
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>case</span> CLASS_ATOM: {
+</span></span><span style=display:flex><span>          .....
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>case</span> CLASS_ATOM:
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 使用此方法判断最终的atom表达式
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#66d9ef>return</span> predicate_refuted_by_simple_clause((Expr <span style=color:#f92672>*</span>) predicate, clause, weak) {
+</span></span><span style=display:flex><span>              <span style=color:#75715e>// 
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>              <span style=color:#66d9ef>if</span> (predicate <span style=color:#f92672>&amp;&amp;</span> IsA(predicate, NullTest) <span style=color:#f92672>&amp;&amp;</span> ((NullTest <span style=color:#f92672>*</span>) predicate)<span style=color:#f92672>-&gt;</span>nulltesttype <span style=color:#f92672>==</span> IS_NULL) {
+</span></span><span style=display:flex><span>                <span style=color:#75715e>// 判断null，argisrow直接false，一个是is not null， 拎一个是is null，则直接true
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>              }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>              <span style=color:#75715e>// 对简单表达式的判断，简单表达式这里指的是 op(left, right)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>              <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>operator_predicate_proof</span>(predicate, clause, true, weak) {
+</span></span><span style=display:flex><span>                <span style=color:#75715e>// no_w_id is not null 从这里跳出
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span>is_opclause(predicate))
+</span></span><span style=display:flex><span>                  <span style=color:#66d9ef>return</span> false;
+</span></span><span style=display:flex><span>                pred_opexpr <span style=color:#f92672>=</span> (OpExpr <span style=color:#f92672>*</span>) predicate;
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>if</span> (list_length(pred_opexpr<span style=color:#f92672>-&gt;</span>args) <span style=color:#f92672>!=</span> <span style=color:#ae81ff>2</span>)
+</span></span><span style=display:flex><span>                  <span style=color:#66d9ef>return</span> false;
+</span></span><span style=display:flex><span>                ....(<span style=color:#66d9ef>do</span> same as clause)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>if</span> (pred_opexpr<span style=color:#f92672>-&gt;</span>inputcollid <span style=color:#f92672>!=</span> clause_opexpr<span style=color:#f92672>-&gt;</span>inputcollid)
+</span></span><span style=display:flex><span>                  <span style=color:#66d9ef>return</span> false;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>if</span> (equal(pred_leftop, clause_leftop)) {
+</span></span><span style=display:flex><span>                  <span style=color:#66d9ef>if</span> (equal(pred_rightop, clause_rightop)) {
+</span></span><span style=display:flex><span>                    <span style=color:#66d9ef>return</span> operator_same_subexprs_proof(pred_op, clause_op, refute_it);
+</span></span><span style=display:flex><span>                  } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>                    <span style=color:#66d9ef>if</span> (pred_rightop <span style=color:#f92672>==</span> NULL <span style=color:#f92672>||</span> <span style=color:#f92672>!</span>IsA(pred_rightop, Const))
+</span></span><span style=display:flex><span>                      <span style=color:#66d9ef>return</span> false;
+</span></span><span style=display:flex><span>                    pred_const <span style=color:#f92672>=</span> (Const <span style=color:#f92672>*</span>) pred_rightop;
+</span></span><span style=display:flex><span>                    ....
+</span></span><span style=display:flex><span>                    <span style=color:#75715e>// 下面使用const_v构造一个 （l_const != r_cont）并计算，直接返回计算结果，下面的步骤类似
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    <span style=color:#75715e>//  使用
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    <span style=color:#75715e>//    hash(no_w_id) % node_count = 0
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    <span style=color:#75715e>//  和
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    <span style=color:#75715e>//    hash(no_w_id) % node_count = 1
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    <span style=color:#75715e>//   为例。最终执行到这里，const对比不一样，返回false
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                  }
+</span></span><span style=display:flex><span>                  
+</span></span><span style=display:flex><span>                } <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> (equal(pred_rightop, clause_rightop)) {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                } <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> (equal(pred_leftop, clause_rightop)) {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                } <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> (equal(pred_rightop, clause_leftop)) {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>                  <span style=color:#66d9ef>return</span> false;
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>              }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#75715e>/*
+</span></span></span><span style=display:flex><span><span style=color:#75715e>  约束使用分区方式和节点序号构造表达式，查询的where表达式需要判断节点，也需要构造类似的表达式
+</span></span></span><span style=display:flex><span><span style=color:#75715e>*/</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>make_new_qual_list() {
+</span></span><span style=display:flex><span>  <span style=color:#75715e>/*
+</span></span></span><span style=display:flex><span><span style=color:#75715e>  * let column=val to (like) hash(column)%remote_count = hash(value)%remote_count to hash(column)%remote_count = new_value
+</span></span></span><span style=display:flex><span><span style=color:#75715e>  *   column [not] in (v1,v2) to hash(column)%remote [not] in (new_v1,new_v2)
+</span></span></span><span style=display:flex><span><span style=color:#75715e>  */</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 表达式使用分区信息构造 新的clause，规则如上 
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  mutator_equal_expr() {
+</span></span><span style=display:flex><span>    get_var_equal_const(op<span style=color:#f92672>-&gt;</span>args, op<span style=color:#f92672>-&gt;</span>opno, context<span style=color:#f92672>-&gt;</span>relid, context<span style=color:#f92672>-&gt;</span>varattno, <span style=color:#f92672>&amp;</span>var) <span style=color:#f92672>==</span> null;
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>goto</span> next_mutator_equal_expr_;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  next_mutator_equal_expr_:
+</span></span><span style=display:flex><span>	  <span style=color:#66d9ef>return</span> expression_tree_mutator(node, mutator_equal_expr, context);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=动态语句优化执行逻辑>动态语句优化执行逻辑</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span>prepare <span style=color:#a6e22e>s35</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>int</span>) as select a.no_o_id from bmsql_new_order a join bmsql_new_order_bak1 b on  a.no_w_id  <span style=color:#f92672>=</span> b.no_w_id and  a.no_w_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>1</span> order by no_o_id asc;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>explain verbose execute <span style=color:#a6e22e>s35</span>(<span style=color:#ae81ff>4</span>,<span style=color:#ae81ff>1</span>); 
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>/*
+</span></span></span><span style=display:flex><span><span style=color:#75715e>SS_replace_correlation_vars 进行参数替换
+</span></span></span><span style=display:flex><span><span style=color:#75715e>*/</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span> Sort  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>3318690.29</span>.<span style=color:#ae81ff>.3368908.54</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>20087300</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>   Output: a.no_o_id
+</span></span><span style=display:flex><span>   Sort Key: a.no_o_id
+</span></span><span style=display:flex><span>   <span style=color:#f92672>-&gt;</span>  Nested Loop  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.332853.86</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>20087300</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>         Output: a.no_o_id
+</span></span><span style=display:flex><span>         <span style=color:#f92672>-&gt;</span>  Data Node Scan on bmsql_new_order <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY_&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.40877.74</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>4514</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
+</span></span><span style=display:flex><span>               Output: a.no_o_id, a.no_w_id
+</span></span><span style=display:flex><span>               Node<span style=color:#f92672>/</span>s: dn2
+</span></span><span style=display:flex><span>               Remote query: SELECT no_o_id, no_w_id FROM ONLY <span style=color:#66d9ef>public</span>.bmsql_new_order a WHERE (no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>         <span style=color:#f92672>-&gt;</span>  Materialize  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.40895.99</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>4450</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>               Output: b.no_w_id
+</span></span><span style=display:flex><span>               <span style=color:#f92672>-&gt;</span>  Data Node Scan on bmsql_new_order_bak1 <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY__1&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.40873.74</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>4450</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>                     Output: b.no_w_id
+</span></span><span style=display:flex><span>                     Node<span style=color:#f92672>/</span>s: dn2
+</span></span><span style=display:flex><span>                     Remote query: SELECT no_w_id FROM ONLY <span style=color:#66d9ef>public</span>.bmsql_new_order_bak1 b WHERE (no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>15</span> rows)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                                                  QUERY PLAN                                                   
+</span></span><span style=display:flex><span><span style=color:#f92672>---------------------------------------------------------------------------------------------------------------</span>
+</span></span><span style=display:flex><span> Cluster Merge Gather  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2372049.11</span>.<span style=color:#ae81ff>.2397384.11</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>20268004</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>   Remote node: <span style=color:#ae81ff>16386</span>,<span style=color:#ae81ff>16387</span>
+</span></span><span style=display:flex><span>   Sort Key: a.no_o_id
+</span></span><span style=display:flex><span>   <span style=color:#f92672>-&gt;</span>  Sort  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1965689.03</span>.<span style=color:#ae81ff>.1991024.03</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>10134002</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>         Output: a.no_o_id
+</span></span><span style=display:flex><span>         Sort Key: a.no_o_id
+</span></span><span style=display:flex><span>         <span style=color:#f92672>-&gt;</span>  Nested Loop  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>73.82</span>.<span style=color:#ae81ff>.509359.05</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>10134002</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>               Output: a.no_o_id
+</span></span><span style=display:flex><span>               <span style=color:#f92672>-&gt;</span>  Cluster Reduce  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>73.82</span>.<span style=color:#ae81ff>.1839.97</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>9004</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
+</span></span><span style=display:flex><span>                     Reduce: unnest(<span style=color:#960050;background-color:#1e0010>&#39;</span>[<span style=color:#ae81ff>0</span><span style=color:#f92672>:</span><span style=color:#ae81ff>1</span>]<span style=color:#f92672>=</span>{<span style=color:#ae81ff>16386</span>,<span style=color:#ae81ff>16387</span>}<span style=color:#960050;background-color:#1e0010>&#39;</span><span style=color:#f92672>::</span>oid[])
+</span></span><span style=display:flex><span>                     <span style=color:#f92672>-&gt;</span>  Bitmap Heap Scan on <span style=color:#66d9ef>public</span>.bmsql_new_order a  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>72.82</span>.<span style=color:#ae81ff>.434.37</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>4502</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
+</span></span><span style=display:flex><span>                           Output: a.no_w_id, a.no_d_id, a.no_o_id
+</span></span><span style=display:flex><span>                           Recheck Cond: (a.no_w_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>                           <span style=color:#f92672>-&gt;</span>  Bitmap Index Scan on bmsql_new_order_pkey  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.71.70</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>9004</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>                                 Index Cond: (a.no_w_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>                                 Remote node: <span style=color:#ae81ff>16386</span>,<span style=color:#ae81ff>16387</span>
+</span></span><span style=display:flex><span>               <span style=color:#f92672>-&gt;</span>  Materialize  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.830.24</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>4502</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>                     Output: b.no_w_id
+</span></span><span style=display:flex><span>                     <span style=color:#f92672>-&gt;</span>  Seq Scan on <span style=color:#66d9ef>public</span>.bmsql_new_order_bak1 b  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.807.73</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>4502</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>                           Output: b.no_w_id
+</span></span><span style=display:flex><span>                           Filter: (b.no_w_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>                           Remote node: <span style=color:#ae81ff>16386</span>,<span style=color:#ae81ff>16387</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>执行</span><span style=color:#ae81ff>5</span><span style=color:#960050;background-color:#1e0010>次之后执行计划不一样，原因是因为前几次的</span>plan使用boundParams生成计划<span style=color:#960050;background-color:#1e0010>，所以可以取得节点信息，但是</span><span style=color:#ae81ff>5</span><span style=color:#960050;background-color:#1e0010>次之后，不使用</span>boundParams<span style=color:#960050;background-color:#1e0010>，所以生成的执行计划中使用</span>hostvar
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>prepare s35(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>int</span>) as select a.no_o_id from bmsql_new_order a join bmsql_new_order_bak1 b on  a.no_w_id  <span style=color:#f92672>=</span> b.no_w_id and  a.no_w_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>1</span> order by no_o_id asc;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>benchmarksql<span style=color:#f92672>=</span><span style=color:#960050;background-color:#1e0010>#</span> explain (verbose, analyze) execute s35(<span style=color:#ae81ff>4</span>,<span style=color:#ae81ff>1</span>); 
+</span></span><span style=display:flex><span>                                                             QUERY PLAN                                                              
+</span></span><span style=display:flex><span><span style=color:#f92672>-------------------------------------------------------------------------------------------------------------------------------------</span>
+</span></span><span style=display:flex><span> Cluster Merge Gather  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2372049.11</span>.<span style=color:#ae81ff>.2397384.11</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>20268004</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>48502.583</span>.<span style=color:#ae81ff>.413914.132</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>80838081</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>   Remote node: <span style=color:#ae81ff>16386</span>,<span style=color:#ae81ff>16387</span>
+</span></span><span style=display:flex><span>   Sort Key: a.no_o_id
+</span></span><span style=display:flex><span>   <span style=color:#f92672>-&gt;</span>  Sort  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1965689.03</span>.<span style=color:#ae81ff>.1991024.03</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>10134002</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0.017</span>.<span style=color:#ae81ff>.0.020</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>         Output: a.no_o_id
+</span></span><span style=display:flex><span>         Sort Key: a.no_o_id
+</span></span><span style=display:flex><span>         Sort Method: quicksort  Memory: <span style=color:#ae81ff>25</span>kB
+</span></span><span style=display:flex><span>         Node <span style=color:#ae81ff>16386</span><span style=color:#f92672>:</span> (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>23528.119</span>.<span style=color:#ae81ff>.23528.120</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>         Node <span style=color:#ae81ff>16387</span><span style=color:#f92672>:</span> (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>48501.986</span>.<span style=color:#ae81ff>.65663.191</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>80838081</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>         <span style=color:#f92672>-&gt;</span>  Nested Loop  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>73.82</span>.<span style=color:#ae81ff>.509359.05</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>10134002</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0.008</span>.<span style=color:#ae81ff>.0.010</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>               Output: a.no_o_id
+</span></span><span style=display:flex><span>               Node <span style=color:#ae81ff>16386</span><span style=color:#f92672>:</span> (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>23528.111</span>.<span style=color:#ae81ff>.23528.112</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>               Node <span style=color:#ae81ff>16387</span><span style=color:#f92672>:</span> (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>1.999</span>.<span style=color:#ae81ff>.10602.102</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>80838081</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>               <span style=color:#f92672>-&gt;</span>  Cluster Reduce  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>73.82</span>.<span style=color:#ae81ff>.1839.97</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>9004</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0.002</span>.<span style=color:#ae81ff>.0.003</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>                     Reduce: unnest(<span style=color:#960050;background-color:#1e0010>&#39;</span>[<span style=color:#ae81ff>0</span><span style=color:#f92672>:</span><span style=color:#ae81ff>1</span>]<span style=color:#f92672>=</span>{<span style=color:#ae81ff>16386</span>,<span style=color:#ae81ff>16387</span>}<span style=color:#960050;background-color:#1e0010>&#39;</span><span style=color:#f92672>::</span>oid[])
+</span></span><span style=display:flex><span>                     Node <span style=color:#ae81ff>16386</span><span style=color:#f92672>:</span> (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0.618</span>.<span style=color:#ae81ff>.23491.822</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>8991</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>                     Node <span style=color:#ae81ff>16387</span><span style=color:#f92672>:</span> (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>1.667</span>.<span style=color:#ae81ff>.407.128</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>8991</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>                     <span style=color:#f92672>-&gt;</span>  Bitmap Heap Scan on <span style=color:#66d9ef>public</span>.bmsql_new_order a  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>72.82</span>.<span style=color:#ae81ff>.434.37</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>4502</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>) (never executed)
+</span></span><span style=display:flex><span>                           Output: a.no_w_id, a.no_d_id, a.no_o_id
+</span></span><span style=display:flex><span>                           Recheck Cond: (a.no_w_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>                           Node <span style=color:#ae81ff>16386</span><span style=color:#f92672>:</span> (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0.019</span>.<span style=color:#ae81ff>.0.019</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>                           Node <span style=color:#ae81ff>16387</span><span style=color:#f92672>:</span> (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0.741</span>.<span style=color:#ae81ff>.21.944</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>8991</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>                           <span style=color:#f92672>-&gt;</span>  Bitmap Index Scan on bmsql_new_order_pkey  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.71.70</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>9004</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>) (never executed)
+</span></span><span style=display:flex><span>                                 Index Cond: (a.no_w_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>                                 Remote node: <span style=color:#ae81ff>16386</span>,<span style=color:#ae81ff>16387</span>
+</span></span><span style=display:flex><span>                                 Node <span style=color:#ae81ff>16386</span><span style=color:#f92672>:</span> (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0.017</span>.<span style=color:#ae81ff>.0.017</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>                                 Node <span style=color:#ae81ff>16387</span><span style=color:#f92672>:</span> (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0.723</span>.<span style=color:#ae81ff>.0.723</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>9009</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>               <span style=color:#f92672>-&gt;</span>  Materialize  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.830.24</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>4502</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>) (never executed)
+</span></span><span style=display:flex><span>                     Output: b.no_w_id
+</span></span><span style=display:flex><span>                     Node <span style=color:#ae81ff>16386</span><span style=color:#f92672>:</span> (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0.001</span>.<span style=color:#ae81ff>.0.001</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>8991</span>)
+</span></span><span style=display:flex><span>                     Node <span style=color:#ae81ff>16387</span><span style=color:#f92672>:</span> (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0.000</span>.<span style=color:#ae81ff>.0.414</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>8991</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>8991</span>)
+</span></span><span style=display:flex><span>                     <span style=color:#f92672>-&gt;</span>  Seq Scan on <span style=color:#66d9ef>public</span>.bmsql_new_order_bak1 b  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.807.73</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>4502</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>) (never executed)
+</span></span><span style=display:flex><span>                           Output: b.no_w_id
+</span></span><span style=display:flex><span>                           Filter: (b.no_w_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>                           Remote node: <span style=color:#ae81ff>16386</span>,<span style=color:#ae81ff>16387</span>
+</span></span><span style=display:flex><span>                           Node <span style=color:#ae81ff>16386</span><span style=color:#f92672>:</span> (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>3.320</span>.<span style=color:#ae81ff>.3.320</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>                           Node <span style=color:#ae81ff>16387</span><span style=color:#f92672>:</span> (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0.325</span>.<span style=color:#ae81ff>.2.621</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>8991</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span> Planning Time: <span style=color:#ae81ff>0.019</span> ms
+</span></span><span style=display:flex><span> Execution Time: <span style=color:#ae81ff>418376.338</span> ms
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>39</span> rows)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Time: <span style=color:#ae81ff>418377.013</span> ms (<span style=color:#ae81ff>06</span><span style=color:#f92672>:</span><span style=color:#ae81ff>58.377</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>   QUERY PLAN                                                            
+</span></span><span style=display:flex><span><span style=color:#f92672>-------------------------------------------------------------------------</span>
+</span></span><span style=display:flex><span> Gather Motion <span style=color:#ae81ff>1</span><span style=color:#f92672>:</span><span style=color:#ae81ff>1</span>  (slice1; segments: <span style=color:#ae81ff>1</span>)  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>10010754784.29</span>.<span style=color:#ae81ff>.10010895164.35</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>56152025</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>169250.450</span>.<span style=color:#ae81ff>.224356.779</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>80964004</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>   Output: a.no_o_id
+</span></span><span style=display:flex><span>   Merge Key: a.no_o_id
+</span></span><span style=display:flex><span>   <span style=color:#f92672>-&gt;</span>  Sort  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>10010754784.29</span>.<span style=color:#ae81ff>.10010895164.35</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>28076013</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>169248.624</span>.<span style=color:#ae81ff>.210801.666</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>80964004</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>         Output: a.no_o_id
+</span></span><span style=display:flex><span>         Sort Key: a.no_o_id
+</span></span><span style=display:flex><span>         Sort Method:  external merge  Disk: <span style=color:#ae81ff>633184</span>kB  Max Memory: <span style=color:#ae81ff>633184</span>kB  Avg Memory: <span style=color:#ae81ff>633184</span>kb (<span style=color:#ae81ff>1</span> segments)
+</span></span><span style=display:flex><span>         Executor Memory: <span style=color:#ae81ff>67387</span>kB  Segments: <span style=color:#ae81ff>1</span>  Max: <span style=color:#ae81ff>67387</span>kB (segment <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>         work_mem: <span style=color:#ae81ff>67387</span>kB  Segments: <span style=color:#ae81ff>1</span>  Max: <span style=color:#ae81ff>67387</span>kB (segment <span style=color:#ae81ff>0</span>)  Workfile: (<span style=color:#ae81ff>1</span> spilling)
+</span></span><span style=display:flex><span>         Work_mem wanted: <span style=color:#ae81ff>5059596</span>K bytes to lessen workfile I<span style=color:#f92672>/</span>O.
+</span></span><span style=display:flex><span>         <span style=color:#f92672>-&gt;</span>  Nested Loop  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>10000000000.00</span>.<span style=color:#ae81ff>.10000703168.82</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>28076013</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0.872</span>.<span style=color:#ae81ff>.22492.433</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>80964004</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>               Output: a.no_o_id
+</span></span><span style=display:flex><span>               <span style=color:#f92672>-&gt;</span>  Seq Scan on <span style=color:#66d9ef>public</span>.bmsql_new_order a  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.624.91</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>3757</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0.440</span>.<span style=color:#ae81ff>.60.571</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>8998</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>                     Output: a.no_w_id, a.no_d_id, a.no_o_id
+</span></span><span style=display:flex><span>                     Filter: (a.no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>               <span style=color:#f92672>-&gt;</span>  Materialize  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.662.28</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>3737</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0.000</span>.<span style=color:#ae81ff>.1.157</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>8998</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>8998</span>)
+</span></span><span style=display:flex><span>                     Output: b.no_w_id
+</span></span><span style=display:flex><span>                     work_mem: <span style=color:#ae81ff>128</span>kB  Segments: <span style=color:#ae81ff>1</span>  Max: <span style=color:#ae81ff>128</span>kB (segment <span style=color:#ae81ff>0</span>)  Workfile: (<span style=color:#ae81ff>0</span> spilling)
+</span></span><span style=display:flex><span>                     Work_mem wanted: <span style=color:#ae81ff>96</span>K bytes to lessen workfile I<span style=color:#f92672>/</span>O.
+</span></span><span style=display:flex><span>                     <span style=color:#f92672>-&gt;</span>  Seq Scan on <span style=color:#66d9ef>public</span>.bmsql_new_order_bak1 b  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.624.91</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>3737</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0.413</span>.<span style=color:#ae81ff>.5.295</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>8998</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>                           Output: b.no_w_id
+</span></span><span style=display:flex><span>                           Filter: (b.no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>   (slice0)    Executor memory: <span style=color:#ae81ff>247</span>K bytes.
+</span></span><span style=display:flex><span> <span style=color:#f92672>*</span> (slice1)    Executor memory: <span style=color:#ae81ff>67588</span>K bytes (seg0).  Work_mem: <span style=color:#ae81ff>67387</span>K by
+</span></span><span style=display:flex><span>tes max, <span style=color:#ae81ff>5059596</span>K bytes wanted.
+</span></span><span style=display:flex><span> Memory used:  <span style=color:#ae81ff>128000</span>kB
+</span></span><span style=display:flex><span> Memory wanted:  <span style=color:#ae81ff>10119590</span>kB
+</span></span><span style=display:flex><span> Optimizer: Postgres query optimizer
+</span></span><span style=display:flex><span> Execution time: <span style=color:#ae81ff>227858.105</span> ms
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>28</span> rows)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>benchmarksql<span style=color:#f92672>=</span><span style=color:#960050;background-color:#1e0010>#</span> explain (verbose, analyze) execute s35(<span style=color:#ae81ff>4</span>,<span style=color:#ae81ff>1</span>); 
+</span></span><span style=display:flex><span>                                                                                QUERY PLAN                                                                                 
+</span></span><span style=display:flex><span><span style=color:#f92672>---------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+</span></span><span style=display:flex><span> Sort  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>3318690.29</span>.<span style=color:#ae81ff>.3368908.54</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>20087300</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>47658.096</span>.<span style=color:#ae81ff>.57545.533</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>80838081</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>   Output: a.no_o_id
+</span></span><span style=display:flex><span>   Sort Key: a.no_o_id
+</span></span><span style=display:flex><span>   Sort Method: external merge  Disk: <span style=color:#ae81ff>1107456</span>kB
+</span></span><span style=display:flex><span>   <span style=color:#f92672>-&gt;</span>  Nested Loop  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.332853.86</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>20087300</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>53.724</span>.<span style=color:#ae81ff>.10131.385</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>80838081</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>         Output: a.no_o_id
+</span></span><span style=display:flex><span>         <span style=color:#f92672>-&gt;</span>  Data Node Scan on bmsql_new_order <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY_&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.40877.74</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>4514</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>4.288</span>.<span style=color:#ae81ff>.13.794</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>8991</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>               Output: a.no_o_id, a.no_w_id
+</span></span><span style=display:flex><span>               Node<span style=color:#f92672>/</span>s: dn2
+</span></span><span style=display:flex><span>               Remote query: SELECT no_o_id, no_w_id FROM ONLY <span style=color:#66d9ef>public</span>.bmsql_new_order a WHERE (no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>         <span style=color:#f92672>-&gt;</span>  Materialize  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.40895.99</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>4450</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>0.006</span>.<span style=color:#ae81ff>.0.424</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>8991</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>8991</span>)
+</span></span><span style=display:flex><span>               Output: b.no_w_id
+</span></span><span style=display:flex><span>               <span style=color:#f92672>-&gt;</span>  Data Node Scan on bmsql_new_order_bak1 <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY__1&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.40873.74</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>4450</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>) (actual time<span style=color:#f92672>=</span><span style=color:#ae81ff>49.423</span>.<span style=color:#ae81ff>.80.558</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>8991</span> loops<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>                     Output: b.no_w_id
+</span></span><span style=display:flex><span>                     Node<span style=color:#f92672>/</span>s: dn2
+</span></span><span style=display:flex><span>                     Remote query: SELECT no_w_id FROM ONLY <span style=color:#66d9ef>public</span>.bmsql_new_order_bak1 b WHERE (no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span> Planning Time: <span style=color:#ae81ff>0.437</span> ms
+</span></span><span style=display:flex><span> Execution Time: <span style=color:#ae81ff>60158.685</span> ms
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>18</span> rows)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Time: <span style=color:#ae81ff>60159.959</span> ms (<span style=color:#ae81ff>01</span><span style=color:#f92672>:</span><span style=color:#ae81ff>00.160</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>SELECT d_tax, d_next_o_id FROM bmsql_district WHERE d_w_id <span style=color:#f92672>=</span> <span style=color:#f92672>?</span> AND d_id <span style=color:#f92672>=</span> <span style=color:#f92672>?</span> FOR UPDATE;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>create table <span style=color:#a6e22e>test_a</span>(a <span style=color:#66d9ef>int</span>, b <span style=color:#66d9ef>int</span>, c <span style=color:#66d9ef>int</span>, d <span style=color:#66d9ef>int</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>insert into test_a select <span style=color:#a6e22e>generate_series</span>(<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>100000</span>), floor(random() <span style=color:#f92672>*</span> <span style=color:#ae81ff>1000</span>), floor(random() <span style=color:#f92672>*</span> <span style=color:#ae81ff>1000</span>), floor(random() <span style=color:#f92672>*</span> <span style=color:#ae81ff>1000</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>EXPLAIN SELECT <span style=color:#f92672>*</span> FROM TEST_A WHERE a <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>1</span> ORDER BY a; 
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>CREATE INDEX TEST_A_A_IDX ON <span style=color:#a6e22e>TEST_A</span>(a) ; 
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>set enable_cluster_plan<span style=color:#f92672>=</span>false;
+</span></span><span style=display:flex><span>set pgxc_enable_remote_query<span style=color:#f92672>=</span>false;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>prepare <span style=color:#a6e22e>s3</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>int</span>) as select no_o_id from bmsql_new_order where no_w_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>1</span> and no_d_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>2</span> order by no_o_id asc;
+</span></span><span style=display:flex><span>benchmarksql<span style=color:#f92672>=</span><span style=color:#960050;background-color:#1e0010>#</span> explain verbose execute s3(<span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>                                                          QUERY PLAN                                                           
+</span></span><span style=display:flex><span><span style=color:#f92672>-------------------------------------------------------------------------------------------------------------------------------</span>
+</span></span><span style=display:flex><span> Sort  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>41034.79</span>.<span style=color:#ae81ff>.41037.05</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>906</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>   Output: bmsql_new_order.no_o_id
+</span></span><span style=display:flex><span>   Sort Key: bmsql_new_order.no_o_id
+</span></span><span style=display:flex><span>   <span style=color:#f92672>-&gt;</span>  Data Node Scan on bmsql_new_order <span style=color:#e6db74>&#34;_REMOTE_TABLE_QUERY_&#34;</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0.00</span>.<span style=color:#ae81ff>.40990.29</span> rows<span style=color:#f92672>=</span><span style=color:#ae81ff>906</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>         Output: bmsql_new_order.no_o_id
+</span></span><span style=display:flex><span>         Primary node<span style=color:#f92672>/</span>s: dn1
+</span></span><span style=display:flex><span>         Node<span style=color:#f92672>/</span>s: dn1
+</span></span><span style=display:flex><span>         Remote query: SELECT no_o_id FROM ONLY <span style=color:#66d9ef>public</span>.bmsql_new_order bmsql_new_order WHERE ((no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>) AND (no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>))
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>8</span> rows)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1.</span> <span style=color:#960050;background-color:#1e0010>静态语句和动态语句生成执行计划不一样。理论上静态语句代价低，不会被替换，但是执行几次之后被替换为动态参数的语句，</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>2.</span> <span style=color:#960050;background-color:#1e0010>静态语句的时候。</span>cluster qyery和remote query的执行计划都能正确的选择节点
+</span></span><span style=display:flex><span><span style=color:#ae81ff>3.</span> <span style=color:#960050;background-color:#1e0010>生成执行计划的时候，使用静态语句可以生成</span>remote query的执行计划<span style=color:#960050;background-color:#1e0010>，但是之后使用动态语句的时候。生成的是</span>cluster query的执行计划
+</span></span><span style=display:flex><span><span style=color:#ae81ff>4.</span> <span style=color:#ae81ff>20</span><span style=color:#960050;background-color:#1e0010>亿的表，一条查询结果为</span><span style=color:#ae81ff>8</span>kw数据的语句<span style=color:#960050;background-color:#1e0010>，</span>remote query的执行时间为1min<span style=color:#960050;background-color:#1e0010>，</span>cluster执行时间为7min<span style=color:#960050;background-color:#1e0010>，</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>5.</span> <span style=color:#960050;background-color:#1e0010>简单语句的编译时间几乎可以忽略不记，并且在集群环境上，是否有必要使用积累代价然后重新计算执行计划的方式，个人看来，错误的执行计划导致的时间消耗更大</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>6.</span> cluster和remote的执行计划计划差不多<span style=color:#960050;background-color:#1e0010>，区别主要在</span>remote节点的数据的获取方式<span style=color:#960050;background-color:#1e0010>，</span>cluster有更多的remote <span style=color:#960050;background-color:#1e0010>方法，</span>(<span style=color:#960050;background-color:#1e0010>后期调研</span>)
+</span></span><span style=display:flex><span><span style=color:#ae81ff>7.</span> remote query应该可以有更优的执行计划<span style=color:#960050;background-color:#1e0010>，如果可以确切的知道数据分布的话</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1.</span> remote query执行计划的生成方式
+</span></span><span style=display:flex><span>  <span style=color:#960050;background-color:#1e0010>主要有两种，一是使用</span>pgxc_try_planner快速判断简单语句是否可以使用remote query<span style=color:#960050;background-color:#1e0010>，如果这里无法判断，则使用正常的</span>standard_planner流程<span style=color:#960050;background-color:#1e0010>，然后判断一些关键节点是否可以使用</span>remote query执行或者cluster remote
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>1.</span> pgxc_try_planner
+</span></span><span style=display:flex><span>    <span style=color:#ae81ff>1.</span> pgxc_handle_unsupported_stmts限制不支持的语句
+</span></span><span style=display:flex><span>    <span style=color:#ae81ff>2.</span> pgxc_handle_exec_direct <span style=color:#960050;background-color:#1e0010>对于</span>utilityStmt<span style=color:#960050;background-color:#1e0010>，例如</span>execute direct<span style=color:#960050;background-color:#1e0010>，则直接生成</span>remote <span style=color:#960050;background-color:#1e0010>执行计划</span>
+</span></span><span style=display:flex><span>    <span style=color:#ae81ff>3.</span> pgxc_FQS_planner <span style=color:#960050;background-color:#1e0010>处理常规语句，不支持的直接</span><span style=color:#66d9ef>return</span> null
+</span></span><span style=display:flex><span>      <span style=color:#960050;background-color:#1e0010>主要流程为先根据语句得到具体的执行节点，然后由执行节点的情况判断是否生成</span>remote query的执行计划
+</span></span><span style=display:flex><span>      <span style=color:#ae81ff>1.</span> pgxc_is_query_shippable  <span style=color:#960050;background-color:#1e0010>遍历语法树的节点收集节点信息，判断可以使用</span>remote query<span style=color:#960050;background-color:#1e0010>，同时根据表分区信息以及查询条件获得</span>exec_node<span style=color:#960050;background-color:#1e0010>，在此方法内部，已经判断语句是否可以生成</span>remote query的执行计划<span style=color:#960050;background-color:#1e0010>，如果无法生成，则返回</span>null
+</span></span><span style=display:flex><span>      <span style=color:#ae81ff>2.</span> pgxc_FQS_create_remote_plan <span style=color:#960050;background-color:#1e0010>生成</span>remote query的执行计划<span style=color:#960050;background-color:#1e0010>，这里只是简单的在</span>query的上层构造一个remote query<span style=color:#960050;background-color:#1e0010>，然后把原来的</span>query挂在下面<span style=color:#960050;background-color:#1e0010>，没有太复杂的情况，因为这里处理简单语句，对于复杂的语句，使用</span>standard_planner处理
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&gt;</span> <span style=color:#960050;background-color:#1e0010>上面的方法处理简答的语句，且由于需要使用分区信息和执行条件获得执行节点，所以不能使用动态参数，动态参数只能得到所有的执行节点，而所有节点的时候在由聚合函数但是没有设置</span>SS_NEED_SINGLENODE的时候是可以生成执行计划的<span style=color:#960050;background-color:#1e0010>。。。。。</span>
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>2.</span> standard_planner
+</span></span><span style=display:flex><span>    <span style=color:#960050;background-color:#1e0010>前面的基于规则的优化和普通语句类似，差别在于生成</span>path的时候<span style=color:#960050;background-color:#1e0010>，会加上</span>remote query的path<span style=color:#960050;background-color:#1e0010>，然后基于代价，选择具体的执行计划</span>
+</span></span><span style=display:flex><span>    <span style=color:#960050;background-color:#1e0010>主要分为两阶段，一是生成扫描路径，二是生成链接路径</span>
+</span></span><span style=display:flex><span>    <span style=color:#ae81ff>1.</span> set_base_rel_sizes <span style=color:#960050;background-color:#1e0010>估计表达小，并且计算代价</span>
+</span></span><span style=display:flex><span>    <span style=color:#ae81ff>2.</span> set_base_rel_pathlists <span style=color:#960050;background-color:#1e0010>生成</span>scan <span style=color:#960050;background-color:#1e0010>路径</span>
+</span></span><span style=display:flex><span>    <span style=color:#ae81ff>3.</span> make_rel_from_joinlist <span style=color:#960050;background-color:#1e0010>生成链接路径</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>prepare s2(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>int</span>) as
+</span></span><span style=display:flex><span>SELECT c_discount, c_last, c_credit, w_tax FROM bmsql_customer JOIN bmsql_warehouse 
+</span></span><span style=display:flex><span>ON (w_id <span style=color:#f92672>=</span> c_w_id) WHERE c_w_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>1</span> AND c_d_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>2</span> AND c_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>3</span>;
+</span></span><span style=display:flex><span>explain verbose execute <span style=color:#a6e22e>s2</span>(<span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>execute direct <span style=color:#a6e22e>on</span> (dn1) <span style=color:#960050;background-color:#1e0010>&#39;</span>SELECT c_discount, c_last, c_credit, w_tax FROM bmsql_customer JOIN bmsql_warehouse ON (w_id <span style=color:#f92672>=</span> c_w_id) WHERE c_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span> AND c_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span> AND c_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span><span style=color:#960050;background-color:#1e0010>&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Query [commandType<span style=color:#f92672>=</span>CMD_SELECT querySource<span style=color:#f92672>=</span>QSRC_ORIGINAL queryId<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> canSetTag<span style=color:#f92672>=</span>True resultRelation<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>]
+</span></span><span style=display:flex><span>        [rtable]
+</span></span><span style=display:flex><span>                RangeTblEntry (rtekind<span style=color:#f92672>=</span>RTE_RELATION relid<span style=color:#f92672>=</span><span style=color:#ae81ff>16401</span> relkind<span style=color:#f92672>=</span>r inh<span style=color:#f92672>=</span>True)
+</span></span><span style=display:flex><span>                RangeTblEntry (rtekind<span style=color:#f92672>=</span>RTE_RELATION relid<span style=color:#f92672>=</span><span style=color:#ae81ff>16395</span> relkind<span style=color:#f92672>=</span>r inh<span style=color:#f92672>=</span>True)
+</span></span><span style=display:flex><span>                RangeTblEntry (rtekind<span style=color:#f92672>=</span>RTE_JOIN relid<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> relkind<span style=color:#f92672>=</span><span style=color:#960050;background-color:#1e0010>\</span><span style=color:#ae81ff>000</span>)
+</span></span><span style=display:flex><span>        [jointree] FromExpr
+</span></span><span style=display:flex><span>                [fromlist]
+</span></span><span style=display:flex><span>                        JoinExpr [jointype<span style=color:#f92672>=</span>JOIN_INNER isNatural<span style=color:#f92672>=</span>False]
+</span></span><span style=display:flex><span>                                [larg] RangeTblRef (rtindex<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>                                [rarg] RangeTblRef (rtindex<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>)
+</span></span><span style=display:flex><span>                                [quals] OpExpr [opno<span style=color:#f92672>=</span><span style=color:#ae81ff>96</span> opfuncid<span style=color:#f92672>=</span><span style=color:#ae81ff>65</span> opresulttype<span style=color:#f92672>=</span><span style=color:#ae81ff>16</span>]
+</span></span><span style=display:flex><span>                                        Var [varno<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span> varattno<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> levelsup<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> location<span style=color:#f92672>=</span><span style=color:#ae81ff>113</span>]
+</span></span><span style=display:flex><span>                                        Var [varno<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> varattno<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> levelsup<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> location<span style=color:#f92672>=</span><span style=color:#ae81ff>120</span>]
+</span></span><span style=display:flex><span>                [quals] BoolExpr [op<span style=color:#f92672>=</span>AND_EXPR]
+</span></span><span style=display:flex><span>                        OpExpr [opno<span style=color:#f92672>=</span><span style=color:#ae81ff>96</span> opfuncid<span style=color:#f92672>=</span><span style=color:#ae81ff>65</span> opresulttype<span style=color:#f92672>=</span><span style=color:#ae81ff>16</span>]
+</span></span><span style=display:flex><span>                                Var [varno<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> varattno<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> levelsup<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> location<span style=color:#f92672>=</span><span style=color:#ae81ff>134</span>]
+</span></span><span style=display:flex><span>                                Param (paramkind<span style=color:#f92672>=</span>PARAM_EXTERN paramid<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> paramtype<span style=color:#f92672>=</span><span style=color:#ae81ff>23</span> paramtypmod<span style=color:#f92672>=-</span><span style=color:#ae81ff>1</span> location<span style=color:#f92672>=</span><span style=color:#ae81ff>143</span>)
+</span></span><span style=display:flex><span>                        OpExpr [opno<span style=color:#f92672>=</span><span style=color:#ae81ff>96</span> opfuncid<span style=color:#f92672>=</span><span style=color:#ae81ff>65</span> opresulttype<span style=color:#f92672>=</span><span style=color:#ae81ff>16</span>]
+</span></span><span style=display:flex><span>                                Var [varno<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> varattno<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span> levelsup<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> location<span style=color:#f92672>=</span><span style=color:#ae81ff>150</span>]
+</span></span><span style=display:flex><span>                                Param (paramkind<span style=color:#f92672>=</span>PARAM_EXTERN paramid<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span> paramtype<span style=color:#f92672>=</span><span style=color:#ae81ff>23</span> paramtypmod<span style=color:#f92672>=-</span><span style=color:#ae81ff>1</span> location<span style=color:#f92672>=</span><span style=color:#ae81ff>159</span>)
+</span></span><span style=display:flex><span>                        OpExpr [opno<span style=color:#f92672>=</span><span style=color:#ae81ff>96</span> opfuncid<span style=color:#f92672>=</span><span style=color:#ae81ff>65</span> opresulttype<span style=color:#f92672>=</span><span style=color:#ae81ff>16</span>]
+</span></span><span style=display:flex><span>                                Var [varno<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> varattno<span style=color:#f92672>=</span><span style=color:#ae81ff>3</span> levelsup<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> location<span style=color:#f92672>=</span><span style=color:#ae81ff>166</span>]
+</span></span><span style=display:flex><span>                                Param (paramkind<span style=color:#f92672>=</span>PARAM_EXTERN paramid<span style=color:#f92672>=</span><span style=color:#ae81ff>3</span> paramtype<span style=color:#f92672>=</span><span style=color:#ae81ff>23</span> paramtypmod<span style=color:#f92672>=-</span><span style=color:#ae81ff>1</span> location<span style=color:#f92672>=</span><span style=color:#ae81ff>173</span>)
+</span></span><span style=display:flex><span>        [targetList]
+</span></span><span style=display:flex><span>                TargetEntry [resno<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> resname<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;c_discount&#34;</span> ressortgroupref<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> origtbl<span style=color:#f92672>=</span><span style=color:#ae81ff>16401</span> origcol<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span> junk<span style=color:#f92672>=</span>False]
+</span></span><span style=display:flex><span>                        Var [varno<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> varattno<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span> levelsup<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> location<span style=color:#f92672>=</span><span style=color:#ae81ff>31</span>]
+</span></span><span style=display:flex><span>                TargetEntry [resno<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span> resname<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;c_last&#34;</span> ressortgroupref<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> origtbl<span style=color:#f92672>=</span><span style=color:#ae81ff>16401</span> origcol<span style=color:#f92672>=</span><span style=color:#ae81ff>6</span> junk<span style=color:#f92672>=</span>False]
+</span></span><span style=display:flex><span>                        Var [varno<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> varattno<span style=color:#f92672>=</span><span style=color:#ae81ff>6</span> varcollid<span style=color:#f92672>=</span><span style=color:#ae81ff>100</span> levelsup<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> location<span style=color:#f92672>=</span><span style=color:#ae81ff>43</span>]
+</span></span><span style=display:flex><span>                TargetEntry [resno<span style=color:#f92672>=</span><span style=color:#ae81ff>3</span> resname<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;c_credit&#34;</span> ressortgroupref<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> origtbl<span style=color:#f92672>=</span><span style=color:#ae81ff>16401</span> origcol<span style=color:#f92672>=</span><span style=color:#ae81ff>5</span> junk<span style=color:#f92672>=</span>False]
+</span></span><span style=display:flex><span>                        Var [varno<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> varattno<span style=color:#f92672>=</span><span style=color:#ae81ff>5</span> varcollid<span style=color:#f92672>=</span><span style=color:#ae81ff>100</span> levelsup<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> location<span style=color:#f92672>=</span><span style=color:#ae81ff>51</span>]
+</span></span><span style=display:flex><span>                TargetEntry [resno<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span> resname<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;w_tax&#34;</span> ressortgroupref<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> origtbl<span style=color:#f92672>=</span><span style=color:#ae81ff>16395</span> origcol<span style=color:#f92672>=</span><span style=color:#ae81ff>3</span> junk<span style=color:#f92672>=</span>False]
+</span></span><span style=display:flex><span>                        Var [varno<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span> varattno<span style=color:#f92672>=</span><span style=color:#ae81ff>3</span> levelsup<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> location<span style=color:#f92672>=</span><span style=color:#ae81ff>61</span>]
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>prepare s6(<span style=color:#66d9ef>int</span>) as
+</span></span><span style=display:flex><span>SELECT i_price, i_name, i_data FROM bmsql_item WHERE i_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>1</span>;	
+</span></span><span style=display:flex><span>explain verbose execute <span style=color:#a6e22e>s6</span>(<span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Query [commandType<span style=color:#f92672>=</span>CMD_SELECT querySource<span style=color:#f92672>=</span>QSRC_ORIGINAL queryId<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> canSetTag<span style=color:#f92672>=</span>True resultRelation<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>]
+</span></span><span style=display:flex><span>        [rtable]
+</span></span><span style=display:flex><span>                RangeTblEntry (rtekind<span style=color:#f92672>=</span>RTE_RELATION relid<span style=color:#f92672>=</span><span style=color:#ae81ff>16421</span> relkind<span style=color:#f92672>=</span>r inh<span style=color:#f92672>=</span>True)
+</span></span><span style=display:flex><span>        [jointree] FromExpr
+</span></span><span style=display:flex><span>                [fromlist]
+</span></span><span style=display:flex><span>                        RangeTblRef (rtindex<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>                [quals] OpExpr [opno<span style=color:#f92672>=</span><span style=color:#ae81ff>96</span> opfuncid<span style=color:#f92672>=</span><span style=color:#ae81ff>65</span> opresulttype<span style=color:#f92672>=</span><span style=color:#ae81ff>16</span>]
+</span></span><span style=display:flex><span>                        Var [varno<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> varattno<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> levelsup<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> location<span style=color:#f92672>=</span><span style=color:#ae81ff>72</span>]
+</span></span><span style=display:flex><span>                        Param (paramkind<span style=color:#f92672>=</span>PARAM_EXTERN paramid<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> paramtype<span style=color:#f92672>=</span><span style=color:#ae81ff>23</span> paramtypmod<span style=color:#f92672>=-</span><span style=color:#ae81ff>1</span> location<span style=color:#f92672>=</span><span style=color:#ae81ff>79</span>)
+</span></span><span style=display:flex><span>        [targetList]
+</span></span><span style=display:flex><span>                TargetEntry [resno<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> resname<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;i_price&#34;</span> ressortgroupref<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> origtbl<span style=color:#f92672>=</span><span style=color:#ae81ff>16421</span> origcol<span style=color:#f92672>=</span><span style=color:#ae81ff>3</span> junk<span style=color:#f92672>=</span>False]
+</span></span><span style=display:flex><span>                        Var [varno<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> varattno<span style=color:#f92672>=</span><span style=color:#ae81ff>3</span> levelsup<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> location<span style=color:#f92672>=</span><span style=color:#ae81ff>26</span>]
+</span></span><span style=display:flex><span>                TargetEntry [resno<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span> resname<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;i_name&#34;</span> ressortgroupref<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> origtbl<span style=color:#f92672>=</span><span style=color:#ae81ff>16421</span> origcol<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span> junk<span style=color:#f92672>=</span>False]
+</span></span><span style=display:flex><span>                        Var [varno<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> varattno<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span> varcollid<span style=color:#f92672>=</span><span style=color:#ae81ff>100</span> levelsup<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> location<span style=color:#f92672>=</span><span style=color:#ae81ff>35</span>]
+</span></span><span style=display:flex><span>                TargetEntry [resno<span style=color:#f92672>=</span><span style=color:#ae81ff>3</span> resname<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;i_data&#34;</span> ressortgroupref<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> origtbl<span style=color:#f92672>=</span><span style=color:#ae81ff>16421</span> origcol<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span> junk<span style=color:#f92672>=</span>False]
+</span></span><span style=display:flex><span>                        Var [varno<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> varattno<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span> varcollid<span style=color:#f92672>=</span><span style=color:#ae81ff>100</span> levelsup<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> location<span style=color:#f92672>=</span><span style=color:#ae81ff>43</span>]
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>pgxc_FQS_find_datanodes_recurse
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>case</span> T_FromExpr: {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    FromExpr	<span style=color:#f92672>*</span>from_expr <span style=color:#f92672>=</span> (FromExpr <span style=color:#f92672>*</span>)node;
+</span></span><span style=display:flex><span>    Node <span style=color:#f92672>*</span> quals <span style=color:#f92672>=</span> from_expr<span style=color:#f92672>-&gt;</span>quals
+</span></span><span style=display:flex><span>    List <span style=color:#f92672>*</span> expr <span style=color:#f92672>=</span> from_expr<span style=color:#f92672>-&gt;</span>fromlist;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>prepare <span style=color:#a6e22e>s4</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>int</span>) as
+</span></span><span style=display:flex><span>SELECT c_discount, c_last, c_credit, w_tax FROM bmsql_customer JOIN bmsql_warehouse 
+</span></span><span style=display:flex><span>where (w_id <span style=color:#f92672>=</span> c_w_id)  c_w_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>1</span> AND c_d_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>2</span> AND c_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>3</span>;
+</span></span><span style=display:flex><span>explain verbose execute <span style=color:#a6e22e>s5</span>(<span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>prepare <span style=color:#a6e22e>s17</span>(<span style=color:#66d9ef>int</span>, <span style=color:#66d9ef>int</span>) as
+</span></span><span style=display:flex><span>SELECT c_discount, c_last, c_credit, w_tax FROM bmsql_customer JOIN bmsql_warehouse 
+</span></span><span style=display:flex><span>ON (w_id <span style=color:#f92672>&gt;</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>1</span>) WHERE c_w_id <span style=color:#f92672>=</span> w_id AND c_d_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>2</span> AND c_id <span style=color:#f92672>=</span> <span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>3</span>;
+</span></span><span style=display:flex><span>explain verbose execute <span style=color:#a6e22e>s17</span>(<span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>pgxc_FQS_find_datanodes_recurse_join() {
+</span></span><span style=display:flex><span>  JoinExpr <span style=color:#f92672>*</span>join_expr <span style=color:#f92672>=</span> ((JoinExpr <span style=color:#f92672>*</span>)fromlist_entry);
+</span></span><span style=display:flex><span>  Node <span style=color:#f92672>*</span> quals <span style=color:#f92672>=</span> from_expr<span style=color:#f92672>-&gt;</span>quals;
+</span></span><span style=display:flex><span>  Node <span style=color:#f92672>*</span> jquals <span style=color:#f92672>=</span> ((JoinExpr <span style=color:#f92672>*</span>)fromlist_entry)<span style=color:#f92672>-&gt;</span>quals;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 1. 表达式展开
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>//    join and 
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span>  List <span style=color:#f92672>*</span>lquals;
+</span></span><span style=display:flex><span>  List <span style=color:#f92672>*</span>jjquals;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span>IsA(quals, List))
+</span></span><span style=display:flex><span>		lquals <span style=color:#f92672>=</span> make_ands_implicit((Expr <span style=color:#f92672>*</span>)quals);
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>else</span>
+</span></span><span style=display:flex><span>		lquals <span style=color:#f92672>=</span> (List <span style=color:#f92672>*</span>)quals;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span>IsA(jquals, List))
+</span></span><span style=display:flex><span>		jjquals <span style=color:#f92672>=</span> make_ands_implicit((Expr <span style=color:#f92672>*</span>)jquals);
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>else</span>
+</span></span><span style=display:flex><span>		jjquals <span style=color:#f92672>=</span> (List <span style=color:#f92672>*</span>)jquals;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  pgxc_find_distcol_expr() <span style=color:#75715e>// 扩展 ，拿到表达式 (a = 2+3) 得到(2+3)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>int</span> cc <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>for</span> (jj : jjquals) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (jj<span style=color:#f92672>-&gt;</span>left <span style=color:#f92672>!=</span> var <span style=color:#f92672>&amp;&amp;</span> jj<span style=color:#f92672>-&gt;</span>right <span style=color:#f92672>!=</span> var)
+</span></span><span style=display:flex><span>      cc <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> (qual : lquals) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (jj<span style=color:#f92672>-&gt;</span>left <span style=color:#f92672>==</span> var <span style=color:#f92672>&amp;&amp;</span> jj<span style=color:#f92672>-&gt;</span>right <span style=color:#f92672>==</span> var) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (qual<span style=color:#f92672>-&gt;</span>left <span style=color:#f92672>==</span> var <span style=color:#f92672>&amp;&amp;</span> qual<span style=color:#f92672>-&gt;</span>right <span style=color:#f92672>==</span> var) 
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>continue</span>;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> <span style=color:#a6e22e>if</span> (qual<span style=color:#f92672>-&gt;</span>left <span style=color:#f92672>==</span> var <span style=color:#f92672>||</span> qual<span style=color:#f92672>-&gt;</span>right <span style=color:#f92672>==</span> var) {
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>if</span> (jj<span style=color:#f92672>-&gt;</span>left <span style=color:#f92672>==</span> qual<span style=color:#f92672>-&gt;</span>left) {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>          }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    cc <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>create table bmsql_new_order_bak1 (no_w_id int, no_d_id int, no_o_id int) DISTRIBUTE BY HASH(no_w_id) TO NODE(dn1, dn2) ;</p><p>insert into bmsql_new_order_bak1 select * from bmsql_new_order;</p><p>prepare s3(int, int) as select no_o_id from bmsql_new_order where no_w_id = $1 and no_d_id = $2 order by no_o_id asc;
+explain verbose execute s3(1, 1);</p><h2 id=query-plan>benchmarksql=# explain verbose select no_o_id from bmsql_new_order where no_w_id = 1 and no_d_id = 1 order by no_o_id asc;
+QUERY PLAN</h2><p>Data Node Scan on &ldquo;<strong>REMOTE_FQS_QUERY</strong>&rdquo; (cost=0.00..0.00 rows=0 width=0)
+Output: bmsql_new_order.no_o_id
+Primary node/s: dn1
+Node/s: dn1
+Remote query: SELECT no_o_id FROM public.bmsql_new_order bmsql_new_order WHERE ((no_w_id = 1) AND (no_d_id = 1)) ORDER BY no_o_id
+(5 rows)</p><p>SS_NEED_SINGLENODE</p><p>enable_pushdown_art // 开关没开
+pgxc_is_all_replicated_table</p><ul><li>pgxc_query_needs_coord
+如果查询只有元数据信息</li></ul><p>#0 0x00007fb722fdad47 in __GI___poll (fds=0x7ffca50462a0, nfds=1, timeout=-1) at ../sysdeps/unix/sysv/linux/poll.c:29
+#1 0x000056051841fcc1 in PQNOneExecFinish (conn=0x560519c7cd10, hook=0x7ffca50462e0, blocking=true) at /home/wen/postgres/xx/../AntDB/src/backend/libpq/libpq-node.c:424
+#2 0x00005605188f4bf7 in HandleFetchRemote (handle=0x560519ca83a8, node=0x560519d73a08, destslot=0x560519d74028, blocking=true, batch=false)
+at /home/wen/postgres/xx/../AntDB/src/backend/intercomm/inter-query.c:573
+#3 0x00005605188f4429 in InterXactQuery (state=0x560518c48700 , node=0x560519d73a08, destslot=0x560519d74028)
+at /home/wen/postgres/xx/../AntDB/src/backend/intercomm/inter-query.c:370
+#4 0x00005605188f41b2 in StartRemoteQuery (node=0x560519d73a08, destslot=0x560519d74028) at /home/wen/postgres/xx/../AntDB/src/backend/intercomm/inter-query.c:312
+#5 0x00005605188e962b in RemoteQueryNext (scan_node=0x560519d73a08) at /home/wen/postgres/xx/../AntDB/src/backend/pgxc/pool/execRemote.c:298
+#6 0x0000560518395a41 in ExecScanFetch (node=0x560519d73a08, accessMtd=0x5605188e95a5 , recheckMtd=0x5605188e958e )
+at /home/wen/postgres/xx/../AntDB/src/backend/executor/execScan.c:133
+#7 0x0000560518395aba in ExecScan (node=0x560519d73a08, accessMtd=0x5605188e95a5 , recheckMtd=0x5605188e958e )
+at /home/wen/postgres/xx/../AntDB/src/backend/executor/execScan.c:182
+#8 0x00005605188e958c in ExecRemoteQuery (ps=0x560519d73a08) at /home/wen/postgres/xx/../AntDB/src/backend/pgxc/pool/execRemote.c:250
+#9 0x0000560518391bc3 in ExecProcNodeFirst (node=0x560519d73a08) at /home/wen/postgres/xx/../AntDB/src/backend/executor/execProcnode.c:511
+#10 0x0000560518385f68 in ExecProcNode (node=0x560519d73a08) at /home/wen/postgres/xx/../AntDB/src/include/executor/executor.h:269
+#11 0x0000560518388ac1 in ExecutePlan (estate=0x560519d737d8, planstate=0x560519d73a08, use_parallel_mode=false, operation=CMD_SELECT, sendTuples=true, numberTuples=0,
+direction=ForwardScanDirection, dest=0x560519cd71c0, execute_once=true) at /home/wen/postgres/xx/../AntDB/src/backend/executor/execMain.c:1699
+#12 0x00005605183865ae in standard_ExecutorRun (queryDesc=0x560519cf3928, direction=ForwardScanDirection, count=0, execute_once=true)
+at /home/wen/postgres/xx/../AntDB/src/backend/executor/execMain.c:368
+#13 0x0000560518386415 in ExecutorRun (queryDesc=0x560519cf3928, direction=ForwardScanDirection, count=0, execute_once=true)
+at /home/wen/postgres/xx/../AntDB/src/backend/executor/execMain.c:312
+#14 0x00005605186b5bf1 in PortalRunSelect (portal=0x560519c35968, forward=true, count=0, dest=0x560519cd71c0) at /home/wen/postgres/xx/../AntDB/src/backend/tcop/pquery.c:1034</p><p>#0 ExecProcNode (node=0x55cd1e4dbe40) at /home/wen/postgres/xx/../AntDB/src/include/executor/executor.h:261
+#1 0x000055cd1d039ac1 in ExecutePlan (estate=0x55cd1e4dbc18, planstate=0x55cd1e4dbe40, use_parallel_mode=false, operation=CMD_SELECT, sendTuples=true, numberTuples=0,
+direction=ForwardScanDirection, dest=0x55cd1e560d48, execute_once=true) at /home/wen/postgres/xx/../AntDB/src/backend/executor/execMain.c:1699
+#2 0x000055cd1d0375ae in standard_ExecutorRun (queryDesc=0x55cd1e5621f8, direction=ForwardScanDirection, count=0, execute_once=true)
+at /home/wen/postgres/xx/../AntDB/src/backend/executor/execMain.c:368
+#3 0x000055cd1d037415 in ExecutorRun (queryDesc=0x55cd1e5621f8, direction=ForwardScanDirection, count=0, execute_once=true) at /home/wen/postgres/xx/../AntDB/src/backend/executor/execMain.c:312
+#4 0x000055cd1d09be3f in ExecClusterPlanStmt (buf=0x7ffe9df51920, info=0x55cd1e560d28) at /home/wen/postgres/xx/../AntDB/src/backend/executor/execCluster.c:329
+#5 0x000055cd1d09bbb1 in exec_cluster_plan (splan=0x55cd1e4b6f88, length=1784) at /home/wen/postgres/xx/../AntDB/src/backend/executor/execCluster.c:254
+#6 0x000055cd1d364b4e in PostgresMain (argc=1, argv=0x55cd1e4e1998, dbname=0x55cd1e4e17e8 &ldquo;benchmarksql&rdquo;, username=0x55cd1e4b3628 &ldquo;wen&rdquo;)
+at /home/wen/postgres/xx/../AntDB/src/backend/tcop/postgres.c:5554
+#7 0x000055cd1d29eab9 in BackendRun (port=0x55cd1e4db120) at /home/wen/postgres/xx/../AntDB/src/backend/postmaster/postmaster.c:5199
+#8 0x000055cd1d29e141 in BackendStartup (port=0x55cd1e4db120) at /home/wen/postgres/xx/../AntDB/src/backend/postmaster/postmaster.c:4864
+#9 0x000055cd1d299bd1 in ServerLoop () at /home/wen/postgres/xx/../AntDB/src/backend/postmaster/postmaster.c:1933
+#10 0x000055cd1d299338 in PostmasterMain (argc=5, argv=0x55cd1e4b1580) at /home/wen/postgres/xx/../AntDB/src/backend/postmaster/postmaster.c:1603
+#11 0x000055cd1d0d4ccb in main (argc=5, argv=0x55cd1e4b1580) at /home/wen/postgres/xx/../AntDB/src/backend/main/main.c:217</p><p>#0 0x00007fb722fdad47 in __GI___poll (fds=0x7ffca5046580, nfds=1, timeout=-1) at ../sysdeps/unix/sysv/linux/poll.c:29
+#1 0x000056051841fcc1 in PQNOneExecFinish (conn=0x560519cacc70, hook=0x560519cf96b8, blocking=true) at /home/wen/postgres/xx/../AntDB/src/backend/libpq/libpq-node.c:424
+#2 0x00005605183f0a73 in cmg_get_remote_slot (conn=0x560519cacc70, slot=0x560519d17818, ps=0x560519cf95b0) at /home/wen/postgres/xx/../AntDB/src/backend/executor/nodeClusterMergeGather.c:291
+#3 0x00005605183f03f1 in ExecClusterMergeGather (pstate=0x560519cf95b0) at /home/wen/postgres/xx/../AntDB/src/backend/executor/nodeClusterMergeGather.c:148
+#4 0x0000560518391bc3 in ExecProcNodeFirst (node=0x560519cf95b0) at /home/wen/postgres/xx/../AntDB/src/backend/executor/execProcnode.c:511
+#5 0x0000560518385f68 in ExecProcNode (node=0x560519cf95b0) at /home/wen/postgres/xx/../AntDB/src/include/executor/executor.h:269
+#6 0x0000560518388ac1 in ExecutePlan (estate=0x560519cf9388, planstate=0x560519cf95b0, use_parallel_mode=false, operation=CMD_SELECT, sendTuples=true, numberTuples=0,
+direction=ForwardScanDirection, dest=0x560519cd71c0, execute_once=true) at /home/wen/postgres/xx/../AntDB/src/backend/executor/execMain.c:1699
+#7 0x00005605183865ae in standard_ExecutorRun (queryDesc=0x560519cf3928, direction=ForwardScanDirection, count=0, execute_once=true)
+at /home/wen/postgres/xx/../AntDB/src/backend/executor/execMain.c:368
+#8 0x0000560518386415 in ExecutorRun (queryDesc=0x560519cf3928, direction=ForwardScanDirection, count=0, execute_once=true)
+at /home/wen/postgres/xx/../AntDB/src/backend/executor/execMain.c:312
+#9 0x00005605186b5bf1 in PortalRunSelect (portal=0x560519c35968, forward=true, count=0, dest=0x560519cd71c0) at /home/wen/postgres/xx/../AntDB/src/backend/tcop/pquery.c:1034
+#10 0x00005605186b5784 in PortalRun (portal=0x560519c35968, count=9223372036854775807, isTopLevel=false, run_once=true, dest=0x560519cd71c0, altdest=0x560519cd71c0, qc=0x7ffca5046c60)
+at /home/wen/postgres/xx/../AntDB/src/backend/tcop/pquery.c:842
+#11 0x00005605183033b1 in ExecuteQuery (pstate=0x560519cd7280, stmt=0x560519bb8608, intoClause=0x0, params=0x0, dest=0x560519cd71c0, qc=0x7ffca5046c60, cluster_safe=true)
+at /home/wen/postgres/xx/../AntDB/src/backend/commands/prepare.c:316
+#12 0x00005605186b7fe7 in standard_ProcessUtility (pstmt=0x560519bb86b8, queryString=0x560519bb7b78 &ldquo;execute s3(1, 1);&rdquo;, context=PROCESS_UTILITY_TOPLEVEL, params=0x0, queryEnv=0x0,
+dest=0x560519cd71c0, sentToRemote=false, qc=0x7ffca5046c60) at /home/wen/postgres/xx/../AntDB/src/backend/tcop/utility.c:941
+#13 0x00005605186b757a in ProcessUtility (pstmt=0x560519bb86b8, queryString=0x560519bb7b78 &ldquo;execute s3(1, 1);&rdquo;, context=PROCESS_UTILITY_TOPLEVEL, params=0x0, queryEnv=0x0,
+dest=0x560519cd71c0, sentToRemote=false, qc=0x7ffca5046c60) at /home/wen/postgres/xx/../AntDB/src/backend/tcop/utility.c:614</p><p>cluter he remote query de qube</p><p>分区键</p><h1 id=antdb>antdb</h1><hr><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e>#0  create_remotesort_plan (root=0x25a8cd8, local_plan=0x25cc1d8) at pgxcplan.c:2934
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#1  0x00000000006e5abc in grouping_planner (root=0x25a88c8, tuple_fraction=0) at planner.c:1816
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#2  0x00000000006e3ccd in subquery_planner (glob=0x25a8838, parse=0x25a6b40, parent_root=0x0, hasRecursion=0 &#39;\000&#39;, tuple_fraction=0, subroot=0x7ffca4225500) at planner.c:596
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#3  0x00000000006e3345 in standard_planner (parse=0x25a6b40, cursorOptions=0, boundParams=0x25a6a50) at planner.c:225
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#4  0x00000000006f3a99 in pgxc_planner (query=0x25a6b40, cursorOptions=0, boundParams=0x25a6a50) at pgxcplan.c:2419
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#5  0x00000000006e318d in planner (parse=0x25a6b40, cursorOptions=0, boundParams=0x25a6a50) at planner.c:151
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#6  0x0000000000783038 in pg_plan_query (querytree=0x25a6b40, cursorOptions=0, boundParams=0x25a6a50) at postgres.c:830
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#7  0x00000000007830eb in pg_plan_queries (querytrees=0x2472078, cursorOptions=0, boundParams=0x25a6a50) at postgres.c:889
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#8  0x000000000089658a in BuildCachedPlan (plansource=0x24710c0, qlist=0x2472078, boundParams=0x25a6a50) at plancache.c:942
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#9  0x0000000000896ae1 in GetCachedPlan (plansource=0x24710c0, boundParams=0x25a6a50, useResOwner=0 &#39;\000&#39;) at plancache.c:1236
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#10 0x00000000005d6785 in ExecuteQuery (stmt=0x2539c90, intoClause=0x0, queryString=0x25391e0 &#34;execute s3(1, 1);&#34;, params=0x0, dest=0x2471e08, completionTag=0x7ffca4225ae0 &#34;&#34;)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    at prepare.c:<span style=color:#ae81ff>251</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#11 0x000000000078bd7f in standard_ProcessUtility (parsetree=0x2539c90, queryString=0x25391e0 &#34;execute s3(1, 1);&#34;, context=PROCESS_UTILITY_TOPLEVEL, params=0x0, dest=0x2471e08, 
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    sentToRemote<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> <span style=color:#e6db74>&#39;\000&#39;</span>, completionTag<span style=color:#f92672>=</span><span style=color:#ae81ff>0x7ffca4225ae0</span> <span style=color:#e6db74>&#34;&#34;</span>) at utility.c:<span style=color:#ae81ff>751</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#12 0x000000000078b3da in ProcessUtility (parsetree=0x2539c90, queryString=0x25391e0 &#34;execute s3(1, 1);&#34;, context=PROCESS_UTILITY_TOPLEVEL, params=0x0, dest=0x2471e08, sentToRemote=0 &#39;\000&#39;, 
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    completionTag<span style=color:#f92672>=</span><span style=color:#ae81ff>0x7ffca4225ae0</span> <span style=color:#e6db74>&#34;&#34;</span>) at utility.c:<span style=color:#ae81ff>404</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#13 0x000000000078a314 in PortalRunUtility (portal=0x25a2990, utilityStmt=0x2539c90, isTopLevel=1 &#39;\001&#39;, dest=0x2471e08, completionTag=0x7ffca4225ae0 &#34;&#34;) at pquery.c:1285
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#14 0x000000000078a06b in FillPortalStore (portal=0x25a2990, isTopLevel=1 &#39;\001&#39;) at pquery.c:1155
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#15 0x000000000078994b in PortalRun (portal=0x25a2990, count=9223372036854775807, isTopLevel=1 &#39;\001&#39;, dest=0x253a000, altdest=0x253a000, completionTag=0x7ffca4225cd0 &#34;&#34;) at pquery.c:851
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#16 0x0000000000783534 in exec_simple_query (query_string=0x25391e0 &#34;execute s3(1, 1);&#34;) at postgres.c:1140
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#17 0x00000000007878dc in PostgresMain (argc=1, argv=0x2458370, dbname=0x2458220 &#34;benchmarksql&#34;, username=0x2458200 &#34;postgres&#34;) at postgres.c:4251
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#18 0x0000000000727802 in BackendRun (port=0x24780b0) at postmaster.c:4205
+</span></span></span></code></pre></div><p>benchmarksql=# prepare s2(int, int, int, int) as select count(*) as low_stock from (select s_w_id, s_i_id, s_quantity from bmsql_stock where s_w_id = $1 and s_quantity &lt; $2 and s_i_id in (select ol_i_id from bmsql_district join bmsql_order_line on ol_w_id = d_w_id and ol_d_id = d_id and ol_o_id >= d_next_o_id - 20 and ol_o_id &lt; d_next_o_id where d_w_id = $3 and d_id = $4)) as l;
+PREPARE</p><p>benchmarksql=# explain verbose execute s2(1, 1, 1, 1);
+QUERY PLAN</p><hr><hr><hr><p>Aggregate (cost=0.02..0.03 rows=1 width=0)
+Output: count(*)
+-> Nested Loop Semi Join (cost=0.00..0.01 rows=1 width=0)
+Join Filter: (bmsql_stock.s_i_id = bmsql_order_line.ol_i_id)
+-> Data Node Scan on bmsql_stock &ldquo;<em>REMOTE_TABLE_QUERY</em>&rdquo; (cost=0.00..0.00 rows=1000 width=4)
+Output: bmsql_stock.s_i_id
+Node/s: data_1
+Remote query: SELECT s_i_id FROM ONLY public.bmsql_stock WHERE ((s_quantity &lt; 1) AND (s_w_id = 1))
+-> Data Node Scan on &ldquo;<em>REMOTE_TABLE_QUERY</em>&rdquo; (cost=0.00..0.00 rows=1000 width=4)
+Output: bmsql_order_line.ol_i_id
+Node/s: data_1
+Remote query: SELECT r.a_4 FROM ((SELECT bmsql_district.d_w_id, bmsql_district.d_id, bmsql_district.d_next_o_id FROM ONLY public.bmsql_district WHERE ((bmsql_district.d_id = 1) AND (bmsql_district.d_w_id = 1))) l(a_1, a_2, a_3) JO
+IN (SELECT bmsql_order_line.ol_w_id, bmsql_order_line.ol_d_id, bmsql_order_line.ol_o_id, bmsql_order_line.ol_i_id FROM ONLY public.bmsql_order_line WHERE ((bmsql_order_line.ol_d_id = 1) AND (bmsql_order_line.ol_w_id = 1))) r(a_1, a_2, a_3, a_4)
+ON (true)) WHERE ((r.a_3 >= (l.a_3 - 20)) AND (r.a_3 &lt; l.a_3))
+(12 rows)</p><p>create function mlparted5abrtrig_func1() returns trigger as $$ begin new.b = 100; return new; end; $$ language plpgsql;</p><p>create trigger mlparted5abrtrig before insert on mlparted5 for each row execute procedure mlparted5abrtrig_func1();</p><p>CREATE FUNCTION trigger_func() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+RAISE NOTICE &rsquo;trigger_func(%) called: action = %, when = %, level = %&rsquo;,
+TG_ARGV[0], TG_OP, TG_WHEN, TG_LEVEL;
+RETURN NULL;
+END;$$;
+create trigger test_trigger before insert on t1 for each row execute procedure trigger_func();
+explain insert into t1 values(1,1,1);</p><p>prepare s25(int) as select * from (select * from t1 where c1 = $1) a;
+prepare s26(int) as select * from (select max(c2) from t1 where c1 = $1) a;
+explain verbose execute s26(2);</p><p>create rule test_rule as on insert to t1 where new.c1 = 10 do instead nothing;
+explain verbose insert into t1 values(10,10,10);</p><p>prepare s22(int) as insert into t1 values($1,1,1);
+explain execute s22(2);</p><p>with t as
+(
+select * from t1 where c1 = 2
+)
+select * from t order by 3,2,1;</p><p>create view vt1(a,b,c,d) as select c1, c1+2, c2, c2+4 from t1;</p><p>create table t4(a int default 10, b int, c int);
+create table t5(a int default 10);
+INSERT INTO t5 DEFAULT VALUES;</p><p>create table test_default_req (
+no_w_id integer,
+no_d_id integer not null
+) distribute by replication;
+insert into test_default_req(no_w_id, no_d_id) values (3,1);
+create sequence test_id_seq;
+prepare s6(int) as update test_default_req set no_d_id = nextval(&rsquo;test_id_seq&rsquo;) where no_w_id = $1 ;
+explain verbose execute s6(3);</p><p>create table test_insert_dist (
+no_w_id integer ,
+no_d_id integer not null
+) distribute by hash(no_w_id);
+explain verbose insert into test_insert_dist (no_w_id, no_d_id) values (3,currval(&rsquo;test_id_seq&rsquo;));</p><p>create table t1 (c1 int, c2 int, c3 int);
+explain select distinct c2 from t1 where c1 = 10;
+explain select max(c2) from t1 where c1 = 10 group by c3;</p><p>cn sname
+dn sname</p><p>1 多表deparse出同样的一条语句
+2 cn执行计划变化
+3 cn计划
+4 dn复用进程，stmt清理？</p><p>使用语句的hash作为stmt的name，所以dn上prepare的语句不需要清理，下次其他进程链接，也可以使用
+？cn保存prepare的语句，怎么</p><p>remote</p><ol><li>直接执行语句走Q协议，DN回复H之后建立链接，然后DN使用D发送数据</li><li>prepare没有参数的语句CN发送是Q，和Q的流程是一样的</li><li>prepare带参数语句走的是p，参数和语句打包在一起，DN接到p之后直接执行然后返回D</li><li>在查询大量数据的时候，remote不会等待所有节点准备好。只要收到H之后，就直接接受数据然后发送了</li><li>数据多的时候，他会把slot保存到临时文件，所以简单的select会比不上cluster</li><li>如果cn的一条语句在deparse之后，在一个DN上有多条语句，则按顺序执行，之前的语句的数据没有取完，之后的语句不会运行，所以slot保存到临时文件可以理解</li></ol><p>cluster</p><ol><li>无论是直接执行，还是prepare带参还是无参，都走p协议</li><li>等待所有节点返回W之后，才接收数据</li><li>最后DN会发送c到DN，DN也会回复c</li></ol><p>socket::recv
+spcket::send</p><pre><code>if (!node-&gt;query_Done)
+{
+	/* Fire BEFORE STATEMENT triggers just before the query execution */
+	pgxc_rq_fire_bstriggers(node);
+	scanslot = StartRemoteQuery(node, scanslot);
+	node-&gt;query_Done = true;
+}
+</code></pre><p>vscode ➜ /workspaces/antdb (ADB6_2_STABLE_HZ_TEST_FORMAL ✗) $ strace -cp 23768
+strace: Process 23768 attached
+^Cstrace: Process 23768 detached
+% time seconds usecs/call calls errors syscall</p><hr><p>39.43 0.025764 24 1048 1 recvfrom
+22.15 0.014474 19 747 pwrite64
+20.20 0.013199 13 946 pread64
+16.98 0.011093 20 542 poll
+0.42 0.000273 45 6 brk
+0.25 0.000166 166 1 unlink
+0.25 0.000161 32 5 sendto
+0.15 0.000097 97 1 epoll_wait
+0.14 0.000092 23 4 rt_sigprocmask
+0.02 0.000014 14 1 close
+0.02 0.000014 14 1 newfstatat
+0.00 0.000000 0 1 openat</p><hr><p>100.00 0.065347 19 3303 1 total</p><p>remote query 会把数据存下来，所以有额外的花费
+读写文件
+cluster 没有</p><p>#0 FileWrite (file=16, buffer=0x561e2541d6d0 &ldquo;\032&rdquo;, amount=8192, offset=0, wait_event_info=167772161)
+at /workspaces/antdb/src/backend/storage/file/fd.c:2066
+#1 0x0000561e23cbe379 in BufFileDumpBuffer (file=0x561e2541d688)
+at /workspaces/antdb/src/backend/storage/file/buffile.c:494
+#2 0x0000561e23cbe607 in BufFileWrite (file=0x561e2541d688, ptr=0x7ffd01b8e79e, size=2)
+at /workspaces/antdb/src/backend/storage/file/buffile.c:595
+#3 0x0000561e23efdb73 in write_remotetup_heap (state=0x561e2545fa78, tup=0x561e25405328)
+at /workspaces/antdb/src/backend/utils/sort/tuplestore.c:1663
+#4 0x0000561e23efce3c in dumptuples (state=0x561e2545fa78)
+at /workspaces/antdb/src/backend/utils/sort/tuplestore.c:1223
+#5 0x0000561e23efc37a in tuplestore_puttuple_common (state=0x561e2545fa78, tuple=0x561e258f8b68)
+at /workspaces/antdb/src/backend/utils/sort/tuplestore.c:832
+#6 0x0000561e23efd9c0 in tuplestore_put_remotetupleslot (state=0x561e2545fa78, remoteSlot=0x561e25460008)
+at /workspaces/antdb/src/backend/utils/sort/tuplestore.c:1601
+#7 0x0000561e23f423f2 in StoreRemoteSlot (context=0x7ffd01b8ea60, iterslot=0x561e25460008,
+destslot=0x561e2545fea8) at /workspaces/antdb/src/backend/intercomm/inter-query.c:639
+#8 0x0000561e23f4271a in HandleCopyOutData (pub=0x7ffd01b8ea60, conn=0x561e25306990,
+buf=0x561e254962c5 &ldquo;D\034&rdquo;, len=29) at /workspaces/antdb/src/backend/intercomm/inter-query.c:726
+#9 0x0000561e23a6e010 in PQNExecFinish (conn=0x561e25306990, hook=0x7ffd01b8ea60)
+at /workspaces/antdb/src/backend/libpq/libpq-node.c:637
+#10 0x0000561e23a6d854 in PQNListExecFinish (conn_list=0x561e254607c0,
+get_pgconn_hook=0x561e23f3c711 , hook=0x7ffd01b8ea60, blocking=true)
+at /workspaces/antdb/src/backend/libpq/libpq-node.c:480
+#11 0x0000561e23f42112 in FetchRemoteQuery (node=0x561e2545f788, destslot=0x561e2545fea8)
+at /workspaces/antdb/src/backend/intercomm/inter-query.c:548
+#12 0x0000561e23f36d41 in RemoteQueryNext (scan_node=0x561e2545f788)
+at /workspaces/antdb/src/backend/pgxc/pool/execRemote.c:319</p><p>#0 PQsendQueryTree (conn=0x561e253a7c60,
+query=0x561e254065a8 &ldquo;SELECT c1, c2, c3 FROM ONLY public.t1 t1 WHERE true LIMIT &lsquo;500&rsquo;::bigint&rdquo;,
+query_tree=0x0, tree_len=0) at /workspaces/antdb/src/interfaces/libpq/fe-exec.c:1350
+#1 0x0000561e23f3e088 in HandleSendQueryTree (handle=0x561e253d32f8, cid=0, snapshot=0x561e254695d8,
+query=0x561e254065a8 &ldquo;SELECT c1, c2, c3 FROM ONLY public.t1 t1 WHERE true LIMIT &lsquo;500&rsquo;::bigint&rdquo;,
+query_tree=0x0) at /workspaces/antdb/src/backend/intercomm/inter-comm.c:571
+#2 0x0000561e23f41ec9 in HandleStartRemoteQuery (handle=0x561e253d32f8, node=0x561e253e1638)
+at /workspaces/antdb/src/backend/intercomm/inter-query.c:492
+#3 0x0000561e23f41905 in InterXactQuery (state=0x561e24294680 , node=0x561e253e1638,
+destslot=0x561e253e1d08) at /workspaces/antdb/src/backend/intercomm/inter-query.c:348
+#4 0x0000561e23f417a6 in StartRemoteQuery (node=0x561e253e1638, destslot=0x561e253e1d08)
+at /workspaces/antdb/src/backend/intercomm/inter-query.c:312
+#5 0x0000561e23f36ca8 in RemoteQueryNext (scan_node=0x561e253e1638)
+at /workspaces/antdb/src/backend/pgxc/pool/execRemote.c:298
+#6 0x0000561e239e34b3 in ExecScanFetch (node=0x561e253e1638, accessMtd=0x561e23f36c22 ,
+recheckMtd=0x561e23f36c0b ) at /workspaces/antdb/src/backend/executor/execScan.c:133
+#7 0x0000561e239e352c in ExecScan (node=0x561e253e1638, accessMtd=0x561e23f36c22 ,
+recheckMtd=0x561e23f36c0b ) at /workspaces/antdb/src/backend/executor/execScan.c:182
+#8 0x0000561e23f36c09 in ExecRemoteQuery (ps=0x561e253e1638)
+at /workspaces/antdb/src/backend/pgxc/pool/execRemote.c:250
+#9 0x0000561e239df635 in ExecProcNodeFirst (node=0x561e253e1638)
+at /workspaces/antdb/src/backend/executor/execProcnode.c:511
+#10 0x0000561e23a1040d in ExecProcNode (node=0x561e253e1638)
+at /workspaces/antdb/src/include/executor/executor.h:269
+#11 0x0000561e23a10644 in ExecLimit (pstate=0x561e253e1348)</p><p>#0 secure_raw_write (port=0x561e253072d0, ptr=0x561e2530be08, len=8192)
+at /workspaces/antdb/src/backend/libpq/be-secure.c:350
+#1 0x0000561e23a5e1ca in secure_write (port=0x561e253072d0, ptr=0x561e2530be08, len=8192)
+at /workspaces/antdb/src/backend/libpq/be-secure.c:293
+#2 0x0000561e23a69e03 in internal_flush () at /workspaces/antdb/src/backend/libpq/pqcomm.c:1645
+#3 0x0000561e23a69cd2 in internal_putbytes (s=0x561e253e2a79 &ldquo;&rdquo;, len=12)
+at /workspaces/antdb/src/backend/libpq/pqcomm.c:1591
+#4 0x0000561e23a6a04e in socket_putmessage (msgtype=68 &lsquo;D&rsquo;, s=0x561e253e2a70 &ldquo;&rdquo;, len=21)
+at /workspaces/antdb/src/backend/libpq/pqcomm.c:1788
+#5 0x0000561e23a6b00f in pq_endmessage_reuse (buf=0x561e25407c10)
+at /workspaces/antdb/src/backend/libpq/pqformat.c:319
+#6 0x0000561e236f87af in printtup (slot=0x561e253e1d08, self=0x561e25407bb0)
+at /workspaces/antdb/src/backend/access/common/printtup.c:633
+#7 0x0000561e239d655b in ExecutePlan (estate=0x561e253e1118, planstate=0x561e253e1348, use_parallel_mode=false,
+operation=CMD_SELECT, sendTuples=true, numberTuples=0, direction=ForwardScanDirection, dest=0x561e25407bb0,
+execute_once=true) at /workspaces/antdb/src/backend/executor/execMain.c:1734
+#8 0x0000561e239d3fba in standard_ExecutorRun (queryDesc=0x561e253046e8, direction=ForwardScanDirection,
+count=0, execute_once=true) at /workspaces/antdb/src/backend/executor/execMain.c:368
+#9 0x0000561e239d3e21 in ExecutorRun (queryDesc=0x561e253046e8, direction=ForwardScanDirection, count=0,
+execute_once=true) at /workspaces/antdb/src/backend/executor/execMain.c:312
+#10 0x0000561e23d03e3f in PortalRunSelect (portal=0x561e25360f98, forward=true, count=0, dest=0x561e25407bb0)
+at /workspaces/antdb/src/backend/tcop/pquery.c:1034</p><p>prepare s(int, int) as select * from t1 join t2 on t1.c1 = $1 and t2.c1 = $2;</p><p>cache</p><p>B | pname | sname | 0 | 0 | D | p | e | s</p><p>B | 0 | name |
+5 | 1 | 8 |</p><p>39</p><p>strlen(portal_name)</p><p>0x55f5e2c52370: 66 0 0 0 16 0 115 49
+0x55f5e2c52378: 64 64 35 35 48 0 0 0
+0x55f5e2c52380: 0 1 0 0 0 1 49 0
+0x55f5e2c52388: 0 0 0 0 9 0 0 0
+0x55f5e2c52390: 0 0 83 0 0 0 4 108</p><p>0x5595fed95638: 0 115 49 64 64 35 35 48
+0x5595fed95640: 0 0 0 0 1 0 0 0
+0x5595fed95648: 1 49 0 0 0 32 102 111
+0x5595fed95650: 114 99 101 95 103 101 110 101
+0x5595fed95658: 114 105 99 95 112 108 97 110</p><p><a href="https://www.jianshu.com/p/70069c663554?u_atoken=32991cbe-1955-40bc-9718-8d3a35665f89&amp;u_asession=01c4OwPpzAFvgvxZm5PHV1hhBw4zAaxWLCjNLOUx1S0r65K5j_Co9qzK2QP3djrxxlX0KNBwm7Lovlpxjd_P_q4JsKWYrT3W_NKPr8w6oU7K8kc-sAmRM1ALm4x465txKiLDnIvqHhvwKBSiCA9W2pPWBkFo3NEHBv0PZUm6pbxQU&amp;u_asig=05Y3_7uvSQPfeIm07fP1vQdkWeuCRx6EeGjwlKCyZv-3VFasqiGjJkIYokMAzoIY3OUnpfq31N9-YnXa7iZsAG0GGa_jplO472u1JsgaBhVgawWIt-WyU9QFJBdx-2l9l6Kh9xGFYxS8c7EmhEJD97Ui2KtWnr1tnaOIbJC5SZpuT9JS7q8ZD7Xtz2Ly-b0kmuyAKRFSVJkkdwVUnyHAIJzUMyz75HKVeBaK2YeP8Z-vshy4LDmw1kx2t7EvJMCe7BT6aHbewJv6RwWiEQAUeSSO3h9VXwMyh6PgyDIVSG1W8q4Tc-oNDe7qAOFBZNsoQ4TOybdtHlb3igdkDLY_odFR1XLKRTU_RDIFE8Sle2zKb4_cTkWcIdlnLWPTLKoE4CmWspDxyAEEo4kbsryBKb9Q&amp;u_aref=4hkwpSZ%2B%2BpvZu6cQGg9n3Ljxk8g%3D" target=_blank>https://www.jianshu.com/p/70069c663554?u_atoken=32991cbe-1955-40bc-9718-8d3a35665f89&amp;u_asession=01c4OwPpzAFvgvxZm5PHV1hhBw4zAaxWLCjNLOUx1S0r65K5j_Co9qzK2QP3djrxxlX0KNBwm7Lovlpxjd_P_q4JsKWYrT3W_NKPr8w6oU7K8kc-sAmRM1ALm4x465txKiLDnIvqHhvwKBSiCA9W2pPWBkFo3NEHBv0PZUm6pbxQU&amp;u_asig=05Y3_7uvSQPfeIm07fP1vQdkWeuCRx6EeGjwlKCyZv-3VFasqiGjJkIYokMAzoIY3OUnpfq31N9-YnXa7iZsAG0GGa_jplO472u1JsgaBhVgawWIt-WyU9QFJBdx-2l9l6Kh9xGFYxS8c7EmhEJD97Ui2KtWnr1tnaOIbJC5SZpuT9JS7q8ZD7Xtz2Ly-b0kmuyAKRFSVJkkdwVUnyHAIJzUMyz75HKVeBaK2YeP8Z-vshy4LDmw1kx2t7EvJMCe7BT6aHbewJv6RwWiEQAUeSSO3h9VXwMyh6PgyDIVSG1W8q4Tc-oNDe7qAOFBZNsoQ4TOybdtHlb3igdkDLY_odFR1XLKRTU_RDIFE8Sle2zKb4_cTkWcIdlnLWPTLKoE4CmWspDxyAEEo4kbsryBKb9Q&amp;u_aref=4hkwpSZ%2B%2BpvZu6cQGg9n3Ljxk8g%3D</a></p><p>0x55f5e2c52370: 66 0 0 0 16 0 115 64
+0x55f5e2c52378: 64 35 35 48 0 0 0 0
+0x55f5e2c52380: 0 68 0 0 0 6 80 0
+0x55f5e2c52388: 69 0 0 0 9 0 0 0
+0x55f5e2c52390: 0 0 83 0 0 0 4 0</p><p>0x5595fed95638: 0 115 64 64 35 35 48 0
+0x5595fed95640: 0 0 0 0 0 0 0 0
+0x5595fed95648: 1 49 0 0 0 32 102 111
+0x5595fed95650: 114 99 101 95 103 101 110 101
+0x5595fed95658: 114 105 99 95 112 108 97 110</p><p>0x5595fed95638: 0 115 64 64 35 35 48 0
+0x5595fed95640: 0 0 0 0</p><p>benchmarksql=#
+prepare s2(int, int, int, int) as
+select count(*) as low_stock from
+(
+select s_w_id, s_i_id, s_quantity from bmsql_stock
+where
+s_w_id = $1 and
+s_quantity &lt; $2 and
+s_i_id in (
+select ol_i_id from bmsql_district join bmsql_order_line
+on
+ol_w_id = d_w_id and
+ol_d_id = d_id and
+ol_o_id >= d_next_o_id - 20 and
+ol_o_id &lt; d_next_o_id
+where
+d_w_id = $3 and d_id = $4
+)
+) as l;</p><p>benchmarksql=#
+explain verbose execute s2(1, 1, 1, 1);</p><p>[
+COALESCE(hash_combin_mod(2, hashint4(t2.c2)), 0)
+]</p><p>select COALESCE(hash_combin_mod(2, hashint4($1)), 0), COALESCE(hash_combin_mod(2, hashint4($2)), 0) from t2;</p><ol><li><p>辅助文件支持</p></li><li></li><li><p>第一次提取分区键条件</p></li></ol></section><div class=divider></div><div class="flex flex-col md:flex-row justify-between gap-4 py-4"><a role=button class="btn btn-outline h-12" href=/posts/others/docker/ title=Docker><ion-icon name=chevron-back></ion-icon><div class="inline-flex flex-col items-start"><span class="text-base-content/60 text-xs font-normal">Previous page</span>
+<span class="max-w-48 truncate">Docker</span></div></a><a role=button class="btn btn-outline h-12" href=/posts/others/%E5%87%BD%E6%95%B0%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91/ title><div class="inline-flex flex-col items-end"><span class="text-base-content/60 text-xs font-normal">Next page</span>
+<span class="max-w-48 truncate"></span></div><ion-icon name=chevron-forward></ion-icon></a></div><div class=divider></div><section class=space-y-4><template x-if="['localhost', '127.0.0.1'].indexOf(window.location.hostname) == -1"><article><script src=https://utteranc.es/client.js repo=https://askyx.github.io/ issue-term=og:title theme=github-light crossorigin=anonymous async></script></article></template></section></article></div><div x-data=tocHighlighter() @scroll.window=debouncedScroll class="hidden lg:flex lg:flex-col lg:items-end lg:self-start"><nav id=TableOfContents><ul><li><a href=#动态语句优化执行逻辑>动态语句优化执行逻辑</a></li><li><a href=#query-plan>benchmarksql=# explain verbose select no_o_id from bmsql_new_order where no_w_id = 1 and no_d_id = 1 order by no_o_id asc;
+QUERY PLAN</a></li></ul></nav></div></div><footer class="flex justify-between items-center gap-2 px-4 py-12"><div><p>© 2016 - 2025 Askyx's Blog</p><p class=text-sm>🌱
+<span class=text-base-content/60>Powered by <a class=hover:underline href=https://gohugo.io/ target=_blank>Hugo</a> with theme
+<a class=hover:underline href=https://github.com/g1eny0ung/hugo-theme-dream target=_blank>Dream</a>.</span></p></div><div x-data="{ icons: [
+    { name: 'sunny', status: 'n' },
+    { name: 'moon', status: 'y' },
+    { name: 'desktop', status: 'auto' }
+  ] }" class="flex items-center gap-2 h-[32px] px-2 bg-base-100 border border-base-content/30 rounded-full"><template x-for="icon in icons"><div role=button tabindex=0 :aria-label="'Select ' + icon.name + ' mode'" class="group inline-flex justify-center items-center p-1 rounded-full cursor-pointer hover:bg-primary" :class="$store.darkMode.icon() === icon.name && 'bg-primary'" @click=$store.darkMode.toggle(icon.status)><ion-icon :name="`${icon.name}-outline`" class=group-hover:text-primary-content :class="$store.darkMode.icon() === icon.name && 'text-primary-content'"></ion-icon></div></template></div></footer></div></div><div class=back><div class=container><div class="dream-grid dream-grid-about"><div class="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-4 dream-column"><article class="card bg-base-100 hover:bg-base-content/10 shadow-xl dark:border dark:border-base-content/30"><div class=card-body><div class=card-title>About Me</div><div class="prose dark:prose-invert"><p>Hi, my name is Yue Yang.</p><p>This is my blog.</p><h2 id=ヾωo>ヾ(•ω•`)o</h2><p>比较胆小，出门都得贴墙走</p></div></div></article></div></div><footer class="flex justify-between items-center gap-2 px-4 py-12"><div><p>© 2016 - 2025 Askyx's Blog</p><p class=text-sm>🌱
+<span class=text-base-content/60>Powered by <a class=hover:underline href=https://gohugo.io/ target=_blank>Hugo</a> with theme
+<a class=hover:underline href=https://github.com/g1eny0ung/hugo-theme-dream target=_blank>Dream</a>.</span></p></div><div x-data="{ icons: [
+    { name: 'sunny', status: 'n' },
+    { name: 'moon', status: 'y' },
+    { name: 'desktop', status: 'auto' }
+  ] }" class="flex items-center gap-2 h-[32px] px-2 bg-base-100 border border-base-content/30 rounded-full"><template x-for="icon in icons"><div role=button tabindex=0 :aria-label="'Select ' + icon.name + ' mode'" class="group inline-flex justify-center items-center p-1 rounded-full cursor-pointer hover:bg-primary" :class="$store.darkMode.icon() === icon.name && 'bg-primary'" @click=$store.darkMode.toggle(icon.status)><ion-icon :name="`${icon.name}-outline`" class=group-hover:text-primary-content :class="$store.darkMode.icon() === icon.name && 'text-primary-content'"></ion-icon></div></template></div></footer></div></div></div></div><script>window.lightTheme="emerald",window.darkTheme="forest"</script><script src=https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js integrity="sha256-htrLFfZJ6v5udOG+3kNLINIKh2gvoKqwEhHYfTTMICc=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin=anonymous></script><script src=/js/grid.min.js></script><script src=/js/main.min.js></script><script src=https://cdn.jsdelivr.net/npm/luxon@1.26.0 integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin=anonymous></script><script>format();function format(){document.querySelectorAll('span[data-format="luxon"]').forEach(e=>{const t=e.textContent;e.textContent=luxon.DateTime.fromISO(t,{locale:"en"}).toFormat("yyyy年MM月dd日")})}</script><script src=/js/toc.min.js></script><script type=module>
+      import mediumZoom from 'https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/+esm';
+      mediumZoom('#dream-single-post-content img', {
+        background: 'oklch(var(--b1))',
+        margin: 24,
+      })
+    </script><script type=module src=https://cdn.jsdelivr.net/npm/ionicons@7.4.0/dist/ionicons/ionicons.esm.js integrity="sha256-/IFmi82bIhdYWctu0UddSlJqpnzWm7Vh2C4CM32wF/k=" crossorigin=anonymous></script><script nomodule src=https://cdn.jsdelivr.net/npm/ionicons@7.4.0/dist/ionicons/ionicons.js integrity="sha256-mr7eJMX3VC3F7G32mk4oWp1C6a2tlMYxUdptfT7uKI8=" crossorigin=anonymous></script></body></html>

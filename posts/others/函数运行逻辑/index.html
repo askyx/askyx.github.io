@@ -1,0 +1,270 @@
+<!doctype html><html lang=zh-Hans x-data :class=$store.darkMode.class() :data-theme=$store.darkMode.theme()><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>| Askyx's Blog</title>
+<link rel=icon href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%2210 0 100 100%22><text y=%22.90em%22 font-size=%2290%22>🌱</text></svg>"></link>
+<link rel=canonical href=https://askyx.github.io/posts/others/%E5%87%BD%E6%95%B0%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91/><meta name=author content="Askyx"><meta name=description content="predicate_refuted_by 和 make_new_qual_list的运行逻辑以及PARAM 无法选出一个节点的原因 make_new_qual_list需要使用表达式和分"><meta name=keywords content><meta name=generator content="Hugo 0.121.0"><meta property="og:title" content><meta property="og:description" content="predicate_refuted_by 和 make_new_qual_list的运行逻辑以及PARAM 无法选出一个节点的原因 make_new_qual_list需要使用表达式和分"><meta property="og:type" content="article"><meta property="og:url" content="https://askyx.github.io/posts/others/%E5%87%BD%E6%95%B0%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91/"><meta property="og:image" content="https://askyx.github.io/img/global-background.jpg"><meta property="article:section" content="posts"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://askyx.github.io/img/global-background.jpg"><meta name=twitter:title content><meta name=twitter:description content="predicate_refuted_by 和 make_new_qual_list的运行逻辑以及PARAM 无法选出一个节点的原因 make_new_qual_list需要使用表达式和分"><link rel=stylesheet href=/css/output.min.css><style>pre{padding:1em;overflow:auto}</style><link rel=stylesheet href=/css/custom.css><script defer src=https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js integrity="sha256-PtHu0lJIiSHfZeNj1nFd6wTX+Squ255SGZ/fc8seCtM=" crossorigin=anonymous></script></head><body x-data="{
+    flip: false,
+  }"><div id=dream-global-bg></div><nav x-data="{ isSticky: false }" x-init="window.addEventListener('scroll', () => { isSticky = window.scrollY > 30 })" class="sticky top-0 z-30 mt-4 lg:mt-8 py-4" :class="{ 'bg-base-100 shadow-lg dark:border-b dark:border-base-content/30': isSticky }"><div class="container flex justify-between px-4"><section class="flex items-center gap-4"><div class="avatar cursor-pointer hover:avatar-online" @click="flip = !flip" title="Flip it!"><div class="h-10 rounded-full"><img src=/img/personal/avatar.jpg alt="Askyx's Blog"></div></div><div><a href=https://askyx.github.io/ class="text-lg font-semibold cursor-pointer">Askyx's Blog</a><div class="text-base-content/60 text-sm">life is short, use Python</div></div></section><div class="dropdown dropdown-end sm:hidden"><div tabindex=0 role=button class="btn btn-ghost btn-square" aria-label="Select an option"><ion-icon name=menu class=text-2xl></ion-icon></div><ul tabindex=0 class="dropdown-content menu w-36 bg-base-100 rounded-box z-1 shadow-md"><li><div role=link tabindex=0 class="inline-flex items-center p-2 cursor-pointer" @click="flip = !flip" title=About><ion-icon name=information-circle></ion-icon>About</div></li><li><a class="group inline-flex items-center p-2 cursor-pointer" href=/search title=Search><ion-icon name=search></ion-icon>Search</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=https://github.com/askyx target=_blank title=GitHub><ion-icon name=logo-github></ion-icon>GitHub</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/posts title=Archives><ion-icon name=archive></ion-icon>Archives</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/tags title="All Tags"><ion-icon name=pricetags></ion-icon>All Tags</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/index.xml title=RSS><ion-icon name=logo-rss></ion-icon>RSS</a></li></ul></div><section class="hidden sm:flex sm:items-center sm:gap-2 md:gap-4"><div role=link tabindex=0 class="text-sm font-semibold cursor-pointer hover:underline" @click="flip = !flip" title=About>About</div><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href=/search title=Search><ion-icon class=group-hover:text-primary-content name=search></ion-icon></a><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href=https://github.com/askyx target=_blank title=GitHub><ion-icon class=group-hover:text-primary-content name=logo-github></ion-icon></a><div class="dropdown dropdown-end dropdown-hover"><div tabindex=0 role=button class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" aria-label="Select an option"><ion-icon class="group-hover:text-primary-content text-xl" name=menu></ion-icon></div><ul tabindex=0 class="dropdown-content menu w-36 bg-base-100 rounded-box z-1 shadow-xl"><li><a class="inline-flex items-center p-2 cursor-pointer" href=/posts title=Archives><ion-icon name=archive></ion-icon>Archives</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/tags title="All Tags"><ion-icon name=pricetags></ion-icon>All Tags</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/index.xml title=RSS><ion-icon name=logo-rss></ion-icon>RSS</a></li></ul></div></section></div></nav><div class=flip-container :class="{ 'flip-it': flip }"><div class=flipper><div class=front><div class=container><div class="lg:grid lg:grid-cols-4 gap-4 mt-4 px-4"><div class="hidden lg:block"></div><div class=lg:col-span-2><article class="mx-auto prose prose-quoteless dark:prose-invert" id=dream-single-post-main itemscope itemtype=http://schema.org/Article><meta itemprop=name content><meta itemprop=description content="predicate_refuted_by 和 make_new_qual_list的运行逻辑以及PARAM 无法选出一个节点的原因 make_new_qual_list需要使用表达式和分"><meta itemprop=wordCount content="1403"><meta itemprop=image content="https://askyx.github.io/img/global-background.jpg"><meta itemprop=keywords content><header><h1 itemprop=headline></h1><p class=text-sm><span data-format=luxon>0001-01-01T00:00:00Z</span>
+| <span>3 minute read</span>
+| <span>Updated at
+<span data-format=luxon>0001-01-01T00:00:00Z</span></span></p><div class="flex justify-between"><div class="flex items-center"><span>@</span>
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=name>Askyx</span></span></div><div class="flex items-center gap-2"><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href="https://x.com/intent/post?text=&amp;url=https://askyx.github.io/posts/others/%E5%87%BD%E6%95%B0%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91/" target=_blank rel="noopener noreferrer" title="Share on X"><ion-icon class=group-hover:text-primary-content name=logo-x></ion-icon></a><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href="https://facebook.com/sharer/sharer.php?u=https://askyx.github.io/posts/others/%E5%87%BD%E6%95%B0%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91/" target=_blank rel="noopener noreferrer" title="Share on Facebook"><ion-icon class=group-hover:text-primary-content name=logo-facebook></ion-icon></a><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href="https://wa.me/?text=%20https://askyx.github.io/posts/others/%E5%87%BD%E6%95%B0%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91/" target=_blank rel="noopener noreferrer" title="Share on WhatsApp"><ion-icon class=group-hover:text-primary-content name=logo-whatsapp></ion-icon></a></div></div></header><section id=dream-single-post-content itemprop=articleBody><p>predicate_refuted_by 和 make_new_qual_list的运行逻辑以及PARAM 无法选出一个节点的原因</p><p>make_new_qual_list需要使用表达式和分区信息构造新的表达式，但是PARAM不是常量，所以无法构造，
+所以predicate_refuted_by判定变大时和约束的时候无法正确的选择节点，动态语句只要使用到分区键都不行</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span>node_count <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span>                              Table <span style=color:#e6db74>&#34;public.bmsql_new_order&#34;</span>
+</span></span><span style=display:flex><span> Column  <span style=color:#f92672>|</span>  Type   <span style=color:#f92672>|</span> Nullable <span style=color:#f92672>|</span> Storage <span style=color:#f92672>|</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>---------+---------+----------+---------+</span>
+</span></span><span style=display:flex><span> no_w_id <span style=color:#f92672>|</span> integer <span style=color:#f92672>|</span> not null <span style=color:#f92672>|</span> plain   <span style=color:#f92672>|</span> 
+</span></span><span style=display:flex><span> no_d_id <span style=color:#f92672>|</span> integer <span style=color:#f92672>|</span> not null <span style=color:#f92672>|</span> plain   <span style=color:#f92672>|</span> 
+</span></span><span style=display:flex><span> no_o_id <span style=color:#f92672>|</span> integer <span style=color:#f92672>|</span> not null <span style=color:#f92672>|</span> plain   <span style=color:#f92672>|</span> 
+</span></span><span style=display:flex><span>Indexes:
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;bmsql_new_order_pkey&#34;</span> PRIMARY KEY, btree (no_w_id, no_d_id, no_o_id)
+</span></span><span style=display:flex><span>Foreign<span style=color:#f92672>-</span>key constraints:
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;no_order_fkey&#34;</span> FOREIGN KEY (no_w_id, no_d_id, no_o_id) REFERENCES bmsql_oorder(o_w_id, o_d_id, o_id)
+</span></span><span style=display:flex><span>DISTRIBUTE BY HASH(no_w_id) TO NODE(dn1, dn2)
+</span></span><span style=display:flex><span>Access method: heap
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>数据分布</span>
+</span></span><span style=display:flex><span>benchmarksql<span style=color:#f92672>=</span><span style=color:#960050;background-color:#1e0010>#</span> execute direct on (dn1) <span style=color:#960050;background-color:#1e0010>&#39;</span>select distinct no_w_id from <span style=color:#66d9ef>public</span>.bmsql_new_order<span style=color:#960050;background-color:#1e0010>&#39;</span>;
+</span></span><span style=display:flex><span> no_w_id 
+</span></span><span style=display:flex><span><span style=color:#f92672>---------</span>
+</span></span><span style=display:flex><span>       <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>       <span style=color:#ae81ff>5</span>
+</span></span><span style=display:flex><span>       <span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>3</span> rows)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>benchmarksql<span style=color:#f92672>=</span><span style=color:#960050;background-color:#1e0010>#</span> execute direct on (dn2) <span style=color:#960050;background-color:#1e0010>&#39;</span>select distinct no_w_id from <span style=color:#66d9ef>public</span>.bmsql_new_order<span style=color:#960050;background-color:#1e0010>&#39;</span>;
+</span></span><span style=display:flex><span> no_w_id 
+</span></span><span style=display:flex><span><span style=color:#f92672>---------</span>
+</span></span><span style=display:flex><span>       <span style=color:#ae81ff>4</span>
+</span></span><span style=display:flex><span>       <span style=color:#ae81ff>3</span>
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>2</span> rows)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>语句</span>select no_o_id from bmsql_new_order where no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> and no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span> order by no_o_id asc;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>========================================</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>(no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> and no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>COALESCE(hash_combin_mod(<span style=color:#ae81ff>2</span>, hash(no_w_id)), <span style=color:#ae81ff>0</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span> and (no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>hash(no_w_id) <span style=color:#f92672>%</span> node_count <span style=color:#f92672>=</span> hash(<span style=color:#ae81ff>4</span>) <span style=color:#f92672>%</span> node_count
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>===============</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>(no_w_id, no_d_id, no_o_id) is not null 
+</span></span><span style=display:flex><span>XC_NODE_ID is not null
+</span></span><span style=display:flex><span>ABLE.XC_NODE_ID<span style=color:#f92672>=</span>id
+</span></span><span style=display:flex><span>COALESCE(hash_combin_mod(<span style=color:#ae81ff>2</span>, hash(no_w_id))<span style=color:#960050;background-color:#1e0010>，</span> <span style=color:#ae81ff>0</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>第一轮，检测条件</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span> <span style=color:#960050;background-color:#1e0010>限制条件为</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1.</span> <span style=color:#960050;background-color:#1e0010>主键不为</span>NULL<span style=color:#960050;background-color:#1e0010>，</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>2.</span> <span style=color:#960050;background-color:#1e0010>节点</span>XC_NODE_ID不为null
+</span></span><span style=display:flex><span><span style=color:#ae81ff>3.</span> XC_NODE_ID<span style=color:#f92672>=</span>loc_info.nodeid
+</span></span><span style=display:flex><span><span style=color:#ae81ff>4.</span> hash(no_w_id) <span style=color:#f92672>%</span> node_count <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span> <span style=color:#960050;background-color:#1e0010>输入表达式为</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1.</span> (no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> and no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span><span style=color:#ae81ff>2.</span> (hash(no_w_id) <span style=color:#f92672>%</span> node_count <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>) and no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span> (<span style=color:#960050;background-color:#1e0010>语句条件根据分布方式计算的</span>hash)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>由于</span>hash出来判断的节点不一致<span style=color:#960050;background-color:#1e0010>，所以无法通过判断</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>=============================================</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>(no_w_id, no_d_id, no_o_id) is not null 
+</span></span><span style=display:flex><span>XC_NODE_ID is not null
+</span></span><span style=display:flex><span>XC_NODE_ID<span style=color:#f92672>=</span>id
+</span></span><span style=display:flex><span>COALESCE(hash_combin_mod(<span style=color:#ae81ff>2</span>, hash(no_w_id)), <span style=color:#ae81ff>0</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>(no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> and no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>COALESCE(hash_combin_mod(<span style=color:#ae81ff>2</span>, hash(no_w_id)), <span style=color:#ae81ff>0</span>) <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span> and (no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>第而轮，检测条件</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span> <span style=color:#960050;background-color:#1e0010>限制条件为</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1.</span> <span style=color:#960050;background-color:#1e0010>主键不为</span>NULL<span style=color:#960050;background-color:#1e0010>，</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>2.</span> <span style=color:#960050;background-color:#1e0010>节点</span>XC_NODE_ID不为null
+</span></span><span style=display:flex><span><span style=color:#ae81ff>3.</span> XC_NODE_ID<span style=color:#f92672>=</span>loc_info.nodeid
+</span></span><span style=display:flex><span><span style=color:#ae81ff>4.</span> hash(no_w_id) <span style=color:#f92672>%</span> node_count <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span> <span style=color:#960050;background-color:#1e0010>输入表达式为</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1.</span> (no_w_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span> and no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span><span style=color:#ae81ff>2.</span> (hash(no_w_id) <span style=color:#f92672>%</span> node_count <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>) and no_d_id <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span> (<span style=color:#960050;background-color:#1e0010>语句条件根据分布方式计算的</span>hash)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>判定表达式是否可以通过约束的检查</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>判定通过</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// 递归地检查子句clause_list中的子句是否驳斥给定的predicate_list(也就是说，证明它为 false)。
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>/*
+</span></span></span><span style=display:flex><span><span style=color:#75715e>predicate_list
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_w_id is not null
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_d_id is not null
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_o_id is not null
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* XC_NODE_ID is not null
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* XC_NODE_ID = nodeid
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* hash(no_w_id) % node_count = 0
+</span></span></span><span style=display:flex><span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>clause_list
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_w_id = 4
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_d_id = 1
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* hash(no_w_id) % node_count = 1
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_d_id = 1
+</span></span></span><span style=display:flex><span><span style=color:#75715e>*/</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>/*
+</span></span></span><span style=display:flex><span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>predicate_list
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_w_id is not null
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_d_id is not null
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_o_id is not null
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* XC_NODE_ID is not null
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* XC_NODE_ID = nodeid
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* hash(no_w_id) % node_count = 0
+</span></span></span><span style=display:flex><span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>clause_list
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_w_id = $1
+</span></span></span><span style=display:flex><span><span style=color:#75715e>* no_d_id = $2
+</span></span></span><span style=display:flex><span><span style=color:#75715e>*/</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>predicate_refuted_by(<span style=color:#f92672>*</span>predicate_list, <span style=color:#f92672>*</span>clause_list) {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  predicate_refuted_by_recurse() {
+</span></span><span style=display:flex><span>    pclass <span style=color:#f92672>=</span> predicate_classify(predicate, <span style=color:#f92672>&amp;</span>pred_info);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 拆解表达式，最终不能拆解的表达书为atom
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>switch</span> (predicate_classify(clause, <span style=color:#f92672>&amp;</span>clause_info)) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>case</span> CLASS_AND:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>switch</span> (pclass) {
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>case</span> CLASS_AND: 
+</span></span><span style=display:flex><span>            iterate_begin(pitem, predicate, pred_info) {
+</span></span><span style=display:flex><span>              <span style=color:#66d9ef>if</span> (predicate_refuted_by_recurse(clause, pitem, weak)) {
+</span></span><span style=display:flex><span>                result <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>              }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            iterate_begin(citem, clause, clause_info) {
+</span></span><span style=display:flex><span>              <span style=color:#66d9ef>if</span> (predicate_refuted_by_recurse(citem, predicate, weak)) {
+</span></span><span style=display:flex><span>                result <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>              }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>case</span> CLASS_OR:
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>case</span> CLASS_ATOM:
+</span></span><span style=display:flex><span>            not_arg <span style=color:#f92672>=</span> extract_not_arg(predicate);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> (not_arg <span style=color:#f92672>&amp;&amp;</span> predicate_implied_by_recurse(clause, not_arg, false))
+</span></span><span style=display:flex><span>              <span style=color:#66d9ef>return</span> true;
+</span></span><span style=display:flex><span>            iterate_begin(citem, clause, clause_info) {
+</span></span><span style=display:flex><span>              <span style=color:#66d9ef>if</span> (predicate_refuted_by_recurse(citem, predicate, weak)) {
+</span></span><span style=display:flex><span>                result <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>              }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>        .....
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>case</span> CLASS_ATOM: {
+</span></span><span style=display:flex><span>          .....
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>case</span> CLASS_ATOM:
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 使用此方法判断最终的atom表达式
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#66d9ef>return</span> predicate_refuted_by_simple_clause((Expr <span style=color:#f92672>*</span>) predicate, clause, weak) {
+</span></span><span style=display:flex><span>              <span style=color:#75715e>// 
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>              <span style=color:#66d9ef>if</span> (predicate <span style=color:#f92672>&amp;&amp;</span> IsA(predicate, NullTest) <span style=color:#f92672>&amp;&amp;</span> ((NullTest <span style=color:#f92672>*</span>) predicate)<span style=color:#f92672>-&gt;</span>nulltesttype <span style=color:#f92672>==</span> IS_NULL) {
+</span></span><span style=display:flex><span>                <span style=color:#75715e>// 判断null，argisrow直接false，一个是is not null， 拎一个是is null，则直接true
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>              }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>              <span style=color:#75715e>// 对简单表达式的判断，简单表达式这里指的是 op(left, right)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>              <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>operator_predicate_proof</span>(predicate, clause, true, weak) {
+</span></span><span style=display:flex><span>                <span style=color:#75715e>// no_w_id is not null 从这里跳出
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span>is_opclause(predicate))
+</span></span><span style=display:flex><span>                  <span style=color:#66d9ef>return</span> false;
+</span></span><span style=display:flex><span>                pred_opexpr <span style=color:#f92672>=</span> (OpExpr <span style=color:#f92672>*</span>) predicate;
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>if</span> (list_length(pred_opexpr<span style=color:#f92672>-&gt;</span>args) <span style=color:#f92672>!=</span> <span style=color:#ae81ff>2</span>)
+</span></span><span style=display:flex><span>                  <span style=color:#66d9ef>return</span> false;
+</span></span><span style=display:flex><span>                ....(<span style=color:#66d9ef>do</span> same as clause)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>if</span> (pred_opexpr<span style=color:#f92672>-&gt;</span>inputcollid <span style=color:#f92672>!=</span> clause_opexpr<span style=color:#f92672>-&gt;</span>inputcollid)
+</span></span><span style=display:flex><span>                  <span style=color:#66d9ef>return</span> false;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>if</span> (equal(pred_leftop, clause_leftop)) {
+</span></span><span style=display:flex><span>                  <span style=color:#66d9ef>if</span> (equal(pred_rightop, clause_rightop)) {
+</span></span><span style=display:flex><span>                    <span style=color:#66d9ef>return</span> operator_same_subexprs_proof(pred_op, clause_op, refute_it);
+</span></span><span style=display:flex><span>                  } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>                    <span style=color:#66d9ef>if</span> (pred_rightop <span style=color:#f92672>==</span> NULL <span style=color:#f92672>||</span> <span style=color:#f92672>!</span>IsA(pred_rightop, Const))
+</span></span><span style=display:flex><span>                      <span style=color:#66d9ef>return</span> false;
+</span></span><span style=display:flex><span>                    pred_const <span style=color:#f92672>=</span> (Const <span style=color:#f92672>*</span>) pred_rightop;
+</span></span><span style=display:flex><span>                    ....
+</span></span><span style=display:flex><span>                    <span style=color:#75715e>// 下面使用const_v构造一个 （l_const != r_cont）并计算，直接返回计算结果，下面的步骤类似
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    <span style=color:#75715e>//  使用
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    <span style=color:#75715e>//    hash(no_w_id) % node_count = 0
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    <span style=color:#75715e>//  和
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    <span style=color:#75715e>//    hash(no_w_id) % node_count = 1
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    <span style=color:#75715e>//   为例。最终执行到这里，const对比不一样，返回false
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                  }
+</span></span><span style=display:flex><span>                  
+</span></span><span style=display:flex><span>                } <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> (equal(pred_rightop, clause_rightop)) {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                } <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> (equal(pred_leftop, clause_rightop)) {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                } <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> (equal(pred_rightop, clause_leftop)) {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>                  <span style=color:#66d9ef>return</span> false;
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>              }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#75715e>/*
+</span></span></span><span style=display:flex><span><span style=color:#75715e>  约束使用分区方式和节点序号构造表达式，查询的where表达式需要判断节点，也需要构造类似的表达式
+</span></span></span><span style=display:flex><span><span style=color:#75715e>*/</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>make_new_qual_list() {
+</span></span><span style=display:flex><span>  <span style=color:#75715e>/*
+</span></span></span><span style=display:flex><span><span style=color:#75715e>  * let column=val to (like) hash(column)%remote_count = hash(value)%remote_count to hash(column)%remote_count = new_value
+</span></span></span><span style=display:flex><span><span style=color:#75715e>  *   column [not] in (v1,v2) to hash(column)%remote [not] in (new_v1,new_v2)
+</span></span></span><span style=display:flex><span><span style=color:#75715e>  */</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 表达式使用分区信息构造 新的clause，规则如上 
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>//  例如 （no_w_id = 4 and no_d_id = 1），使用表的分区信息会对no_w_id = 4构造一个新的表达式，
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>//   hash(column)%remote_count = hash(value)%remote_count
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>//   hash(no_w_id)%remote_count = hash(4)%remote_count
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>//  所以最终的clause构造出来是 (hash(no_w_id) % node_count = 1)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>//  动态参数时，此处无法构造
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  mutator_equal_expr() {
+</span></span><span style=display:flex><span>    get_var_equal_const(op<span style=color:#f92672>-&gt;</span>args, op<span style=color:#f92672>-&gt;</span>opno, context<span style=color:#f92672>-&gt;</span>relid, context<span style=color:#f92672>-&gt;</span>varattno, <span style=color:#f92672>&amp;</span>var) <span style=color:#f92672>==</span> null;
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>goto</span> next_mutator_equal_expr_;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  next_mutator_equal_expr_:
+</span></span><span style=display:flex><span>	  <span style=color:#66d9ef>return</span> expression_tree_mutator(node, mutator_equal_expr, context);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div></section><div class=divider></div><div class="flex flex-col md:flex-row justify-between gap-4 py-4"><a role=button class="btn btn-outline h-12" href=/posts/others/log/ title><ion-icon name=chevron-back></ion-icon><div class="inline-flex flex-col items-start"><span class="text-base-content/60 text-xs font-normal">Previous page</span>
+<span class="max-w-48 truncate"></span></div></a><a role=button class="btn btn-outline h-12" href=/posts/personal/%E7%AE%80%E5%8E%86/ title><div class="inline-flex flex-col items-end"><span class="text-base-content/60 text-xs font-normal">Next page</span>
+<span class="max-w-48 truncate"></span></div><ion-icon name=chevron-forward></ion-icon></a></div><div class=divider></div><section class=space-y-4><template x-if="['localhost', '127.0.0.1'].indexOf(window.location.hostname) == -1"><article><script src=https://utteranc.es/client.js repo=https://askyx.github.io/ issue-term=og:title theme=github-light crossorigin=anonymous async></script></article></template></section></article></div><div x-data=tocHighlighter() @scroll.window=debouncedScroll class="hidden lg:flex lg:flex-col lg:items-end lg:self-start"><nav id=TableOfContents></nav></div></div><footer class="flex justify-between items-center gap-2 px-4 py-12"><div><p>© 2016 - 2025 Askyx's Blog</p><p class=text-sm>🌱
+<span class=text-base-content/60>Powered by <a class=hover:underline href=https://gohugo.io/ target=_blank>Hugo</a> with theme
+<a class=hover:underline href=https://github.com/g1eny0ung/hugo-theme-dream target=_blank>Dream</a>.</span></p></div><div x-data="{ icons: [
+    { name: 'sunny', status: 'n' },
+    { name: 'moon', status: 'y' },
+    { name: 'desktop', status: 'auto' }
+  ] }" class="flex items-center gap-2 h-[32px] px-2 bg-base-100 border border-base-content/30 rounded-full"><template x-for="icon in icons"><div role=button tabindex=0 :aria-label="'Select ' + icon.name + ' mode'" class="group inline-flex justify-center items-center p-1 rounded-full cursor-pointer hover:bg-primary" :class="$store.darkMode.icon() === icon.name && 'bg-primary'" @click=$store.darkMode.toggle(icon.status)><ion-icon :name="`${icon.name}-outline`" class=group-hover:text-primary-content :class="$store.darkMode.icon() === icon.name && 'text-primary-content'"></ion-icon></div></template></div></footer></div></div><div class=back><div class=container><div class="dream-grid dream-grid-about"><div class="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-4 dream-column"><article class="card bg-base-100 hover:bg-base-content/10 shadow-xl dark:border dark:border-base-content/30"><div class=card-body><div class=card-title>About Me</div><div class="prose dark:prose-invert"><p>Hi, my name is Yue Yang.</p><p>This is my blog.</p><h2 id=ヾωo>ヾ(•ω•`)o</h2><p>比较胆小，出门都得贴墙走</p></div></div></article></div></div><footer class="flex justify-between items-center gap-2 px-4 py-12"><div><p>© 2016 - 2025 Askyx's Blog</p><p class=text-sm>🌱
+<span class=text-base-content/60>Powered by <a class=hover:underline href=https://gohugo.io/ target=_blank>Hugo</a> with theme
+<a class=hover:underline href=https://github.com/g1eny0ung/hugo-theme-dream target=_blank>Dream</a>.</span></p></div><div x-data="{ icons: [
+    { name: 'sunny', status: 'n' },
+    { name: 'moon', status: 'y' },
+    { name: 'desktop', status: 'auto' }
+  ] }" class="flex items-center gap-2 h-[32px] px-2 bg-base-100 border border-base-content/30 rounded-full"><template x-for="icon in icons"><div role=button tabindex=0 :aria-label="'Select ' + icon.name + ' mode'" class="group inline-flex justify-center items-center p-1 rounded-full cursor-pointer hover:bg-primary" :class="$store.darkMode.icon() === icon.name && 'bg-primary'" @click=$store.darkMode.toggle(icon.status)><ion-icon :name="`${icon.name}-outline`" class=group-hover:text-primary-content :class="$store.darkMode.icon() === icon.name && 'text-primary-content'"></ion-icon></div></template></div></footer></div></div></div></div><script>window.lightTheme="emerald",window.darkTheme="forest"</script><script src=https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js integrity="sha256-htrLFfZJ6v5udOG+3kNLINIKh2gvoKqwEhHYfTTMICc=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin=anonymous></script><script src=/js/grid.min.js></script><script src=/js/main.min.js></script><script src=https://cdn.jsdelivr.net/npm/luxon@1.26.0 integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin=anonymous></script><script>format();function format(){document.querySelectorAll('span[data-format="luxon"]').forEach(e=>{const t=e.textContent;e.textContent=luxon.DateTime.fromISO(t,{locale:"en"}).toFormat("yyyy年MM月dd日")})}</script><script src=/js/toc.min.js></script><script type=module>
+      import mediumZoom from 'https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/+esm';
+      mediumZoom('#dream-single-post-content img', {
+        background: 'oklch(var(--b1))',
+        margin: 24,
+      })
+    </script><script type=module src=https://cdn.jsdelivr.net/npm/ionicons@7.4.0/dist/ionicons/ionicons.esm.js integrity="sha256-/IFmi82bIhdYWctu0UddSlJqpnzWm7Vh2C4CM32wF/k=" crossorigin=anonymous></script><script nomodule src=https://cdn.jsdelivr.net/npm/ionicons@7.4.0/dist/ionicons/ionicons.js integrity="sha256-mr7eJMX3VC3F7G32mk4oWp1C6a2tlMYxUdptfT7uKI8=" crossorigin=anonymous></script></body></html>

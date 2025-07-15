@@ -1,0 +1,398 @@
+<!doctype html><html lang=zh-Hans x-data :class=$store.darkMode.class() :data-theme=$store.darkMode.theme()><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>gdb 要点简记 | Askyx's Blog</title>
+<link rel=icon href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%2210 0 100 100%22><text y=%22.90em%22 font-size=%2290%22>🌱</text></svg>"></link>
+<link rel=canonical href=https://askyx.github.io/posts/others/gdb/><meta name=author content="Askyx"><meta name=description content="gdb 中的一些常用方法，一些常用的命令，记忆 gdb 的 python 扩展的使用方法"><meta name=keywords content><meta name=generator content="Hugo 0.121.0"><meta property="og:title" content="gdb 要点简记"><meta property="og:description" content="gdb 中的一些常用方法，一些常用的命令，记忆 gdb 的 python 扩展的使用方法"><meta property="og:type" content="article"><meta property="og:url" content="https://askyx.github.io/posts/others/gdb/"><meta property="og:image" content="https://askyx.github.io/img/global-background.jpg"><meta property="article:section" content="posts"><meta property="article:published_time" content="2023-07-11T10:17:52+08:00"><meta property="article:modified_time" content="2025-07-15T23:03:54+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://askyx.github.io/img/global-background.jpg"><meta name=twitter:title content="gdb 要点简记"><meta name=twitter:description content="gdb 中的一些常用方法，一些常用的命令，记忆 gdb 的 python 扩展的使用方法"><link rel=stylesheet href=/css/output.min.css><style>pre{padding:1em;overflow:auto}</style><link rel=stylesheet href=/css/custom.css><script defer src=https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js integrity="sha256-PtHu0lJIiSHfZeNj1nFd6wTX+Squ255SGZ/fc8seCtM=" crossorigin=anonymous></script></head><body x-data="{
+    flip: false,
+  }"><div id=dream-global-bg></div><nav x-data="{ isSticky: false }" x-init="window.addEventListener('scroll', () => { isSticky = window.scrollY > 30 })" class="sticky top-0 z-30 mt-4 lg:mt-8 py-4" :class="{ 'bg-base-100 shadow-lg dark:border-b dark:border-base-content/30': isSticky }"><div class="container flex justify-between px-4"><section class="flex items-center gap-4"><div class="avatar cursor-pointer hover:avatar-online" @click="flip = !flip" title="Flip it!"><div class="h-10 rounded-full"><img src=/img/personal/avatar.jpg alt="Askyx's Blog"></div></div><div><a href=https://askyx.github.io/ class="text-lg font-semibold cursor-pointer">Askyx's Blog</a><div class="text-base-content/60 text-sm">life is short, use Python</div></div></section><div class="dropdown dropdown-end sm:hidden"><div tabindex=0 role=button class="btn btn-ghost btn-square" aria-label="Select an option"><ion-icon name=menu class=text-2xl></ion-icon></div><ul tabindex=0 class="dropdown-content menu w-36 bg-base-100 rounded-box z-1 shadow-md"><li><div role=link tabindex=0 class="inline-flex items-center p-2 cursor-pointer" @click="flip = !flip" title=About><ion-icon name=information-circle></ion-icon>About</div></li><li><a class="group inline-flex items-center p-2 cursor-pointer" href=/search title=Search><ion-icon name=search></ion-icon>Search</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=https://github.com/askyx target=_blank title=GitHub><ion-icon name=logo-github></ion-icon>GitHub</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/posts title=Archives><ion-icon name=archive></ion-icon>Archives</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/tags title="All Tags"><ion-icon name=pricetags></ion-icon>All Tags</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/index.xml title=RSS><ion-icon name=logo-rss></ion-icon>RSS</a></li></ul></div><section class="hidden sm:flex sm:items-center sm:gap-2 md:gap-4"><div role=link tabindex=0 class="text-sm font-semibold cursor-pointer hover:underline" @click="flip = !flip" title=About>About</div><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href=/search title=Search><ion-icon class=group-hover:text-primary-content name=search></ion-icon></a><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href=https://github.com/askyx target=_blank title=GitHub><ion-icon class=group-hover:text-primary-content name=logo-github></ion-icon></a><div class="dropdown dropdown-end dropdown-hover"><div tabindex=0 role=button class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" aria-label="Select an option"><ion-icon class="group-hover:text-primary-content text-xl" name=menu></ion-icon></div><ul tabindex=0 class="dropdown-content menu w-36 bg-base-100 rounded-box z-1 shadow-xl"><li><a class="inline-flex items-center p-2 cursor-pointer" href=/posts title=Archives><ion-icon name=archive></ion-icon>Archives</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/tags title="All Tags"><ion-icon name=pricetags></ion-icon>All Tags</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/index.xml title=RSS><ion-icon name=logo-rss></ion-icon>RSS</a></li></ul></div></section></div></nav><div class=flip-container :class="{ 'flip-it': flip }"><div class=flipper><div class=front><div class=container><div class="lg:grid lg:grid-cols-4 gap-4 mt-4 px-4"><div class="hidden lg:block"></div><div class=lg:col-span-2><article class="mx-auto prose prose-quoteless dark:prose-invert" id=dream-single-post-main itemscope itemtype=http://schema.org/Article><meta itemprop=name content="gdb 要点简记"><meta itemprop=description content="gdb 中的一些常用方法，一些常用的命令，记忆 gdb 的 python 扩展的使用方法"><meta itemprop=datePublished content="2023-07-11T10:17:52+08:00"><meta itemprop=dateModified content="2025-07-15T23:03:54+08:00"><meta itemprop=wordCount content="5452"><meta itemprop=image content="https://askyx.github.io/img/global-background.jpg"><meta itemprop=keywords content><header><h1 itemprop=headline>gdb 要点简记</h1><p class=text-sm><span data-format=luxon>2023-07-11T10:17:52+08:00</span>
+| <span>11 minute read</span>
+| <span>Updated at
+<span data-format=luxon>2025-07-15T23:03:54+08:00</span></span></p><div class="flex justify-between"><div class="flex items-center"><span>@</span>
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=name>Askyx</span></span></div><div class="flex items-center gap-2"><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href="https://x.com/intent/post?text=gdb%20%e8%a6%81%e7%82%b9%e7%ae%80%e8%ae%b0&amp;url=https://askyx.github.io/posts/others/gdb/" target=_blank rel="noopener noreferrer" title="Share on X"><ion-icon class=group-hover:text-primary-content name=logo-x></ion-icon></a><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href="https://facebook.com/sharer/sharer.php?u=https://askyx.github.io/posts/others/gdb/" target=_blank rel="noopener noreferrer" title="Share on Facebook"><ion-icon class=group-hover:text-primary-content name=logo-facebook></ion-icon></a><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href="https://wa.me/?text=gdb%20%e8%a6%81%e7%82%b9%e7%ae%80%e8%ae%b0%20https://askyx.github.io/posts/others/gdb/" target=_blank rel="noopener noreferrer" title="Share on WhatsApp"><ion-icon class=group-hover:text-primary-content name=logo-whatsapp></ion-icon></a></div></div></header><section id=dream-single-post-content itemprop=articleBody><h2 id=配置>配置</h2><pre><code>set print pretty on
+set print elements unlimited
+set pagination off
+</code></pre><h2 id=python-脚本>python 脚本</h2><p>直接安装的 gdb 都是预先编译 python 的，可以使用 python 实现一些有用的功能，比如自定义命令，打印自定义类型等。可以参考 <a href=https://sourceware.org/gdb/onlinedocs/gdb/Python-API.html#Python-API target=_blank>gdb python 扩展</a></p><h3 id=gdb-python-交互>gdb python 交互</h3><pre tabindex=0><code>(gdb) python
+&gt;print(1+1)
+&gt;end
+2
+(gdb) python
+&gt;v = 3
+&gt;end
+(gdb) python print(v)
+3
+(gdb)
+</code></pre><ul><li>python 解释器中的值不是临时变量，可以定义之后后续使用</li></ul><h3 id=重点-api>重点 API</h3><ol><li><p><code>gdb.Value</code> ，直接在 gdb 中访问的值，在 python 中，被包装为 <code>gdb.Value</code> 对象，包含对象的具体值，类型等信息。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># struct box</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># {</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#     int a;</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#     int b;</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># };</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># using box_ptr = box *;</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># using box_ref = box &amp;;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># box *b1 = new box{1, 2};</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># box b2 = box{3, 4};</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># box_ptr b3 = b1;</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># box_ref b4 = b2;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>b1 <span style=color:#f92672>=</span> gdb<span style=color:#f92672>.</span>parse_and_eval(<span style=color:#e6db74>&#39;b1&#39;</span>)
+</span></span><span style=display:flex><span>b2 <span style=color:#f92672>=</span> gdb<span style=color:#f92672>.</span>parse_and_eval(<span style=color:#e6db74>&#39;b2&#39;</span>)
+</span></span><span style=display:flex><span>b3 <span style=color:#f92672>=</span> gdb<span style=color:#f92672>.</span>parse_and_eval(<span style=color:#e6db74>&#39;b3&#39;</span>)
+</span></span><span style=display:flex><span>b4 <span style=color:#f92672>=</span> gdb<span style=color:#f92672>.</span>parse_and_eval(<span style=color:#e6db74>&#39;b4&#39;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>print(<span style=color:#e6db74>&#39;address b1 </span><span style=color:#e6db74>{}</span><span style=color:#e6db74>, b2 </span><span style=color:#e6db74>{}</span><span style=color:#e6db74>, b3 </span><span style=color:#e6db74>{}</span><span style=color:#e6db74>, b4 </span><span style=color:#e6db74>{}</span><span style=color:#e6db74>&#39;</span><span style=color:#f92672>.</span>format(b1<span style=color:#f92672>.</span>address, b2<span style=color:#f92672>.</span>address, b3<span style=color:#f92672>.</span>address, b4<span style=color:#f92672>.</span>address))
+</span></span><span style=display:flex><span>address b1 <span style=color:#ae81ff>0x7fffffffda58</span>, b2 <span style=color:#ae81ff>0x7fffffffda88</span>, b3 <span style=color:#ae81ff>0x7fffffffda60</span>, b4 <span style=color:#ae81ff>0x7fffffffda88</span>
+</span></span><span style=display:flex><span>print(<span style=color:#e6db74>&#39;type b1 </span><span style=color:#e6db74>{}</span><span style=color:#e6db74>, b2 </span><span style=color:#e6db74>{}</span><span style=color:#e6db74>, b3 </span><span style=color:#e6db74>{}</span><span style=color:#e6db74>, b4 </span><span style=color:#e6db74>{}</span><span style=color:#e6db74>&#39;</span><span style=color:#f92672>.</span>format(b1<span style=color:#f92672>.</span>type, b2<span style=color:#f92672>.</span>type, b3<span style=color:#f92672>.</span>type, b4<span style=color:#f92672>.</span>type))
+</span></span><span style=display:flex><span>type b1 box <span style=color:#f92672>*</span>, b2 box, b3 box_ptr, b4 box_ref
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>(gdb) python print(b1<span style=color:#f92672>.</span>dereference())  
+</span></span><span style=display:flex><span>{a <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>, b <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>}
+</span></span><span style=display:flex><span>(gdb) python print(b2<span style=color:#f92672>.</span>dereference())  
+</span></span><span style=display:flex><span>Traceback (most recent call last):
+</span></span><span style=display:flex><span>  File <span style=color:#e6db74>&#34;&lt;string&gt;&#34;</span>, line <span style=color:#ae81ff>1</span>, <span style=color:#f92672>in</span> <span style=color:#f92672>&lt;</span>module<span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>gdb<span style=color:#f92672>.</span>error: Attempt to take contents of a non<span style=color:#f92672>-</span>pointer value<span style=color:#f92672>.</span>
+</span></span><span style=display:flex><span>Error <span style=color:#66d9ef>while</span> executing Python code<span style=color:#f92672>.</span>
+</span></span><span style=display:flex><span>(gdb) python print(b3<span style=color:#f92672>.</span>dereference())  
+</span></span><span style=display:flex><span>{a <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>, b <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>}
+</span></span><span style=display:flex><span>(gdb) python print(b4<span style=color:#f92672>.</span>dereference())  
+</span></span><span style=display:flex><span>Traceback (most recent call last):
+</span></span><span style=display:flex><span>  File <span style=color:#e6db74>&#34;&lt;string&gt;&#34;</span>, line <span style=color:#ae81ff>1</span>, <span style=color:#f92672>in</span> <span style=color:#f92672>&lt;</span>module<span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>gdb<span style=color:#f92672>.</span>error: Attempt to take contents of a non<span style=color:#f92672>-</span>pointer value<span style=color:#f92672>.</span>
+</span></span><span style=display:flex><span>Error <span style=color:#66d9ef>while</span> executing Python code<span style=color:#f92672>.</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>(gdb) python print(b1<span style=color:#f92672>.</span>referenced_value())
+</span></span><span style=display:flex><span>{a <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>, b <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>}
+</span></span><span style=display:flex><span>(gdb) python print(b2<span style=color:#f92672>.</span>referenced_value())
+</span></span><span style=display:flex><span>Traceback (most recent call last):
+</span></span><span style=display:flex><span>  File <span style=color:#e6db74>&#34;&lt;string&gt;&#34;</span>, line <span style=color:#ae81ff>1</span>, <span style=color:#f92672>in</span> <span style=color:#f92672>&lt;</span>module<span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>gdb<span style=color:#f92672>.</span>error: Trying to get the referenced value <span style=color:#f92672>from</span> a value which <span style=color:#f92672>is</span> neither a pointer nor a reference<span style=color:#f92672>.</span>
+</span></span><span style=display:flex><span>Error <span style=color:#66d9ef>while</span> executing Python code<span style=color:#f92672>.</span>
+</span></span><span style=display:flex><span>(gdb) python print(b3<span style=color:#f92672>.</span>referenced_value())
+</span></span><span style=display:flex><span>{a <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>, b <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>}
+</span></span><span style=display:flex><span>(gdb) python print(b4<span style=color:#f92672>.</span>referenced_value())
+</span></span><span style=display:flex><span>{a <span style=color:#f92672>=</span> <span style=color:#ae81ff>3</span>, b <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>(gdb) python print(b1<span style=color:#f92672>.</span>reference_value())
+</span></span><span style=display:flex><span><span style=color:#f92672>@</span><span style=color:#ae81ff>0x7fffffffda58</span>
+</span></span><span style=display:flex><span>(gdb) python print(b2<span style=color:#f92672>.</span>reference_value())
+</span></span><span style=display:flex><span><span style=color:#f92672>@</span><span style=color:#ae81ff>0x7fffffffda88</span>
+</span></span><span style=display:flex><span>(gdb) python print(b3<span style=color:#f92672>.</span>reference_value())
+</span></span><span style=display:flex><span><span style=color:#f92672>@</span><span style=color:#ae81ff>0x7fffffffda60</span>
+</span></span><span style=display:flex><span>(gdb) python print(b4<span style=color:#f92672>.</span>reference_value())
+</span></span><span style=display:flex><span><span style=color:#f92672>@</span><span style=color:#ae81ff>0x7fffffffda88</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>(gdb) python print(b1<span style=color:#f92672>.</span>const_value())
+</span></span><span style=display:flex><span><span style=color:#ae81ff>0x55555556d750</span>
+</span></span><span style=display:flex><span>(gdb) python print(b2<span style=color:#f92672>.</span>const_value())
+</span></span><span style=display:flex><span>{a <span style=color:#f92672>=</span> <span style=color:#ae81ff>3</span>, b <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span>}
+</span></span><span style=display:flex><span>(gdb) python print(b3<span style=color:#f92672>.</span>const_value())
+</span></span><span style=display:flex><span><span style=color:#ae81ff>0x55555556d750</span>
+</span></span><span style=display:flex><span>(gdb) python print(b4<span style=color:#f92672>.</span>const_value())
+</span></span><span style=display:flex><span><span style=color:#f92672>@</span><span style=color:#ae81ff>0x7fffffffda88</span>
+</span></span></code></pre></div></li><li><p><code>gdb.Type</code> ，类型，包含类型信息，比如指针，数组，结构体等。可以使用 lookup_type 转换类型为 内置 gdb.Type 对象。然后使用 gdb.Value.cast 方法转换为指定类型。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span>(gdb) p <span style=color:#f92672>*</span> best_path
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>$</span><span style=color:#ae81ff>3</span> <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>  type <span style=color:#f92672>=</span> T_ProjectionPath,
+</span></span><span style=display:flex><span>  pathtype <span style=color:#f92672>=</span> T_Result,
+</span></span><span style=display:flex><span>  parent <span style=color:#f92672>=</span> <span style=color:#ae81ff>0x563e104048b0</span>,
+</span></span><span style=display:flex><span>  pathtarget <span style=color:#f92672>=</span> <span style=color:#ae81ff>0x563e10404780</span>,
+</span></span><span style=display:flex><span>  param_info <span style=color:#f92672>=</span> <span style=color:#ae81ff>0x0</span>,
+</span></span><span style=display:flex><span>  parallel_aware <span style=color:#f92672>=</span> false,
+</span></span><span style=display:flex><span>  parallel_safe <span style=color:#f92672>=</span> false,
+</span></span><span style=display:flex><span>  parallel_workers <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>,
+</span></span><span style=display:flex><span>  rows <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>,
+</span></span><span style=display:flex><span>  startup_cost <span style=color:#f92672>=</span> <span style=color:#ae81ff>0.047500000000000014</span>,
+</span></span><span style=display:flex><span>  total_cost <span style=color:#f92672>=</span> <span style=color:#ae81ff>0.052500000000000012</span>,
+</span></span><span style=display:flex><span>  pathkeys <span style=color:#f92672>=</span> <span style=color:#ae81ff>0x563e103fb180</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>(gdb) python path <span style=color:#f92672>=</span> gdb<span style=color:#f92672>.</span>parse_and_eval(<span style=color:#e6db74>&#39;best_path&#39;</span>)
+</span></span><span style=display:flex><span>(gdb) python print(path<span style=color:#f92672>.</span>type)
+</span></span><span style=display:flex><span>Path <span style=color:#f92672>*</span>
+</span></span><span style=display:flex><span>(gdb) python print(gdb<span style=color:#f92672>.</span>lookup_type(<span style=color:#e6db74>&#39;ProjectionPath&#39;</span>)<span style=color:#f92672>.</span>pointer())
+</span></span><span style=display:flex><span>ProjectionPath <span style=color:#f92672>*</span>
+</span></span><span style=display:flex><span>(gdb) python print(gdb<span style=color:#f92672>.</span>lookup_type(<span style=color:#e6db74>&#39;ProjectionPath&#39;</span>)<span style=color:#f92672>.</span>reference())
+</span></span><span style=display:flex><span>ProjectionPath <span style=color:#f92672>&amp;</span>
+</span></span><span style=display:flex><span>(gdb) python print(path<span style=color:#f92672>.</span>cast(gdb<span style=color:#f92672>.</span>lookup_type(<span style=color:#e6db74>&#39;ProjectionPath&#39;</span>)<span style=color:#f92672>.</span>pointer())<span style=color:#f92672>.</span>type)
+</span></span><span style=display:flex><span>ProjectionPath <span style=color:#f92672>*</span>
+</span></span><span style=display:flex><span>(gdb) python print(path<span style=color:#f92672>.</span>cast(gdb<span style=color:#f92672>.</span>lookup_type(<span style=color:#e6db74>&#39;ProjectionPath&#39;</span>)<span style=color:#f92672>.</span>pointer())<span style=color:#f92672>.</span>referenced_value())
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  path <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>    type <span style=color:#f92672>=</span> T_ProjectionPath,
+</span></span><span style=display:flex><span>    pathtype <span style=color:#f92672>=</span> T_Result,
+</span></span><span style=display:flex><span>    parent <span style=color:#f92672>=</span> <span style=color:#ae81ff>0x563e104048b0</span>,
+</span></span><span style=display:flex><span>    pathtarget <span style=color:#f92672>=</span> <span style=color:#ae81ff>0x563e10404780</span>,
+</span></span><span style=display:flex><span>    param_info <span style=color:#f92672>=</span> <span style=color:#ae81ff>0x0</span>,
+</span></span><span style=display:flex><span>    parallel_aware <span style=color:#f92672>=</span> false,
+</span></span><span style=display:flex><span>    parallel_safe <span style=color:#f92672>=</span> false,
+</span></span><span style=display:flex><span>    parallel_workers <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>,
+</span></span><span style=display:flex><span>    rows <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>,
+</span></span><span style=display:flex><span>    startup_cost <span style=color:#f92672>=</span> <span style=color:#ae81ff>0.047500000000000014</span>,
+</span></span><span style=display:flex><span>    total_cost <span style=color:#f92672>=</span> <span style=color:#ae81ff>0.052500000000000012</span>,
+</span></span><span style=display:flex><span>    pathkeys <span style=color:#f92672>=</span> <span style=color:#ae81ff>0x563e103fb180</span>
+</span></span><span style=display:flex><span>  },
+</span></span><span style=display:flex><span>  subpath <span style=color:#f92672>=</span> <span style=color:#ae81ff>0x563e10404668</span>,
+</span></span><span style=display:flex><span>  dummypp <span style=color:#f92672>=</span> true
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div></li><li><p><code>gdb.parse_and_eval</code> 方法，可以解析表达式，获取表达式的值。例如具体的某个变量，或者函数等。</p></li></ol><h3 id=自定义命令>自定义命令</h3><p>继承 gdb.Command 类，实现 invoke 方法，下面是一个小 demo</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span>(gdb) python
+</span></span><span style=display:flex><span><span style=color:#f92672>&gt;</span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>HelloWorld</span> (gdb<span style=color:#f92672>.</span>Command):
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>def</span> __init__ (self):
+</span></span><span style=display:flex><span>    super (HelloWorld, self)<span style=color:#f92672>.</span>__init__ (<span style=color:#e6db74>&#34;pp&#34;</span>, gdb<span style=color:#f92672>.</span>COMMAND_USER)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>invoke</span> (self, args, from_tty):
+</span></span><span style=display:flex><span>    argv <span style=color:#f92672>=</span> gdb<span style=color:#f92672>.</span>string_to_argv (args)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> len (argv) <span style=color:#f92672>!=</span> <span style=color:#ae81ff>1</span>:
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>raise</span> gdb<span style=color:#f92672>.</span>GdbError (<span style=color:#e6db74>&#34;pp takes no arguments&#34;</span>)
+</span></span><span style=display:flex><span>    print (argv)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>HelloWorld ()
+</span></span><span style=display:flex><span><span style=color:#f92672>&gt;</span>end
+</span></span><span style=display:flex><span>(gdb) pp
+</span></span><span style=display:flex><span>pp takes no arguments
+</span></span><span style=display:flex><span>(gdb) pp <span style=color:#ae81ff>3</span>
+</span></span><span style=display:flex><span>[<span style=color:#e6db74>&#39;3&#39;</span>]
+</span></span><span style=display:flex><span>(gdb)
+</span></span></code></pre></div><h3 id=pretty-printer>pretty printer</h3><p>对于复杂的大型程序， 特别是 C 程序，由于不直接支持多态，所以会使用一些取巧的方式，例如 Postgres 中，大部分结构体都直接或者间接的继承自 Node ，大部分指针
+直接就是一个 <code>Node*</code>, 不一层一层展开，是不知道 <code>Node*</code> 的指针的 8 字节下到底隐藏着什么深渊巨兽。有时候可能为了查看某个执行计划中的某个字段具体是什么，可能需要反复的
+进行强转打印</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span><span style=color:#f92672>(</span>gdb<span style=color:#f92672>)</span> p * <span style=color:#f92672>((</span>JoinPath*<span style=color:#f92672>)((</span>JoinPath*<span style=color:#f92672>)((</span>SortPath*<span style=color:#f92672>)(((</span>ProjectionPath*<span style=color:#f92672>)</span>best_path<span style=color:#f92672>)</span>-&gt;subpath<span style=color:#f92672>))</span>-&gt;subpath<span style=color:#f92672>)</span>-&gt;outerjoinpath<span style=color:#f92672>)</span>-&gt;outerjoinpath
+</span></span><span style=display:flex><span>$25 <span style=color:#f92672>=</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  type <span style=color:#f92672>=</span> T_Path,
+</span></span><span style=display:flex><span>  pathtype <span style=color:#f92672>=</span> T_SeqScan,
+</span></span><span style=display:flex><span>  parent <span style=color:#f92672>=</span> 0x563e103ded10,
+</span></span><span style=display:flex><span>  pathtarget <span style=color:#f92672>=</span> 0x563e103def18,
+</span></span><span style=display:flex><span>  param_info <span style=color:#f92672>=</span> 0x0,
+</span></span><span style=display:flex><span>  parallel_aware <span style=color:#f92672>=</span> false,
+</span></span><span style=display:flex><span>  parallel_safe <span style=color:#f92672>=</span> true,
+</span></span><span style=display:flex><span>  parallel_workers <span style=color:#f92672>=</span> 0,
+</span></span><span style=display:flex><span>  rows <span style=color:#f92672>=</span> 1,
+</span></span><span style=display:flex><span>  startup_cost <span style=color:#f92672>=</span> 0,
+</span></span><span style=display:flex><span>  total_cost <span style=color:#f92672>=</span> 0,
+</span></span><span style=display:flex><span>  pathkeys <span style=color:#f92672>=</span> 0x0
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span></code></pre></div><p>当然可以使用 pprint ，但是 pprint 只能打印继承自 Node 的对象，对于其他类型，pprint 则无能为力，而且 pprint 最大的缺点是无法在 core 文件中使用，此时会提示 <code>You can't do that without a process to debug.</code></p><p>此外部分人应该使用过 <a href=https://github.com/tvondra/gdbpg.git target=_blank>https://github.com/tvondra/gdbpg.git</a>
+这个程序，可能也针对特定的 postgres 版本做了一些定制。
+我当前所在公司是某个 pg 的衍生数据库， 我也想使用这个脚本做下扩展，方便自己使用，但是某天突然想调试下其他 pg 类数据库，例如 gp， tbase 啥的，此时也需要再取进行扩展，但是由于不是太熟悉，一时之间不知道什么该打印，什么不该打印，中间容易遇到问题，弄来弄去很麻烦，所以就放弃了。</p><p>好在 gdb 提供 pretty printer 机制，可以自定义打印方法，C++ 的 STL 库就提供了对应的 python 脚本，具体文件在 <code>/usr/share/gcc/python/libstdcxx/v6</code> 目录下，感兴趣的可以看看怎么是实现的。</p><p>下面是在实现 <a href=https://github.com/askyx/pretty_printer.git target=_blank>postgres pretty printer</a>
+的功能中的一些问题和思考。</p><p>首先是官方的一个小 demo ， 做了点小修改，方便理解下面的讲解</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#e6db74>&#39;&#39;&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>struct foo { int a, b; };
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>struct bar { struct foo x, y; };
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>&#39;&#39;&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> gdb
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>fooPrinter</span>:
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;&#34;&#34;Print a foo object.&#34;&#34;&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> __init__(self, val):
+</span></span><span style=display:flex><span>        self<span style=color:#f92672>.</span>__val <span style=color:#f92672>=</span> val
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>to_string</span>(self):
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> (<span style=color:#e6db74>&#34;a=&lt;&#34;</span> <span style=color:#f92672>+</span> str(self<span style=color:#f92672>.</span>__val[<span style=color:#e6db74>&#34;a&#34;</span>]) <span style=color:#f92672>+</span>
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;&gt; b=&lt;&#34;</span> <span style=color:#f92672>+</span> str(self<span style=color:#f92672>.</span>__val[<span style=color:#e6db74>&#34;b&#34;</span>]) <span style=color:#f92672>+</span> <span style=color:#e6db74>&#34;&gt;&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>barPrinter</span>:
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;&#34;&#34;Print a bar object.&#34;&#34;&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> __init__(self, val):
+</span></span><span style=display:flex><span>        self<span style=color:#f92672>.</span>__val <span style=color:#f92672>=</span> val
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>to_string</span>(self):
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> (<span style=color:#e6db74>&#34;x=&lt;&#34;</span> <span style=color:#f92672>+</span> str(self<span style=color:#f92672>.</span>__val[<span style=color:#e6db74>&#34;x&#34;</span>]) <span style=color:#f92672>+</span>
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;&gt; y=&lt;&#34;</span> <span style=color:#f92672>+</span> str(self<span style=color:#f92672>.</span>__val[<span style=color:#e6db74>&#34;y&#34;</span>]) <span style=color:#f92672>+</span> <span style=color:#e6db74>&#34;&gt;&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>build_pretty_printer</span>():
+</span></span><span style=display:flex><span>    pp <span style=color:#f92672>=</span> gdb<span style=color:#f92672>.</span>printing<span style=color:#f92672>.</span>RegexpCollectionPrettyPrinter(
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;my_library&#34;</span>)
+</span></span><span style=display:flex><span>    pp<span style=color:#f92672>.</span>add_printer(<span style=color:#e6db74>&#39;foo&#39;</span>, <span style=color:#e6db74>&#39;^foo$&#39;</span>, fooPrinter)
+</span></span><span style=display:flex><span>    pp<span style=color:#f92672>.</span>add_printer(<span style=color:#e6db74>&#39;bar&#39;</span>, <span style=color:#e6db74>&#39;^bar$&#39;</span>, barPrinter)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> pp
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>gdb<span style=color:#f92672>.</span>printing<span style=color:#f92672>.</span>register_pretty_printer(
+</span></span><span style=display:flex><span>    gdb<span style=color:#f92672>.</span>current_objfile(),
+</span></span><span style=display:flex><span>    build_pretty_printer())
+</span></span></code></pre></div><h4 id=1-gdb-pretty-printer-实现原理>1. gdb pretty printer 实现原理</h4><p>具体参考 gdb 源码中的 <code>py-prettyprint.c</code> 和 <code>printing.py</code> 文件，大意是：</p><ol><li><p>向 <code>gdb.pretty_printers</code> 中注册一个 printer，在上面的例子中，这步由 <code>register_pretty_printer</code> 实现， <code>register_pretty_printer</code> 会把 <code>RegexpCollectionPrettyPrinter</code> 对象添加到 <code>gdb.pretty_printers</code> 中，可以查看 对应的 gdb 中的源码，其实现核心是 <code>obj.pretty_printers.insert(0, printer)</code></p></li><li><p>注册的这个 printer 必须实现 <code>__call__</code>，具体可以参考 gdb 内置的 <code>RegexpCollectionPrettyPrinter</code> 或者 STL 库中的 <code>Printer</code> 等。其内部主要是一个数组，包含具体的对应某类型的 printer，
+gdb 在调用的时候，在 <code>__call__</code>中，获取 Value 的 type， 然后由这个 type 找到数组中具体的 printer 类，然后构造一个对象返回</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span>    <span style=color:#66d9ef>def</span> __call__(self, val):
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;&#34;&#34;Lookup the pretty-printer for the provided value.&#34;&#34;&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e># Get the type name.</span>
+</span></span><span style=display:flex><span>        typename <span style=color:#f92672>=</span> gdb<span style=color:#f92672>.</span>types<span style=color:#f92672>.</span>get_basic_type(val<span style=color:#f92672>.</span>type)<span style=color:#f92672>.</span>tag
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> <span style=color:#f92672>not</span> typename:
+</span></span><span style=display:flex><span>            typename <span style=color:#f92672>=</span> val<span style=color:#f92672>.</span>type<span style=color:#f92672>.</span>name
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> <span style=color:#f92672>not</span> typename:
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>None</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e># Iterate over table of type regexps to determine</span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e># if a printer is registered for that type.</span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e># Return an instantiation of the printer if found.</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>for</span> printer <span style=color:#f92672>in</span> self<span style=color:#f92672>.</span>subprinters:
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> printer<span style=color:#f92672>.</span>enabled <span style=color:#f92672>and</span> printer<span style=color:#f92672>.</span>compiled_re<span style=color:#f92672>.</span>search(typename):
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> printer<span style=color:#f92672>.</span>gen_printer(val)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e># Cannot find a pretty printer.  Return None.</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>None</span>
+</span></span></code></pre></div></li><li><p>对于具体类型的 printer，需要实现 <code>to_string</code> 方法，可选的为 <code>children</code> 和 <code>display_hint</code> 方法等，具体说明参考<a href=https://sourceware.org/gdb/current/onlinedocs/gdb.html/Pretty-Printing-API.html#Pretty-Printing-API target=_blank>官方文档</a>
+，这是我们实现自定义 pretty printer 的关键步骤。在 gdb 中，获取 printer 对象之后， 其内部会使用 C 代码调用对象的实现的函数，实现打印功能，具体函数为 <code>pretty_print_one_value</code></p></li></ol><h4 id=2-实现自定义-pretty-printer>2. 实现自定义 pretty printer</h4><p>我们可以仿照 demo 实现自定义 printer，但是在 pg REL_16_STABLE 中， nodetags.h 中定义了 454 个类型，如果一一实现是不现实的，此外还得兼顾不同的版本，不同的 pg 类数据库等。想想在 gdb 调试中， 突然发现某个类型无法打印，甚至出错了导致 gdb 崩掉的情况，好好的思路就这么呗打断了，真的无法忍受，为了可以快速实现 printer 添加修改，这里实现的其实不是 pretty printer， 而应该是 pretty printer generator</p><ol><li><p>快速添加一个 printer</p><p>如 demo 中， 实现具体的 printer 之后， 使用 add_printer 添加到 RegexpCollectionPrettyPrinter 中， 如果有几百上千个类型， 手动添加会很麻烦， 所以可以写一个装饰器， 自动注册 printer，具体代码如下：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span>
+</span></span><span style=display:flex><span>printer <span style=color:#f92672>=</span> gdb<span style=color:#f92672>.</span>printing<span style=color:#f92672>.</span>RegexpCollectionPrettyPrinter(<span style=color:#e6db74>&#39;REL_16_STABLE&#39;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>register_printer</span>(name):
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>__registe</span>(_printer):
+</span></span><span style=display:flex><span>        printer<span style=color:#f92672>.</span>add_printer(name, <span style=color:#e6db74>&#39;^&#39;</span> <span style=color:#f92672>+</span> name <span style=color:#f92672>+</span> <span style=color:#e6db74>&#39;$&#39;</span>, _printer)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> __registe
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@register_printer</span>(<span style=color:#e6db74>&#39;Relids&#39;</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>RelidsPrinter</span>:
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> __init__(self, val) <span style=color:#f92672>-&gt;</span> <span style=color:#66d9ef>None</span>:
+</span></span><span style=display:flex><span>        self<span style=color:#f92672>.</span>val <span style=color:#f92672>=</span> val
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>to_string</span>(self):
+</span></span><span style=display:flex><span>        list <span style=color:#f92672>=</span> []
+</span></span><span style=display:flex><span>        rid <span style=color:#f92672>=</span> gdb<span style=color:#f92672>.</span>parse_and_eval(<span style=color:#e6db74>&#39;bms_next_member((</span><span style=color:#e6db74>{}</span><span style=color:#e6db74>) </span><span style=color:#e6db74>{}</span><span style=color:#e6db74>, -1)&#39;</span><span style=color:#f92672>.</span>format(self<span style=color:#f92672>.</span>val<span style=color:#f92672>.</span>type<span style=color:#f92672>.</span>pointer(), self<span style=color:#f92672>.</span>val<span style=color:#f92672>.</span>dereference()<span style=color:#f92672>.</span>address))
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>while</span> rid <span style=color:#f92672>&gt;=</span> <span style=color:#ae81ff>0</span>:
+</span></span><span style=display:flex><span>            list<span style=color:#f92672>.</span>append(int(rid))
+</span></span><span style=display:flex><span>            rid <span style=color:#f92672>=</span> gdb<span style=color:#f92672>.</span>parse_and_eval(<span style=color:#e6db74>&#39;bms_next_member((</span><span style=color:#e6db74>{}</span><span style=color:#e6db74>) </span><span style=color:#e6db74>{}</span><span style=color:#e6db74>, </span><span style=color:#e6db74>{}</span><span style=color:#e6db74>)&#39;</span><span style=color:#f92672>.</span>format(self<span style=color:#f92672>.</span>val<span style=color:#f92672>.</span>type<span style=color:#f92672>.</span>pointer(), self<span style=color:#f92672>.</span>val<span style=color:#f92672>.</span>dereference()<span style=color:#f92672>.</span>address, rid))
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> str(list)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>gdb<span style=color:#f92672>.</span>printing<span style=color:#f92672>.</span>register_pretty_printer(
+</span></span><span style=display:flex><span>    gdb<span style=color:#f92672>.</span>current_objfile(),
+</span></span><span style=display:flex><span>    printer, <span style=color:#66d9ef>True</span>)
+</span></span></code></pre></div></li><li><p>实现 printer generator，怎么动态生成，怎么获取想要打印对象的结构</p><p>如果不要求个性化，则大部分的 printer 是类似的，例如 FuncExpr ，手写的话大概类似这个</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#a6e22e>@register_printer</span>(<span style=color:#e6db74>&#39;FuncExpr&#39;</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>FuncExprPrinter</span>:
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> __init__(self, val) <span style=color:#f92672>-&gt;</span> <span style=color:#66d9ef>None</span>:
+</span></span><span style=display:flex><span>        self<span style=color:#f92672>.</span>val <span style=color:#f92672>=</span> val
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>to_string</span>(self):
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#39;FuncExpr[funcid: </span><span style=color:#e6db74>%s</span><span style=color:#e6db74>, funcresulttype: </span><span style=color:#e6db74>%s</span><span style=color:#e6db74>, funcretset: </span><span style=color:#e6db74>%s</span><span style=color:#e6db74>, funcvariadic: </span><span style=color:#e6db74>%s</span><span style=color:#e6db74>, funcformat: </span><span style=color:#e6db74>%s</span><span style=color:#e6db74>, funccollid: </span><span style=color:#e6db74>%s</span><span style=color:#e6db74>, inputcollid: </span><span style=color:#e6db74>%s</span><span style=color:#e6db74>]&#39;</span> <span style=color:#f92672>%</span> (
+</span></span><span style=display:flex><span>            self<span style=color:#f92672>.</span>val[<span style=color:#e6db74>&#39;funcid&#39;</span>],
+</span></span><span style=display:flex><span>            self<span style=color:#f92672>.</span>val[<span style=color:#e6db74>&#39;funcresulttype&#39;</span>],
+</span></span><span style=display:flex><span>            self<span style=color:#f92672>.</span>val[<span style=color:#e6db74>&#39;funcretset&#39;</span>],
+</span></span><span style=display:flex><span>            self<span style=color:#f92672>.</span>val[<span style=color:#e6db74>&#39;funcvariadic&#39;</span>],
+</span></span><span style=display:flex><span>            self<span style=color:#f92672>.</span>val[<span style=color:#e6db74>&#39;funcformat&#39;</span>],
+</span></span><span style=display:flex><span>            self<span style=color:#f92672>.</span>val[<span style=color:#e6db74>&#39;funccollid&#39;</span>],
+</span></span><span style=display:flex><span>            self<span style=color:#f92672>.</span>val[<span style=color:#e6db74>&#39;inputcollid&#39;</span>]
+</span></span><span style=display:flex><span>        )
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>children</span>(self):
+</span></span><span style=display:flex><span>        list <span style=color:#f92672>=</span> []
+</span></span><span style=display:flex><span>        add_list(list, self<span style=color:#f92672>.</span>val, <span style=color:#e6db74>&#39;args&#39;</span>)
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> list
+</span></span></code></pre></div><p>pg Node 结构体要求其子类实现一些特定函数， 以便于 pg 实现特定的功能，例如 read, write等，之前都是 write by hand ，后面实现了一个脚本 <code>gen_node_support.pl</code>，用来处理这个重复的过程，我们只需要稍微改动下这个文件，把结构体导出即可，然后再稍微处理下， 就获得了我们想要的格式，当前所有的可打印的结构体都在 <code>node_struct.py</code> 中</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span>RangeVar <span style=color:#f92672>=</span> [
+</span></span><span style=display:flex><span>  (<span style=color:#e6db74>&#39;char*&#39;</span>, <span style=color:#e6db74>&#39;catalogname&#39;</span>),
+</span></span><span style=display:flex><span>  (<span style=color:#e6db74>&#39;char*&#39;</span>, <span style=color:#e6db74>&#39;schemaname&#39;</span>),
+</span></span><span style=display:flex><span>  (<span style=color:#e6db74>&#39;char*&#39;</span>, <span style=color:#e6db74>&#39;relname&#39;</span>),
+</span></span><span style=display:flex><span>  (<span style=color:#e6db74>&#39;bool&#39;</span>, <span style=color:#e6db74>&#39;inh&#39;</span>),
+</span></span><span style=display:flex><span>  (<span style=color:#e6db74>&#39;char&#39;</span>, <span style=color:#e6db74>&#39;relpersistence&#39;</span>),
+</span></span><span style=display:flex><span>  (<span style=color:#e6db74>&#39;Alias*&#39;</span>, <span style=color:#e6db74>&#39;alias&#39;</span>),
+</span></span><span style=display:flex><span>  (<span style=color:#e6db74>&#39;int&#39;</span>, <span style=color:#e6db74>&#39;location&#39;</span>),
+</span></span><span style=display:flex><span>]
+</span></span></code></pre></div><p>如果仿照 FuncExpr 实现一个 RangeVarPrinter，结构是类似的，所以可以实现一个公有方法，解析这个结构体，把指针和其他类型区分开，指针放在 children 中打印，其他的放在 to_string 中打印即可，可以参考 <a href=https://github.com/askyx/pretty_printer.git target=_blank>postgres pretty printer</a>
+中的 <code>split_field</code> 函数和 <code>print_to_string</code> ，<code>print_children</code>，大部分逻辑在 BasePrinter 类下面</p></li><li><p>怎么处理继承关系</p><p>对于继承关系，为了方便处理，对应子类的结构体中需要加上父类结构体的字段，在 python 中获取值得时候，解析字段为数组，然后使用类似 <code>val['path']['pathtype']</code> 的语法来获取，但是继承的深度不确定，例如 <code>('NodeTag', 'jpath.path.pathtype'),</code>，所以需要动态获取，这里使用 python 的 reduce 函数 <code>reduce(operator.getitem, fields, self.val)</code></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span>IndexPath <span style=color:#f92672>=</span> [
+</span></span><span style=display:flex><span>  (<span style=color:#e6db74>&#39;NodeTag&#39;</span>, <span style=color:#e6db74>&#39;path.pathtype&#39;</span>),
+</span></span><span style=display:flex><span>  (<span style=color:#e6db74>&#39;RelOptInfo*&#39;</span>, <span style=color:#e6db74>&#39;path.parent&#39;</span>),
+</span></span><span style=display:flex><span>  <span style=color:#f92672>...</span>
+</span></span><span style=display:flex><span>  (<span style=color:#e6db74>&#39;ScanDirection&#39;</span>, <span style=color:#e6db74>&#39;indexscandir&#39;</span>),
+</span></span><span style=display:flex><span>  (<span style=color:#e6db74>&#39;Cost&#39;</span>, <span style=color:#e6db74>&#39;indextotalcost&#39;</span>),
+</span></span><span style=display:flex><span>  (<span style=color:#e6db74>&#39;Selectivity&#39;</span>, <span style=color:#e6db74>&#39;indexselectivity&#39;</span>),
+</span></span><span style=display:flex><span>]
+</span></span></code></pre></div></li><li><p>怎么打印 数组</p><p>对于数组，典型的就是 Sort 中的 key 的操作符信息，这里需要在结构体中标明长度信息， 然后解析长度，再使用长度获取对应字段信息，具体参考 <code>print_children_array</code> 函数</p></li><li><p>特殊函数</p><p>一些特殊结构体，无法使用上面得方法实现，所以还是需要自己手写，例如 List ，Bitmapset 以及 Value 等</p></li></ol><h4 id=3-在上面的基础上快速添加或修改结构体>3. 在上面的基础上快速添加或修改结构体</h4><p><code>gen_node_support.pl</code> 是比较新的 pg 版本上才会有的，所以其他版本无法直接使用这个文件处理结构体，所以需要自己手动查找修改，虽然各个版本之间差异点不大，但是从几百个结构体里面找不同还是挺难的，为了方便快速的添加或修改，这里提供一个 trace 文件，类似 pstack，按照自己的具体的文件添加 断点，attach 上进程之后，打印关键 结构体，即可快速查找出差异点， 然后快速修改，当前是使用 tpch 的语句 测试的，暂时没有使用其他复杂语句或类型测试，后续发现了再慢慢添加修改，这里应该可以覆盖大部分常用场景了</p><ul><li>trace 文件还可作为日常的调试工具，如果只是想简单调试，无需手工接入的话，可以直接 attach 上，直接添加自己想要trace 的信息即可</li></ul><h4 id=attention>attention</h4><ul><li><p>当前支持的是四个等级，使用 <code>print pg_pretty</code> 控制</p><ul><li>off 为关闭打印</li><li>origin 会使用 pprint 打印，需要注意的是由于无法确定 print 的时候，指针具体是什么类型， 也不想为每个类型写个正则， 所以只能把指针转换为 Node 之后再打印，例如<code>p *(Node*) best_path</code>，
+需要注意的是 pprint 是 builtin function，所以如果是调试 core 文件，是无法使用此等级的</li><li>trace 会使用 python 脚本中实现的 printer ，预先设计是可以在任何地方使用，但是当前 Bitmapset 使用了 pg 内置的 bmsToString 函数，暂时无法直接在调试 core 的时候使用，这里暂时没有这个需求，所以就先暂时搁置，以后需要的时候再实现。这里其实也简单尝试过， 实现的 <code>bms_next_member</code> 函数单独使用的时候还是可以正常工作的，但是循环使用的时候会死循环， 不知道为啥。。知道是 bug 还是实现有问题，后面再看</li><li>info 简化打印信息，实现类似 explain 的输出的样式，但是这个需要手写，暂时没有实现。预估难点和功能为<ol><li>格式是什么</li><li>printer 之间无法传递上下文信息，类似 Var 这种结构体不知道归属，可能需要自己改造 <code>RegexpCollectionPrettyPrinter</code></li><li>单独打印某个结构体的时候，能否能从某个地方获取某些信息，例如 PlannerInfo 中的 simple_rel_array</li></ol></li></ul></li><li><p>实现中注意相互引用问题， 典型的例如 RestrictInfo，一些结构体中的字段可能保存的上层的某个结构体，此时不能打印</p></li></ul><h4 id=todo>TODO</h4><ol><li>完善功能，支持更多结构体，支持更多的类型</li><li>抽取公共部分，提高复用性，实现一个 gdb pretty printer generator，可以自动生成 printer， 并且可以指定结构体的版本，自动处理继承关系，自动处理数组等，以支持除 pg 之外的其他项目</li><li>是否需要实现一个 pg 插件，配合使用，python 无法实现的功能在插件中实现，然后使用 python 来调用</li><li>完善测试，目前只是简单测试了几个结构体，后续需要测试更多的结构体，包括复杂的结构体，例如复杂的查询计划，复杂的函数调用，复杂的表达式等等</li><li>完善文档，包括 README， 如何使用，如何开发，如何测试等等</li><li>使用系统函数获取某些元数据信息，是否会影响程序的运行，原来的缓存是否会被污染，是否需要支持高的等级</li></ol><ul><li>项目还在演化中，某些功能可能会变</li></ul><h3 id=auto-load>auto load</h3><p>gdb 的 auto-load 机制，可以实现在 gdb 启动的时候自动加载指定的脚本，这样就不需要手动 source 了。且可以限制加载的范围，只加载指定的程序。如果没有限定 pretty printer 的使用范围 ， 直接在 .gdbinit 中 source python 脚本，则脚本内容是全局的，此时任何的程序只要有相同名字的结构体，都会触发 prtty printer。但是具体的结构体内容不一样，直接使用是有问题的，所以对于自己的 pretty printer ，还是有必要限定使用范围。</p><pre tabindex=0><code class=language-gdb data-lang=gdb>(gdb) info pretty-printer
+global pretty-printers:
+  builtin
+    mpx_bound128
+  REL_16_STABLE
+    (Node|Expr)
+    A_ArrayExpr
+    A_Const
+    A_Expr
+    A_Indices
+    A_Indirection
+    A_Star
+    AccessPriv
+    Agg
+    AggPath
+    Aggref
+    Alias
+</code></pre><p>详情参考<a href=https://sourceware.org/gdb/current/onlinedocs/gdb.html/Auto_002dloading-extensions.html#Auto_002dloading-extensions target=_blank>官方文档</a>
+，这里不多赘述，重点总结下</p><ol><li><p>auto-load 脚本的名称，需要匹配你想动态加载的文件的名称，例如的 <code>libstdc++.so.6.0.31</code> 文件，匹配的文件名称为 <code>libstdc++.so.6.0.31-gdb.py</code>。当然由于 gdb 的脚本文件不仅仅只支持 python， 所以 auto-load 也进行文件名的区分，具体加载什么取决于你提供的文件，下面是一个 gdb 加载 libstdc++.so.6.0.32-gdb.py 的 trace</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>readlink<span style=color:#f92672>(</span><span style=color:#e6db74>&#34;/usr&#34;</span>, 0x7ffd8c8eb4d0, 1023<span style=color:#f92672>)</span>  <span style=color:#f92672>=</span> -1 EINVAL <span style=color:#f92672>(</span>Invalid argument<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>readlink<span style=color:#f92672>(</span><span style=color:#e6db74>&#34;/usr/lib&#34;</span>, 0x7ffd8c8eb4d0, 1023<span style=color:#f92672>)</span> <span style=color:#f92672>=</span> -1 EINVAL <span style=color:#f92672>(</span>Invalid argument<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>readlink<span style=color:#f92672>(</span><span style=color:#e6db74>&#34;/usr/lib/x86_64-linux-gnu&#34;</span>, 0x7ffd8c8eb4d0, 1023<span style=color:#f92672>)</span> <span style=color:#f92672>=</span> -1 EINVAL <span style=color:#f92672>(</span>Invalid argument<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>readlink<span style=color:#f92672>(</span><span style=color:#e6db74>&#34;/usr/lib/x86_64-linux-gnu/libstdc++.so.6&#34;</span>, <span style=color:#e6db74>&#34;libstdc++.so.6.0.32&#34;</span>, 1023<span style=color:#f92672>)</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>19</span>
+</span></span><span style=display:flex><span>readlink<span style=color:#f92672>(</span><span style=color:#e6db74>&#34;/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.32&#34;</span>, 0x7ffd8c8eb4d0, 1023<span style=color:#f92672>)</span> <span style=color:#f92672>=</span> -1 EINVAL <span style=color:#f92672>(</span>Invalid argument<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>openat<span style=color:#f92672>(</span>AT_FDCWD, <span style=color:#e6db74>&#34;/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.32-gdb.gdb&#34;</span>, O_RDONLY|O_CLOEXEC<span style=color:#f92672>)</span> <span style=color:#f92672>=</span> -1 ENOENT <span style=color:#f92672>(</span>No such file or directory<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>openat<span style=color:#f92672>(</span>AT_FDCWD, <span style=color:#e6db74>&#34;/usr/lib/debug/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.32-gdb.gdb&#34;</span>, O_RDONLY|O_CLOEXEC<span style=color:#f92672>)</span> <span style=color:#f92672>=</span> -1 ENOENT <span style=color:#f92672>(</span>No such file or directory<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>openat<span style=color:#f92672>(</span>AT_FDCWD, <span style=color:#e6db74>&#34;/usr/share/gdb/auto-load/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.32-gdb.gdb&#34;</span>, O_RDONLY|O_CLOEXEC<span style=color:#f92672>)</span> <span style=color:#f92672>=</span> -1 ENOENT <span style=color:#f92672>(</span>No such file or directory<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>readlink<span style=color:#f92672>(</span><span style=color:#e6db74>&#34;/lib&#34;</span>, <span style=color:#e6db74>&#34;usr/lib&#34;</span>, 1023<span style=color:#f92672>)</span>       <span style=color:#f92672>=</span> <span style=color:#ae81ff>7</span>
+</span></span><span style=display:flex><span>readlink<span style=color:#f92672>(</span><span style=color:#e6db74>&#34;/usr&#34;</span>, 0x7ffd8c8eb4d0, 1023<span style=color:#f92672>)</span>  <span style=color:#f92672>=</span> -1 EINVAL <span style=color:#f92672>(</span>Invalid argument<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>readlink<span style=color:#f92672>(</span><span style=color:#e6db74>&#34;/usr/lib&#34;</span>, 0x7ffd8c8eb4d0, 1023<span style=color:#f92672>)</span> <span style=color:#f92672>=</span> -1 EINVAL <span style=color:#f92672>(</span>Invalid argument<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>readlink<span style=color:#f92672>(</span><span style=color:#e6db74>&#34;/usr/lib/x86_64-linux-gnu&#34;</span>, 0x7ffd8c8eb4d0, 1023<span style=color:#f92672>)</span> <span style=color:#f92672>=</span> -1 EINVAL <span style=color:#f92672>(</span>Invalid argument<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>readlink<span style=color:#f92672>(</span><span style=color:#e6db74>&#34;/usr/lib/x86_64-linux-gnu/libstdc++.so.6&#34;</span>, <span style=color:#e6db74>&#34;libstdc++.so.6.0.32&#34;</span>, 1023<span style=color:#f92672>)</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>19</span>
+</span></span><span style=display:flex><span>readlink<span style=color:#f92672>(</span><span style=color:#e6db74>&#34;/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.32&#34;</span>, 0x7ffd8c8eb4d0, 1023<span style=color:#f92672>)</span> <span style=color:#f92672>=</span> -1 EINVAL <span style=color:#f92672>(</span>Invalid argument<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>openat<span style=color:#f92672>(</span>AT_FDCWD, <span style=color:#e6db74>&#34;/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.32-gdb.py&#34;</span>, O_RDONLY|O_CLOEXEC<span style=color:#f92672>)</span> <span style=color:#f92672>=</span> -1 ENOENT <span style=color:#f92672>(</span>No such file or directory<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>openat<span style=color:#f92672>(</span>AT_FDCWD, <span style=color:#e6db74>&#34;/usr/lib/debug/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.32-gdb.py&#34;</span>, O_RDONLY|O_CLOEXEC<span style=color:#f92672>)</span> <span style=color:#f92672>=</span> -1 ENOENT <span style=color:#f92672>(</span>No such file or directory<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>openat<span style=color:#f92672>(</span>AT_FDCWD, <span style=color:#e6db74>&#34;/usr/share/gdb/auto-load/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.32-gdb.py&#34;</span>, O_RDONLY|O_CLOEXEC<span style=color:#f92672>)</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>16</span>
+</span></span></code></pre></div></li><li><p>auto-load 脚本的路径一般在 <code>/usr/share/gdb/auto-load/</code> 和 <code>/usr/lib/debug</code> 目录下，在此目录下建立一个你需要动态加载的文件的全目录类似的目录结构，例如 <code>usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.31-gdb.py</code> ，此时你的文件的全路径就是 <code>/usr/share/gdb/auto-load/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.32-gdb.py</code> ，一般系统下还有其他文件，可以自行测试</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>❯ tree
+</span></span><span style=display:flex><span>.
+</span></span><span style=display:flex><span>├── lib
+</span></span><span style=display:flex><span>│   └── x86_64-linux-gnu
+</span></span><span style=display:flex><span>│       └── libpthread-2.35.so-gdb.py
+</span></span><span style=display:flex><span>└── usr
+</span></span><span style=display:flex><span>    ├── lib
+</span></span><span style=display:flex><span>    │   └── x86_64-linux-gnu
+</span></span><span style=display:flex><span>    │       ├── libisl.so.23.1.0-gdb.py
+</span></span><span style=display:flex><span>    │       └── libstdc++.so.6.0.32-gdb.py
+</span></span><span style=display:flex><span>    └── lib32
+</span></span><span style=display:flex><span>        └── libstdc++.so.6.0.32-gdb.py
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>6</span> directories, <span style=color:#ae81ff>4</span> files
+</span></span><span style=display:flex><span>/usr/share/gdb/auto-load ❯
+</span></span></code></pre></div></li><li><p>此外，脚本文件也可以放在你调试文件的目录下，此时只要加载到此文件，则也会同时加载此文件，但是需要注意的是需要在 <code>.gdbinit</code> 中添加 <code>add-auto-load-safe-path {your_path}</code> , 否则 gdb 会提示 <code>auto-loading has been declined by your `auto-load safe-path' set to "$debugdir:$datadir/auto-load".</code>，加载之后，查看 <code>auto-load safe-path</code> 如下</p><pre tabindex=0><code>(gdb) show auto-load safe-path
+List of directories from which it is safe to auto-load files is $debugdir:$datadir/auto-load:/home/asky/.build/bin.
+</code></pre></li><li><p>此时 gdb 启动之后，再查看 pretty printer，会看见 pretty printer 不在 global pretty-printers 下面了，而是和文件关联在一起</p><pre tabindex=0><code>global pretty-printers:
+  builtin
+    mpx_bound128
+objfile /home/asky/.build/bin/postgres pretty-printers:
+  REL_16_STABLE
+    (Node|Expr)
+    A_ArrayExpr
+    A_Const
+    A_Expr
+    A_Indices
+    A_Indirection
+    A_Star
+    AccessPriv
+    Agg
+    AggInfo
+    AggPath
+</code></pre></li></ol><p>不仅仅只是 pretty printer ，其他的脚本文件也可以使用类似的方法和程序绑定在一起，避免了不同程序之间相互干扰的问题</p><h2 id=checkpoint>checkpoint</h2><ul><li><p>parse_and_eval 可以运算表达式，然后保存为 python 内置变量，运用范围极广</p></li><li><p>vscode 也可以使用 pretty printer，只需要按照上面的步骤实现自定义的 printer， 然后设置 auto load 即可</p><ol><li>vscode 窗口中显示变量值需要要求是对象，而不能是指针</li><li>窗口中显示的值需要在 children 中返回才显示， to_string 显示的值窗口是不会显示的，例如 vector gdb 中显示的是 <code>$1 = std::vector of length 4, capacity 4 = {"hello", "world", "c++", "python"}</code>，而窗口中只显示实际的内容 <code>{"hello", "world", "c++", "python"}</code>，to_string 更类似是一个 prompt</li><li>所以自定义的 printer 实现的时候，需要注意什么是重点， 什么是可以忽略的，打印主体需要放在 children 中</li></ol></li><li><p>可以使用 python 直接从程序中解析结构体，然后构造 printer ，理论可行，但是这个过程完全不可控，且难以实现</p></li></ul><pre tabindex=0><code>(gdb) b planner
+Breakpoint 1 at 0x55a0564fc233: file /workspaces/postgres/src/backend/optimizer/plan/planner.c, line 397.
+(gdb) c
+Continuing.
+
+Breakpoint 1, planner (parse=0x55a05825e918, ...) at /workspaces/postgres/src/backend/optimizer/plan/planner.c:397
+397             if (planner_hook)
+(gdb) python v = gdb.parse_and_eval(&#39;parse&#39;)
+(gdb) python print(gdb.types.get_basic_type(v.dereference().type).fields())
+[&lt;gdb.Field object at 0x7fea1ad730b0&gt;, &lt;gdb.Field object at 0x7fea1ad73730&gt;, &lt;gdb.Field object at 0x7fea1ad71970&gt;, &lt;gdb.Field object at 0x7fea1ad731d0&gt;, &lt;gdb.Field object at 0x7fea1ad72bf0&gt;, &lt;gdb.Field object at 0x7fea1ad71f90&gt;, &lt;gdb.Field object at 0x7fea1ad71ed0&gt;, &lt;gdb.Field object at 0x7fea1ad734d0&gt;, &lt;gdb.Field object at 0x7fea1ad73950&gt;, &lt;gdb.Field object at 0x7fea1ad70cd0&gt;, &lt;gdb.Field object at 0x7fea1ad72e70&gt;, &lt;gdb.Field object at 0x7fea1ad72ff0&gt;, &lt;gdb.Field object at 0x7fea1ad73070&gt;, &lt;gdb.Field object at 0x7fea1ad73db0&gt;, &lt;gdb.Field object at 0x7fea1ad72370&gt;, &lt;gdb.Field object at 0x7fea1ad71f70&gt;, &lt;gdb.Field object at 0x7fea1ad72b30&gt;, &lt;gdb.Field object at 0x7fea1ad73eb0&gt;, &lt;gdb.Field object at 0x7fea1ad71630&gt;, &lt;gdb.Field object at 0x7fea1ad70e50&gt;, &lt;gdb.Field object at 0x7fea1ad70cb0&gt;, &lt;gdb.Field object at 0x7fea1ad70db0&gt;, &lt;gdb.Field object at 0x7fea1ad73590&gt;, &lt;gdb.Field object at 0x7fea1ad70950&gt;, &lt;gdb.Field object at 0x7fea1ad726f0&gt;, &lt;gdb.Field object at 0x7fea1ad72950&gt;, &lt;gdb.Field object at 0x7fea1ad73470&gt;, &lt;gdb.Field object at 0x7fea1ad72e30&gt;, &lt;gdb.Field object at 0x7fea1ad71b10&gt;, &lt;gdb.Field object at 0x7fea1ad71c70&gt;, &lt;gdb.Field object at 0x7fea1ad73150&gt;, &lt;gdb.Field object at 0x7fea1ad72830&gt;, &lt;gdb.Field object at 0x7fea1ad71710&gt;, &lt;gdb.Field object at 0x7fea1ad72890&gt;, &lt;gdb.Field object at 0x7fea1ad72850&gt;, &lt;gdb.Field object at 0x7fea1ad719f0&gt;, &lt;gdb.Field object at 0x7fea1ad72530&gt;, &lt;gdb.Field object at 0x7fea1ad736b0&gt;, &lt;gdb.Field object at 0x7fea1ad71590&gt;, &lt;gdb.Field object at 0x7fea1ad72670&gt;, &lt;gdb.Field object at 0x7fea1ad713b0&gt;, &lt;gdb.Field object at 0x7fea1ad739f0&gt;, &lt;gdb.Field object at 0x7fea1ad71750&gt;, &lt;gdb.Field object at 0x7fea1ad73a10&gt;]
+(gdb) python print(gdb.types.get_basic_type(v.dereference().type).fields()[0].type)
+NodeTag
+(gdb) python print(gdb.types.get_basic_type(v.dereference().type).fields()[1].type)
+CmdType
+(gdb)
+</code></pre><ul><li>可以把复杂逻辑交给程序实现，然后提供函数接口给 python， python 直接调用函数打印对象，例如可以实现一个 pg 的插件，print 的在插件中实现。</li></ul><h2 id=i-am-stupid>i am stupid</h2><p>当前的实现存在巨大问题，所有的pinter 聚在一起， 出了问题根本无法定位是那个printer的锅，把环境从 Ubuntu 22 升级到 Ubuntu 24 之后， 整个就几乎 gg 了
+后续考虑显式实现每一个类型的printer，当然不能手写，打算写个插件实现。printer gennerator 就不应该交给 python 这种语言，弱类型，太自由了</p></section><div class=divider></div><div class="flex flex-col md:flex-row justify-between gap-4 py-4"><a role=button class="btn btn-outline h-12" href=/posts/others/cmake/ title="cmake 速查模板"><ion-icon name=chevron-back></ion-icon><div class="inline-flex flex-col items-start"><span class="text-base-content/60 text-xs font-normal">Previous page</span>
+<span class="max-w-48 truncate">cmake 速查模板</span></div></a><a role=button class="btn btn-outline h-12" href=/posts/postgres/optimizer/ title="Postgres 技术内幕，Optimizer过程分析"><div class="inline-flex flex-col items-end"><span class="text-base-content/60 text-xs font-normal">Next page</span>
+<span class="max-w-48 truncate">Postgres 技术内幕，Optimizer过程分析</span></div><ion-icon name=chevron-forward></ion-icon></a></div><div class=divider></div><section class=space-y-4><template x-if="['localhost', '127.0.0.1'].indexOf(window.location.hostname) == -1"><article><script src=https://utteranc.es/client.js repo=https://askyx.github.io/ issue-term=og:title theme=github-light crossorigin=anonymous async></script></article></template></section></article></div><div x-data=tocHighlighter() @scroll.window=debouncedScroll class="hidden lg:flex lg:flex-col lg:items-end lg:self-start"><nav id=TableOfContents><ul><li><a href=#配置>配置</a></li><li><a href=#python-脚本>python 脚本</a><ul><li><a href=#gdb-python-交互>gdb python 交互</a></li><li><a href=#重点-api>重点 API</a></li><li><a href=#自定义命令>自定义命令</a></li><li><a href=#pretty-printer>pretty printer</a></li><li><a href=#auto-load>auto load</a></li></ul></li><li><a href=#checkpoint>checkpoint</a></li><li><a href=#i-am-stupid>i am stupid</a></li></ul></nav></div></div><footer class="flex justify-between items-center gap-2 px-4 py-12"><div><p>© 2016 - 2025 Askyx's Blog</p><p class=text-sm>🌱
+<span class=text-base-content/60>Powered by <a class=hover:underline href=https://gohugo.io/ target=_blank>Hugo</a> with theme
+<a class=hover:underline href=https://github.com/g1eny0ung/hugo-theme-dream target=_blank>Dream</a>.</span></p></div><div x-data="{ icons: [
+    { name: 'sunny', status: 'n' },
+    { name: 'moon', status: 'y' },
+    { name: 'desktop', status: 'auto' }
+  ] }" class="flex items-center gap-2 h-[32px] px-2 bg-base-100 border border-base-content/30 rounded-full"><template x-for="icon in icons"><div role=button tabindex=0 :aria-label="'Select ' + icon.name + ' mode'" class="group inline-flex justify-center items-center p-1 rounded-full cursor-pointer hover:bg-primary" :class="$store.darkMode.icon() === icon.name && 'bg-primary'" @click=$store.darkMode.toggle(icon.status)><ion-icon :name="`${icon.name}-outline`" class=group-hover:text-primary-content :class="$store.darkMode.icon() === icon.name && 'text-primary-content'"></ion-icon></div></template></div></footer></div></div><div class=back><div class=container><div class="dream-grid dream-grid-about"><div class="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-4 dream-column"><article class="card bg-base-100 hover:bg-base-content/10 shadow-xl dark:border dark:border-base-content/30"><div class=card-body><div class=card-title>About Me</div><div class="prose dark:prose-invert"><p>Hi, my name is Yue Yang.</p><p>This is my blog.</p><h2 id=ヾωo>ヾ(•ω•`)o</h2><p>比较胆小，出门都得贴墙走</p></div></div></article></div></div><footer class="flex justify-between items-center gap-2 px-4 py-12"><div><p>© 2016 - 2025 Askyx's Blog</p><p class=text-sm>🌱
+<span class=text-base-content/60>Powered by <a class=hover:underline href=https://gohugo.io/ target=_blank>Hugo</a> with theme
+<a class=hover:underline href=https://github.com/g1eny0ung/hugo-theme-dream target=_blank>Dream</a>.</span></p></div><div x-data="{ icons: [
+    { name: 'sunny', status: 'n' },
+    { name: 'moon', status: 'y' },
+    { name: 'desktop', status: 'auto' }
+  ] }" class="flex items-center gap-2 h-[32px] px-2 bg-base-100 border border-base-content/30 rounded-full"><template x-for="icon in icons"><div role=button tabindex=0 :aria-label="'Select ' + icon.name + ' mode'" class="group inline-flex justify-center items-center p-1 rounded-full cursor-pointer hover:bg-primary" :class="$store.darkMode.icon() === icon.name && 'bg-primary'" @click=$store.darkMode.toggle(icon.status)><ion-icon :name="`${icon.name}-outline`" class=group-hover:text-primary-content :class="$store.darkMode.icon() === icon.name && 'text-primary-content'"></ion-icon></div></template></div></footer></div></div></div></div><script>window.lightTheme="emerald",window.darkTheme="forest"</script><script src=https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js integrity="sha256-htrLFfZJ6v5udOG+3kNLINIKh2gvoKqwEhHYfTTMICc=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin=anonymous></script><script src=/js/grid.min.js></script><script src=/js/main.min.js></script><script src=https://cdn.jsdelivr.net/npm/luxon@1.26.0 integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin=anonymous></script><script>format();function format(){document.querySelectorAll('span[data-format="luxon"]').forEach(e=>{const t=e.textContent;e.textContent=luxon.DateTime.fromISO(t,{locale:"en"}).toFormat("yyyy年MM月dd日")})}</script><script src=/js/toc.min.js></script><script type=module>
+      import mediumZoom from 'https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/+esm';
+      mediumZoom('#dream-single-post-content img', {
+        background: 'oklch(var(--b1))',
+        margin: 24,
+      })
+    </script><script type=module src=https://cdn.jsdelivr.net/npm/ionicons@7.4.0/dist/ionicons/ionicons.esm.js integrity="sha256-/IFmi82bIhdYWctu0UddSlJqpnzWm7Vh2C4CM32wF/k=" crossorigin=anonymous></script><script nomodule src=https://cdn.jsdelivr.net/npm/ionicons@7.4.0/dist/ionicons/ionicons.js integrity="sha256-mr7eJMX3VC3F7G32mk4oWp1C6a2tlMYxUdptfT7uKI8=" crossorigin=anonymous></script></body></html>

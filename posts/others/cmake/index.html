@@ -1,0 +1,539 @@
+<!doctype html><html lang=zh-Hans x-data :class=$store.darkMode.class() :data-theme=$store.darkMode.theme()><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>cmake 速查模板 | Askyx's Blog</title>
+<link rel=icon href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%2210 0 100 100%22><text y=%22.90em%22 font-size=%2290%22>🌱</text></svg>"></link>
+<link rel=canonical href=https://askyx.github.io/posts/others/cmake/><meta name=author content="Askyx"><meta name=description content="cmake 速查模板，自用"><meta name=keywords content="C/C++,cmake,模板库"><meta name=generator content="Hugo 0.121.0"><meta property="og:title" content="cmake 速查模板"><meta property="og:description" content="cmake 速查模板，自用"><meta property="og:type" content="article"><meta property="og:url" content="https://askyx.github.io/posts/others/cmake/"><meta property="og:image" content="https://askyx.github.io/img/global-background.jpg"><meta property="article:section" content="posts"><meta property="article:published_time" content="2023-08-09T17:34:54+08:00"><meta property="article:modified_time" content="2025-07-15T23:03:54+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://askyx.github.io/img/global-background.jpg"><meta name=twitter:title content="cmake 速查模板"><meta name=twitter:description content="cmake 速查模板，自用"><link rel=stylesheet href=/css/output.min.css><style>pre{padding:1em;overflow:auto}</style><link rel=stylesheet href=/css/custom.css><script defer src=https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js integrity="sha256-PtHu0lJIiSHfZeNj1nFd6wTX+Squ255SGZ/fc8seCtM=" crossorigin=anonymous></script></head><body x-data="{
+    flip: false,
+  }"><div id=dream-global-bg></div><nav x-data="{ isSticky: false }" x-init="window.addEventListener('scroll', () => { isSticky = window.scrollY > 30 })" class="sticky top-0 z-30 mt-4 lg:mt-8 py-4" :class="{ 'bg-base-100 shadow-lg dark:border-b dark:border-base-content/30': isSticky }"><div class="container flex justify-between px-4"><section class="flex items-center gap-4"><div class="avatar cursor-pointer hover:avatar-online" @click="flip = !flip" title="Flip it!"><div class="h-10 rounded-full"><img src=/img/personal/avatar.jpg alt="Askyx's Blog"></div></div><div><a href=https://askyx.github.io/ class="text-lg font-semibold cursor-pointer">Askyx's Blog</a><div class="text-base-content/60 text-sm">life is short, use Python</div></div></section><div class="dropdown dropdown-end sm:hidden"><div tabindex=0 role=button class="btn btn-ghost btn-square" aria-label="Select an option"><ion-icon name=menu class=text-2xl></ion-icon></div><ul tabindex=0 class="dropdown-content menu w-36 bg-base-100 rounded-box z-1 shadow-md"><li><div role=link tabindex=0 class="inline-flex items-center p-2 cursor-pointer" @click="flip = !flip" title=About><ion-icon name=information-circle></ion-icon>About</div></li><li><a class="group inline-flex items-center p-2 cursor-pointer" href=/search title=Search><ion-icon name=search></ion-icon>Search</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=https://github.com/askyx target=_blank title=GitHub><ion-icon name=logo-github></ion-icon>GitHub</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/posts title=Archives><ion-icon name=archive></ion-icon>Archives</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/tags title="All Tags"><ion-icon name=pricetags></ion-icon>All Tags</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/index.xml title=RSS><ion-icon name=logo-rss></ion-icon>RSS</a></li></ul></div><section class="hidden sm:flex sm:items-center sm:gap-2 md:gap-4"><div role=link tabindex=0 class="text-sm font-semibold cursor-pointer hover:underline" @click="flip = !flip" title=About>About</div><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href=/search title=Search><ion-icon class=group-hover:text-primary-content name=search></ion-icon></a><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href=https://github.com/askyx target=_blank title=GitHub><ion-icon class=group-hover:text-primary-content name=logo-github></ion-icon></a><div class="dropdown dropdown-end dropdown-hover"><div tabindex=0 role=button class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" aria-label="Select an option"><ion-icon class="group-hover:text-primary-content text-xl" name=menu></ion-icon></div><ul tabindex=0 class="dropdown-content menu w-36 bg-base-100 rounded-box z-1 shadow-xl"><li><a class="inline-flex items-center p-2 cursor-pointer" href=/posts title=Archives><ion-icon name=archive></ion-icon>Archives</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/tags title="All Tags"><ion-icon name=pricetags></ion-icon>All Tags</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/index.xml title=RSS><ion-icon name=logo-rss></ion-icon>RSS</a></li></ul></div></section></div></nav><div class=flip-container :class="{ 'flip-it': flip }"><div class=flipper><div class=front><div class=container><div class="lg:grid lg:grid-cols-4 gap-4 mt-4 px-4"><div class="hidden lg:block"></div><div class=lg:col-span-2><article class="mx-auto prose prose-quoteless dark:prose-invert" id=dream-single-post-main itemscope itemtype=http://schema.org/Article><meta itemprop=name content="cmake 速查模板"><meta itemprop=description content="cmake 速查模板，自用"><meta itemprop=datePublished content="2023-08-09T17:34:54+08:00"><meta itemprop=dateModified content="2025-07-15T23:03:54+08:00"><meta itemprop=wordCount content="1526"><meta itemprop=image content="https://askyx.github.io/img/global-background.jpg"><meta itemprop=keywords content="C/C++,cmake,模板库,"><header><h1 itemprop=headline>cmake 速查模板</h1><p class=text-sm><span data-format=luxon>2023-08-09T17:34:54+08:00</span>
+| <span>4 minute read</span>
+| <span>Updated at
+<span data-format=luxon>2025-07-15T23:03:54+08:00</span></span></p><div class="flex justify-between"><div class="flex items-center"><span>@</span>
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=name>Askyx</span></span></div><div class="flex items-center gap-2"><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href="https://x.com/intent/post?text=cmake%20%e9%80%9f%e6%9f%a5%e6%a8%a1%e6%9d%bf&amp;url=https://askyx.github.io/posts/others/cmake/" target=_blank rel="noopener noreferrer" title="Share on X"><ion-icon class=group-hover:text-primary-content name=logo-x></ion-icon></a><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href="https://facebook.com/sharer/sharer.php?u=https://askyx.github.io/posts/others/cmake/" target=_blank rel="noopener noreferrer" title="Share on Facebook"><ion-icon class=group-hover:text-primary-content name=logo-facebook></ion-icon></a><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href="https://wa.me/?text=cmake%20%e9%80%9f%e6%9f%a5%e6%a8%a1%e6%9d%bf%20https://askyx.github.io/posts/others/cmake/" target=_blank rel="noopener noreferrer" title="Share on WhatsApp"><ion-icon class=group-hover:text-primary-content name=logo-whatsapp></ion-icon></a></div></div></header><section id=dream-single-post-content itemprop=articleBody><h2 id=cmake-速记模板>cmake 速记模板</h2><h3 id=cmake-升级>cmake 升级</h3><pre tabindex=0><code>https://zhuanlan.zhihu.com/p/513871916
+
+wget https://github.com/Kitware/CMake/releases/download/v3.23.0/cmake-3.23.0-linux-x86_64.sh
+
+sudo bash ./cmake-3.23.0-linux-x86_64.sh --skip-licence --prefix=/usr/local
+
+sudo update-alternatives --install  /usr/bin/cmake cmake /usr/local/cmake-4.0.3-linux-x86_64/bin/cmake 10
+
+
+Do you accept the license? [yn]: 
+
+By default the CMake will be installed in:
+  &#34;/usr/cmake-3.23.0-linux-x86_64&#34;
+Do you want to include the subdirectory cmake-3.23.0-linux-x86_64?
+Saying no will install in: &#34;/usr&#34; [Yn]:
+</code></pre><p>修改 PATH</p><h3 id=添加第三方库>添加第三方库</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span>
+</span></span><span style=display:flex><span>include(FetchContent)
+</span></span><span style=display:flex><span>function(get_third_dep dep_name dep_url dep_tag)
+</span></span><span style=display:flex><span>  FetchContent_Declare(<span style=color:#960050;background-color:#1e0010>$</span>{dep_name}
+</span></span><span style=display:flex><span>    QUIET
+</span></span><span style=display:flex><span>    SOURCE_DIR <span style=color:#960050;background-color:#1e0010>$</span>{CMAKE_BINARY_DIR}<span style=color:#f92672>/</span>_deps<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span><span style=color:#960050;background-color:#1e0010>$</span>{dep_name}
+</span></span><span style=display:flex><span>    BINARY_DIR <span style=color:#960050;background-color:#1e0010>$</span>{CMAKE_BINARY_DIR}<span style=color:#f92672>/</span>_deps<span style=color:#f92672>/</span>build<span style=color:#f92672>/</span><span style=color:#960050;background-color:#1e0010>$</span>{dep_name}
+</span></span><span style=display:flex><span>    SUBBUILD_DIR <span style=color:#960050;background-color:#1e0010>$</span>{CMAKE_BINARY_DIR}<span style=color:#f92672>/</span>_deps<span style=color:#f92672>/</span>sub<span style=color:#f92672>/</span><span style=color:#960050;background-color:#1e0010>$</span>{dep_name}
+</span></span><span style=display:flex><span>    GIT_REPOSITORY <span style=color:#960050;background-color:#1e0010>$</span>{dep_url}
+</span></span><span style=display:flex><span>    GIT_TAG <span style=color:#960050;background-color:#1e0010>$</span>{dep_tag}
+</span></span><span style=display:flex><span>    GIT_PROGRESS TRUE
+</span></span><span style=display:flex><span>    GIT_SHALLOW TRUE
+</span></span><span style=display:flex><span>  )
+</span></span><span style=display:flex><span>  FetchContent_MakeAvailable(<span style=color:#960050;background-color:#1e0010>$</span>{dep_name})
+</span></span><span style=display:flex><span>endfunction(get_third_dep)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>get_third_dep(spdlog https:<span style=color:#75715e>//ghproxy.com/https://github.com/gabime/spdlog.git v1.11.0)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>get_third_dep(googletest https:<span style=color:#75715e>//ghproxy.com/https://github.com/google/googletest.git release-1.12.1)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>get_third_dep(asio https:<span style=color:#75715e>//ghproxy.com/https://github.com/chriskohlhoff/asio.git asio-1-28-0)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 添加 head only 库
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>add_library(asio INTERFACE)
+</span></span><span style=display:flex><span>target_include_directories(asio
+</span></span><span style=display:flex><span>  INTERFACE <span style=color:#960050;background-color:#1e0010>$</span>{CMAKE_BINARY_DIR}<span style=color:#f92672>/</span>_deps<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>asio<span style=color:#f92672>/</span>asio<span style=color:#f92672>/</span>include
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>target_compile_definitions(asio
+</span></span><span style=display:flex><span>  INTERFACE
+</span></span><span style=display:flex><span>    ASIO_STANDALONE
+</span></span><span style=display:flex><span>    ASIO_NO_DEPRECATED
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>target_link_libraries(asio
+</span></span><span style=display:flex><span>    INTERFACE pthread
+</span></span><span style=display:flex><span>)
+</span></span></code></pre></div><h3 id=添加-yacc-lex-编译>添加 yacc lex 编译</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span>find_package(FLEX REQUIRED)
+</span></span><span style=display:flex><span>find_package(BISON <span style=color:#ae81ff>3.5.0</span> REQUIRED)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>bison_target(parser
+</span></span><span style=display:flex><span>    <span style=color:#960050;background-color:#1e0010>$</span>{PROJECT_SOURCE_DIR}<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>parser<span style=color:#f92672>/</span>parser.yy
+</span></span><span style=display:flex><span>    <span style=color:#960050;background-color:#1e0010>$</span>{PROJECT_SOURCE_DIR}<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>parser<span style=color:#f92672>/</span>parser.cpp
+</span></span><span style=display:flex><span>    <span style=color:#75715e># DEFINES_FILE ${PROJECT_SOURCE_DIR}/src/include/parser/parser.hpp
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    COMPILE_FLAGS <span style=color:#960050;background-color:#1e0010>$</span>{bison_flags})
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>flex_target(scanner
+</span></span><span style=display:flex><span>  <span style=color:#960050;background-color:#1e0010>$</span>{PROJECT_SOURCE_DIR}<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>parser<span style=color:#f92672>/</span>scanner.lex
+</span></span><span style=display:flex><span>  <span style=color:#960050;background-color:#1e0010>$</span>{PROJECT_SOURCE_DIR}<span style=color:#f92672>/</span>src<span style=color:#f92672>/</span>parser<span style=color:#f92672>/</span>scanner.cpp)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>ADD_FLEX_BISON_DEPENDENCY(scanner parser)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>add_library(ASKY_lib
+</span></span><span style=display:flex><span>  SHARED
+</span></span><span style=display:flex><span>    <span style=color:#960050;background-color:#1e0010>$</span>{ASKY_SRC}
+</span></span><span style=display:flex><span>    <span style=color:#960050;background-color:#1e0010>$</span>{BISON_parser_OUTPUTS}
+</span></span><span style=display:flex><span>    <span style=color:#960050;background-color:#1e0010>$</span>{FLEX_scanner_OUTPUTS}
+</span></span><span style=display:flex><span>)
+</span></span></code></pre></div><h3 id=添加单元测试>添加单元测试</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span>function(add_cosmos_test test_name test_file)
+</span></span><span style=display:flex><span>  add_executable(<span style=color:#960050;background-color:#1e0010>$</span>{test_name} <span style=color:#960050;background-color:#1e0010>$</span>{test_file})
+</span></span><span style=display:flex><span>  target_link_libraries(<span style=color:#960050;background-color:#1e0010>$</span>{test_name} PRIVATE gtest gtest_main ASKY_lib)
+</span></span><span style=display:flex><span>  add_test(NAME <span style=color:#960050;background-color:#1e0010>$</span>{test_name} COMMAND <span style=color:#960050;background-color:#1e0010>$</span>{test_name})
+</span></span><span style=display:flex><span>endfunction(add_cosmos_test)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>foreach(TEST_SOURCE_FILE <span style=color:#960050;background-color:#1e0010>$</span>{ASKY_TEST_SRC})
+</span></span><span style=display:flex><span>  file(RELATIVE_PATH ASKY_TEST_CPP_REL <span style=color:#e6db74>&#34;${PROJECT_SOURCE_DIR}/test&#34;</span> <span style=color:#960050;background-color:#1e0010>$</span>{TEST_SOURCE_FILE})
+</span></span><span style=display:flex><span>  get_filename_component(NOISEPAGE_TEST_DIR <span style=color:#960050;background-color:#1e0010>$</span>{ASKY_TEST_CPP_REL} DIRECTORY)
+</span></span><span style=display:flex><span>  get_filename_component(NOISEPAGE_TEST <span style=color:#960050;background-color:#1e0010>$</span>{TEST_SOURCE_FILE} NAME_WE)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  add_cosmos_test(<span style=color:#960050;background-color:#1e0010>$</span>{NOISEPAGE_TEST} <span style=color:#960050;background-color:#1e0010>$</span>{TEST_SOURCE_FILE})
+</span></span><span style=display:flex><span>endforeach()
+</span></span></code></pre></div><h3 id=添加-自定义-command>添加 自定义 command</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e># clang-format
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>add_custom_target(format
+</span></span><span style=display:flex><span>  COMMAND git diff <span style=color:#f92672>--</span>name<span style=color:#f92672>-</span>only <span style=color:#f92672>--</span>diff<span style=color:#f92672>-</span>filter<span style=color:#f92672>=</span>d <span style=color:#f92672>--</span>cached <span style=color:#960050;background-color:#1e0010>&#39;</span><span style=color:#f92672>*</span>.cpp<span style=color:#e6db74>&#39; &#39;</span><span style=color:#f92672>*</span>.h<span style=color:#960050;background-color:#1e0010>&#39;</span> <span style=color:#f92672>|</span> xargs clang<span style=color:#f92672>-</span>format <span style=color:#f92672>-</span>i
+</span></span><span style=display:flex><span>  WORKING_DIRECTORY <span style=color:#960050;background-color:#1e0010>$</span>{PROJECT_SOURCE_DIR}
+</span></span><span style=display:flex><span>)
+</span></span></code></pre></div><h3 id=cmake-option>cmake option</h3><ul><li><code>option</code> 会缓存在cache 中，直接修改cmake文件不会立刻生效，可以手动 cmake 使用 <code>-D</code> 指定
+<code>cmake .. -DENABLE_ASAN=OFF</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span>option(ENABLE_ASAN          <span style=color:#e6db74>&#34;enable asna check&#34;</span>         ON)
+</span></span><span style=display:flex><span>option(ENABLE_TEST          <span style=color:#e6db74>&#34;enable regress&#34;</span>            OFF)
+</span></span><span style=display:flex><span>option(ENABLE_COVERAGE      <span style=color:#e6db74>&#34;enable coverage&#34;</span>           OFF)
+</span></span><span style=display:flex><span>option(ENABLE_PARSER_TRACE  <span style=color:#e6db74>&#34;enable sql parser trace&#34;</span>   ON)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> (<span style=color:#960050;background-color:#1e0010>$</span>{ENABLE_ASAN})
+</span></span><span style=display:flex><span>    list(APPEND COMPILE_OPTIONS <span style=color:#e6db74>&#34;-fsanitize=address&#34;</span> <span style=color:#e6db74>&#34;-fno-omit-frame-pointer&#34;</span> <span style=color:#e6db74>&#34;-fno-optimize-sibling-calls&#34;</span>)
+</span></span><span style=display:flex><span>    list(APPEND LINK_OPTIONS <span style=color:#e6db74>&#34;-fsanitize=address&#34;</span>)
+</span></span><span style=display:flex><span>endif ()
+</span></span><span style=display:flex><span>message(STATUS <span style=color:#e6db74>&#34;ASAN: ${ENABLE_ASAN}&#34;</span>)
+</span></span></code></pre></div><h3 id=自定义-package-配置>自定义 package 配置</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Copyright 2020 Mats Kindahl</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Licensed under the Apache License, Version 2.0 (the &#34;License&#34;); you may not</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># use this file except in compliance with the License. You may obtain a copy of</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># the License at</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># http://www.apache.org/licenses/LICENSE-2.0</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Unless required by applicable law or agreed to in writing, software</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># distributed under the License is distributed on an &#34;AS IS&#34; BASIS, WITHOUT</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># License for the specific language governing permissions and limitations under</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># the License.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># .rst: FindPostgreSQL</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># --------------------</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Find the PostgreSQL installation.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># This module defines the following variables</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># ::</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># PostgreSQL_LIBRARIES - the PostgreSQL libraries needed for linking</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># PostgreSQL_INCLUDE_DIRS - include directories</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># PostgreSQL_SERVER_INCLUDE_DIRS - include directories for server programming</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># PostgreSQL_LIBRARY_DIRS  - link directories for PostgreSQL libraries</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># PostgreSQL_EXTENSION_DIR  - the directory for extensions</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># PostgreSQL_SHARED_LINK_OPTIONS  - options for shared libraries</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># PostgreSQL_LINK_OPTIONS  - options for static libraries and executables</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># PostgreSQL_VERSION_STRING - the version of PostgreSQL found (since CMake</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 2.8.8)</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># ----------------------------------------------------------------------------</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># History: This module is derived from the existing FindPostgreSQL.cmake and try</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># to use most of the existing output variables of that module, but uses</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># `pg_config` to extract the necessary information instead and add a macro for</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># creating extensions. The use of `pg_config` is aligned with how the PGXS code</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># distributed with PostgreSQL itself works.</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Define additional search paths for root directories.</span>
+</span></span><span style=display:flex><span>set<span style=color:#f92672>(</span>PostgreSQL_ROOT_DIRECTORIES ENV PGROOT ENV PGPATH <span style=color:#e6db74>${</span>PostgreSQL_ROOT<span style=color:#e6db74>}</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>find_program<span style=color:#f92672>(</span>
+</span></span><span style=display:flex><span>  PG_CONFIG pg_config
+</span></span><span style=display:flex><span>  PATHS <span style=color:#e6db74>${</span>PostgreSQL_ROOT_DIRECTORIES<span style=color:#e6db74>}</span>
+</span></span><span style=display:flex><span>  PATH_SUFFIXES bin<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span><span style=color:#f92672>(</span>NOT PG_CONFIG<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  message<span style=color:#f92672>(</span>FATAL_ERROR <span style=color:#e6db74>&#34;Could not find pg_config&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>else</span><span style=color:#f92672>()</span>
+</span></span><span style=display:flex><span>  set<span style=color:#f92672>(</span>PostgreSQL_FOUND TRUE<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>endif<span style=color:#f92672>()</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>message<span style=color:#f92672>(</span>STATUS <span style=color:#e6db74>&#34;Found pg_config as </span><span style=color:#e6db74>${</span>PG_CONFIG<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span><span style=color:#f92672>(</span>PostgreSQL_FOUND<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  macro<span style=color:#f92672>(</span>PG_CONFIG VAR OPT<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>    execute_process<span style=color:#f92672>(</span>
+</span></span><span style=display:flex><span>      COMMAND <span style=color:#e6db74>${</span>PG_CONFIG<span style=color:#e6db74>}</span> <span style=color:#e6db74>${</span>OPT<span style=color:#e6db74>}</span>
+</span></span><span style=display:flex><span>      OUTPUT_VARIABLE <span style=color:#e6db74>${</span>VAR<span style=color:#e6db74>}</span>
+</span></span><span style=display:flex><span>      OUTPUT_STRIP_TRAILING_WHITESPACE<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  endmacro<span style=color:#f92672>()</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  pg_config<span style=color:#f92672>(</span>_pg_bindir --bindir<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  pg_config<span style=color:#f92672>(</span>_pg_includedir --includedir<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  pg_config<span style=color:#f92672>(</span>_pg_pkgincludedir --pkgincludedir<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  pg_config<span style=color:#f92672>(</span>_pg_sharedir --sharedir<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  pg_config<span style=color:#f92672>(</span>_pg_includedir_server --includedir-server<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  pg_config<span style=color:#f92672>(</span>_pg_libs --libs<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  pg_config<span style=color:#f92672>(</span>_pg_ldflags --ldflags<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  pg_config<span style=color:#f92672>(</span>_pg_ldflags_sl --ldflags_sl<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  pg_config<span style=color:#f92672>(</span>_pg_ldflags_ex --ldflags_ex<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  pg_config<span style=color:#f92672>(</span>_pg_pkglibdir --pkglibdir<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  pg_config<span style=color:#f92672>(</span>_pg_libdir --libdir<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  pg_config<span style=color:#f92672>(</span>_pg_version --version<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  separate_arguments<span style=color:#f92672>(</span>_pg_ldflags<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  separate_arguments<span style=color:#f92672>(</span>_pg_ldflags_sl<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  separate_arguments<span style=color:#f92672>(</span>_pg_ldflags_ex<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  set<span style=color:#f92672>(</span>_server_lib_dirs <span style=color:#e6db74>${</span>_pg_libdir<span style=color:#e6db74>}</span> <span style=color:#e6db74>${</span>_pg_pkglibdir<span style=color:#e6db74>}</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  set<span style=color:#f92672>(</span>_server_inc_dirs <span style=color:#e6db74>${</span>_pg_pkgincludedir<span style=color:#e6db74>}</span> <span style=color:#e6db74>${</span>_pg_includedir_server<span style=color:#e6db74>}</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  string<span style=color:#f92672>(</span>REPLACE <span style=color:#e6db74>&#34;;&#34;</span> <span style=color:#e6db74>&#34; &#34;</span> _shared_link_options
+</span></span><span style=display:flex><span>                 <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>_pg_ldflags<span style=color:#e6db74>}</span><span style=color:#e6db74>;</span><span style=color:#e6db74>${</span>_pg_ldflags_sl<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  set<span style=color:#f92672>(</span>_link_options <span style=color:#e6db74>${</span>_pg_ldflags<span style=color:#e6db74>}</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span><span style=color:#f92672>(</span>_pg_ldflags_ex<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>    list<span style=color:#f92672>(</span>APPEND _link_options <span style=color:#e6db74>${</span>_pg_ldflags_ex<span style=color:#e6db74>}</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  endif<span style=color:#f92672>()</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  set<span style=color:#f92672>(</span>PostgreSQL_INCLUDE_DIRS
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>_pg_includedir<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span>
+</span></span><span style=display:flex><span>      CACHE PATH
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;Top-level directory containing the PostgreSQL include directories.&#34;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  set<span style=color:#f92672>(</span>PostgreSQL_EXTENSION_DIR
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>_pg_sharedir<span style=color:#e6db74>}</span><span style=color:#e6db74>/extension&#34;</span>
+</span></span><span style=display:flex><span>      CACHE PATH <span style=color:#e6db74>&#34;Directory containing extension SQL and control files&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  set<span style=color:#f92672>(</span>PostgreSQL_SERVER_INCLUDE_DIRS
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>_server_inc_dirs<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span>
+</span></span><span style=display:flex><span>      CACHE PATH <span style=color:#e6db74>&#34;PostgreSQL include directories for server include files.&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  set<span style=color:#f92672>(</span>PostgreSQL_LIBRARY_DIRS
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>_pg_libdir<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span>
+</span></span><span style=display:flex><span>      CACHE PATH <span style=color:#e6db74>&#34;library directory for PostgreSQL&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  set<span style=color:#f92672>(</span>PostgreSQL_LIBRARIES
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>_pg_libs<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span>
+</span></span><span style=display:flex><span>      CACHE PATH <span style=color:#e6db74>&#34;Libraries for PostgreSQL&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  set<span style=color:#f92672>(</span>PostgreSQL_SHARED_LINK_OPTIONS
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>_shared_link_options<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span>
+</span></span><span style=display:flex><span>      CACHE STRING <span style=color:#e6db74>&#34;PostgreSQL linker options for shared libraries.&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  set<span style=color:#f92672>(</span>PostgreSQL_LINK_OPTIONS
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>_pg_ldflags<span style=color:#e6db74>}</span><span style=color:#e6db74>,</span><span style=color:#e6db74>${</span>_pg_ldflags_ex<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span>
+</span></span><span style=display:flex><span>      CACHE STRING <span style=color:#e6db74>&#34;PostgreSQL linker options for executables.&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  set<span style=color:#f92672>(</span>PostgreSQL_SERVER_LIBRARY_DIRS
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>_server_lib_dirs<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span>
+</span></span><span style=display:flex><span>      CACHE PATH <span style=color:#e6db74>&#34;PostgreSQL server library directories.&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  set<span style=color:#f92672>(</span>PostgreSQL_VERSION_STRING
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>_pg_version<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span>
+</span></span><span style=display:flex><span>      CACHE STRING <span style=color:#e6db74>&#34;PostgreSQL version string&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  set<span style=color:#f92672>(</span>PostgreSQL_PACKAGE_LIBRARY_DIR
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>_pg_pkglibdir<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span>
+</span></span><span style=display:flex><span>    CACHE STRING <span style=color:#e6db74>&#34;PostgreSQL package library directory&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  find_program<span style=color:#f92672>(</span>
+</span></span><span style=display:flex><span>    PG_BINARY postgres
+</span></span><span style=display:flex><span>    PATHS <span style=color:#e6db74>${</span>PostgreSQL_ROOT_DIRECTORIES<span style=color:#e6db74>}</span>
+</span></span><span style=display:flex><span>    HINTS <span style=color:#e6db74>${</span>_pg_bindir<span style=color:#e6db74>}</span>
+</span></span><span style=display:flex><span>    PATH_SUFFIXES bin<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span><span style=color:#f92672>(</span>NOT PG_BINARY<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>    message<span style=color:#f92672>(</span>FATAL_ERROR <span style=color:#e6db74>&#34;Could not find postgres binary&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  endif<span style=color:#f92672>()</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  message<span style=color:#f92672>(</span>STATUS <span style=color:#e6db74>&#34;Found postgres binary at </span><span style=color:#e6db74>${</span>PG_BINARY<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  find_program<span style=color:#f92672>(</span>PG_REGRESS pg_regress HINT
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>${</span>PostgreSQL_PACKAGE_LIBRARY_DIR<span style=color:#e6db74>}</span>/pgxs/src/test/regress<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span><span style=color:#f92672>(</span>NOT PG_REGRESS<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>    message<span style=color:#f92672>(</span>STATUS <span style=color:#e6db74>&#34;Could not find pg_regress, tests not executed&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  endif<span style=color:#f92672>()</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  message<span style=color:#f92672>(</span>STATUS <span style=color:#e6db74>&#34;PostgreSQL version </span><span style=color:#e6db74>${</span>PostgreSQL_VERSION_STRING<span style=color:#e6db74>}</span><span style=color:#e6db74> found&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  message<span style=color:#f92672>(</span>
+</span></span><span style=display:flex><span>    STATUS
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;PostgreSQL package library directory: </span><span style=color:#e6db74>${</span>PostgreSQL_PACKAGE_LIBRARY_DIR<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  message<span style=color:#f92672>(</span>STATUS <span style=color:#e6db74>&#34;PostgreSQL libraries: </span><span style=color:#e6db74>${</span>PostgreSQL_LIBRARIES<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  message<span style=color:#f92672>(</span>STATUS <span style=color:#e6db74>&#34;PostgreSQL extension directory: </span><span style=color:#e6db74>${</span>PostgreSQL_EXTENSION_DIR<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  message<span style=color:#f92672>(</span>STATUS <span style=color:#e6db74>&#34;PostgreSQL linker options: </span><span style=color:#e6db74>${</span>PostgreSQL_LINK_OPTIONS<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  message<span style=color:#f92672>(</span>
+</span></span><span style=display:flex><span>    STATUS <span style=color:#e6db74>&#34;PostgreSQL shared linker options: </span><span style=color:#e6db74>${</span>PostgreSQL_SHARED_LINK_OPTIONS<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>endif<span style=color:#f92672>()</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># add_postgresql_extension(NAME ...)</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># VERSION Version of the extension. Is used when generating the control file.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Required.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># ENCODING Encoding for the control file. Optional.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># COMMENT Comment for the control file. Optional.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># SOURCES List of source files to compile for the extension.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># REQUIRES List of extensions that are required by this extension.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># SCRIPTS Script files.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># SCRIPT_TEMPLATES Template script files.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># REGRESS Regress tests.</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span><span style=color:#f92672>(</span>add_postgresql_extension NAME<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  set<span style=color:#f92672>(</span>_optional<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  set<span style=color:#f92672>(</span>_single VERSION ENCODING<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  set<span style=color:#f92672>(</span>_multi SOURCES SCRIPTS SCRIPT_TEMPLATES DEPENDS_LIB REQUIRES REGRESS<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  cmake_parse_arguments<span style=color:#f92672>(</span>_ext <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>_optional<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span> <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>_single<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span> <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>_multi<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span> <span style=color:#e6db74>${</span>ARGN<span style=color:#e6db74>}</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span><span style=color:#f92672>(</span>NOT _ext_VERSION<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>    message<span style=color:#f92672>(</span>FATAL_ERROR <span style=color:#e6db74>&#34;Extension version not set&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  endif<span style=color:#f92672>()</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># Here we are assuming that there is at least one source file, which is</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># strictly speaking not necessary for an extension. If we do not have source</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># files, we need to create a custom target and attach properties to that. We</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># expect the user to be able to add target properties after creating the</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># extension.</span>
+</span></span><span style=display:flex><span>  add_library<span style=color:#f92672>(</span><span style=color:#e6db74>${</span>NAME<span style=color:#e6db74>}</span> MODULE <span style=color:#e6db74>${</span>_ext_SOURCES<span style=color:#e6db74>}</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  set<span style=color:#f92672>(</span>_link_flags <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>PostgreSQL_SHARED_LINK_OPTIONS<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  foreach<span style=color:#f92672>(</span>_dir <span style=color:#e6db74>${</span>PostgreSQL_SERVER_LIBRARY_DIRS<span style=color:#e6db74>}</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>    set<span style=color:#f92672>(</span>_link_flags <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>_link_flags<span style=color:#e6db74>}</span><span style=color:#e6db74> -L</span><span style=color:#e6db74>${</span>_dir<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  endforeach<span style=color:#f92672>()</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># Collect and build script files to install</span>
+</span></span><span style=display:flex><span>  set<span style=color:#f92672>(</span>_script_files <span style=color:#e6db74>${</span>_ext_SCRIPTS<span style=color:#e6db74>}</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  foreach<span style=color:#f92672>(</span>_template <span style=color:#e6db74>${</span>_ext_SCRIPT_TEMPLATES<span style=color:#e6db74>}</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>    string<span style=color:#f92672>(</span>REGEX REPLACE <span style=color:#e6db74>&#34;\.in</span>$<span style=color:#e6db74>&#34;</span> <span style=color:#e6db74>&#34;&#34;</span> _script <span style=color:#e6db74>${</span>_template<span style=color:#e6db74>}</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>    configure_file<span style=color:#f92672>(</span><span style=color:#e6db74>${</span>_template<span style=color:#e6db74>}</span> <span style=color:#e6db74>${</span>_script<span style=color:#e6db74>}</span> @ONLY<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>    list<span style=color:#f92672>(</span>APPEND _script_files <span style=color:#e6db74>${</span>CMAKE_CURRENT_BINARY_DIR<span style=color:#e6db74>}</span>/<span style=color:#e6db74>${</span>_script<span style=color:#e6db74>}</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>    message<span style=color:#f92672>(</span>
+</span></span><span style=display:flex><span>      STATUS <span style=color:#e6db74>&#34;Building script file </span><span style=color:#e6db74>${</span>_script<span style=color:#e6db74>}</span><span style=color:#e6db74> from template file </span><span style=color:#e6db74>${</span>_template<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  endforeach<span style=color:#f92672>()</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span><span style=color:#f92672>(</span>APPLE<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>    set<span style=color:#f92672>(</span>_link_flags <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>_link_flags<span style=color:#e6db74>}</span><span style=color:#e6db74> -bundle_loader </span><span style=color:#e6db74>${</span>PG_BINARY<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  endif<span style=color:#f92672>()</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> <span style=color:#f92672>(</span>_ext_DEPENDS_LIB<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>    target_link_libraries<span style=color:#f92672>(</span><span style=color:#e6db74>${</span>NAME<span style=color:#e6db74>}</span> PRIVATE <span style=color:#e6db74>${</span>_ext_DEPENDS_LIB<span style=color:#e6db74>}</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  endif<span style=color:#f92672>()</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  set_target_properties<span style=color:#f92672>(</span>
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>${</span>NAME<span style=color:#e6db74>}</span>
+</span></span><span style=display:flex><span>    PROPERTIES PREFIX <span style=color:#e6db74>&#34;&#34;</span>
+</span></span><span style=display:flex><span>               LINK_FLAGS <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>_link_flags<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span>
+</span></span><span style=display:flex><span>               POSITION_INDEPENDENT_CODE ON
+</span></span><span style=display:flex><span>               CXX_STANDARD <span style=color:#ae81ff>23</span>
+</span></span><span style=display:flex><span>               CXX_EXTENSIONS OFF
+</span></span><span style=display:flex><span>               XX_STANDARD_REQUIRED ON<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  target_include_directories<span style=color:#f92672>(</span>
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>${</span>NAME<span style=color:#e6db74>}</span>
+</span></span><span style=display:flex><span>    PRIVATE <span style=color:#e6db74>${</span>PostgreSQL_SERVER_INCLUDE_DIRS<span style=color:#e6db74>}</span>
+</span></span><span style=display:flex><span>    PUBLIC <span style=color:#e6db74>${</span>CMAKE_CURRENT_SOURCE_DIR<span style=color:#e6db74>}</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  target_compile_options<span style=color:#f92672>(</span><span style=color:#e6db74>${</span>NAME<span style=color:#e6db74>}</span>
+</span></span><span style=display:flex><span>    PRIVATE
+</span></span><span style=display:flex><span>      <span style=color:#75715e># &#34;-Werror&#34;</span>
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;-Wall&#34;</span>
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;-fvisibility=hidden&#34;</span>
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;-fvisibility-inlines-hidden&#34;</span>
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;-Wpointer-arith&#34;</span>
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;-Wendif-labels&#34;</span>
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;-Wmissing-format-attribute&#34;</span>
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;-Wimplicit-fallthrough=3&#34;</span>
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;-Wcast-function-type&#34;</span>
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;-Wshadow=compatible-local&#34;</span>
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;-Wformat-security&#34;</span>
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;-fno-strict-aliasing&#34;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># Generate control file at build time (which is when GENERATE evaluate the</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># contents). We do not know the target file name until then.</span>
+</span></span><span style=display:flex><span>  set<span style=color:#f92672>(</span>_control_file <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>CMAKE_CURRENT_BINARY_DIR<span style=color:#e6db74>}</span><span style=color:#e6db74>/</span><span style=color:#e6db74>${</span>NAME<span style=color:#e6db74>}</span><span style=color:#e6db74>.control&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  file<span style=color:#f92672>(</span>
+</span></span><span style=display:flex><span>    GENERATE
+</span></span><span style=display:flex><span>    OUTPUT <span style=color:#e6db74>${</span>_control_file<span style=color:#e6db74>}</span>
+</span></span><span style=display:flex><span>    CONTENT
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;# This file is generated content from add_postgresql_extension.
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># No point in modifying it, it will be overwritten anyway.
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># Default version, always set
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>default_version = &#39;</span><span style=color:#e6db74>${</span>_ext_VERSION<span style=color:#e6db74>}</span><span style=color:#e6db74>&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># Module pathname generated from target shared library name. Use
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># MODULE_PATHNAME in script file.
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>module_pathname = &#39;</span>$libdir<span style=color:#e6db74>/</span>$<span style=color:#e6db74>&lt;TARGET_FILE_NAME:</span><span style=color:#e6db74>${</span>NAME<span style=color:#e6db74>}</span><span style=color:#e6db74>&gt;&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># Comment for extension. Set using COMMENT option. Can be set in
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># script file as well.
+</span></span></span><span style=display:flex><span><span style=color:#e6db74></span>$<span style=color:#e6db74>&lt;</span>$<span style=color:#e6db74>&lt;NOT:</span>$<span style=color:#e6db74>&lt;BOOL:</span><span style=color:#e6db74>${</span>_ext_COMMENT<span style=color:#e6db74>}</span><span style=color:#e6db74>&gt;&gt;:#&gt;comment = &#39;</span><span style=color:#e6db74>${</span>_ext_COMMENT<span style=color:#e6db74>}</span><span style=color:#e6db74>&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># Encoding for script file. Set using ENCODING option.
+</span></span></span><span style=display:flex><span><span style=color:#e6db74></span>$<span style=color:#e6db74>&lt;</span>$<span style=color:#e6db74>&lt;NOT:</span>$<span style=color:#e6db74>&lt;BOOL:</span><span style=color:#e6db74>${</span>_ext_ENCODING<span style=color:#e6db74>}</span><span style=color:#e6db74>&gt;&gt;:#&gt;encoding = &#39;</span><span style=color:#e6db74>${</span>_ext_ENCODING<span style=color:#e6db74>}</span><span style=color:#e6db74>&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># Required extensions. Set using REQUIRES option (multi-valued).
+</span></span></span><span style=display:flex><span><span style=color:#e6db74></span>$<span style=color:#e6db74>&lt;</span>$<span style=color:#e6db74>&lt;NOT:</span>$<span style=color:#e6db74>&lt;BOOL:</span><span style=color:#e6db74>${</span>_ext_REQUIRES<span style=color:#e6db74>}</span><span style=color:#e6db74>&gt;&gt;:#&gt;requires = &#39;</span>$<span style=color:#e6db74>&lt;JOIN:</span><span style=color:#e6db74>${</span>_ext_REQUIRES<span style=color:#e6db74>}</span><span style=color:#e6db74>,</span>$<span style=color:#e6db74>&lt;COMMA&gt;&gt;&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  install<span style=color:#f92672>(</span>TARGETS <span style=color:#e6db74>${</span>NAME<span style=color:#e6db74>}</span> LIBRARY DESTINATION <span style=color:#e6db74>${</span>PostgreSQL_PACKAGE_LIBRARY_DIR<span style=color:#e6db74>}</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  install<span style=color:#f92672>(</span>FILES <span style=color:#e6db74>${</span>_control_file<span style=color:#e6db74>}</span> <span style=color:#e6db74>${</span>_script_files<span style=color:#e6db74>}</span>
+</span></span><span style=display:flex><span>          DESTINATION <span style=color:#e6db74>${</span>PostgreSQL_EXTENSION_DIR<span style=color:#e6db74>}</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span><span style=color:#f92672>(</span>_ext_REGRESS<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>    foreach<span style=color:#f92672>(</span>_test <span style=color:#e6db74>${</span>_ext_REGRESS<span style=color:#e6db74>}</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>      set<span style=color:#f92672>(</span>_sql_file <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>CMAKE_CURRENT_SOURCE_DIR<span style=color:#e6db74>}</span><span style=color:#e6db74>/sql/</span><span style=color:#e6db74>${</span>_test<span style=color:#e6db74>}</span><span style=color:#e6db74>.sql&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>      set<span style=color:#f92672>(</span>_out_file <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>CMAKE_CURRENT_SOURCE_DIR<span style=color:#e6db74>}</span><span style=color:#e6db74>/expected/</span><span style=color:#e6db74>${</span>_test<span style=color:#e6db74>}</span><span style=color:#e6db74>.out&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span><span style=color:#f92672>(</span>NOT EXISTS <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>_sql_file<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>        message<span style=color:#f92672>(</span>FATAL_ERROR <span style=color:#e6db74>&#34;Test file &#39;</span><span style=color:#e6db74>${</span>_sql_file<span style=color:#e6db74>}</span><span style=color:#e6db74>&#39; does not exist!&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>      endif<span style=color:#f92672>()</span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span><span style=color:#f92672>(</span>NOT EXISTS <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>_out_file<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>        file<span style=color:#f92672>(</span>WRITE <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>_out_file<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span> <span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>        message<span style=color:#f92672>(</span>STATUS <span style=color:#e6db74>&#34;Created empty file </span><span style=color:#e6db74>${</span>_out_file<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>      endif<span style=color:#f92672>()</span>
+</span></span><span style=display:flex><span>    endforeach<span style=color:#f92672>()</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span><span style=color:#f92672>(</span>PG_REGRESS<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>      add_test<span style=color:#f92672>(</span>
+</span></span><span style=display:flex><span>        NAME <span style=color:#e6db74>${</span>NAME<span style=color:#e6db74>}</span>
+</span></span><span style=display:flex><span>        COMMAND
+</span></span><span style=display:flex><span>          <span style=color:#e6db74>${</span>PG_REGRESS<span style=color:#e6db74>}</span> --temp-instance<span style=color:#f92672>=</span><span style=color:#e6db74>${</span>CMAKE_BINARY_DIR<span style=color:#e6db74>}</span>/tmp_check
+</span></span><span style=display:flex><span>          --inputdir<span style=color:#f92672>=</span><span style=color:#e6db74>${</span>CMAKE_CURRENT_SOURCE_DIR<span style=color:#e6db74>}</span>
+</span></span><span style=display:flex><span>          --outputdir<span style=color:#f92672>=</span><span style=color:#e6db74>${</span>CMAKE_CURRENT_BINARY_DIR<span style=color:#e6db74>}</span> --load-extension<span style=color:#f92672>=</span><span style=color:#e6db74>${</span>NAME<span style=color:#e6db74>}</span>
+</span></span><span style=display:flex><span>          <span style=color:#e6db74>${</span>_ext_REGRESS<span style=color:#e6db74>}</span><span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>    endif<span style=color:#f92672>()</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    add_custom_target<span style=color:#f92672>(</span>
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>${</span>NAME<span style=color:#e6db74>}</span>_update_results
+</span></span><span style=display:flex><span>      COMMAND
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>${</span>CMAKE_COMMAND<span style=color:#e6db74>}</span> -E copy_if_different
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>${</span>CMAKE_CURRENT_BINARY_DIR<span style=color:#e6db74>}</span>/results/*.out
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>${</span>CMAKE_CURRENT_SOURCE_DIR<span style=color:#e6db74>}</span>/expected<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  endif<span style=color:#f92672>()</span>
+</span></span><span style=display:flex><span>endfunction<span style=color:#f92672>()</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span><span style=color:#f92672>(</span>PG_REGRESS<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># We add a custom target to get output when there is a failure.</span>
+</span></span><span style=display:flex><span>  add_custom_target<span style=color:#f92672>(</span>
+</span></span><span style=display:flex><span>    test_verbose COMMAND <span style=color:#e6db74>${</span>CMAKE_CTEST_COMMAND<span style=color:#e6db74>}</span> --force-new-ctest-process
+</span></span><span style=display:flex><span>                         --verbose --output-on-failure<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>endif<span style=color:#f92672>()</span>
+</span></span></code></pre></div><h3 id=添加资源到文件>添加资源到文件</h3><ul><li><p>类似 xxd -i 选项，把一些资源序列化到文件中，然后在程序中读取</p></li><li><p>直接 xxd -i 末尾没有 0， 这里自己实现了，加个 0</p></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span>
+</span></span><span style=display:flex><span>function(target_embedding_files TARGET_DEPENDS TARGET_FILES TARGET_PATH OUTOUT_PATH)
+</span></span><span style=display:flex><span>  file(READ <span style=color:#960050;background-color:#1e0010>$</span>{TARGET_FILES} content HEX)
+</span></span><span style=display:flex><span>  string(REGEX MATCHALL <span style=color:#e6db74>&#34;([A-Fa-f0-9][A-Fa-f0-9])&#34;</span> SEPARATED_HEX <span style=color:#960050;background-color:#1e0010>$</span>{content})
+</span></span><span style=display:flex><span>  file(RELATIVE_PATH FILE_ORINGINAL <span style=color:#960050;background-color:#1e0010>$</span>{TARGET_PATH} <span style=color:#960050;background-color:#1e0010>$</span>{TARGET_FILES})
+</span></span><span style=display:flex><span>  get_filename_component(FILE <span style=color:#960050;background-color:#1e0010>$</span>{TARGET_FILES} NAME_WE)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  set(counter <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>  set(output_hex <span style=color:#e6db74>&#34;&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  foreach (hex IN LISTS SEPARATED_HEX)
+</span></span><span style=display:flex><span>    string(APPEND output_hex <span style=color:#e6db74>&#34;0x${hex},&#34;</span>)
+</span></span><span style=display:flex><span>    MATH(EXPR counter <span style=color:#e6db74>&#34;${counter}+1&#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>(counter GREATER <span style=color:#ae81ff>16</span>)
+</span></span><span style=display:flex><span>      string(APPEND output_hex <span style=color:#e6db74>&#34;</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>)
+</span></span><span style=display:flex><span>      set(counter <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>    endif()
+</span></span><span style=display:flex><span>  endforeach ()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  string(APPEND output_hex <span style=color:#e6db74>&#34;0x00,&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  set(output_hex <span style=color:#e6db74>&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>uint8_t</span> __<span style=color:#960050;background-color:#1e0010>$</span>{FILE}[] <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>$</span>{output_hex}
+</span></span><span style=display:flex><span>}<span style=color:#960050;background-color:#1e0010>\</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>unsigned</span> __<span style=color:#960050;background-color:#1e0010>$</span>{FILE}_size <span style=color:#f92672>=</span> <span style=color:#66d9ef>sizeof</span>(__<span style=color:#960050;background-color:#1e0010>$</span>{FILE})<span style=color:#960050;background-color:#1e0010>\</span>;
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;)</span>
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (NOT EXISTS <span style=color:#960050;background-color:#1e0010>$</span>{OUTOUT_PATH})
+</span></span><span style=display:flex><span>    file(MAKE_DIRECTORY <span style=color:#960050;background-color:#1e0010>$</span>{OUTOUT_PATH})
+</span></span><span style=display:flex><span>  endif ()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  file(WRITE <span style=color:#960050;background-color:#1e0010>$</span>{OUTOUT_PATH}<span style=color:#f92672>/</span><span style=color:#960050;background-color:#1e0010>$</span>{FILE}.h  <span style=color:#960050;background-color:#1e0010>$</span>{output_hex})
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  add_custom_target(<span style=color:#960050;background-color:#1e0010>$</span>{FILE}Target DEPENDS <span style=color:#960050;background-color:#1e0010>$</span>{OUTOUT_PATH}<span style=color:#f92672>/</span><span style=color:#960050;background-color:#1e0010>$</span>{FILE}.h)
+</span></span><span style=display:flex><span>  add_dependencies(<span style=color:#960050;background-color:#1e0010>$</span>{TARGET_DEPENDS} <span style=color:#960050;background-color:#1e0010>$</span>{FILE}Target)
+</span></span><span style=display:flex><span>endfunction(target_embedding_files)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>file(
+</span></span><span style=display:flex><span>  GLOB_RECURSE
+</span></span><span style=display:flex><span>  TPCDS_QUERIES
+</span></span><span style=display:flex><span>  CONFIGURE_DEPENDS
+</span></span><span style=display:flex><span>    <span style=color:#960050;background-color:#1e0010>$</span>{CMAKE_CURRENT_SOURCE_DIR}<span style=color:#f92672>/</span>queries<span style=color:#75715e>/*.sql 
+</span></span></span><span style=display:flex><span><span style=color:#75715e>)
+</span></span></span><span style=display:flex><span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>foreach(QUERY_CELL ${TPCDS_QUERIES})
+</span></span></span><span style=display:flex><span><span style=color:#75715e>  target_embedding_files(tpcds
+</span></span></span><span style=display:flex><span><span style=color:#75715e>    ${QUERY_CELL}
+</span></span></span><span style=display:flex><span><span style=color:#75715e>    ${CMAKE_CURRENT_SOURCE_DIR}/queries
+</span></span></span><span style=display:flex><span><span style=color:#75715e>    ${CMAKE_CURRENT_SOURCE_DIR}/include/queries)
+</span></span></span><span style=display:flex><span><span style=color:#75715e>endforeach()
+</span></span></span></code></pre></div><h3 id=find-指定库>find 指定库</h3><p>这里添加的是 INTERFACE</p><p>Findxxx.cmake</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e># Find the readline library. This is necessary on macOS to find the homebrew version
+</span></span></span><span style=display:flex><span><span style=color:#75715e># Output variables:
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#  READLINE_INCLUDE_DIR : e.g., /usr/include/.
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#  READLINE_LIBRARY     : Library path of readline library
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#  READLINE_FOUND       : True if found.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span>add_library(readline INTERFACE)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>find_path(
+</span></span><span style=display:flex><span>    READLINE_INCLUDE_DIR
+</span></span><span style=display:flex><span>    NAME
+</span></span><span style=display:flex><span>        readline<span style=color:#f92672>/</span>readline.h
+</span></span><span style=display:flex><span>    HINTS
+</span></span><span style=display:flex><span>        <span style=color:#960050;background-color:#1e0010>$</span>{DEFAULT_LIB_DIRS}
+</span></span><span style=display:flex><span>    PATH_SUFFIXES
+</span></span><span style=display:flex><span>        include
+</span></span><span style=display:flex><span>    REQUIRED
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>find_library(
+</span></span><span style=display:flex><span>    READLINE_LIBRARY
+</span></span><span style=display:flex><span>    NAME
+</span></span><span style=display:flex><span>        readline
+</span></span><span style=display:flex><span>    HINTS
+</span></span><span style=display:flex><span>        <span style=color:#960050;background-color:#1e0010>$</span>{DEFAULT_LIB_DIRS}
+</span></span><span style=display:flex><span>    PATH_SUFFIXES
+</span></span><span style=display:flex><span>        lib
+</span></span><span style=display:flex><span>        lib64
+</span></span><span style=display:flex><span>        x86_64<span style=color:#f92672>-</span>linux<span style=color:#f92672>-</span>gnu
+</span></span><span style=display:flex><span>    REQUIRED
+</span></span><span style=display:flex><span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> (READLINE_INCLUDE_DIR AND READLINE_LIBRARY)
+</span></span><span style=display:flex><span>    set(READLINE_FOUND TRUE)
+</span></span><span style=display:flex><span>    target_include_directories(readline INTERFACE <span style=color:#960050;background-color:#1e0010>$</span>{READLINE_INCLUDE_DIR})
+</span></span><span style=display:flex><span>    target_link_libraries(readline INTERFACE <span style=color:#960050;background-color:#1e0010>$</span>{READLINE_LIBRARY})
+</span></span><span style=display:flex><span>    message(STATUS <span style=color:#e6db74>&#34;Found readline library: inc=${READLINE_INCLUDE_DIR}, lib=${READLINE_LIBRARY}&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>else</span> ()
+</span></span><span style=display:flex><span>    set(READLINE_FOUND FALSE)
+</span></span><span style=display:flex><span>    message(STATUS <span style=color:#e6db74>&#34;WARNING: readline library not found.&#34;</span>)
+</span></span><span style=display:flex><span>    message(STATUS <span style=color:#e6db74>&#34;Try: &#39;sudo apt-get install libreadline-dev&#39;&#34;</span>)
+</span></span><span style=display:flex><span>endif ()
+</span></span></code></pre></div></section><div class=divider></div><div class="flex flex-col md:flex-row justify-between gap-4 py-4"><a role=button class="btn btn-outline h-12" href=/posts/database/tbase/build/ title="源码编译 OpenTenBase 速通版"><ion-icon name=chevron-back></ion-icon><div class="inline-flex flex-col items-start"><span class="text-base-content/60 text-xs font-normal">Previous page</span>
+<span class="max-w-48 truncate">源码编译 OpenTenBase 速通版</span></div></a><a role=button class="btn btn-outline h-12" href=/posts/others/gdb/ title="gdb 要点简记"><div class="inline-flex flex-col items-end"><span class="text-base-content/60 text-xs font-normal">Next page</span>
+<span class="max-w-48 truncate">gdb 要点简记</span></div><ion-icon name=chevron-forward></ion-icon></a></div><div class=divider></div><section class=space-y-4><template x-if="['localhost', '127.0.0.1'].indexOf(window.location.hostname) == -1"><article><script src=https://utteranc.es/client.js repo=https://askyx.github.io/ issue-term=og:title theme=github-light crossorigin=anonymous async></script></article></template></section></article></div><div x-data=tocHighlighter() @scroll.window=debouncedScroll class="hidden lg:flex lg:flex-col lg:items-end lg:self-start"><nav id=TableOfContents><ul><li><a href=#cmake-速记模板>cmake 速记模板</a><ul><li><a href=#cmake-升级>cmake 升级</a></li><li><a href=#添加第三方库>添加第三方库</a></li><li><a href=#添加-yacc-lex-编译>添加 yacc lex 编译</a></li><li><a href=#添加单元测试>添加单元测试</a></li><li><a href=#添加-自定义-command>添加 自定义 command</a></li><li><a href=#cmake-option>cmake option</a></li><li><a href=#自定义-package-配置>自定义 package 配置</a></li><li><a href=#添加资源到文件>添加资源到文件</a></li><li><a href=#find-指定库>find 指定库</a></li></ul></li></ul></nav></div></div><footer class="flex justify-between items-center gap-2 px-4 py-12"><div><p>© 2016 - 2025 Askyx's Blog</p><p class=text-sm>🌱
+<span class=text-base-content/60>Powered by <a class=hover:underline href=https://gohugo.io/ target=_blank>Hugo</a> with theme
+<a class=hover:underline href=https://github.com/g1eny0ung/hugo-theme-dream target=_blank>Dream</a>.</span></p></div><div x-data="{ icons: [
+    { name: 'sunny', status: 'n' },
+    { name: 'moon', status: 'y' },
+    { name: 'desktop', status: 'auto' }
+  ] }" class="flex items-center gap-2 h-[32px] px-2 bg-base-100 border border-base-content/30 rounded-full"><template x-for="icon in icons"><div role=button tabindex=0 :aria-label="'Select ' + icon.name + ' mode'" class="group inline-flex justify-center items-center p-1 rounded-full cursor-pointer hover:bg-primary" :class="$store.darkMode.icon() === icon.name && 'bg-primary'" @click=$store.darkMode.toggle(icon.status)><ion-icon :name="`${icon.name}-outline`" class=group-hover:text-primary-content :class="$store.darkMode.icon() === icon.name && 'text-primary-content'"></ion-icon></div></template></div></footer></div></div><div class=back><div class=container><div class="dream-grid dream-grid-about"><div class="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-4 dream-column"><article class="card bg-base-100 hover:bg-base-content/10 shadow-xl dark:border dark:border-base-content/30"><div class=card-body><div class=card-title>About Me</div><div class="prose dark:prose-invert"><p>Hi, my name is Yue Yang.</p><p>This is my blog.</p><h2 id=ヾωo>ヾ(•ω•`)o</h2><p>比较胆小，出门都得贴墙走</p></div></div></article></div></div><footer class="flex justify-between items-center gap-2 px-4 py-12"><div><p>© 2016 - 2025 Askyx's Blog</p><p class=text-sm>🌱
+<span class=text-base-content/60>Powered by <a class=hover:underline href=https://gohugo.io/ target=_blank>Hugo</a> with theme
+<a class=hover:underline href=https://github.com/g1eny0ung/hugo-theme-dream target=_blank>Dream</a>.</span></p></div><div x-data="{ icons: [
+    { name: 'sunny', status: 'n' },
+    { name: 'moon', status: 'y' },
+    { name: 'desktop', status: 'auto' }
+  ] }" class="flex items-center gap-2 h-[32px] px-2 bg-base-100 border border-base-content/30 rounded-full"><template x-for="icon in icons"><div role=button tabindex=0 :aria-label="'Select ' + icon.name + ' mode'" class="group inline-flex justify-center items-center p-1 rounded-full cursor-pointer hover:bg-primary" :class="$store.darkMode.icon() === icon.name && 'bg-primary'" @click=$store.darkMode.toggle(icon.status)><ion-icon :name="`${icon.name}-outline`" class=group-hover:text-primary-content :class="$store.darkMode.icon() === icon.name && 'text-primary-content'"></ion-icon></div></template></div></footer></div></div></div></div><script>window.lightTheme="emerald",window.darkTheme="forest"</script><script src=https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js integrity="sha256-htrLFfZJ6v5udOG+3kNLINIKh2gvoKqwEhHYfTTMICc=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin=anonymous></script><script src=/js/grid.min.js></script><script src=/js/main.min.js></script><script src=https://cdn.jsdelivr.net/npm/luxon@1.26.0 integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin=anonymous></script><script>format();function format(){document.querySelectorAll('span[data-format="luxon"]').forEach(e=>{const t=e.textContent;e.textContent=luxon.DateTime.fromISO(t,{locale:"en"}).toFormat("yyyy年MM月dd日")})}</script><script src=/js/toc.min.js></script><script type=module>
+      import mediumZoom from 'https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/+esm';
+      mediumZoom('#dream-single-post-content img', {
+        background: 'oklch(var(--b1))',
+        margin: 24,
+      })
+    </script><script type=module src=https://cdn.jsdelivr.net/npm/ionicons@7.4.0/dist/ionicons/ionicons.esm.js integrity="sha256-/IFmi82bIhdYWctu0UddSlJqpnzWm7Vh2C4CM32wF/k=" crossorigin=anonymous></script><script nomodule src=https://cdn.jsdelivr.net/npm/ionicons@7.4.0/dist/ionicons/ionicons.js integrity="sha256-mr7eJMX3VC3F7G32mk4oWp1C6a2tlMYxUdptfT7uKI8=" crossorigin=anonymous></script></body></html>

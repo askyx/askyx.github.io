@@ -1,0 +1,641 @@
+<!doctype html><html lang=zh-Hans x-data :class=$store.darkMode.class() :data-theme=$store.darkMode.theme()><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Postgres Storage | Askyx's Blog</title>
+<link rel=icon href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%2210 0 100 100%22><text y=%22.90em%22 font-size=%2290%22>🌱</text></svg>"></link>
+<link rel=canonical href=https://askyx.github.io/posts/postgres/storage/><meta name=author content="Askyx"><meta name=description content="存储 内存 共享内存 本地内存 缓存 内存上下文 缓存空间管理 数据块的缓存，减少磁盘IO，有共享缓存和进程缓存 Cache 数据块之外的缓存，例如系统表 系统表缓存不"><meta name=keywords content="数据库,Postgres,存储"><meta name=generator content="Hugo 0.121.0"><meta property="og:title" content="Postgres Storage"><meta property="og:description" content="存储 内存 共享内存 本地内存 缓存 内存上下文 缓存空间管理 数据块的缓存，减少磁盘IO，有共享缓存和进程缓存 Cache 数据块之外的缓存，例如系统表 系统表缓存不"><meta property="og:type" content="article"><meta property="og:url" content="https://askyx.github.io/posts/postgres/storage/"><meta property="og:image" content="https://askyx.github.io/img/global-background.jpg"><meta property="article:section" content="posts"><meta property="article:published_time" content="2022-07-21T09:15:05+08:00"><meta property="article:modified_time" content="2025-07-15T23:03:54+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://askyx.github.io/img/global-background.jpg"><meta name=twitter:title content="Postgres Storage"><meta name=twitter:description content="存储 内存 共享内存 本地内存 缓存 内存上下文 缓存空间管理 数据块的缓存，减少磁盘IO，有共享缓存和进程缓存 Cache 数据块之外的缓存，例如系统表 系统表缓存不"><link rel=stylesheet href=/css/output.min.css><style>pre{padding:1em;overflow:auto}</style><link rel=stylesheet href=/css/custom.css><script defer src=https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js integrity="sha256-PtHu0lJIiSHfZeNj1nFd6wTX+Squ255SGZ/fc8seCtM=" crossorigin=anonymous></script></head><body x-data="{
+    flip: false,
+  }"><div id=dream-global-bg></div><nav x-data="{ isSticky: false }" x-init="window.addEventListener('scroll', () => { isSticky = window.scrollY > 30 })" class="sticky top-0 z-30 mt-4 lg:mt-8 py-4" :class="{ 'bg-base-100 shadow-lg dark:border-b dark:border-base-content/30': isSticky }"><div class="container flex justify-between px-4"><section class="flex items-center gap-4"><div class="avatar cursor-pointer hover:avatar-online" @click="flip = !flip" title="Flip it!"><div class="h-10 rounded-full"><img src=/img/personal/avatar.jpg alt="Askyx's Blog"></div></div><div><a href=https://askyx.github.io/ class="text-lg font-semibold cursor-pointer">Askyx's Blog</a><div class="text-base-content/60 text-sm">life is short, use Python</div></div></section><div class="dropdown dropdown-end sm:hidden"><div tabindex=0 role=button class="btn btn-ghost btn-square" aria-label="Select an option"><ion-icon name=menu class=text-2xl></ion-icon></div><ul tabindex=0 class="dropdown-content menu w-36 bg-base-100 rounded-box z-1 shadow-md"><li><div role=link tabindex=0 class="inline-flex items-center p-2 cursor-pointer" @click="flip = !flip" title=About><ion-icon name=information-circle></ion-icon>About</div></li><li><a class="group inline-flex items-center p-2 cursor-pointer" href=/search title=Search><ion-icon name=search></ion-icon>Search</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=https://github.com/askyx target=_blank title=GitHub><ion-icon name=logo-github></ion-icon>GitHub</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/posts title=Archives><ion-icon name=archive></ion-icon>Archives</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/tags title="All Tags"><ion-icon name=pricetags></ion-icon>All Tags</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/index.xml title=RSS><ion-icon name=logo-rss></ion-icon>RSS</a></li></ul></div><section class="hidden sm:flex sm:items-center sm:gap-2 md:gap-4"><div role=link tabindex=0 class="text-sm font-semibold cursor-pointer hover:underline" @click="flip = !flip" title=About>About</div><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href=/search title=Search><ion-icon class=group-hover:text-primary-content name=search></ion-icon></a><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href=https://github.com/askyx target=_blank title=GitHub><ion-icon class=group-hover:text-primary-content name=logo-github></ion-icon></a><div class="dropdown dropdown-end dropdown-hover"><div tabindex=0 role=button class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" aria-label="Select an option"><ion-icon class="group-hover:text-primary-content text-xl" name=menu></ion-icon></div><ul tabindex=0 class="dropdown-content menu w-36 bg-base-100 rounded-box z-1 shadow-xl"><li><a class="inline-flex items-center p-2 cursor-pointer" href=/posts title=Archives><ion-icon name=archive></ion-icon>Archives</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/tags title="All Tags"><ion-icon name=pricetags></ion-icon>All Tags</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/index.xml title=RSS><ion-icon name=logo-rss></ion-icon>RSS</a></li></ul></div></section></div></nav><div class=flip-container :class="{ 'flip-it': flip }"><div class=flipper><div class=front><div class=container><div class="lg:grid lg:grid-cols-4 gap-4 mt-4 px-4"><div class="hidden lg:block"></div><div class=lg:col-span-2><article class="mx-auto prose prose-quoteless dark:prose-invert" id=dream-single-post-main itemscope itemtype=http://schema.org/Article><meta itemprop=name content="Postgres Storage"><meta itemprop=description content="存储 内存 共享内存 本地内存 缓存 内存上下文 缓存空间管理 数据块的缓存，减少磁盘IO，有共享缓存和进程缓存 Cache 数据块之外的缓存，例如系统表 系统表缓存不"><meta itemprop=datePublished content="2022-07-21T09:15:05+08:00"><meta itemprop=dateModified content="2025-07-15T23:03:54+08:00"><meta itemprop=wordCount content="6678"><meta itemprop=image content="https://askyx.github.io/img/global-background.jpg"><meta itemprop=keywords content="数据库,Postgres,存储,"><header><h1 itemprop=headline>Postgres Storage</h1><p class=text-sm><span data-format=luxon>2022-07-21T09:15:05+08:00</span>
+| <span>14 minute read</span>
+| <span>Updated at
+<span data-format=luxon>2025-07-15T23:03:54+08:00</span></span></p><div class="flex justify-between"><div class="flex items-center"><span>@</span>
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=name>Askyx</span></span></div><div class="flex items-center gap-2"><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href="https://x.com/intent/post?text=Postgres%20Storage&amp;url=https://askyx.github.io/posts/postgres/storage/" target=_blank rel="noopener noreferrer" title="Share on X"><ion-icon class=group-hover:text-primary-content name=logo-x></ion-icon></a><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href="https://facebook.com/sharer/sharer.php?u=https://askyx.github.io/posts/postgres/storage/" target=_blank rel="noopener noreferrer" title="Share on Facebook"><ion-icon class=group-hover:text-primary-content name=logo-facebook></ion-icon></a><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href="https://wa.me/?text=Postgres%20Storage%20https://askyx.github.io/posts/postgres/storage/" target=_blank rel="noopener noreferrer" title="Share on WhatsApp"><ion-icon class=group-hover:text-primary-content name=logo-whatsapp></ion-icon></a></div></div></header><section id=dream-single-post-content itemprop=articleBody><h2 id=存储>存储</h2><h3 id=内存>内存</h3><ul><li><p>共享内存</p></li><li><p>本地内存</p></li><li><p>缓存</p></li><li><p>内存上下文</p></li><li><p>缓存空间管理<br>数据块的缓存，减少磁盘IO，有共享缓存和进程缓存</p></li><li><p>Cache<br>数据块之外的缓存，例如系统表</p><ul><li>系统表缓存不会缓存整个表，是以block为单位缓存？</li></ul></li><li><p>虚拟文件描述符<br>系统中文件有打开的上限，使用VFD可以突破这种限制，本质上是一个LRU缓存</p></li><li><p>空闲空间定位<br>快速定位磁盘中的空闲空间以插入数据</p></li><li><p>进程间通信
+使用共享内存或者信号量通信</p></li></ul><h4 id=读取过程>读取过程</h4><ol><li>从系统表中读取表的元数据信息构造元组信息</li><li>尝试从缓存读取数据</li><li>使用SMGR从磁盘读取数据到缓存中，SMGR是一个抽象层，用于实现不同存储介质的管理</li><li>SMGR和存储介质之间使用VFD来管理文件描述符，以突破系统的FD限制</li></ol><ul><li>标记删除，vacuum清理数据</li><li>FSM记录空闲空间</li></ul><h3 id=磁盘>磁盘</h3><ul><li><p>表文件</p></li><li><p>SMGR</p></li><li><p>VFD</p></li><li><p>FSM</p></li></ul><p>select * from pg_relation_filepath(&lsquo;idx&rsquo;);</p><h4 id=page-结构>Page 结构</h4><p>工具汇总说明</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span>create extension pageinspect;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>get_raw_page(relname text, fork text, blkno <span style=color:#66d9ef>int</span>)
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>返回执行表的</span>page<span style=color:#960050;background-color:#1e0010>，</span>text指定类型<span style=color:#960050;background-color:#1e0010>，默认是</span>main<span style=color:#960050;background-color:#1e0010>，代表普通</span>page<span style=color:#960050;background-color:#1e0010>，使用</span>fsm或者vm查看其他类型<span style=color:#960050;background-color:#1e0010>，可以省略</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>page_header(page bytea)
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>查看</span>page头<span style=color:#960050;background-color:#1e0010>，输入是</span>page数组<span style=color:#960050;background-color:#1e0010>，使用上面的函数的输出作为参数</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>fsm_page_contents(page bytea) returns text
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>查看</span>fsm页面结构
+</span></span><span style=display:flex><span>SELECT fsm_page_contents(get_raw_page(<span style=color:#960050;background-color:#1e0010>&#39;</span>t1<span style=color:#960050;background-color:#1e0010>&#39;</span>, <span style=color:#960050;background-color:#1e0010>&#39;</span>fsm<span style=color:#960050;background-color:#1e0010>&#39;</span>, <span style=color:#ae81ff>0</span>));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>===</span> HEAP相关
+</span></span><span style=display:flex><span>heap_page_items(page bytea)
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>查看</span>page的具体信息
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>heap_tuple_infomask_flags(t_infomask integer, t_infomask2 integer) returns record
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>查看</span>mask的具体含义<span style=color:#960050;background-color:#1e0010>，具体的使用方法为</span>
+</span></span><span style=display:flex><span>SELECT <span style=color:#f92672>*</span> FROM heap_page_items(get_raw_page(<span style=color:#e6db74>&#39;a&#39;</span>, <span style=color:#ae81ff>0</span>)), LATERAL heap_tuple_infomask_flags(t_infomask, t_infomask2) WHERE t_infomask IS NOT NULL OR t_infomask2 IS NOT NULL order by lp desc;
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>输出为</span>
+</span></span><span style=display:flex><span> t_infomask2 <span style=color:#f92672>|</span> t_infomask <span style=color:#f92672>|</span> t_hoff <span style=color:#f92672>|</span>  t_bits  <span style=color:#f92672>|</span> t_oid <span style=color:#f92672>|</span>   t_data   <span style=color:#f92672>|</span>                                raw_flags                                 <span style=color:#f92672>|</span> combined_flags 
+</span></span><span style=display:flex><span><span style=color:#f92672>-------------+------------+--------+----------+-------+------------+--------------------------------------------------------------------------+----------------</span>
+</span></span><span style=display:flex><span>           <span style=color:#ae81ff>3</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>2305</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>10000000</span> <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x02000000 <span style=color:#f92672>|</span> {HEAP_HASNULL,HEAP_XMIN_COMMITTED,HEAP_XMAX_INVALID}                     <span style=color:#f92672>|</span> {}
+</span></span><span style=display:flex><span>        <span style=color:#ae81ff>8195</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>1281</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>10000000</span> <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x01000000 <span style=color:#f92672>|</span> {HEAP_HASNULL,HEAP_XMIN_COMMITTED,HEAP_XMAX_COMMITTED,HEAP_KEYS_UPDATED} <span style=color:#f92672>|</span> {}
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>主要目的是查看数据的</span>mask的信息
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>===</span> Btree相关
+</span></span><span style=display:flex><span>bt_metap(relname text)
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>查看</span>btree元数据信息
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>bt_page_stats(relname text, blkno <span style=color:#66d9ef>int</span>)
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>查看</span>btree page的统计信息
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>bt_page_items(relname text, blkno <span style=color:#66d9ef>int</span>) <span style=color:#960050;background-color:#1e0010>或者</span> bt_page_items(page bytea) returns setof record
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>查看具体的信息，可以指定</span>index或者直接使用page byte
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>PageHeaderData</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#75715e>/* XXX LSN is member of *any* block, not only page-organized ones */</span>
+</span></span><span style=display:flex><span>  PageXLogRecPtr pd_lsn;        <span style=color:#75715e>/* LSN: next byte after last byte of xlog record for last change to this page */</span>
+</span></span><span style=display:flex><span>  uint16    pd_checksum;        <span style=color:#75715e>/* checksum */</span>
+</span></span><span style=display:flex><span>  uint16    pd_flags;           <span style=color:#75715e>/* flag bits, see below */</span>
+</span></span><span style=display:flex><span>  LocationIndex pd_lower;       <span style=color:#75715e>/* offset to start of free space */</span>
+</span></span><span style=display:flex><span>  LocationIndex pd_upper;       <span style=color:#75715e>/* offset to end of free space */</span>
+</span></span><span style=display:flex><span>  LocationIndex pd_special;     <span style=color:#75715e>/* offset to start of special space */</span>
+</span></span><span style=display:flex><span>  uint16 pd_pagesize_version;
+</span></span><span style=display:flex><span>  TransactionId pd_prune_xid;   <span style=color:#75715e>/* oldest prunable XID, or zero if none */</span>
+</span></span><span style=display:flex><span>  ItemIdData  pd_linp[FLEXIBLE_ARRAY_MEMBER]; <span style=color:#75715e>/* line pointer array */</span>
+</span></span><span style=display:flex><span>} PageHeaderData;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>PageInit</span>(Page page, Size pageSize, Size specialSize)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  PageHeader  p <span style=color:#f92672>=</span> (PageHeader) page;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  specialSize <span style=color:#f92672>=</span> MAXALIGN(specialSize);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  Assert(pageSize <span style=color:#f92672>==</span> BLCKSZ);
+</span></span><span style=display:flex><span>  Assert(pageSize <span style=color:#f92672>&gt;</span> specialSize <span style=color:#f92672>+</span> SizeOfPageHeaderData);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>/* Make sure all fields of page are zero, as well as unused space */</span>
+</span></span><span style=display:flex><span>  MemSet(p, <span style=color:#ae81ff>0</span>, pageSize);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  p<span style=color:#f92672>-&gt;</span>pd_flags <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  p<span style=color:#f92672>-&gt;</span>pd_lower <span style=color:#f92672>=</span> SizeOfPageHeaderData;
+</span></span><span style=display:flex><span>  p<span style=color:#f92672>-&gt;</span>pd_upper <span style=color:#f92672>=</span> pageSize <span style=color:#f92672>-</span> specialSize;
+</span></span><span style=display:flex><span>  p<span style=color:#f92672>-&gt;</span>pd_special <span style=color:#f92672>=</span> pageSize <span style=color:#f92672>-</span> specialSize;
+</span></span><span style=display:flex><span>  PageSetPageSizeAndVersion(page, pageSize, PG_PAGE_LAYOUT_VERSION);
+</span></span><span style=display:flex><span>  <span style=color:#75715e>/* p-&gt;pd_prune_xid = InvalidTransactionId;    done by above MemSet */</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>大小为 pageSize，默认为8k，最开始是PageHeader，</p><ul><li>数据的变动以page为单位，不直接和存储交互，先把数据块读到缓存，然后在进行insert或者update或者delete，具体的函数有<ul><li>heap_update</li><li>heap_multi_insert</li><li>heap_insert</li></ul></li></ul><p>tuple结构如下</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>HeapTupleHeaderData</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>union</span>
+</span></span><span style=display:flex><span>  {
+</span></span><span style=display:flex><span>    HeapTupleFields t_heap;
+</span></span><span style=display:flex><span>    DatumTupleFields t_datum;
+</span></span><span style=display:flex><span>  }      t_choice;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  ItemPointerData t_ctid;    <span style=color:#75715e>/* current TID of this or newer tuple (or a * speculative insertion token) */</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>/* Fields below here must match MinimalTupleData! */</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#define FIELDNO_HEAPTUPLEHEADERDATA_INFOMASK2 2
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// hot相关信息，
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>//   hot指的是数据在更新的时候，如果有index,会同事更新index，即使没有修改到index属性的数据，此时index中也会有一条数据的链表，为了节约空间，在满足
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>//   1. 没有修改到index属性数据
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>//   2. 数组修改限于在同一个page内，此时index不会有额外的数据，查找的时候从index找到最老的数据，按照数据链查找到最新数据即可
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  uint16    t_infomask2;  <span style=color:#75715e>/* number of attributes + various flags */</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#define FIELDNO_HEAPTUPLEHEADERDATA_INFOMASK 3
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  uint16    t_infomask;    <span style=color:#75715e>/* various flag bits, see below */</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#define FIELDNO_HEAPTUPLEHEADERDATA_HOFF 4
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  uint8    t_hoff;      <span style=color:#75715e>/* sizeof header incl. bitmap, padding */</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>/* ^ - 23 bytes - ^ */</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#define FIELDNO_HEAPTUPLEHEADERDATA_BITS 5
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  bits8    t_bits[FLEXIBLE_ARRAY_MEMBER];  <span style=color:#75715e>/* bitmap of NULLs */</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>/* MORE DATA FOLLOWS AT END OF STRUCT */</span>
+</span></span><span style=display:flex><span>};
+</span></span></code></pre></div><p>page具体的操作代码在<code>storage/page</code>目录下，建议进行 15445 的实验，可以更好的理解page相关的操作，这里page的操作总体类似，主要是具体的数据结构和某些特定的方法需要时间进行记忆，但是大的方向上似曾相识。</p><p>RelationPutHeapTuple insert tuple到page中，根据head中的信息，计算insert的位置，其中page中的数据从首位向中心靠齐，尾部为数据，前面为offset，使用pd_lower和pd_upper进行管理，最后为柔性数组，数据在最后，
+在内存总操作的时候，使用偏移可以直接定位到数据，具体使用<code>pageinspect</code>插件查看</p><p>调试<code>heap_page_items</code>函数，结合<a href=http://www.postgres.cn/docs/12/storage-page-layout.html target=_blank>官网</a>
+和源码熟悉数据的组织结构</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>table</span> a ;
+</span></span><span style=display:flex><span> a <span style=color:#f92672>|</span> b 
+</span></span><span style=display:flex><span><span style=color:#75715e>---+---
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span> <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span> <span style=color:#ae81ff>5</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span> <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span> <span style=color:#ae81ff>7</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>7</span>
+</span></span><span style=display:flex><span> <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>9</span>
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>5</span> <span style=color:#66d9ef>rows</span>)
+</span></span><span style=display:flex><span>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> page_header(get_raw_page(<span style=color:#e6db74>&#39;a&#39;</span>, <span style=color:#ae81ff>0</span>));
+</span></span><span style=display:flex><span>    lsn    <span style=color:#f92672>|</span> checksum <span style=color:#f92672>|</span> flags <span style=color:#f92672>|</span> <span style=color:#66d9ef>lower</span> <span style=color:#f92672>|</span> <span style=color:#66d9ef>upper</span> <span style=color:#f92672>|</span> special <span style=color:#f92672>|</span> pagesize <span style=color:#f92672>|</span> <span style=color:#66d9ef>version</span> <span style=color:#f92672>|</span> prune_xid 
+</span></span><span style=display:flex><span><span style=color:#75715e>-----------+----------+-------+-------+-------+---------+----------+---------+-----------
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span> <span style=color:#ae81ff>0</span><span style=color:#f92672>/</span><span style=color:#ae81ff>5</span>BD92B8 <span style=color:#f92672>|</span>        <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>64</span> <span style=color:#f92672>|</span>  <span style=color:#ae81ff>7872</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>8192</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>8192</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>4</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>788</span>
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>1</span> <span style=color:#66d9ef>row</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> heap_page_items(get_raw_page(<span style=color:#e6db74>&#39;a&#39;</span>, <span style=color:#ae81ff>0</span>));
+</span></span><span style=display:flex><span> lp <span style=color:#f92672>|</span> lp_off <span style=color:#f92672>|</span> lp_flags <span style=color:#f92672>|</span> lp_len <span style=color:#f92672>|</span> t_xmin <span style=color:#f92672>|</span> t_xmax <span style=color:#f92672>|</span> t_field3 <span style=color:#f92672>|</span> t_ctid <span style=color:#f92672>|</span> t_infomask2 <span style=color:#f92672>|</span> t_infomask <span style=color:#f92672>|</span> t_hoff <span style=color:#f92672>|</span> t_bits <span style=color:#f92672>|</span> t_oid <span style=color:#f92672>|</span>       t_data       
+</span></span><span style=display:flex><span><span style=color:#75715e>----+--------+----------+--------+--------+--------+----------+--------+-------------+------------+--------+--------+-------+--------------------
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>   <span style=color:#ae81ff>8160</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>787</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>1</span>)  <span style=color:#f92672>|</span>           <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>2304</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span>        <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x0100000001000000
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>   <span style=color:#ae81ff>8128</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>788</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>788</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>3</span>)  <span style=color:#f92672>|</span>           <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>1312</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span>        <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x0200000002000000
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>3</span> <span style=color:#f92672>|</span>   <span style=color:#ae81ff>8096</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>788</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>788</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>4</span>)  <span style=color:#f92672>|</span>           <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>9504</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span>        <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x0300000002000000
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>4</span> <span style=color:#f92672>|</span>   <span style=color:#ae81ff>8064</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>788</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>788</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>5</span>)  <span style=color:#f92672>|</span>           <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>9504</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span>        <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x0400000002000000
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>5</span> <span style=color:#f92672>|</span>   <span style=color:#ae81ff>8032</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>788</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>3</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>5</span>)  <span style=color:#f92672>|</span>           <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>10496</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span>        <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x0500000002000000
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>6</span> <span style=color:#f92672>|</span>   <span style=color:#ae81ff>8000</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>791</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>6</span>)  <span style=color:#f92672>|</span>           <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>2304</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span>        <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x0200000002000000
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>7</span> <span style=color:#f92672>|</span>   <span style=color:#ae81ff>7968</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>792</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>792</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>8</span>)  <span style=color:#f92672>|</span>           <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>544</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span>        <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x0400000004000000
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>8</span> <span style=color:#f92672>|</span>   <span style=color:#ae81ff>7936</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>792</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>8</span>)  <span style=color:#f92672>|</span>           <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>10752</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span>        <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x0600000004000000
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>9</span> <span style=color:#f92672>|</span>   <span style=color:#ae81ff>7904</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>793</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>9</span>)  <span style=color:#f92672>|</span>           <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>2304</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span>        <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x0700000007000000
+</span></span><span style=display:flex><span> <span style=color:#ae81ff>10</span> <span style=color:#f92672>|</span>   <span style=color:#ae81ff>7872</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>794</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>10</span>) <span style=color:#f92672>|</span>           <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>2048</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span>        <span style=color:#f92672>|</span>       <span style=color:#f92672>|</span> <span style=color:#960050;background-color:#1e0010>\</span>x0100000009000000
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>10</span> <span style=color:#66d9ef>rows</span>)
+</span></span></code></pre></div><p><code>pageinspect</code>插件<code>get_raw_page</code>直接获得指定page的数据，然后在<code>heap_page_items</code>函数中解读page<br>page结构<img src=https://www.interdb.jp/pg/img/fig-1-04.png alt=如图><br>tuple结构<img src=https://smartkeyerror.oss-cn-shenzhen.aliyuncs.com/Mario/PostgreSQL-MVCC/1639204953030.png alt=如图></p><p>首先是<code>PageHeader</code>，大小为24，在函数<code>page_header</code>中直接获取到page之后，进行强转，然后读取header中的数据即可，其中lsn和wal有关，后面需要调研机制，prune_xid和数据剪枝有关，后面调研。再然后在page得最后由部分数据和index有关，这里不关注<br>然后是具体的数据组织，在header之后，开始数据的存储，数据使用index定位偏移，实际的数据从尾部进行增长。定位数据偏移的数据结构为<code>ItemId</code>，</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>ItemIdData</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>unsigned</span>    lp_off:<span style=color:#ae81ff>15</span>,        <span style=color:#75715e>/* offset to tuple (from start of page) */</span>
+</span></span><span style=display:flex><span>                lp_flags:<span style=color:#ae81ff>2</span>,       <span style=color:#75715e>/* state of line pointer, see below */</span>
+</span></span><span style=display:flex><span>                lp_len:<span style=color:#ae81ff>15</span>;        <span style=color:#75715e>/* byte length of tuple */</span>
+</span></span><span style=display:flex><span>} ItemIdData;
+</span></span></code></pre></div><p>lp_off是实际的数据的偏移的位置，lp_flags表示数据状态，例如死元组，或者重定位的数据，一般是1，表示LP_NORMAL，lp_len是数据的长度，具体案例见上面的例子</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span>Datum <span style=color:#a6e22e>heap_page_items</span>(PG_FUNCTION_ARGS) {
+</span></span><span style=display:flex><span>  bytea <span style=color:#f92672>*</span>raw_page <span style=color:#f92672>=</span> PG_GETARG_BYTEA_P(<span style=color:#ae81ff>0</span>);
+</span></span><span style=display:flex><span>  heap_page_items_state <span style=color:#f92672>*</span>inter_call_data <span style=color:#f92672>=</span> NULL;
+</span></span><span style=display:flex><span>  FuncCallContext <span style=color:#f92672>*</span>fctx;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>int</span> raw_page_size;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span>superuser())
+</span></span><span style=display:flex><span>    ereport(ERROR, (errcode(ERRCODE_INSUFFICIENT_PRIVILEGE), errmsg(<span style=color:#e6db74>&#34;must be superuser to use raw page functions&#34;</span>)));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  raw_page_size <span style=color:#f92672>=</span> VARSIZE(raw_page) <span style=color:#f92672>-</span> VARHDRSZ;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (SRF_IS_FIRSTCALL()) {
+</span></span><span style=display:flex><span>    TupleDesc tupdesc;
+</span></span><span style=display:flex><span>    MemoryContext mctx;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (raw_page_size <span style=color:#f92672>&lt;</span> SizeOfPageHeaderData)
+</span></span><span style=display:flex><span>      ereport(ERROR,
+</span></span><span style=display:flex><span>              (errcode(ERRCODE_INVALID_PARAMETER_VALUE), errmsg(<span style=color:#e6db74>&#34;input page too small (%d bytes)&#34;</span>, raw_page_size)));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    fctx <span style=color:#f92672>=</span> SRF_FIRSTCALL_INIT();
+</span></span><span style=display:flex><span>    mctx <span style=color:#f92672>=</span> MemoryContextSwitchTo(fctx<span style=color:#f92672>-&gt;</span>multi_call_memory_ctx);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    inter_call_data <span style=color:#f92672>=</span> palloc(<span style=color:#66d9ef>sizeof</span>(heap_page_items_state));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>/* Build a tuple descriptor for our result type */</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (get_call_result_type(fcinfo, NULL, <span style=color:#f92672>&amp;</span>tupdesc) <span style=color:#f92672>!=</span> TYPEFUNC_COMPOSITE)
+</span></span><span style=display:flex><span>      elog(ERROR, <span style=color:#e6db74>&#34;return type must be a row type&#34;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    inter_call_data<span style=color:#f92672>-&gt;</span>tupd <span style=color:#f92672>=</span> tupdesc;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    inter_call_data<span style=color:#f92672>-&gt;</span>offset <span style=color:#f92672>=</span> FirstOffsetNumber;
+</span></span><span style=display:flex><span>    inter_call_data<span style=color:#f92672>-&gt;</span>page <span style=color:#f92672>=</span> VARDATA(raw_page);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    fctx<span style=color:#f92672>-&gt;</span>max_calls <span style=color:#f92672>=</span> PageGetMaxOffsetNumber(inter_call_data<span style=color:#f92672>-&gt;</span>page);
+</span></span><span style=display:flex><span>    fctx<span style=color:#f92672>-&gt;</span>user_fctx <span style=color:#f92672>=</span> inter_call_data;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    MemoryContextSwitchTo(mctx);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  fctx <span style=color:#f92672>=</span> SRF_PERCALL_SETUP();
+</span></span><span style=display:flex><span>  inter_call_data <span style=color:#f92672>=</span> fctx<span style=color:#f92672>-&gt;</span>user_fctx;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (fctx<span style=color:#f92672>-&gt;</span>call_cntr <span style=color:#f92672>&lt;</span> fctx<span style=color:#f92672>-&gt;</span>max_calls) {
+</span></span><span style=display:flex><span>    Page page <span style=color:#f92672>=</span> inter_call_data<span style=color:#f92672>-&gt;</span>page;
+</span></span><span style=display:flex><span>    HeapTuple resultTuple;
+</span></span><span style=display:flex><span>    Datum result;
+</span></span><span style=display:flex><span>    ItemId id;
+</span></span><span style=display:flex><span>    Datum values[<span style=color:#ae81ff>14</span>];
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>bool</span> nulls[<span style=color:#ae81ff>14</span>];
+</span></span><span style=display:flex><span>    uint16 lp_offset;
+</span></span><span style=display:flex><span>    uint16 lp_flags;
+</span></span><span style=display:flex><span>    uint16 lp_len;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    memset(nulls, <span style=color:#ae81ff>0</span>, <span style=color:#66d9ef>sizeof</span>(nulls));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>/* Extract information from the line pointer */</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    id <span style=color:#f92672>=</span> PageGetItemId(page, inter_call_data<span style=color:#f92672>-&gt;</span>offset);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    lp_offset <span style=color:#f92672>=</span> ItemIdGetOffset(id);
+</span></span><span style=display:flex><span>    lp_flags <span style=color:#f92672>=</span> ItemIdGetFlags(id);
+</span></span><span style=display:flex><span>    lp_len <span style=color:#f92672>=</span> ItemIdGetLength(id);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    values[<span style=color:#ae81ff>0</span>] <span style=color:#f92672>=</span> UInt16GetDatum(inter_call_data<span style=color:#f92672>-&gt;</span>offset);
+</span></span><span style=display:flex><span>    values[<span style=color:#ae81ff>1</span>] <span style=color:#f92672>=</span> UInt16GetDatum(lp_offset);
+</span></span><span style=display:flex><span>    values[<span style=color:#ae81ff>2</span>] <span style=color:#f92672>=</span> UInt16GetDatum(lp_flags);
+</span></span><span style=display:flex><span>    values[<span style=color:#ae81ff>3</span>] <span style=color:#f92672>=</span> UInt16GetDatum(lp_len);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>/*
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     * We do just enough validity checking to make sure we don&#39;t reference
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     * data outside the page passed to us. The page could be corrupt in
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     * many other ways, but at least we won&#39;t crash.
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     */</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (ItemIdHasStorage(id) <span style=color:#f92672>&amp;&amp;</span> lp_len <span style=color:#f92672>&gt;=</span> MinHeapTupleSize <span style=color:#f92672>&amp;&amp;</span> lp_offset <span style=color:#f92672>==</span> MAXALIGN(lp_offset) <span style=color:#f92672>&amp;&amp;</span>
+</span></span><span style=display:flex><span>        lp_offset <span style=color:#f92672>+</span> lp_len <span style=color:#f92672>&lt;=</span> raw_page_size) {
+</span></span><span style=display:flex><span>      HeapTupleHeader tuphdr;
+</span></span><span style=display:flex><span>      bytea <span style=color:#f92672>*</span>tuple_data_bytea;
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>int</span> tuple_data_len;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#75715e>/* Extract information from the tuple header */</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// 由id定位到具体的tuple，然后进行读取，这里需要对照tuple的数据结构
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      tuphdr <span style=color:#f92672>=</span> (HeapTupleHeader)PageGetItem(page, id);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      values[<span style=color:#ae81ff>4</span>] <span style=color:#f92672>=</span> UInt32GetDatum(HeapTupleHeaderGetRawXmin(tuphdr));
+</span></span><span style=display:flex><span>      values[<span style=color:#ae81ff>5</span>] <span style=color:#f92672>=</span> UInt32GetDatum(HeapTupleHeaderGetRawXmax(tuphdr));
+</span></span><span style=display:flex><span>      <span style=color:#75715e>/* shared with xvac */</span>
+</span></span><span style=display:flex><span>      values[<span style=color:#ae81ff>6</span>] <span style=color:#f92672>=</span> UInt32GetDatum(HeapTupleHeaderGetRawCommandId(tuphdr));
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// 数据的具体位置，使用此字段可以直接定位一个tuple的位置
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      values[<span style=color:#ae81ff>7</span>] <span style=color:#f92672>=</span> PointerGetDatum(<span style=color:#f92672>&amp;</span>tuphdr<span style=color:#f92672>-&gt;</span>t_ctid);
+</span></span><span style=display:flex><span>      values[<span style=color:#ae81ff>8</span>] <span style=color:#f92672>=</span> UInt32GetDatum(tuphdr<span style=color:#f92672>-&gt;</span>t_infomask2);
+</span></span><span style=display:flex><span>      values[<span style=color:#ae81ff>9</span>] <span style=color:#f92672>=</span> UInt32GetDatum(tuphdr<span style=color:#f92672>-&gt;</span>t_infomask);
+</span></span><span style=display:flex><span>      values[<span style=color:#ae81ff>10</span>] <span style=color:#f92672>=</span> UInt8GetDatum(tuphdr<span style=color:#f92672>-&gt;</span>t_hoff);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#75715e>/* Copy raw tuple data into bytea attribute */</span>
+</span></span><span style=display:flex><span>      tuple_data_len <span style=color:#f92672>=</span> lp_len <span style=color:#f92672>-</span> tuphdr<span style=color:#f92672>-&gt;</span>t_hoff;
+</span></span><span style=display:flex><span>      tuple_data_bytea <span style=color:#f92672>=</span> (bytea <span style=color:#f92672>*</span>)palloc(tuple_data_len <span style=color:#f92672>+</span> VARHDRSZ);
+</span></span><span style=display:flex><span>      SET_VARSIZE(tuple_data_bytea, tuple_data_len <span style=color:#f92672>+</span> VARHDRSZ);
+</span></span><span style=display:flex><span>      memcpy(VARDATA(tuple_data_bytea), (<span style=color:#66d9ef>char</span> <span style=color:#f92672>*</span>)tuphdr <span style=color:#f92672>+</span> tuphdr<span style=color:#f92672>-&gt;</span>t_hoff, tuple_data_len);
+</span></span><span style=display:flex><span>      values[<span style=color:#ae81ff>13</span>] <span style=color:#f92672>=</span> PointerGetDatum(tuple_data_bytea);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#75715e>/*
+</span></span></span><span style=display:flex><span><span style=color:#75715e>       * We already checked that the item is completely within the raw
+</span></span></span><span style=display:flex><span><span style=color:#75715e>       * page passed to us, with the length given in the line pointer.
+</span></span></span><span style=display:flex><span><span style=color:#75715e>       * Let&#39;s check that t_hoff doesn&#39;t point over lp_len, before using
+</span></span></span><span style=display:flex><span><span style=color:#75715e>       * it to access t_bits and oid.
+</span></span></span><span style=display:flex><span><span style=color:#75715e>       */</span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (tuphdr<span style=color:#f92672>-&gt;</span>t_hoff <span style=color:#f92672>&gt;=</span> SizeofHeapTupleHeader <span style=color:#f92672>&amp;&amp;</span> tuphdr<span style=color:#f92672>-&gt;</span>t_hoff <span style=color:#f92672>&lt;=</span> lp_len <span style=color:#f92672>&amp;&amp;</span>
+</span></span><span style=display:flex><span>          tuphdr<span style=color:#f92672>-&gt;</span>t_hoff <span style=color:#f92672>==</span> MAXALIGN(tuphdr<span style=color:#f92672>-&gt;</span>t_hoff)) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (tuphdr<span style=color:#f92672>-&gt;</span>t_infomask <span style=color:#f92672>&amp;</span> HEAP_HASNULL) {
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>int</span> bits_len;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>          bits_len <span style=color:#f92672>=</span> BITMAPLEN(HeapTupleHeaderGetNatts(tuphdr)) <span style=color:#f92672>*</span> BITS_PER_BYTE;
+</span></span><span style=display:flex><span>          values[<span style=color:#ae81ff>11</span>] <span style=color:#f92672>=</span> CStringGetTextDatum(bits_to_text(tuphdr<span style=color:#f92672>-&gt;</span>t_bits, bits_len));
+</span></span><span style=display:flex><span>        } <span style=color:#66d9ef>else</span>
+</span></span><span style=display:flex><span>          nulls[<span style=color:#ae81ff>11</span>] <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (tuphdr<span style=color:#f92672>-&gt;</span>t_infomask <span style=color:#f92672>&amp;</span> HEAP_HASOID_OLD)
+</span></span><span style=display:flex><span>          values[<span style=color:#ae81ff>12</span>] <span style=color:#f92672>=</span> HeapTupleHeaderGetOidOld(tuphdr);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>else</span>
+</span></span><span style=display:flex><span>          nulls[<span style=color:#ae81ff>12</span>] <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>      } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>        nulls[<span style=color:#ae81ff>11</span>] <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>        nulls[<span style=color:#ae81ff>12</span>] <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>      <span style=color:#75715e>/*
+</span></span></span><span style=display:flex><span><span style=color:#75715e>       * The line pointer is not used, or it&#39;s invalid. Set the rest of
+</span></span></span><span style=display:flex><span><span style=color:#75715e>       * the fields to NULL
+</span></span></span><span style=display:flex><span><span style=color:#75715e>       */</span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>int</span> i;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>for</span> (i <span style=color:#f92672>=</span> <span style=color:#ae81ff>4</span>; i <span style=color:#f92672>&lt;=</span> <span style=color:#ae81ff>13</span>; i<span style=color:#f92672>++</span>) nulls[i] <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>/* Build and return the result tuple. */</span>
+</span></span><span style=display:flex><span>    resultTuple <span style=color:#f92672>=</span> heap_form_tuple(inter_call_data<span style=color:#f92672>-&gt;</span>tupd, values, nulls);
+</span></span><span style=display:flex><span>    result <span style=color:#f92672>=</span> HeapTupleGetDatum(resultTuple);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    inter_call_data<span style=color:#f92672>-&gt;</span>offset<span style=color:#f92672>++</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    SRF_RETURN_NEXT(fctx, result);
+</span></span><span style=display:flex><span>  } <span style=color:#66d9ef>else</span>
+</span></span><span style=display:flex><span>    SRF_RETURN_DONE(fctx);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=index>index</h2><h3 id=btree>btree</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span><span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> bt_metap(<span style=color:#e6db74>&#39;idx&#39;</span>);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> bt_page_stats(<span style=color:#e6db74>&#39;idx&#39;</span>,<span style=color:#ae81ff>3</span>);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>SELECT</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>FROM</span> bt_page_items(<span style=color:#e6db74>&#39;idx&#39;</span>, <span style=color:#ae81ff>3</span>);
+</span></span></code></pre></div><ul><li>Implement an algorithm for building the index and map the data into pages (for the buffer cache manager to uniformly process each index).</li><li>Search information in the index by a predicate in the form &ldquo;indexed-field operator expression&rdquo;.</li><li>Evaluate the index usage cost.</li><li>Manipulate the locks required for correct parallel processing.</li><li>Generate write-ahead log (WAL) records.</li></ul><p><img src=/posts/postgres/images/btree.png alt=btree></p><ol><li>树节点默认8k，按照page的方式进行组织，几乎和heap的组织格式类似，尾部有一个特殊区域，常规page中也有，但是并未启用</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>BTPageOpaqueData</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    BlockNumber btpo_prev;        <span style=color:#75715e>/* left sibling, or P_NONE if leftmost */</span>
+</span></span><span style=display:flex><span>    BlockNumber btpo_next;        <span style=color:#75715e>/* right sibling, or P_NONE if rightmost */</span>
+</span></span><span style=display:flex><span>    uint32      btpo_level;       <span style=color:#75715e>/* tree level --- zero for leaf pages */</span>
+</span></span><span style=display:flex><span>    uint16      btpo_flags;       <span style=color:#75715e>/* flag bits, see below */</span>
+</span></span><span style=display:flex><span>    BTCycleId   btpo_cycleid;     <span style=color:#75715e>/* vacuum cycle ID of latest split */</span>
+</span></span><span style=display:flex><span>} BTPageOpaqueData;
+</span></span><span style=display:flex><span><span style=color:#75715e>#define BTP_LEAF              (1 &lt;&lt; 0)    </span><span style=color:#75715e>/* leaf page, i.e. not internal page */</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#define BTP_ROOT              (1 &lt;&lt; 1)    </span><span style=color:#75715e>/* root page (has no parent) */</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#define BTP_DELETED           (1 &lt;&lt; 2)    </span><span style=color:#75715e>/* page has been deleted from tree */</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#define BTP_META              (1 &lt;&lt; 3)    </span><span style=color:#75715e>/* meta-page */</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#define BTP_HALF_DEAD         (1 &lt;&lt; 4)    </span><span style=color:#75715e>/* empty, but still in tree */</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#define BTP_SPLIT_END         (1 &lt;&lt; 5)    </span><span style=color:#75715e>/* rightmost page of split group */</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#define BTP_HAS_GARBAGE       (1 &lt;&lt; 6)    </span><span style=color:#75715e>/* page has LP_DEAD tuples (deprecated) */</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#define BTP_INCOMPLETE_SPLIT  (1 &lt;&lt; 7)    </span><span style=color:#75715e>/* right sibling&#39;s downlink is missing */</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#define BTP_HAS_FULLXID       (1 &lt;&lt; 8)    </span><span style=color:#75715e>/* contains BTDeletedPageData */</span><span style=color:#75715e>
+</span></span></span></code></pre></div><p>主要保存当前page的prev和next，以及level和flag，flag状态如上，此项可以使用<code>bt_page_stats</code>进行观察</p><ol start=2><li><p>实现来自于一篇古老的论文，添加额外的特性使得他获得更高的并发度。和常规Btree区别是</p></li><li><p>每层兄弟节点之间使用指针相连</p></li><li><p>每层非最右节点保存当前节点的最大值<br>1. 在查找得时候，如果已经查找到子节点，此时表示数据一定在当前的page中，但是假如在查找的过程中page分裂了，则此时可以快速使用high key 进行判断，此时在无需对整个树加锁</p></li><li><p>假设一个indextuple大小为16，则完整表示一个item的空间大小为(16 + 4)，再加上header和special计算得一个8k的page大约可以保存407条记录，可以简单的测试一下，最终page的free space 的大小为8</p></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span><span style=color:#66d9ef>create</span> <span style=color:#66d9ef>table</span> a (a int, b int);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>create</span> <span style=color:#66d9ef>index</span> idx <span style=color:#66d9ef>on</span> a(b);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>insert</span> <span style=color:#66d9ef>into</span> a <span style=color:#66d9ef>select</span> <span style=color:#66d9ef>g</span>, random() <span style=color:#f92672>*</span> <span style=color:#ae81ff>100000</span>, <span style=color:#66d9ef>g</span><span style=color:#f92672>%</span><span style=color:#ae81ff>999</span> <span style=color:#66d9ef>from</span> generate_series(<span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>400</span>) <span style=color:#66d9ef>g</span>;
+</span></span><span style=display:flex><span>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> bt_metap(<span style=color:#e6db74>&#39;idx&#39;</span>);
+</span></span><span style=display:flex><span> magic  <span style=color:#f92672>|</span> <span style=color:#66d9ef>version</span> <span style=color:#f92672>|</span> root <span style=color:#f92672>|</span> <span style=color:#66d9ef>level</span> <span style=color:#f92672>|</span> fastroot <span style=color:#f92672>|</span> fastlevel <span style=color:#f92672>|</span> last_cleanup_num_delpages <span style=color:#f92672>|</span> last_cleanup_num_tuples <span style=color:#f92672>|</span> allequalimage 
+</span></span><span style=display:flex><span><span style=color:#75715e>--------+---------+------+-------+----------+-----------+---------------------------+-------------------------+---------------
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span> <span style=color:#ae81ff>340322</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>4</span> <span style=color:#f92672>|</span>    <span style=color:#ae81ff>3</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>        <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span>         <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>                         <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>                      <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span> t
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>1</span> <span style=color:#66d9ef>row</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>SELECT</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>FROM</span> bt_page_items(<span style=color:#e6db74>&#39;idx&#39;</span>, <span style=color:#ae81ff>3</span>);
+</span></span><span style=display:flex><span> itemoffset <span style=color:#f92672>|</span> ctid  <span style=color:#f92672>|</span> itemlen <span style=color:#f92672>|</span> nulls <span style=color:#f92672>|</span> vars <span style=color:#f92672>|</span> <span style=color:#66d9ef>data</span> <span style=color:#f92672>|</span> dead <span style=color:#f92672>|</span> htid <span style=color:#f92672>|</span> tids 
+</span></span><span style=display:flex><span><span style=color:#75715e>------------+-------+---------+-------+------+------+------+------+------
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>          <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span> (<span style=color:#ae81ff>1</span>,<span style=color:#ae81ff>0</span>) <span style=color:#f92672>|</span>       <span style=color:#ae81ff>8</span> <span style=color:#f92672>|</span> f     <span style=color:#f92672>|</span> f    <span style=color:#f92672>|</span>      <span style=color:#f92672>|</span>      <span style=color:#f92672>|</span>      <span style=color:#f92672>|</span> 
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>1</span> <span style=color:#66d9ef>row</span>)
+</span></span><span style=display:flex><span>esoye<span style=color:#f92672>=#</span> <span style=color:#66d9ef>select</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>from</span> bt_page_stats(<span style=color:#e6db74>&#39;idx&#39;</span>,<span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span> blkno <span style=color:#f92672>|</span> <span style=color:#66d9ef>type</span> <span style=color:#f92672>|</span> live_items <span style=color:#f92672>|</span> dead_items <span style=color:#f92672>|</span> avg_item_size <span style=color:#f92672>|</span> page_size <span style=color:#f92672>|</span> free_size <span style=color:#f92672>|</span> btpo_prev <span style=color:#f92672>|</span> btpo_next <span style=color:#f92672>|</span> btpo_level <span style=color:#f92672>|</span> btpo_flags 
+</span></span><span style=display:flex><span><span style=color:#75715e>-------+------+------------+------------+---------------+-----------+-----------+-----------+-----------+------------+------------
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>     <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span> l    <span style=color:#f92672>|</span>        <span style=color:#ae81ff>400</span> <span style=color:#f92672>|</span>          <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>            <span style=color:#ae81ff>16</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>8192</span> <span style=color:#f92672>|</span>       <span style=color:#ae81ff>148</span> <span style=color:#f92672>|</span>         <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>         <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>          <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span>          <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>1</span> <span style=color:#66d9ef>row</span>)
+</span></span></code></pre></div><h4 id=index-function>index function</h4><blockquote><p>pg中所有的数据类型，或者函数，索引等都可以使用元数据管理，感觉他在底层是搭了一个架子，其他东西都是架子上的工具</p></blockquote><p>所有的index都有一个对应的handle，btree对应的是bthandler，内部把btree的关键的操作函数指针赋给IndexAmRoutine，</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span>Datum
+</span></span><span style=display:flex><span><span style=color:#a6e22e>bthandler</span>(PG_FUNCTION_ARGS)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    IndexAmRoutine <span style=color:#f92672>*</span>amroutine <span style=color:#f92672>=</span> makeNode(IndexAmRoutine);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amstrategies <span style=color:#f92672>=</span> BTMaxStrategyNumber;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amsupport <span style=color:#f92672>=</span> BTNProcs;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amoptsprocnum <span style=color:#f92672>=</span> BTOPTIONS_PROC;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amcanorder <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amcanorderbyop <span style=color:#f92672>=</span> false;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amcanbackward <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amcanunique <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amcanmulticol <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amoptionalkey <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amsearcharray <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amsearchnulls <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amstorage <span style=color:#f92672>=</span> false;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amclusterable <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>ampredlocks <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amcanparallel <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amcaninclude <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amusemaintenanceworkmem <span style=color:#f92672>=</span> false;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amparallelvacuumoptions <span style=color:#f92672>=</span>
+</span></span><span style=display:flex><span>        VACUUM_OPTION_PARALLEL_BULKDEL <span style=color:#f92672>|</span> VACUUM_OPTION_PARALLEL_COND_CLEANUP;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amkeytype <span style=color:#f92672>=</span> InvalidOid;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>ambuild <span style=color:#f92672>=</span> btbuild;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>ambuildempty <span style=color:#f92672>=</span> btbuildempty;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>aminsert <span style=color:#f92672>=</span> btinsert;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>ambulkdelete <span style=color:#f92672>=</span> btbulkdelete;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amvacuumcleanup <span style=color:#f92672>=</span> btvacuumcleanup;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amcanreturn <span style=color:#f92672>=</span> btcanreturn;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amcostestimate <span style=color:#f92672>=</span> btcostestimate;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amoptions <span style=color:#f92672>=</span> btoptions;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amproperty <span style=color:#f92672>=</span> btproperty;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>ambuildphasename <span style=color:#f92672>=</span> btbuildphasename;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amvalidate <span style=color:#f92672>=</span> btvalidate;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amadjustmembers <span style=color:#f92672>=</span> btadjustmembers;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>ambeginscan <span style=color:#f92672>=</span> btbeginscan;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amrescan <span style=color:#f92672>=</span> btrescan;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amgettuple <span style=color:#f92672>=</span> btgettuple;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amgetbitmap <span style=color:#f92672>=</span> btgetbitmap;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amendscan <span style=color:#f92672>=</span> btendscan;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>ammarkpos <span style=color:#f92672>=</span> btmarkpos;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amrestrpos <span style=color:#f92672>=</span> btrestrpos;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amestimateparallelscan <span style=color:#f92672>=</span> btestimateparallelscan;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>aminitparallelscan <span style=color:#f92672>=</span> btinitparallelscan;
+</span></span><span style=display:flex><span>    amroutine<span style=color:#f92672>-&gt;</span>amparallelrescan <span style=color:#f92672>=</span> btparallelrescan;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    PG_RETURN_POINTER(amroutine);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>其他index和表类似，都有自己的接口</p><ol><li><code>create</code></li></ol><p>建立index</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>   a    <span style=color:#f92672>|</span>   b    <span style=color:#f92672>|</span>  <span style=color:#66d9ef>c</span>   <span style=color:#f92672>|</span>   ctid    
+</span></span><span style=display:flex><span><span style=color:#75715e>--------+--------+------+-----------
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#ae81ff>19928</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>0</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>947</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>107</span>,<span style=color:#ae81ff>133</span>)
+</span></span><span style=display:flex><span>    <span style=color:#ae81ff>883</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>883</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>4</span>,<span style=color:#ae81ff>143</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>18064</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>1</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>82</span>   <span style=color:#f92672>|</span> (<span style=color:#ae81ff>97</span>,<span style=color:#ae81ff>119</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>89238</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>2</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>327</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>482</span>,<span style=color:#ae81ff>68</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>96552</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>3</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>648</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>521</span>,<span style=color:#ae81ff>167</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>96831</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>3</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>927</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>523</span>,<span style=color:#ae81ff>76</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>22937</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>6</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>959</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>123</span>,<span style=color:#ae81ff>182</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>59675</span> <span style=color:#f92672>|</span>      <span style=color:#ae81ff>6</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>734</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>322</span>,<span style=color:#ae81ff>105</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>76742</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>10</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>818</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>414</span>,<span style=color:#ae81ff>152</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>42563</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>11</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>605</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>230</span>,<span style=color:#ae81ff>13</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>53421</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>11</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>474</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>288</span>,<span style=color:#ae81ff>141</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>41441</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>12</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>482</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>224</span>,<span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>88531</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>12</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>619</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>478</span>,<span style=color:#ae81ff>101</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>14010</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>17</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>24</span>   <span style=color:#f92672>|</span> (<span style=color:#ae81ff>75</span>,<span style=color:#ae81ff>135</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>57127</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>17</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>184</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>308</span>,<span style=color:#ae81ff>147</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>31710</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>19</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>741</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>171</span>,<span style=color:#ae81ff>75</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>58259</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>19</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>317</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>314</span>,<span style=color:#ae81ff>169</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>61877</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>19</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>938</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>334</span>,<span style=color:#ae81ff>87</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>20741</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>22</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>761</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>112</span>,<span style=color:#ae81ff>21</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>83730</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>22</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>813</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>452</span>,<span style=color:#ae81ff>110</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>92344</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>22</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>436</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>499</span>,<span style=color:#ae81ff>29</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>18195</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>24</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>213</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>98</span>,<span style=color:#ae81ff>65</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>54456</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>26</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>510</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>294</span>,<span style=color:#ae81ff>66</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>58764</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>26</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>822</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>317</span>,<span style=color:#ae81ff>119</span>)
+</span></span><span style=display:flex><span>   <span style=color:#ae81ff>1742</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>27</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>743</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>9</span>,<span style=color:#ae81ff>77</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>98925</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>27</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>24</span>   <span style=color:#f92672>|</span> (<span style=color:#ae81ff>534</span>,<span style=color:#ae81ff>135</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>29363</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>29</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>392</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>158</span>,<span style=color:#ae81ff>133</span>)
+</span></span><span style=display:flex><span>   <span style=color:#ae81ff>6564</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>30</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>570</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>35</span>,<span style=color:#ae81ff>89</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>63464</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>32</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>527</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>343</span>,<span style=color:#ae81ff>9</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>65040</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>33</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>105</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>351</span>,<span style=color:#ae81ff>105</span>)
+</span></span><span style=display:flex><span>   <span style=color:#ae81ff>1598</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>37</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>599</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>8</span>,<span style=color:#ae81ff>118</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>53945</span> <span style=color:#f92672>|</span>     <span style=color:#ae81ff>39</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>998</span>  <span style=color:#f92672>|</span> (<span style=color:#ae81ff>291</span>,<span style=color:#ae81ff>110</span>)
+</span></span></code></pre></div><p><a href=https://www.interdb.jp/pg/pgsql01.html target=_blank>https://www.interdb.jp/pg/pgsql01.html</a></p><ul><li>TOAST<br>大字段数据，在字段数据大于2k的时候，会触发相应的机制，把数据按2k切分，存储到TOAST表中，原表使用专门的指针指向数据</li></ul><h3 id=brin>brin</h3><p>块级索引，空间占用小且有效</p><h2 id=smgr>SMGR</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>/*
+</span></span></span><span style=display:flex><span><span style=color:#75715e> * This struct of function pointers defines the API between smgr.c and
+</span></span></span><span style=display:flex><span><span style=color:#75715e> * any individual storage manager module.  Note that smgr subfunctions are
+</span></span></span><span style=display:flex><span><span style=color:#75715e> * generally expected to report problems via elog(ERROR).  An exception is
+</span></span></span><span style=display:flex><span><span style=color:#75715e> * that smgr_unlink should use elog(WARNING), rather than erroring out,
+</span></span></span><span style=display:flex><span><span style=color:#75715e> * because we normally unlink relations during post-commit/abort cleanup,
+</span></span></span><span style=display:flex><span><span style=color:#75715e> * and so it&#39;s too late to raise an error.  Also, various conditions that
+</span></span></span><span style=display:flex><span><span style=color:#75715e> * would normally be errors should be allowed during bootstrap and/or WAL
+</span></span></span><span style=display:flex><span><span style=color:#75715e> * recovery --- see comments in md.c for details.
+</span></span></span><span style=display:flex><span><span style=color:#75715e> */</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>f_smgr</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_init) (<span style=color:#66d9ef>void</span>);  <span style=color:#75715e>/* may be NULL */</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_shutdown) (<span style=color:#66d9ef>void</span>);  <span style=color:#75715e>/* may be NULL */</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_open) (SMgrRelation reln);
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_close) (SMgrRelation reln, ForkNumber forknum);
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_create) (SMgrRelation reln, ForkNumber forknum,
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>bool</span> isRedo);
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>bool</span>    (<span style=color:#f92672>*</span>smgr_exists) (SMgrRelation reln, ForkNumber forknum);
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_unlink) (RelFileLocatorBackend rlocator, ForkNumber forknum,
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>bool</span> isRedo);
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_extend) (SMgrRelation reln, ForkNumber forknum,
+</span></span><span style=display:flex><span>                BlockNumber blocknum, <span style=color:#66d9ef>char</span> <span style=color:#f92672>*</span>buffer, <span style=color:#66d9ef>bool</span> skipFsync);
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>bool</span>    (<span style=color:#f92672>*</span>smgr_prefetch) (SMgrRelation reln, ForkNumber forknum,
+</span></span><span style=display:flex><span>                  BlockNumber blocknum);
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_read) (SMgrRelation reln, ForkNumber forknum,
+</span></span><span style=display:flex><span>                BlockNumber blocknum, <span style=color:#66d9ef>char</span> <span style=color:#f92672>*</span>buffer);
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_write) (SMgrRelation reln, ForkNumber forknum,
+</span></span><span style=display:flex><span>                 BlockNumber blocknum, <span style=color:#66d9ef>char</span> <span style=color:#f92672>*</span>buffer, <span style=color:#66d9ef>bool</span> skipFsync);
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_writeback) (SMgrRelation reln, ForkNumber forknum,
+</span></span><span style=display:flex><span>                   BlockNumber blocknum, BlockNumber nblocks);
+</span></span><span style=display:flex><span>  BlockNumber (<span style=color:#f92672>*</span>smgr_nblocks) (SMgrRelation reln, ForkNumber forknum);
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_truncate) (SMgrRelation reln, ForkNumber forknum,
+</span></span><span style=display:flex><span>                  BlockNumber nblocks);
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>void</span>    (<span style=color:#f92672>*</span>smgr_immedsync) (SMgrRelation reln, ForkNumber forknum);
+</span></span><span style=display:flex><span>} f_smgr;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>static</span> <span style=color:#66d9ef>const</span> f_smgr smgrsw[] <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>  <span style=color:#75715e>/* magnetic disk */</span>
+</span></span><span style=display:flex><span>  {
+</span></span><span style=display:flex><span>    .smgr_init <span style=color:#f92672>=</span> mdinit,
+</span></span><span style=display:flex><span>    .smgr_shutdown <span style=color:#f92672>=</span> NULL,
+</span></span><span style=display:flex><span>    .smgr_open <span style=color:#f92672>=</span> mdopen,
+</span></span><span style=display:flex><span>    .smgr_close <span style=color:#f92672>=</span> mdclose,
+</span></span><span style=display:flex><span>    .smgr_create <span style=color:#f92672>=</span> mdcreate,
+</span></span><span style=display:flex><span>    .smgr_exists <span style=color:#f92672>=</span> mdexists,
+</span></span><span style=display:flex><span>    .smgr_unlink <span style=color:#f92672>=</span> mdunlink,
+</span></span><span style=display:flex><span>    .smgr_extend <span style=color:#f92672>=</span> mdextend,
+</span></span><span style=display:flex><span>    .smgr_prefetch <span style=color:#f92672>=</span> mdprefetch,
+</span></span><span style=display:flex><span>    .smgr_read <span style=color:#f92672>=</span> mdread,
+</span></span><span style=display:flex><span>    .smgr_write <span style=color:#f92672>=</span> mdwrite,
+</span></span><span style=display:flex><span>    .smgr_writeback <span style=color:#f92672>=</span> mdwriteback,
+</span></span><span style=display:flex><span>    .smgr_nblocks <span style=color:#f92672>=</span> mdnblocks,
+</span></span><span style=display:flex><span>    .smgr_truncate <span style=color:#f92672>=</span> mdtruncate,
+</span></span><span style=display:flex><span>    .smgr_immedsync <span style=color:#f92672>=</span> mdimmedsync,
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>};
+</span></span></code></pre></div><p>操作不同介质的文件抽象层，在f_smgr中定义了操作的接口，当前默认实现为smgrsw中的对磁盘操作的函数，理论上支持其他存储介质，只需要实现对应的接口即可，当前只是作为一个简单的中转，具体的文件操作在<code>smgr/md.c</code>中</p><h3 id=vfd>VFD</h3><p>使用LRU缓存维护的fd，管理打开的文件描述符，主要代码在<code>file/fd.c</code>中，主要结构为</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>vfd</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>int</span>      fd;        <span style=color:#75715e>/* current FD, or VFD_CLOSED if none */</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>unsigned</span> <span style=color:#66d9ef>short</span> fdstate;    <span style=color:#75715e>/* bitflags for VFD&#39;s state */</span>
+</span></span><span style=display:flex><span>  ResourceOwner resowner;    <span style=color:#75715e>/* owner, for automatic cleanup */</span>
+</span></span><span style=display:flex><span>  File    nextFree;    <span style=color:#75715e>/* link to next free VFD, if in freelist */</span>
+</span></span><span style=display:flex><span>  File    lruMoreRecently;  <span style=color:#75715e>/* doubly linked recency-of-use list */</span>
+</span></span><span style=display:flex><span>  File    lruLessRecently;
+</span></span><span style=display:flex><span>  off_t    fileSize;    <span style=color:#75715e>/* current size of file (0 if not temporary) */</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>char</span>     <span style=color:#f92672>*</span>fileName;    <span style=color:#75715e>/* name of file, or NULL for unused VFD */</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>/* NB: fileName is malloc&#39;d, and must be free&#39;d when closing the VFD */</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>int</span>      fileFlags;    <span style=color:#75715e>/* open(2) flags for (re)opening the file */</span>
+</span></span><span style=display:flex><span>  mode_t    fileMode;    <span style=color:#75715e>/* mode to pass to open(2) */</span>
+</span></span><span style=display:flex><span>} Vfd;
+</span></span></code></pre></div><h3 id=fsm>FSM</h3><p>free space map，page中的数据在删除且vacuum之后，会有数据空洞，此时为了节约空间，在后续insert的时候，会尝试把数据insert到之前的page中，但是遍历page查找空间类似全表扫，所以为了加快这个过程，使用额外的数据结构记录空闲page的大小，insert的时候直接定位page</p><ol><li>空闲空间不是精确统计，page默认大小为8k，把8k划分为255份，一份大小为32字节，此时使用一个字节就可以记录page中大约空闲的空间，</li><li>为了快速定位，fsm使用二叉树来维护，一个page大小为8192，除了header剩下的空间约为8000字节，使用叶子节点标记page大小，此时一个page大约可以记录4000个page，</li><li>一般使用三层fsm，此时前两层为辅助块，最后层page数目为4000^3，完全可以记录所有的数据块的使用情况，所以最初的时候fsm文件大小为 8192* 3，此时只使用到3个块记录大小，后期数据扩展的时候，此时fsm文件大小也会进行扩展</li></ol><p>It is important to keep the map small so that it can be searched rapidly.
+Therefore, we don&rsquo;t attempt to record the exact free space on a page.
+We allocate one map byte to each page, allowing us to record free space
+at a granularity of 1/256th of a page. Another way to say it is that
+the stored value is the free space divided by BLCKSZ/256 (rounding down).
+We assume that the free space must always be less than BLCKSZ, since
+all pages have some overhead; so the maximum map value is 255.</p><p>The binary tree is stored on each FSM page as an array. Because the page
+header takes some space on a page, the binary tree isn&rsquo;t perfect. That is,
+a few right-most leaf nodes are missing, and there are some useless non-leaf
+nodes at the right. So the tree looks something like this:</p><pre tabindex=0><code>       0
+   1       2
+ 3   4   5   6
+7 8 9 A B
+</code></pre><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e>/*
+</span></span></span><span style=display:flex><span><span style=color:#75715e> * Structure of a FSM page. See src/backend/storage/freespace/README for
+</span></span></span><span style=display:flex><span><span style=color:#75715e> * details.
+</span></span></span><span style=display:flex><span><span style=color:#75715e> */</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>typedef</span> <span style=color:#66d9ef>struct</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#75715e>/*
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * fsm_search_avail() tries to spread the load of multiple backends by
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * returning different pages to different backends in a round-robin
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * fashion. fp_next_slot points to the next slot to be returned (assuming
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * there&#39;s enough space on it for the request). It&#39;s defined as an int,
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * because it&#39;s updated without an exclusive lock. uint16 would be more
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * appropriate, but int is more likely to be atomically
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * fetchable/storable.
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   */</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>int</span>      fp_next_slot;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>/*
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * fp_nodes contains the binary tree, stored in array. The first
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * NonLeafNodesPerPage elements are upper nodes, and the following
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * LeafNodesPerPage elements are leaf nodes. Unused nodes are zero.
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   */</span>
+</span></span><span style=display:flex><span>  uint8    fp_nodes[FLEXIBLE_ARRAY_MEMBER];
+</span></span><span style=display:flex><span>} FSMPageData;
+</span></span></code></pre></div><p>fp_next_slot记录下一此使用的节点，目的是</p><ol><li>在多进程写同一个表时候，避免对同一个page的竞争</li><li>记录下一个page，在顺序读写的时候可以有更高的性能</li></ol><p>具体的查找算法为</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>/*----------
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * Start the search from the target slot.  At every step, move one
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * node to the right, then climb up to the parent.  Stop when we reach
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * a node with enough free space (as we must, since the root has enough
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * space).
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   *
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * The idea is to gradually expand our &#34;search triangle&#34;, that is, all
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * nodes covered by the current node, and to be sure we search to the
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * right from the start point.  At the first step, only the target slot
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * is examined.  When we move up from a left child to its parent, we are
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * adding the right-hand subtree of that parent to the search triangle.
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * When we move right then up from a right child, we are dropping the
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * current search triangle (which we know doesn&#39;t contain any suitable
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * page) and instead looking at the next-larger-size triangle to its
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * right.  So we never look left from our original start point, and at
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * each step the size of the search triangle doubles, ensuring it takes
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * only log2(N) work to search N pages.
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   *
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * The &#34;move right&#34; operation will wrap around if it hits the right edge
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * of the tree, so the behavior is still good if we start near the right.
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * Note also that the move-and-climb behavior ensures that we can&#39;t end
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * up on one of the missing nodes at the right of the leaf level.
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   *
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * For example, consider this tree:
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   *
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   *       7
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   *     7     6
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   *   5   7   6   5
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   *  4 5 5 7 2 6 5 2
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   *        T
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   *
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * Assume that the target node is the node indicated by the letter T,
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * and we&#39;re searching for a node with value of 6 or higher. The search
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * begins at T. At the first iteration, we move to the right, then to the
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * parent, arriving at the rightmost 5. At the second iteration, we move
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * to the right, wrapping around, then climb up, arriving at the 7 on the
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * third level.  7 satisfies our search, so we descend down to the bottom,
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * following the path of sevens.  This is in fact the first suitable page
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   * to the right of (allowing for wraparound) our start point.
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   *----------
+</span></span></span><span style=display:flex><span><span style=color:#75715e>   */</span>
+</span></span></code></pre></div><p>结合代码理解</p><ol><li>先判断root节点</li><li>从fp_next_slot或者midel node开始，向右上查找，直到找到复合的node</li><li>从这里开始向下查找</li></ol><p>代码就是简单的对二叉树的操作，所有代码在<code>freespace/fsmpage.c</code>中，vacuum的时候会触发sfm的操作，具体的代码在<code>freespce/freespace.c</code>中。</p><h3 id=vm>VM</h3><p>可见性映射表，记录数据变动的page，pg支持多版本，在数据变动的时候不会立即清除数据，而指挥打上tag，等待后续的vacuum进程进行数据的清理，vm记录数据的变动，让vacuum可以快速的清理数据，vacuum有两种模式，一种是lazy vacuum，一种是full vacuum，lazy 的时候不会跨page清理，此时可以使用vm文件，但是full vacuum的时候一般需要全表扫描，基本不会有太大的最用，
+vm是简单的bit位，0代表有数据变动，</p><h2 id=内存-1>内存</h2><p>内存上下文，简单的理解就是一定范围内的内存池？</p><p><a href=https://smartkeyerror.com/PostgreSQL-MemoryContext target=_blank>https://smartkeyerror.com/PostgreSQL-MemoryContext</a></p><h2 id=insert>insert</h2><p>堆表insert操作</p><ol><li>对应函数为heap_insert
+1. heap_prepare_insert 设置 tuple header
+2. RelationGetBufferForTuple 获取可用buffer
+3. RelationPutHeapTuple 进行 insert
+4. 设置 xlog 信息</li></ol><p>insert 中可能会有 page 看见不足等问题，需要进行扩展，主要在 RelationGetBufferForTuple 函数中</p><pre tabindex=0><code>  RelationGetBufferForTuple:
+    1. insert 会优先使用上次 insert 操作的 page
+      如果空间足够，则
+        LockBuffer(buffer, BUFFER_LOCK_EXCLUSIVE);
+        pageFreeSpace = PageGetHeapFreeSpace(page);
+        if (targetFreeSpace &lt;= pageFreeSpace)
+          RelationSetTargetBlock(relation, targetBlock);
+          return buffer;
+      否则从 FSM 中寻找一个空间足够的页面
+        LockBuffer(buffer, BUFFER_LOCK_EXCLUSIVE);
+        pageFreeSpace = PageGetHeapFreeSpace(page);
+        if (targetFreeSpace &lt;= pageFreeSpace) // false
+        LockBuffer(buffer, BUFFER_LOCK_UNLOCK);
+        targetBlock = RecordAndGetPageWithFreeSpace()
+      如果 FSM 中没有，则进行扩展，扩展时区分并发和非并发，没有并发的时候
+        LockBuffer(buffer, BUFFER_LOCK_EXCLUSIVE);
+        pageFreeSpace = PageGetHeapFreeSpace(page);
+        if (targetFreeSpace &lt;= pageFreeSpace) // false
+        LockBuffer(buffer, BUFFER_LOCK_UNLOCK);
+        targetBlock = RecordAndGetPageWithFreeSpace()
+        if (!ConditionalLockRelationForExtension(relation, ExclusiveLock)) // 表加排他锁成功
+        buffer = ReadBufferBI(relation, P_NEW, RBM_ZERO_AND_LOCK, bistate);// 扩展
+        page = BufferGetPage(buffer);
+        PageInit(page, BufferGetPageSize(buffer), 0);
+        MarkBufferDirty(buffer);
+        RelationSetTargetBlock(relation, BufferGetBlockNumber(buffer));
+      如果有并发，则会在表加锁的时候尝试失败，然后进行bulk 扩展过程
+        LockBuffer(buffer, BUFFER_LOCK_EXCLUSIVE);
+        pageFreeSpace = PageGetHeapFreeSpace(page);
+        if (targetFreeSpace &lt;= pageFreeSpace) // false
+        LockBuffer(buffer, BUFFER_LOCK_UNLOCK);
+        targetBlock = RecordAndGetPageWithFreeSpace()
+        if (!ConditionalLockRelationForExtension(relation, ExclusiveLock)) // 表加排他锁 失败
+          LockRelationForExtension(relation, ExclusiveLock);
+          targetBlock = GetPageWithFreeSpace(relation, targetFreeSpace);
+          if (targetBlock != InvalidBlockNumber)
+            UnlockRelationForExtension(relation, ExclusiveLock);
+            return
+          RelationAddExtraBlocks(relation, bistate);
+        buffer = ReadBufferBI(relation, P_NEW, RBM_ZERO_AND_LOCK, bistate);// 扩展
+        page = BufferGetPage(buffer);
+        PageInit(page, BufferGetPageSize(buffer), 0);
+        MarkBufferDirty(buffer);
+        RelationSetTargetBlock(relation, BufferGetBlockNumber(buffer));
+
+  RelationAddExtraBlocks 批量扩展，大小为 min(512, lockWaiters * 20)
+  ```
+</code></pre></section><div class=divider></div><div class="flex flex-col md:flex-row justify-between gap-4 py-4"><a role=button class="btn btn-outline h-12" href=/posts/postgres/opt/ title="Postgres Optimizer"><ion-icon name=chevron-back></ion-icon><div class="inline-flex flex-col items-start"><span class="text-base-content/60 text-xs font-normal">Previous page</span>
+<span class="max-w-48 truncate">Postgres Optimizer</span></div></a><a role=button class="btn btn-outline h-12" href=/posts/static/note/ title=数据库文章资源汇总><div class="inline-flex flex-col items-end"><span class="text-base-content/60 text-xs font-normal">Next page</span>
+<span class="max-w-48 truncate">数据库文章资源汇总</span></div><ion-icon name=chevron-forward></ion-icon></a></div><div class=divider></div><section class=space-y-4><template x-if="['localhost', '127.0.0.1'].indexOf(window.location.hostname) == -1"><article><script src=https://utteranc.es/client.js repo=https://askyx.github.io/ issue-term=og:title theme=github-light crossorigin=anonymous async></script></article></template></section></article></div><div x-data=tocHighlighter() @scroll.window=debouncedScroll class="hidden lg:flex lg:flex-col lg:items-end lg:self-start"><nav id=TableOfContents><ul><li><a href=#存储>存储</a><ul><li><a href=#内存>内存</a></li><li><a href=#磁盘>磁盘</a></li></ul></li><li><a href=#index>index</a><ul><li><a href=#btree>btree</a></li><li><a href=#brin>brin</a></li></ul></li><li><a href=#smgr>SMGR</a><ul><li><a href=#vfd>VFD</a></li><li><a href=#fsm>FSM</a></li><li><a href=#vm>VM</a></li></ul></li><li><a href=#内存-1>内存</a></li><li><a href=#insert>insert</a></li></ul></nav></div></div><footer class="flex justify-between items-center gap-2 px-4 py-12"><div><p>© 2016 - 2025 Askyx's Blog</p><p class=text-sm>🌱
+<span class=text-base-content/60>Powered by <a class=hover:underline href=https://gohugo.io/ target=_blank>Hugo</a> with theme
+<a class=hover:underline href=https://github.com/g1eny0ung/hugo-theme-dream target=_blank>Dream</a>.</span></p></div><div x-data="{ icons: [
+    { name: 'sunny', status: 'n' },
+    { name: 'moon', status: 'y' },
+    { name: 'desktop', status: 'auto' }
+  ] }" class="flex items-center gap-2 h-[32px] px-2 bg-base-100 border border-base-content/30 rounded-full"><template x-for="icon in icons"><div role=button tabindex=0 :aria-label="'Select ' + icon.name + ' mode'" class="group inline-flex justify-center items-center p-1 rounded-full cursor-pointer hover:bg-primary" :class="$store.darkMode.icon() === icon.name && 'bg-primary'" @click=$store.darkMode.toggle(icon.status)><ion-icon :name="`${icon.name}-outline`" class=group-hover:text-primary-content :class="$store.darkMode.icon() === icon.name && 'text-primary-content'"></ion-icon></div></template></div></footer></div></div><div class=back><div class=container><div class="dream-grid dream-grid-about"><div class="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-4 dream-column"><article class="card bg-base-100 hover:bg-base-content/10 shadow-xl dark:border dark:border-base-content/30"><div class=card-body><div class=card-title>About Me</div><div class="prose dark:prose-invert"><p>Hi, my name is Yue Yang.</p><p>This is my blog.</p><h2 id=ヾωo>ヾ(•ω•`)o</h2><p>比较胆小，出门都得贴墙走</p></div></div></article></div></div><footer class="flex justify-between items-center gap-2 px-4 py-12"><div><p>© 2016 - 2025 Askyx's Blog</p><p class=text-sm>🌱
+<span class=text-base-content/60>Powered by <a class=hover:underline href=https://gohugo.io/ target=_blank>Hugo</a> with theme
+<a class=hover:underline href=https://github.com/g1eny0ung/hugo-theme-dream target=_blank>Dream</a>.</span></p></div><div x-data="{ icons: [
+    { name: 'sunny', status: 'n' },
+    { name: 'moon', status: 'y' },
+    { name: 'desktop', status: 'auto' }
+  ] }" class="flex items-center gap-2 h-[32px] px-2 bg-base-100 border border-base-content/30 rounded-full"><template x-for="icon in icons"><div role=button tabindex=0 :aria-label="'Select ' + icon.name + ' mode'" class="group inline-flex justify-center items-center p-1 rounded-full cursor-pointer hover:bg-primary" :class="$store.darkMode.icon() === icon.name && 'bg-primary'" @click=$store.darkMode.toggle(icon.status)><ion-icon :name="`${icon.name}-outline`" class=group-hover:text-primary-content :class="$store.darkMode.icon() === icon.name && 'text-primary-content'"></ion-icon></div></template></div></footer></div></div></div></div><script>window.lightTheme="emerald",window.darkTheme="forest"</script><script src=https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js integrity="sha256-htrLFfZJ6v5udOG+3kNLINIKh2gvoKqwEhHYfTTMICc=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin=anonymous></script><script src=/js/grid.min.js></script><script src=/js/main.min.js></script><script src=https://cdn.jsdelivr.net/npm/luxon@1.26.0 integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin=anonymous></script><script>format();function format(){document.querySelectorAll('span[data-format="luxon"]').forEach(e=>{const t=e.textContent;e.textContent=luxon.DateTime.fromISO(t,{locale:"en"}).toFormat("yyyy年MM月dd日")})}</script><script src=/js/toc.min.js></script><script type=module>
+      import mediumZoom from 'https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/+esm';
+      mediumZoom('#dream-single-post-content img', {
+        background: 'oklch(var(--b1))',
+        margin: 24,
+      })
+    </script><script type=module src=https://cdn.jsdelivr.net/npm/ionicons@7.4.0/dist/ionicons/ionicons.esm.js integrity="sha256-/IFmi82bIhdYWctu0UddSlJqpnzWm7Vh2C4CM32wF/k=" crossorigin=anonymous></script><script nomodule src=https://cdn.jsdelivr.net/npm/ionicons@7.4.0/dist/ionicons/ionicons.js integrity="sha256-mr7eJMX3VC3F7G32mk4oWp1C6a2tlMYxUdptfT7uKI8=" crossorigin=anonymous></script></body></html>

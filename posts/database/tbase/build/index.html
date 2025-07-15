@@ -1,0 +1,286 @@
+<!doctype html><html lang=zh-Hans x-data :class=$store.darkMode.class() :data-theme=$store.darkMode.theme()><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>源码编译 OpenTenBase 速通版 | Askyx's Blog</title>
+<link rel=icon href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%2210 0 100 100%22><text y=%22.90em%22 font-size=%2290%22>🌱</text></svg>"></link>
+<link rel=canonical href=https://askyx.github.io/posts/database/tbase/build/><meta name=author content="Askyx"><meta name=description content="docker OpenTenBase 源码编译"><meta name=keywords content="数据库,Postgres,OpenTenBase,源码编译"><meta name=generator content="Hugo 0.121.0"><meta property="og:title" content="源码编译 OpenTenBase 速通版"><meta property="og:description" content="docker OpenTenBase 源码编译"><meta property="og:type" content="article"><meta property="og:url" content="https://askyx.github.io/posts/database/tbase/build/"><meta property="og:image" content="https://askyx.github.io/img/global-background.jpg"><meta property="article:section" content="posts"><meta property="article:published_time" content="2024-01-05T11:07:23+08:00"><meta property="article:modified_time" content="2025-07-15T23:03:54+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://askyx.github.io/img/global-background.jpg"><meta name=twitter:title content="源码编译 OpenTenBase 速通版"><meta name=twitter:description content="docker OpenTenBase 源码编译"><link rel=stylesheet href=/css/output.min.css><style>pre{padding:1em;overflow:auto}</style><link rel=stylesheet href=/css/custom.css><script defer src=https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js integrity="sha256-PtHu0lJIiSHfZeNj1nFd6wTX+Squ255SGZ/fc8seCtM=" crossorigin=anonymous></script></head><body x-data="{
+    flip: false,
+  }"><div id=dream-global-bg></div><nav x-data="{ isSticky: false }" x-init="window.addEventListener('scroll', () => { isSticky = window.scrollY > 30 })" class="sticky top-0 z-30 mt-4 lg:mt-8 py-4" :class="{ 'bg-base-100 shadow-lg dark:border-b dark:border-base-content/30': isSticky }"><div class="container flex justify-between px-4"><section class="flex items-center gap-4"><div class="avatar cursor-pointer hover:avatar-online" @click="flip = !flip" title="Flip it!"><div class="h-10 rounded-full"><img src=/img/personal/avatar.jpg alt="Askyx's Blog"></div></div><div><a href=https://askyx.github.io/ class="text-lg font-semibold cursor-pointer">Askyx's Blog</a><div class="text-base-content/60 text-sm">life is short, use Python</div></div></section><div class="dropdown dropdown-end sm:hidden"><div tabindex=0 role=button class="btn btn-ghost btn-square" aria-label="Select an option"><ion-icon name=menu class=text-2xl></ion-icon></div><ul tabindex=0 class="dropdown-content menu w-36 bg-base-100 rounded-box z-1 shadow-md"><li><div role=link tabindex=0 class="inline-flex items-center p-2 cursor-pointer" @click="flip = !flip" title=About><ion-icon name=information-circle></ion-icon>About</div></li><li><a class="group inline-flex items-center p-2 cursor-pointer" href=/search title=Search><ion-icon name=search></ion-icon>Search</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=https://github.com/askyx target=_blank title=GitHub><ion-icon name=logo-github></ion-icon>GitHub</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/posts title=Archives><ion-icon name=archive></ion-icon>Archives</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/tags title="All Tags"><ion-icon name=pricetags></ion-icon>All Tags</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/index.xml title=RSS><ion-icon name=logo-rss></ion-icon>RSS</a></li></ul></div><section class="hidden sm:flex sm:items-center sm:gap-2 md:gap-4"><div role=link tabindex=0 class="text-sm font-semibold cursor-pointer hover:underline" @click="flip = !flip" title=About>About</div><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href=/search title=Search><ion-icon class=group-hover:text-primary-content name=search></ion-icon></a><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href=https://github.com/askyx target=_blank title=GitHub><ion-icon class=group-hover:text-primary-content name=logo-github></ion-icon></a><div class="dropdown dropdown-end dropdown-hover"><div tabindex=0 role=button class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" aria-label="Select an option"><ion-icon class="group-hover:text-primary-content text-xl" name=menu></ion-icon></div><ul tabindex=0 class="dropdown-content menu w-36 bg-base-100 rounded-box z-1 shadow-xl"><li><a class="inline-flex items-center p-2 cursor-pointer" href=/posts title=Archives><ion-icon name=archive></ion-icon>Archives</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/tags title="All Tags"><ion-icon name=pricetags></ion-icon>All Tags</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/index.xml title=RSS><ion-icon name=logo-rss></ion-icon>RSS</a></li></ul></div></section></div></nav><div class=flip-container :class="{ 'flip-it': flip }"><div class=flipper><div class=front><div class=container><div class="lg:grid lg:grid-cols-4 gap-4 mt-4 px-4"><div class="hidden lg:block"></div><div class=lg:col-span-2><article class="mx-auto prose prose-quoteless dark:prose-invert" id=dream-single-post-main itemscope itemtype=http://schema.org/Article><meta itemprop=name content="源码编译 OpenTenBase 速通版"><meta itemprop=description content="docker OpenTenBase 源码编译"><meta itemprop=datePublished content="2024-01-05T11:07:23+08:00"><meta itemprop=dateModified content="2025-07-15T23:03:54+08:00"><meta itemprop=wordCount content="1045"><meta itemprop=image content="https://askyx.github.io/img/global-background.jpg"><meta itemprop=keywords content="数据库,Postgres,OpenTenBase,源码编译,"><header><h1 itemprop=headline>源码编译 OpenTenBase 速通版</h1><p class=text-sm><span data-format=luxon>2024-01-05T11:07:23+08:00</span>
+| <span>3 minute read</span>
+| <span>Updated at
+<span data-format=luxon>2025-07-15T23:03:54+08:00</span></span></p><div class="flex justify-between"><div class="flex items-center"><span>@</span>
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=name>Askyx</span></span></div><div class="flex items-center gap-2"><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href="https://x.com/intent/post?text=%e6%ba%90%e7%a0%81%e7%bc%96%e8%af%91%20OpenTenBase%20%e9%80%9f%e9%80%9a%e7%89%88&amp;url=https://askyx.github.io/posts/database/tbase/build/" target=_blank rel="noopener noreferrer" title="Share on X"><ion-icon class=group-hover:text-primary-content name=logo-x></ion-icon></a><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href="https://facebook.com/sharer/sharer.php?u=https://askyx.github.io/posts/database/tbase/build/" target=_blank rel="noopener noreferrer" title="Share on Facebook"><ion-icon class=group-hover:text-primary-content name=logo-facebook></ion-icon></a><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href="https://wa.me/?text=%e6%ba%90%e7%a0%81%e7%bc%96%e8%af%91%20OpenTenBase%20%e9%80%9f%e9%80%9a%e7%89%88%20https://askyx.github.io/posts/database/tbase/build/" target=_blank rel="noopener noreferrer" title="Share on WhatsApp"><ion-icon class=group-hover:text-primary-content name=logo-whatsapp></ion-icon></a></div></div></header><section id=dream-single-post-content itemprop=articleBody><h2 id=shell>shell</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>
+</span></span><span style=display:flex><span>git clone --depth<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> https://hub.fgit.cf/OpenTenBase/OpenTenBase.git
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>docker run  -itd  --name tbase --cap-add<span style=color:#f92672>=</span>SYS_PTRACE --privileged<span style=color:#f92672>=</span>true --hostname vscode --mount type<span style=color:#f92672>=</span>bind,source<span style=color:#f92672>=</span>/home/wen/OpenTenBase,target<span style=color:#f92672>=</span>/workspaces/OpenTenBase  runner  bash
+</span></span><span style=display:flex><span>docker exec -it -u vscode tbase bash
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>sudo service ssh start
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>ssh-keygen
+</span></span><span style=display:flex><span>cat ~/.ssh/id_rsa.pub &gt;&gt; ~/.ssh/authorized_keys
+</span></span><span style=display:flex><span>chmod <span style=color:#ae81ff>700</span> ~/.ssh
+</span></span><span style=display:flex><span>chmod <span style=color:#ae81ff>644</span> ~/.ssh/authorized_keys
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>sudo chown vscode:vscode -R /workspaces/OpenTenBase
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>mkdir -p .build/making
+</span></span><span style=display:flex><span>mkdir .data
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>cd .build/making
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>/workspaces/OpenTenBase/configure --prefix<span style=color:#f92672>=</span>/home/vscode/.build --enable-user-switch --with-openssl --with-ossp-uuid --enable-alltype-distri CFLAGS<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;-fgnu89-inline -g -O0&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>make -j64 <span style=color:#f92672>&amp;&amp;</span> make install <span style=color:#f92672>&amp;&amp;</span> cd contrib <span style=color:#f92672>&amp;&amp;</span> make -j64 <span style=color:#f92672>&amp;&amp;</span> make install 
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>cd ~
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>mkdir pgxc_ctl
+</span></span><span style=display:flex><span><span style=color:#75715e># 写入下面的模板</span>
+</span></span><span style=display:flex><span>touch pgxc_ctl/pg.conf
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># ssh localhost</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>pgxc_ctl -c pg.conf init all
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>createdb -p <span style=color:#ae81ff>6011</span> vscode
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># .bashrc 文件 此外，/home/vscode/.build/bin 需要写入到  /etc/environment</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>cat &gt; /home/vscode/.bashrc <span style=color:#e6db74>&lt;&lt;EOF
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>export PATH=&#34;$PATH:/home/vscode/.build/bin&#34;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>export LD_LIBRARY_PATH=&#34;$LD_LIBRARY_PATH:/home/vscode/.build/lib&#34;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>export LC_ALL=C
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>alias psql=&#39;psql -p 6011&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>alias pstart=&#39;pgxc_ctl -c pg.conf start all&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>alias pstop=&#39;pgxc_ctl -c pg.conf stop all&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>alias sqps=&#34;echo &#39;USER         PID     PPID VSZ                  CMD&#39; ; ps -eo user,pid,ppid,vsize,cmd | grep -E &#39;postgres&#39; &#34;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>EOF</span>
+</span></span></code></pre></div><h2 id=conf-file-pgconf>conf file (pg.conf)</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>pgxcInstallDir<span style=color:#f92672>=</span>/home/vscode/.build
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>pgxcOwner<span style=color:#f92672>=</span>vscode
+</span></span><span style=display:flex><span>pgxcUser<span style=color:#f92672>=</span>$pgxcOwner
+</span></span><span style=display:flex><span>defaultDatabase<span style=color:#f92672>=</span>postgres
+</span></span><span style=display:flex><span>tmpDir<span style=color:#f92672>=</span>/tmp
+</span></span><span style=display:flex><span>localTmpDir<span style=color:#f92672>=</span>$tmpDir
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#------------------------ GTM  ---------------------</span>
+</span></span><span style=display:flex><span>gtmName<span style=color:#f92672>=</span>gtm
+</span></span><span style=display:flex><span>gtmMasterServer<span style=color:#f92672>=</span>vscode
+</span></span><span style=display:flex><span>gtmMasterPort<span style=color:#f92672>=</span><span style=color:#ae81ff>6006</span>
+</span></span><span style=display:flex><span>gtmMasterDir<span style=color:#f92672>=</span>/home/vscode/.data/gtm_master
+</span></span><span style=display:flex><span>gtmExtraConfig<span style=color:#f92672>=</span>none
+</span></span><span style=display:flex><span>gtmMasterSpecificExtraConfig<span style=color:#f92672>=</span>none
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>gtmSlave<span style=color:#f92672>=</span>n
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#------------------------ Coordinators ---------------------</span>
+</span></span><span style=display:flex><span>coordNames<span style=color:#f92672>=(</span>cn001 cn002<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>coordMasterCluster<span style=color:#f92672>=(</span>vscode_cluster vscode_cluster<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>coordPorts<span style=color:#f92672>=(</span><span style=color:#ae81ff>6011</span> 6012<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>poolerPorts<span style=color:#f92672>=(</span><span style=color:#ae81ff>6111</span> 6112<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>coordPgHbaEntries<span style=color:#f92672>=(</span>0.0.0.0/0<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>coordMasterServers<span style=color:#f92672>=(</span>vscode vscode<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>coordMasterDirs<span style=color:#f92672>=(</span>/home/vscode/.data/cn001 /home/vscode/.data/cn002<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>coordMaxWALSenders<span style=color:#f92672>=(</span><span style=color:#ae81ff>10</span> 10<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>coordSlave<span style=color:#f92672>=</span>n
+</span></span><span style=display:flex><span>coordSlaveSync<span style=color:#f92672>=</span>n
+</span></span><span style=display:flex><span>coordArchLogDirs<span style=color:#f92672>=(</span>/home/vscode/.data/archlog/cn001 /home/vscode/.data/archlog/cn002<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>coordExtraConfig<span style=color:#f92672>=</span>coordExtraConfig
+</span></span><span style=display:flex><span>cat &gt; $coordExtraConfig <span style=color:#e6db74>&lt;&lt;EOF
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>#================================================
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># Added to all the coordinator postgresql.conf
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># Original: $coordExtraConfig
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>include_if_exists = &#39;/home/vscode/.data/global/global_vscode.conf&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>wal_level = replica
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>wal_keep_segments = 256
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>max_wal_senders = 4
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>archive_mode = on
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>archive_timeout = 1800
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>archive_command = &#39;echo 0&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>log_truncate_on_rotation = on
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>log_filename = &#39;postgresql-%M.log&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>log_rotation_age = 4h
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>log_rotation_size = 100MB
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>hot_standby = on
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>wal_sender_timeout = 30min
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>wal_receiver_timeout = 30min
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>shared_buffers = 16384MB
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>max_pool_size = 2000
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>log_statement = &#39;ddl&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>log_destination = &#39;csvlog&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>logging_collector = on
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>log_directory = &#39;pg_log&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>listen_addresses = &#39;*&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>max_connections = 2000
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>EOF</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>coordSpecificExtraConfig<span style=color:#f92672>=(</span>none none<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>coordExtraPgHba<span style=color:#f92672>=</span>coordExtraPgHba
+</span></span><span style=display:flex><span>cat &gt; $coordExtraPgHba <span style=color:#e6db74>&lt;&lt;EOF
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>local   all             all                                     trust
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>host    all             all             0.0.0.0/0               trust
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>host    replication     all             0.0.0.0/0               trust
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>host    all             all             ::1/128                 trust
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>host    replication     all             ::1/128                 trust
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>EOF</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>coordSpecificExtraPgHba<span style=color:#f92672>=(</span>none none<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>coordAdditionalSlaves<span style=color:#f92672>=</span>n
+</span></span><span style=display:flex><span>cad1_Sync<span style=color:#f92672>=</span>n
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#------------------------ Datanodes ---------------------</span>
+</span></span><span style=display:flex><span>primaryDatanode<span style=color:#f92672>=</span>dn001
+</span></span><span style=display:flex><span>datanodeNames<span style=color:#f92672>=(</span>dn001 dn002 dn003<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>datanodePorts<span style=color:#f92672>=(</span><span style=color:#ae81ff>6021</span> <span style=color:#ae81ff>6022</span> 6023<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>datanodePoolerPorts<span style=color:#f92672>=(</span><span style=color:#ae81ff>6121</span> <span style=color:#ae81ff>6122</span> 6123<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>datanodeMasterCluster<span style=color:#f92672>=(</span>vscode_cluster vscode_cluster vscode_cluster<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>datanodePgHbaEntries<span style=color:#f92672>=(</span>0.0.0.0/0<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>datanodeMasterServers<span style=color:#f92672>=(</span>vscode vscode vscode<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>datanodeMasterDirs<span style=color:#f92672>=(</span>/home/vscode/.data/dn001 /home/vscode/.data/dn002 /home/vscode/.data/dn003<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>datanodeMaxWALSenders<span style=color:#f92672>=(</span><span style=color:#ae81ff>10</span> <span style=color:#ae81ff>10</span> 10<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>datanodeArchLogDirs<span style=color:#f92672>=(</span>/home/vscode/.data/archlog/dn001 /home/vscode/.data/archlog/dn002 /home/vscode/.data/archlog/dn003<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>datanodeSlave<span style=color:#f92672>=</span>n
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>datanodeExtraConfig<span style=color:#f92672>=</span>datanodeExtraConfig
+</span></span><span style=display:flex><span>cat &gt; $datanodeExtraConfig <span style=color:#e6db74>&lt;&lt;EOF
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>#================================================
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># Added to all the coordinator postgresql.conf
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># Original: $datanodeExtraConfig
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>include_if_exists = &#39;/home/vscode/.data/global/global_vscode.conf&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>listen_addresses = &#39;*&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>wal_level = replica
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>wal_keep_segments = 256
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>max_wal_senders = 4
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>archive_mode = on
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>archive_timeout = 1800
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>archive_command = &#39;echo 0&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>log_directory = &#39;pg_log&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>logging_collector = on
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>log_truncate_on_rotation = on
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>log_filename = &#39;postgresql-%M.log&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>log_rotation_age = 4h
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>log_rotation_size = 100MB
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>hot_standby = on
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>wal_sender_timeout = 30min
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>wal_receiver_timeout = 30min
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>shared_buffers = 16384MB
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>max_connections = 4000
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>max_pool_size = 4000
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>log_statement = &#39;ddl&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>log_destination = &#39;csvlog&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>wal_buffers = 1GB
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>EOF</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>datanodeSpecificExtraConfig<span style=color:#f92672>=(</span>none none<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>datanodeExtraPgHba<span style=color:#f92672>=</span>datanodeExtraPgHba
+</span></span><span style=display:flex><span>cat &gt; $datanodeExtraPgHba <span style=color:#e6db74>&lt;&lt;EOF
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>local   all             all                                     trust
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>host    all             all             0.0.0.0/0               trust
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>host    replication     all             0.0.0.0/0               trust
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>host    all             all             ::1/128                 trust
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>host    replication     all             ::1/128                 trust
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>EOF</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>datanodeSpecificExtraPgHba<span style=color:#f92672>=(</span>none none<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>datanodeAdditionalSlaves<span style=color:#f92672>=</span>n
+</span></span><span style=display:flex><span>walArchive<span style=color:#f92672>=</span>n
+</span></span></code></pre></div><h2 id=demo-sql>demo sql</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>select</span> <span style=color:#e6db74>&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>drop table if exists t0;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>drop table if exists t0_2357_hash;                drop table if exists t1_2357_hash;                  drop table if exists t2_2357_hash;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>drop table if exists t0_2357_mod;                 drop table if exists t1_2357_mod;                   drop table if exists t2_2357_mod;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>drop table if exists t0_2357_repl;                drop table if exists t1_2357_repl;                  drop table if exists t2_2357_repl;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>drop table if exists t0_2357_round;               drop table if exists t1_2357_round;                 drop table if exists t2_2357_round;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>drop table if exists t0_2357_random;              drop table if exists t1_2357_random;                drop table if exists t2_2357_random;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>&#39;</span> droptable <span style=color:#960050;background-color:#1e0010>\</span>gset
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>select</span> <span style=color:#e6db74>&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>create table t0(a int, b int, c char(10), d timestamp);
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>insert into t0 values
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>(1,  1,  &#39;&#39;1&#39;&#39;,  &#39;&#39;2021-12-29 20:10:01&#39;&#39;),(2,  2,  &#39;&#39;2&#39;&#39;,  &#39;&#39;2022-12-29 20:10:01&#39;&#39;),(3,  3,  &#39;&#39;3&#39;&#39;,  &#39;&#39;2023-12-29 20:10:01&#39;&#39;),(4,  4,  &#39;&#39;4&#39;&#39;,  &#39;&#39;2024-12-29 20:10:01&#39;&#39;),
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>(5,  5,  &#39;&#39;5&#39;&#39;,  &#39;&#39;2025-12-29 20:10:01&#39;&#39;),(6,  6,  &#39;&#39;6&#39;&#39;,  &#39;&#39;2026-12-29 20:10:01&#39;&#39;),(7,  7,  &#39;&#39;7&#39;&#39;,  &#39;&#39;2027-12-29 20:10:01&#39;&#39;),(8,  8,  &#39;&#39;8&#39;&#39;,  &#39;&#39;2028-12-29 20:10:01&#39;&#39;),
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>(9,  9,  &#39;&#39;9&#39;&#39;,  &#39;&#39;2029-12-29 20:10:01&#39;&#39;),(10, 10, &#39;&#39;10&#39;&#39;, &#39;&#39;2010-12-29 20:10:01&#39;&#39;),(11, 11, &#39;&#39;11&#39;&#39;, &#39;&#39;2011-12-29 20:10:01&#39;&#39;),(12, 12, &#39;&#39;12&#39;&#39;, &#39;&#39;2012-12-29 20:10:01&#39;&#39;),
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>(13, 13, &#39;&#39;13&#39;&#39;, &#39;&#39;2013-12-29 20:10:01&#39;&#39;),(14, 14, &#39;&#39;14&#39;&#39;, &#39;&#39;2014-12-29 20:10:01&#39;&#39;),(15, 15, &#39;&#39;15&#39;&#39;, &#39;&#39;2015-12-29 20:10:01&#39;&#39;),(16, 16, &#39;&#39;16&#39;&#39;, &#39;&#39;2016-12-29 20:10:01&#39;&#39;),
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>(17, 17, &#39;&#39;17&#39;&#39;, &#39;&#39;2017-12-29 20:10:01&#39;&#39;),(18, 18, &#39;&#39;18&#39;&#39;, &#39;&#39;2018-12-29 20:10:01&#39;&#39;),(19, 19, &#39;&#39;19&#39;&#39;, &#39;&#39;2019-12-29 20:10:01&#39;&#39;),(20, 20, &#39;&#39;20&#39;&#39;, &#39;&#39;2020-12-29 20:10:01&#39;&#39;);
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>create table t0_2357_hash   (a int, b int, c char(10), d timestamp) DISTRIBUTE by hash (a);
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>create table t0_2357_mod    (a int, b int, c char(10), d timestamp) DISTRIBUTE by modulo(a);
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>create table t0_2357_repl   (a int, b int, c char(10), d timestamp) DISTRIBUTE by REPLICATION;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>create table t0_2357_round  (a int, b int, c char(10), d timestamp) DISTRIBUTE by roundrobin;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>create table t0_2357_random (a int, b int, c char(10), d timestamp) DISTRIBUTED RANDOMLY;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>create table t1_2357_hash   (a int, b int, c char(10), d timestamp) DISTRIBUTE by hash (a);
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>create table t1_2357_mod    (a int, b int, c char(10), d timestamp) DISTRIBUTE by modulo(a);
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>create table t1_2357_repl   (a int, b int, c char(10), d timestamp) DISTRIBUTE by REPLICATION;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>create table t1_2357_round  (a int, b int, c char(10), d timestamp) DISTRIBUTE by roundrobin;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>create table t1_2357_random (a int, b int, c char(10), d timestamp) DISTRIBUTED RANDOMLY;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>create table t2_2357_hash   (a int, b int, c char(10), d timestamp) DISTRIBUTE by hash (a);
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>create table t2_2357_mod    (a int, b int, c char(10), d timestamp) DISTRIBUTE by modulo(a);
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>create table t2_2357_repl   (a int, b int, c char(10), d timestamp) DISTRIBUTE by REPLICATION;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>create table t2_2357_round  (a int, b int, c char(10), d timestamp) DISTRIBUTE by roundrobin;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>create table t2_2357_random (a int, b int, c char(10), d timestamp) DISTRIBUTED RANDOMLY;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>insert into t0_2357_hash select * from t0;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>insert into t0_2357_mod select * from t0;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>insert into t0_2357_repl select * from t0;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>insert into t0_2357_round select * from t0;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>insert into t0_2357_random select * from t0;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>insert into t1_2357_hash select * from t0;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>insert into t1_2357_mod select * from t0;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>insert into t1_2357_repl select * from t0;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>insert into t1_2357_round select * from t0;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>insert into t1_2357_random select * from t0;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>insert into t2_2357_hash select * from t0;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>insert into t2_2357_mod select * from t0;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>insert into t2_2357_repl select * from t0;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>insert into t2_2357_round select * from t0;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>insert into t2_2357_random select * from t0;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>vacuum analyze t0_2357_hash;                vacuum analyze t1_2357_hash;                vacuum analyze t2_2357_hash;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>vacuum analyze t0_2357_mod;                 vacuum analyze t1_2357_mod;                 vacuum analyze t2_2357_mod;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>vacuum analyze t0_2357_repl;                vacuum analyze t1_2357_repl;                vacuum analyze t2_2357_repl;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>vacuum analyze t0_2357_round;               vacuum analyze t1_2357_round;               vacuum analyze t2_2357_round;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>vacuum analyze t0_2357_random;              vacuum analyze t1_2357_random;              vacuum analyze t2_2357_random;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>&#39;</span> createtable <span style=color:#960050;background-color:#1e0010>\</span>gset
+</span></span></code></pre></div></section><div class=divider></div><div class="flex flex-col md:flex-row justify-between gap-4 py-4"><a role=button class="btn btn-outline h-12" href=/posts/postgres/hashjoin/ title="Postgres Hash Join"><ion-icon name=chevron-back></ion-icon><div class="inline-flex flex-col items-start"><span class="text-base-content/60 text-xs font-normal">Previous page</span>
+<span class="max-w-48 truncate">Postgres Hash Join</span></div></a><a role=button class="btn btn-outline h-12" href=/posts/others/cmake/ title="cmake 速查模板"><div class="inline-flex flex-col items-end"><span class="text-base-content/60 text-xs font-normal">Next page</span>
+<span class="max-w-48 truncate">cmake 速查模板</span></div><ion-icon name=chevron-forward></ion-icon></a></div><div class=divider></div><section class=space-y-4><template x-if="['localhost', '127.0.0.1'].indexOf(window.location.hostname) == -1"><article><script src=https://utteranc.es/client.js repo=https://askyx.github.io/ issue-term=og:title theme=github-light crossorigin=anonymous async></script></article></template></section></article></div><div x-data=tocHighlighter() @scroll.window=debouncedScroll class="hidden lg:flex lg:flex-col lg:items-end lg:self-start"><nav id=TableOfContents><ul><li><a href=#shell>shell</a></li><li><a href=#conf-file-pgconf>conf file (pg.conf)</a></li><li><a href=#demo-sql>demo sql</a></li></ul></nav></div></div><footer class="flex justify-between items-center gap-2 px-4 py-12"><div><p>© 2016 - 2025 Askyx's Blog</p><p class=text-sm>🌱
+<span class=text-base-content/60>Powered by <a class=hover:underline href=https://gohugo.io/ target=_blank>Hugo</a> with theme
+<a class=hover:underline href=https://github.com/g1eny0ung/hugo-theme-dream target=_blank>Dream</a>.</span></p></div><div x-data="{ icons: [
+    { name: 'sunny', status: 'n' },
+    { name: 'moon', status: 'y' },
+    { name: 'desktop', status: 'auto' }
+  ] }" class="flex items-center gap-2 h-[32px] px-2 bg-base-100 border border-base-content/30 rounded-full"><template x-for="icon in icons"><div role=button tabindex=0 :aria-label="'Select ' + icon.name + ' mode'" class="group inline-flex justify-center items-center p-1 rounded-full cursor-pointer hover:bg-primary" :class="$store.darkMode.icon() === icon.name && 'bg-primary'" @click=$store.darkMode.toggle(icon.status)><ion-icon :name="`${icon.name}-outline`" class=group-hover:text-primary-content :class="$store.darkMode.icon() === icon.name && 'text-primary-content'"></ion-icon></div></template></div></footer></div></div><div class=back><div class=container><div class="dream-grid dream-grid-about"><div class="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-4 dream-column"><article class="card bg-base-100 hover:bg-base-content/10 shadow-xl dark:border dark:border-base-content/30"><div class=card-body><div class=card-title>About Me</div><div class="prose dark:prose-invert"><p>Hi, my name is Yue Yang.</p><p>This is my blog.</p><h2 id=ヾωo>ヾ(•ω•`)o</h2><p>比较胆小，出门都得贴墙走</p></div></div></article></div></div><footer class="flex justify-between items-center gap-2 px-4 py-12"><div><p>© 2016 - 2025 Askyx's Blog</p><p class=text-sm>🌱
+<span class=text-base-content/60>Powered by <a class=hover:underline href=https://gohugo.io/ target=_blank>Hugo</a> with theme
+<a class=hover:underline href=https://github.com/g1eny0ung/hugo-theme-dream target=_blank>Dream</a>.</span></p></div><div x-data="{ icons: [
+    { name: 'sunny', status: 'n' },
+    { name: 'moon', status: 'y' },
+    { name: 'desktop', status: 'auto' }
+  ] }" class="flex items-center gap-2 h-[32px] px-2 bg-base-100 border border-base-content/30 rounded-full"><template x-for="icon in icons"><div role=button tabindex=0 :aria-label="'Select ' + icon.name + ' mode'" class="group inline-flex justify-center items-center p-1 rounded-full cursor-pointer hover:bg-primary" :class="$store.darkMode.icon() === icon.name && 'bg-primary'" @click=$store.darkMode.toggle(icon.status)><ion-icon :name="`${icon.name}-outline`" class=group-hover:text-primary-content :class="$store.darkMode.icon() === icon.name && 'text-primary-content'"></ion-icon></div></template></div></footer></div></div></div></div><script>window.lightTheme="emerald",window.darkTheme="forest"</script><script src=https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js integrity="sha256-htrLFfZJ6v5udOG+3kNLINIKh2gvoKqwEhHYfTTMICc=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin=anonymous></script><script src=/js/grid.min.js></script><script src=/js/main.min.js></script><script src=https://cdn.jsdelivr.net/npm/luxon@1.26.0 integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin=anonymous></script><script>format();function format(){document.querySelectorAll('span[data-format="luxon"]').forEach(e=>{const t=e.textContent;e.textContent=luxon.DateTime.fromISO(t,{locale:"en"}).toFormat("yyyy年MM月dd日")})}</script><script src=/js/toc.min.js></script><script type=module>
+      import mediumZoom from 'https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/+esm';
+      mediumZoom('#dream-single-post-content img', {
+        background: 'oklch(var(--b1))',
+        margin: 24,
+      })
+    </script><script type=module src=https://cdn.jsdelivr.net/npm/ionicons@7.4.0/dist/ionicons/ionicons.esm.js integrity="sha256-/IFmi82bIhdYWctu0UddSlJqpnzWm7Vh2C4CM32wF/k=" crossorigin=anonymous></script><script nomodule src=https://cdn.jsdelivr.net/npm/ionicons@7.4.0/dist/ionicons/ionicons.js integrity="sha256-mr7eJMX3VC3F7G32mk4oWp1C6a2tlMYxUdptfT7uKI8=" crossorigin=anonymous></script></body></html>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>GFS on Askyx's Blog</title><link>https://askyx.github.io/tags/gfs/</link><description>Recent content in GFS on Askyx's Blog</description><generator>Hugo</generator><language>zh-Hans</language><lastBuildDate>Wed, 16 Jul 2025 23:38:40 +0800</lastBuildDate><atom:link href="https://askyx.github.io/tags/gfs/index.xml" rel="self" type="application/rss+xml"/><item><title>GFS</title><link>https://askyx.github.io/posts/course/6.824/gfs/</link><pubDate>Mon, 30 May 2022 16:36:40 +0800</pubDate><guid>https://askyx.github.io/posts/course/6.824/gfs/</guid><description>&lt;p>GFS是一个大规模可扩展的可容错的分布式文件系统。Google三大篇论文之一&lt;/p>
+
+
+
+ &lt;blockquote>
+ &lt;p>翻译文章在&lt;a href="https://nxwz51a5wp.feishu.cn/docs/doccnNYeo3oXj6cWohseo6yB4id#Tar9b7" target="_blank">这里&lt;/a>
+&lt;br>
+论文在&lt;a href="https://pdos.csail.mit.edu/6.824/papers/gfs.pdf" target="_blank">这里&lt;/a>
+&lt;br>
+&lt;a href="https://pdos.csail.mit.edu/6.824/papers/gfs-faq.txt" target="_blank">6.824 Q&amp;amp;A&lt;/a>
+&lt;/p>
+ &lt;/blockquote>
+
+&lt;ul>
+&lt;li>GFS的特点
+&lt;ol>
+&lt;li>运行在廉价的机器上，节约成本&lt;/li>
+&lt;li>灵活性强，可随意扩展，容错性强&lt;/li>
+&lt;li>文件尾部追加数据，不会有太多的数据变动&lt;/li>
+&lt;/ol>
+&lt;/li>
+&lt;/ul>
+&lt;h2 id="架构">架构&lt;/h2>
+&lt;p>一个单独的master节点和多个datachunk节点，maste管理元数据信息，包括chunkhandle信息，文件和chunk的映射信息，以及chunkserver的变动信息等。master使用心跳定时和chunkserver同步关键信息。使用单个master的目的是为了简化设计，同时为了避免单点故障，master节点每次操作都和backup master同步数据，master存储的3种关键元数据为&lt;/p></description></item></channel></rss>

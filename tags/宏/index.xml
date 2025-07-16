@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>宏 on Askyx's Blog</title><link>https://askyx.github.io/tags/%E5%AE%8F/</link><description>Recent content in 宏 on Askyx's Blog</description><generator>Hugo</generator><language>zh-Hans</language><lastBuildDate>Wed, 16 Jul 2025 23:38:40 +0800</lastBuildDate><atom:link href="https://askyx.github.io/tags/%E5%AE%8F/index.xml" rel="self" type="application/rss+xml"/><item><title>宏使用模板速查</title><link>https://askyx.github.io/posts/postgres/defineinc/</link><pubDate>Wed, 22 Feb 2023 14:00:48 +0800</pubDate><guid>https://askyx.github.io/posts/postgres/defineinc/</guid><description>&lt;h2 id="前置知识">前置知识&lt;/h2>
+&lt;p>&lt;a href="http://c.biancheng.net/view/446.html" target="_blank">C语言宏的定义和宏的使用方法&lt;/a>
+&lt;/p>
+&lt;h3 id="变长参数">变长参数&lt;/h3>
+&lt;ul>
+&lt;li>这里输出的是相同类型的参数日志，不同的需要特殊处理，或者直接自定义输出格式&lt;/li>
+&lt;li>缺点：
+&lt;ul>
+&lt;li>参数类型固定&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-c++" data-lang="c++">&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;stdio.h&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">double&lt;/span> xxa &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">1.0f&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">double&lt;/span> xxb &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">1.2f&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">double&lt;/span> xxc &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">1.3f&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">double&lt;/span> xxd &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">1.4f&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">double&lt;/span> xxe &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">1.5f&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">double&lt;/span> xxf &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">1.6f&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">double&lt;/span> xxg &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">1.7f&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">double&lt;/span> xxh &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">1.8f&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">double&lt;/span> xxi &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">1.9f&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define DUMPVAR(VAR) #VAR &amp;#34;(%.2lf)&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define FL_DOARG1(a, ...) DUMPVAR(a)
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define FL_DOARG2(a, v, ...) FL_DOARG1(a) &amp;#34;, &amp;#34; FL_DOARG1(v, __VA_ARGS__)
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define FL_DOARG3(a, v, ...) FL_DOARG1(a) &amp;#34;, &amp;#34; FL_DOARG2(v, __VA_ARGS__)
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define FL_DOARG4(a, v, ...) FL_DOARG1(a) &amp;#34;, &amp;#34; FL_DOARG3(v, __VA_ARGS__)
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define FL_DOARG5(a, v, ...) FL_DOARG1(a) &amp;#34;, &amp;#34; FL_DOARG4(v, __VA_ARGS__)
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define FL_DOARG6(a, v, ...) FL_DOARG1(a) &amp;#34;, &amp;#34; FL_DOARG5(v, __VA_ARGS__)
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define FL_DOARG7(a, v, ...) FL_DOARG1(a) &amp;#34;, &amp;#34; FL_DOARG6(v, __VA_ARGS__)
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define FL_DOARG8(a, v, ...) FL_DOARG1(a) &amp;#34;, &amp;#34; FL_DOARG7(v, __VA_ARGS__)
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define FL_DOARG9(a, v, ...) FL_DOARG1(a) &amp;#34;, &amp;#34; FL_DOARG8(v, __VA_ARGS__)
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define VA_NUM_ARGS_IMPL(x1, x2, x3, x4, x5, x6, x7, x8, x9, N, ...) N
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define VA_NUM_ARGS(...) VA_NUM_ARGS_IMPL(__VA_ARGS__, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define FL_CONCAT_(l, r) l##r
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define FL_CONCAT(l, r) FL_CONCAT_(l, r)
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define MAKE_VAR_MACRO(PREFIX, ...) FL_CONCAT(PREFIX, VA_NUM_ARGS(__VA_ARGS__))
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define FFFOM(...) MAKE_VAR_MACRO(FL_DOARG, __VA_ARGS__)(__VA_ARGS__)
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define DUMP(...) \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> char costfac[1000]; \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> snprintf(costfac, 1000, FFFOM(__VA_ARGS__), ##__VA_ARGS__);
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">int&lt;/span> &lt;span style="color:#a6e22e">main&lt;/span>(&lt;span style="color:#66d9ef">int&lt;/span> argc, &lt;span style="color:#66d9ef">char&lt;/span> &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#f92672">*&lt;/span>argv[])
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">// 输出保存在字符串中，有保存场景的时候使用
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> DUMP(xxa,xxb,xxc,xxd,xxe,xxf,xxg,xxh,xxi);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> printf(&lt;span style="color:#e6db74">&amp;#34;%s&amp;#34;&lt;/span>, costfac);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="enum-定义">enum 定义&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-c++" data-lang="c++">&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define ENUM_DEFINE_ITEM(EnumType, EnumVal) EnumVal,
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">/** Used in defining EnumTypeToString(). */&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define ENUM_TO_STRING(EnumType, EnumVal) \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> case EnumType::EnumVal: { \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> return #EnumVal; \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> }
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">/** Used in defining EnumTypeFromString(). Hardcoded to expect str to be in scope. */&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define ENUM_FROM_STRING(EnumType, EnumVal) \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> else if (str == #EnumVal) { &lt;/span>&lt;span style="color:#75715e">/* NOLINT readability/braces confusion */&lt;/span>&lt;span style="color:#75715e"> \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> return EnumType::EnumVal; \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> }
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define ENUM_DEFINE(EnumName, EnumCppType, EnumValMacro) \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> enum class EnumName : EnumCppType { EnumValMacro(ENUM_DEFINE_ITEM) NUM_ENUM_ENTRIES }; \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> &lt;/span>&lt;span style="color:#75715e">/** @return String version of @p type. */&lt;/span>&lt;span style="color:#75715e"> \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> inline std::string EnumName##ToString(EnumName type) { &lt;/span>&lt;span style="color:#75715e">/* NOLINT inline usage */&lt;/span>&lt;span style="color:#75715e"> \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> switch (type) { \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> EnumValMacro(ENUM_TO_STRING); \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> default: { \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> throw std::runtime_error((&amp;#34;No enum conversion for: &amp;#34; + std::to_string(static_cast&amp;lt;uint64_t&amp;gt;(type))).c_str()); \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> } \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> } \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> } \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> &lt;/span>&lt;span style="color:#75715e">/** @return Enum version of @p str. */&lt;/span>&lt;span style="color:#75715e"> \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> inline EnumName EnumName##FromString(const std::string &amp;amp;str) { &lt;/span>&lt;span style="color:#75715e">/* NOLINT inline usage */&lt;/span>&lt;span style="color:#75715e"> \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> if (false) { &lt;/span>&lt;span style="color:#75715e">/* This check starts an if-else chain for the macro. */&lt;/span>&lt;span style="color:#75715e"> \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> } \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> EnumValMacro(ENUM_FROM_STRING) else { &lt;/span>&lt;span style="color:#75715e">/* NOLINT readability/braces confusion */&lt;/span>&lt;span style="color:#75715e"> \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> throw std::runtime_error(&amp;#34;No enum conversion for: &amp;#34; + str); \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> } \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> }
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// use
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define DEFIN_SQLTYPE(T) \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> T(SqlType, T_INT) \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> T(SqlType, T_DOUBLE) \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> T(SqlType, T_STRING) \
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> T(SqlType, T_BOOL)
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>ENUM_DEFINE(SqlType, &lt;span style="color:#66d9ef">uint8_t&lt;/span>, DEFIN_SQLTYPE);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#undef DEFIN_SQLTYPE
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item></channel></rss>

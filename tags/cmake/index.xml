@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Cmake on Askyx's Blog</title><link>https://askyx.github.io/tags/cmake/</link><description>Recent content in Cmake on Askyx's Blog</description><generator>Hugo</generator><language>zh-Hans</language><lastBuildDate>Wed, 16 Jul 2025 23:38:40 +0800</lastBuildDate><atom:link href="https://askyx.github.io/tags/cmake/index.xml" rel="self" type="application/rss+xml"/><item><title>cmake 速查模板</title><link>https://askyx.github.io/posts/others/cmake/</link><pubDate>Wed, 09 Aug 2023 17:34:54 +0800</pubDate><guid>https://askyx.github.io/posts/others/cmake/</guid><description>&lt;h2 id="cmake-速记模板">cmake 速记模板&lt;/h2>
+&lt;h3 id="cmake-升级">cmake 升级&lt;/h3>
+&lt;pre tabindex="0">&lt;code>https://zhuanlan.zhihu.com/p/513871916
+
+wget https://github.com/Kitware/CMake/releases/download/v3.23.0/cmake-3.23.0-linux-x86_64.sh
+
+sudo bash ./cmake-3.23.0-linux-x86_64.sh --skip-licence --prefix=/usr/local
+
+sudo update-alternatives --install /usr/bin/cmake cmake /usr/local/cmake-4.0.3-linux-x86_64/bin/cmake 10
+
+
+Do you accept the license? [yn]: 
+
+By default the CMake will be installed in:
+ &amp;#34;/usr/cmake-3.23.0-linux-x86_64&amp;#34;
+Do you want to include the subdirectory cmake-3.23.0-linux-x86_64?
+Saying no will install in: &amp;#34;/usr&amp;#34; [Yn]:
+&lt;/code>&lt;/pre>&lt;p>修改 PATH&lt;/p>
+&lt;h3 id="添加第三方库">添加第三方库&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-c++" data-lang="c++">&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>include(FetchContent)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>function(get_third_dep dep_name dep_url dep_tag)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> FetchContent_Declare(&lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{dep_name}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> QUIET
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> SOURCE_DIR &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{CMAKE_BINARY_DIR}&lt;span style="color:#f92672">/&lt;/span>_deps&lt;span style="color:#f92672">/&lt;/span>src&lt;span style="color:#f92672">/&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{dep_name}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> BINARY_DIR &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{CMAKE_BINARY_DIR}&lt;span style="color:#f92672">/&lt;/span>_deps&lt;span style="color:#f92672">/&lt;/span>build&lt;span style="color:#f92672">/&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{dep_name}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> SUBBUILD_DIR &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{CMAKE_BINARY_DIR}&lt;span style="color:#f92672">/&lt;/span>_deps&lt;span style="color:#f92672">/&lt;/span>sub&lt;span style="color:#f92672">/&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{dep_name}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> GIT_REPOSITORY &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{dep_url}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> GIT_TAG &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{dep_tag}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> GIT_PROGRESS TRUE
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> GIT_SHALLOW TRUE
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> )
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> FetchContent_MakeAvailable(&lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{dep_name})
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>endfunction(get_third_dep)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>get_third_dep(spdlog https:&lt;span style="color:#75715e">//ghproxy.com/https://github.com/gabime/spdlog.git v1.11.0)
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>get_third_dep(googletest https:&lt;span style="color:#75715e">//ghproxy.com/https://github.com/google/googletest.git release-1.12.1)
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>get_third_dep(asio https:&lt;span style="color:#75715e">//ghproxy.com/https://github.com/chriskohlhoff/asio.git asio-1-28-0)
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># 添加 head only 库
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>add_library(asio INTERFACE)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>target_include_directories(asio
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> INTERFACE &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{CMAKE_BINARY_DIR}&lt;span style="color:#f92672">/&lt;/span>_deps&lt;span style="color:#f92672">/&lt;/span>src&lt;span style="color:#f92672">/&lt;/span>asio&lt;span style="color:#f92672">/&lt;/span>asio&lt;span style="color:#f92672">/&lt;/span>include
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>target_compile_definitions(asio
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> INTERFACE
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ASIO_STANDALONE
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ASIO_NO_DEPRECATED
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>target_link_libraries(asio
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> INTERFACE pthread
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="添加-yacc-lex-编译">添加 yacc lex 编译&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-c++" data-lang="c++">&lt;span style="display:flex;">&lt;span>find_package(FLEX REQUIRED)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>find_package(BISON &lt;span style="color:#ae81ff">3.5.0&lt;/span> REQUIRED)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>bison_target(parser
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{PROJECT_SOURCE_DIR}&lt;span style="color:#f92672">/&lt;/span>src&lt;span style="color:#f92672">/&lt;/span>parser&lt;span style="color:#f92672">/&lt;/span>parser.yy
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{PROJECT_SOURCE_DIR}&lt;span style="color:#f92672">/&lt;/span>src&lt;span style="color:#f92672">/&lt;/span>parser&lt;span style="color:#f92672">/&lt;/span>parser.cpp
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># DEFINES_FILE ${PROJECT_SOURCE_DIR}/src/include/parser/parser.hpp
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> COMPILE_FLAGS &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{bison_flags})
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>flex_target(scanner
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{PROJECT_SOURCE_DIR}&lt;span style="color:#f92672">/&lt;/span>src&lt;span style="color:#f92672">/&lt;/span>parser&lt;span style="color:#f92672">/&lt;/span>scanner.lex
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{PROJECT_SOURCE_DIR}&lt;span style="color:#f92672">/&lt;/span>src&lt;span style="color:#f92672">/&lt;/span>parser&lt;span style="color:#f92672">/&lt;/span>scanner.cpp)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>ADD_FLEX_BISON_DEPENDENCY(scanner parser)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>add_library(ASKY_lib
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> SHARED
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{ASKY_SRC}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{BISON_parser_OUTPUTS}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{FLEX_scanner_OUTPUTS}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="添加单元测试">添加单元测试&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-c++" data-lang="c++">&lt;span style="display:flex;">&lt;span>function(add_cosmos_test test_name test_file)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> add_executable(&lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{test_name} &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{test_file})
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> target_link_libraries(&lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{test_name} PRIVATE gtest gtest_main ASKY_lib)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> add_test(NAME &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{test_name} COMMAND &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{test_name})
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>endfunction(add_cosmos_test)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>foreach(TEST_SOURCE_FILE &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{ASKY_TEST_SRC})
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> file(RELATIVE_PATH ASKY_TEST_CPP_REL &lt;span style="color:#e6db74">&amp;#34;${PROJECT_SOURCE_DIR}/test&amp;#34;&lt;/span> &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{TEST_SOURCE_FILE})
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> get_filename_component(NOISEPAGE_TEST_DIR &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{ASKY_TEST_CPP_REL} DIRECTORY)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> get_filename_component(NOISEPAGE_TEST &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{TEST_SOURCE_FILE} NAME_WE)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> add_cosmos_test(&lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{NOISEPAGE_TEST} &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{TEST_SOURCE_FILE})
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>endforeach()
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="添加-自定义-command">添加 自定义 command&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-c++" data-lang="c++">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># clang-format
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>add_custom_target(format
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> COMMAND git diff &lt;span style="color:#f92672">--&lt;/span>name&lt;span style="color:#f92672">-&lt;/span>only &lt;span style="color:#f92672">--&lt;/span>diff&lt;span style="color:#f92672">-&lt;/span>filter&lt;span style="color:#f92672">=&lt;/span>d &lt;span style="color:#f92672">--&lt;/span>cached &lt;span style="color:#960050;background-color:#1e0010">&amp;#39;&lt;/span>&lt;span style="color:#f92672">*&lt;/span>.cpp&lt;span style="color:#e6db74">&amp;#39; &amp;#39;&lt;/span>&lt;span style="color:#f92672">*&lt;/span>.h&lt;span style="color:#960050;background-color:#1e0010">&amp;#39;&lt;/span> &lt;span style="color:#f92672">|&lt;/span> xargs clang&lt;span style="color:#f92672">-&lt;/span>format &lt;span style="color:#f92672">-&lt;/span>i
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> WORKING_DIRECTORY &lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{PROJECT_SOURCE_DIR}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="cmake-option">cmake option&lt;/h3>
+&lt;ul>
+&lt;li>&lt;code>option&lt;/code> 会缓存在cache 中，直接修改cmake文件不会立刻生效，可以手动 cmake 使用 &lt;code>-D&lt;/code> 指定
+&lt;code>cmake .. -DENABLE_ASAN=OFF&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-c++" data-lang="c++">&lt;span style="display:flex;">&lt;span>option(ENABLE_ASAN &lt;span style="color:#e6db74">&amp;#34;enable asna check&amp;#34;&lt;/span> ON)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>option(ENABLE_TEST &lt;span style="color:#e6db74">&amp;#34;enable regress&amp;#34;&lt;/span> OFF)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>option(ENABLE_COVERAGE &lt;span style="color:#e6db74">&amp;#34;enable coverage&amp;#34;&lt;/span> OFF)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>option(ENABLE_PARSER_TRACE &lt;span style="color:#e6db74">&amp;#34;enable sql parser trace&amp;#34;&lt;/span> ON)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">if&lt;/span> (&lt;span style="color:#960050;background-color:#1e0010">$&lt;/span>{ENABLE_ASAN})
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> list(APPEND COMPILE_OPTIONS &lt;span style="color:#e6db74">&amp;#34;-fsanitize=address&amp;#34;&lt;/span> &lt;span style="color:#e6db74">&amp;#34;-fno-omit-frame-pointer&amp;#34;&lt;/span> &lt;span style="color:#e6db74">&amp;#34;-fno-optimize-sibling-calls&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> list(APPEND LINK_OPTIONS &lt;span style="color:#e6db74">&amp;#34;-fsanitize=address&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>endif ()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>message(STATUS &lt;span style="color:#e6db74">&amp;#34;ASAN: ${ENABLE_ASAN}&amp;#34;&lt;/span>)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="自定义-package-配置">自定义 package 配置&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-shell" data-lang="shell">&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># Copyright 2020 Mats Kindahl&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># Licensed under the Apache License, Version 2.0 (the &amp;#34;License&amp;#34;); you may not&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># use this file except in compliance with the License. You may obtain a copy of&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># the License at&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># http://www.apache.org/licenses/LICENSE-2.0&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># Unless required by applicable law or agreed to in writing, software&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># distributed under the License is distributed on an &amp;#34;AS IS&amp;#34; BASIS, WITHOUT&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># License for the specific language governing permissions and limitations under&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># the License.&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># .rst: FindPostgreSQL&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># --------------------&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># Find the PostgreSQL installation.&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># This module defines the following variables&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># ::&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># PostgreSQL_LIBRARIES - the PostgreSQL libraries needed for linking&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># PostgreSQL_INCLUDE_DIRS - include directories&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># PostgreSQL_SERVER_INCLUDE_DIRS - include directories for server programming&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># PostgreSQL_LIBRARY_DIRS - link directories for PostgreSQL libraries&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># PostgreSQL_EXTENSION_DIR - the directory for extensions&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># PostgreSQL_SHARED_LINK_OPTIONS - options for shared libraries&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># PostgreSQL_LINK_OPTIONS - options for static libraries and executables&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># PostgreSQL_VERSION_STRING - the version of PostgreSQL found (since CMake&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># 2.8.8)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># ----------------------------------------------------------------------------&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># History: This module is derived from the existing FindPostgreSQL.cmake and try&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># to use most of the existing output variables of that module, but uses&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># `pg_config` to extract the necessary information instead and add a macro for&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># creating extensions. The use of `pg_config` is aligned with how the PGXS code&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># distributed with PostgreSQL itself works.&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># Define additional search paths for root directories.&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>set&lt;span style="color:#f92672">(&lt;/span>PostgreSQL_ROOT_DIRECTORIES ENV PGROOT ENV PGPATH &lt;span style="color:#e6db74">${&lt;/span>PostgreSQL_ROOT&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>find_program&lt;span style="color:#f92672">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> PG_CONFIG pg_config
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> PATHS &lt;span style="color:#e6db74">${&lt;/span>PostgreSQL_ROOT_DIRECTORIES&lt;span style="color:#e6db74">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> PATH_SUFFIXES bin&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">if&lt;/span>&lt;span style="color:#f92672">(&lt;/span>NOT PG_CONFIG&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> message&lt;span style="color:#f92672">(&lt;/span>FATAL_ERROR &lt;span style="color:#e6db74">&amp;#34;Could not find pg_config&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">else&lt;/span>&lt;span style="color:#f92672">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>PostgreSQL_FOUND TRUE&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>endif&lt;span style="color:#f92672">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>message&lt;span style="color:#f92672">(&lt;/span>STATUS &lt;span style="color:#e6db74">&amp;#34;Found pg_config as &lt;/span>&lt;span style="color:#e6db74">${&lt;/span>PG_CONFIG&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">if&lt;/span>&lt;span style="color:#f92672">(&lt;/span>PostgreSQL_FOUND&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> macro&lt;span style="color:#f92672">(&lt;/span>PG_CONFIG VAR OPT&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> execute_process&lt;span style="color:#f92672">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> COMMAND &lt;span style="color:#e6db74">${&lt;/span>PG_CONFIG&lt;span style="color:#e6db74">}&lt;/span> &lt;span style="color:#e6db74">${&lt;/span>OPT&lt;span style="color:#e6db74">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> OUTPUT_VARIABLE &lt;span style="color:#e6db74">${&lt;/span>VAR&lt;span style="color:#e6db74">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> OUTPUT_STRIP_TRAILING_WHITESPACE&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> endmacro&lt;span style="color:#f92672">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pg_config&lt;span style="color:#f92672">(&lt;/span>_pg_bindir --bindir&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pg_config&lt;span style="color:#f92672">(&lt;/span>_pg_includedir --includedir&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pg_config&lt;span style="color:#f92672">(&lt;/span>_pg_pkgincludedir --pkgincludedir&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pg_config&lt;span style="color:#f92672">(&lt;/span>_pg_sharedir --sharedir&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pg_config&lt;span style="color:#f92672">(&lt;/span>_pg_includedir_server --includedir-server&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pg_config&lt;span style="color:#f92672">(&lt;/span>_pg_libs --libs&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pg_config&lt;span style="color:#f92672">(&lt;/span>_pg_ldflags --ldflags&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pg_config&lt;span style="color:#f92672">(&lt;/span>_pg_ldflags_sl --ldflags_sl&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pg_config&lt;span style="color:#f92672">(&lt;/span>_pg_ldflags_ex --ldflags_ex&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pg_config&lt;span style="color:#f92672">(&lt;/span>_pg_pkglibdir --pkglibdir&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pg_config&lt;span style="color:#f92672">(&lt;/span>_pg_libdir --libdir&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pg_config&lt;span style="color:#f92672">(&lt;/span>_pg_version --version&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> separate_arguments&lt;span style="color:#f92672">(&lt;/span>_pg_ldflags&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> separate_arguments&lt;span style="color:#f92672">(&lt;/span>_pg_ldflags_sl&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> separate_arguments&lt;span style="color:#f92672">(&lt;/span>_pg_ldflags_ex&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>_server_lib_dirs &lt;span style="color:#e6db74">${&lt;/span>_pg_libdir&lt;span style="color:#e6db74">}&lt;/span> &lt;span style="color:#e6db74">${&lt;/span>_pg_pkglibdir&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>_server_inc_dirs &lt;span style="color:#e6db74">${&lt;/span>_pg_pkgincludedir&lt;span style="color:#e6db74">}&lt;/span> &lt;span style="color:#e6db74">${&lt;/span>_pg_includedir_server&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> string&lt;span style="color:#f92672">(&lt;/span>REPLACE &lt;span style="color:#e6db74">&amp;#34;;&amp;#34;&lt;/span> &lt;span style="color:#e6db74">&amp;#34; &amp;#34;&lt;/span> _shared_link_options
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_pg_ldflags&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_pg_ldflags_sl&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>_link_options &lt;span style="color:#e6db74">${&lt;/span>_pg_ldflags&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span>&lt;span style="color:#f92672">(&lt;/span>_pg_ldflags_ex&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> list&lt;span style="color:#f92672">(&lt;/span>APPEND _link_options &lt;span style="color:#e6db74">${&lt;/span>_pg_ldflags_ex&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> endif&lt;span style="color:#f92672">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>PostgreSQL_INCLUDE_DIRS
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_pg_includedir&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> CACHE PATH
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;Top-level directory containing the PostgreSQL include directories.&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>PostgreSQL_EXTENSION_DIR
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_pg_sharedir&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">/extension&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> CACHE PATH &lt;span style="color:#e6db74">&amp;#34;Directory containing extension SQL and control files&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>PostgreSQL_SERVER_INCLUDE_DIRS
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_server_inc_dirs&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> CACHE PATH &lt;span style="color:#e6db74">&amp;#34;PostgreSQL include directories for server include files.&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>PostgreSQL_LIBRARY_DIRS
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_pg_libdir&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> CACHE PATH &lt;span style="color:#e6db74">&amp;#34;library directory for PostgreSQL&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>PostgreSQL_LIBRARIES
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_pg_libs&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> CACHE PATH &lt;span style="color:#e6db74">&amp;#34;Libraries for PostgreSQL&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>PostgreSQL_SHARED_LINK_OPTIONS
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_shared_link_options&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> CACHE STRING &lt;span style="color:#e6db74">&amp;#34;PostgreSQL linker options for shared libraries.&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>PostgreSQL_LINK_OPTIONS
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_pg_ldflags&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">,&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_pg_ldflags_ex&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> CACHE STRING &lt;span style="color:#e6db74">&amp;#34;PostgreSQL linker options for executables.&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>PostgreSQL_SERVER_LIBRARY_DIRS
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_server_lib_dirs&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> CACHE PATH &lt;span style="color:#e6db74">&amp;#34;PostgreSQL server library directories.&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>PostgreSQL_VERSION_STRING
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_pg_version&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> CACHE STRING &lt;span style="color:#e6db74">&amp;#34;PostgreSQL version string&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>PostgreSQL_PACKAGE_LIBRARY_DIR
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_pg_pkglibdir&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> CACHE STRING &lt;span style="color:#e6db74">&amp;#34;PostgreSQL package library directory&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> find_program&lt;span style="color:#f92672">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> PG_BINARY postgres
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> PATHS &lt;span style="color:#e6db74">${&lt;/span>PostgreSQL_ROOT_DIRECTORIES&lt;span style="color:#e6db74">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> HINTS &lt;span style="color:#e6db74">${&lt;/span>_pg_bindir&lt;span style="color:#e6db74">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> PATH_SUFFIXES bin&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span>&lt;span style="color:#f92672">(&lt;/span>NOT PG_BINARY&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> message&lt;span style="color:#f92672">(&lt;/span>FATAL_ERROR &lt;span style="color:#e6db74">&amp;#34;Could not find postgres binary&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> endif&lt;span style="color:#f92672">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> message&lt;span style="color:#f92672">(&lt;/span>STATUS &lt;span style="color:#e6db74">&amp;#34;Found postgres binary at &lt;/span>&lt;span style="color:#e6db74">${&lt;/span>PG_BINARY&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> find_program&lt;span style="color:#f92672">(&lt;/span>PG_REGRESS pg_regress HINT
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">${&lt;/span>PostgreSQL_PACKAGE_LIBRARY_DIR&lt;span style="color:#e6db74">}&lt;/span>/pgxs/src/test/regress&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span>&lt;span style="color:#f92672">(&lt;/span>NOT PG_REGRESS&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> message&lt;span style="color:#f92672">(&lt;/span>STATUS &lt;span style="color:#e6db74">&amp;#34;Could not find pg_regress, tests not executed&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> endif&lt;span style="color:#f92672">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> message&lt;span style="color:#f92672">(&lt;/span>STATUS &lt;span style="color:#e6db74">&amp;#34;PostgreSQL version &lt;/span>&lt;span style="color:#e6db74">${&lt;/span>PostgreSQL_VERSION_STRING&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74"> found&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> message&lt;span style="color:#f92672">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> STATUS
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;PostgreSQL package library directory: &lt;/span>&lt;span style="color:#e6db74">${&lt;/span>PostgreSQL_PACKAGE_LIBRARY_DIR&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> message&lt;span style="color:#f92672">(&lt;/span>STATUS &lt;span style="color:#e6db74">&amp;#34;PostgreSQL libraries: &lt;/span>&lt;span style="color:#e6db74">${&lt;/span>PostgreSQL_LIBRARIES&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> message&lt;span style="color:#f92672">(&lt;/span>STATUS &lt;span style="color:#e6db74">&amp;#34;PostgreSQL extension directory: &lt;/span>&lt;span style="color:#e6db74">${&lt;/span>PostgreSQL_EXTENSION_DIR&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> message&lt;span style="color:#f92672">(&lt;/span>STATUS &lt;span style="color:#e6db74">&amp;#34;PostgreSQL linker options: &lt;/span>&lt;span style="color:#e6db74">${&lt;/span>PostgreSQL_LINK_OPTIONS&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> message&lt;span style="color:#f92672">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> STATUS &lt;span style="color:#e6db74">&amp;#34;PostgreSQL shared linker options: &lt;/span>&lt;span style="color:#e6db74">${&lt;/span>PostgreSQL_SHARED_LINK_OPTIONS&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>endif&lt;span style="color:#f92672">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># add_postgresql_extension(NAME ...)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># VERSION Version of the extension. Is used when generating the control file.&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># Required.&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># ENCODING Encoding for the control file. Optional.&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># COMMENT Comment for the control file. Optional.&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># SOURCES List of source files to compile for the extension.&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># REQUIRES List of extensions that are required by this extension.&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># SCRIPTS Script files.&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># SCRIPT_TEMPLATES Template script files.&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># REGRESS Regress tests.&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">function&lt;/span>&lt;span style="color:#f92672">(&lt;/span>add_postgresql_extension NAME&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>_optional&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>_single VERSION ENCODING&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>_multi SOURCES SCRIPTS SCRIPT_TEMPLATES DEPENDS_LIB REQUIRES REGRESS&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> cmake_parse_arguments&lt;span style="color:#f92672">(&lt;/span>_ext &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_optional&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span> &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_single&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span> &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_multi&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span> &lt;span style="color:#e6db74">${&lt;/span>ARGN&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span>&lt;span style="color:#f92672">(&lt;/span>NOT _ext_VERSION&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> message&lt;span style="color:#f92672">(&lt;/span>FATAL_ERROR &lt;span style="color:#e6db74">&amp;#34;Extension version not set&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> endif&lt;span style="color:#f92672">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># Here we are assuming that there is at least one source file, which is&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># strictly speaking not necessary for an extension. If we do not have source&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># files, we need to create a custom target and attach properties to that. We&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># expect the user to be able to add target properties after creating the&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># extension.&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> add_library&lt;span style="color:#f92672">(&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>NAME&lt;span style="color:#e6db74">}&lt;/span> MODULE &lt;span style="color:#e6db74">${&lt;/span>_ext_SOURCES&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>_link_flags &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>PostgreSQL_SHARED_LINK_OPTIONS&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> foreach&lt;span style="color:#f92672">(&lt;/span>_dir &lt;span style="color:#e6db74">${&lt;/span>PostgreSQL_SERVER_LIBRARY_DIRS&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>_link_flags &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_link_flags&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74"> -L&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_dir&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> endforeach&lt;span style="color:#f92672">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># Collect and build script files to install&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>_script_files &lt;span style="color:#e6db74">${&lt;/span>_ext_SCRIPTS&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> foreach&lt;span style="color:#f92672">(&lt;/span>_template &lt;span style="color:#e6db74">${&lt;/span>_ext_SCRIPT_TEMPLATES&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> string&lt;span style="color:#f92672">(&lt;/span>REGEX REPLACE &lt;span style="color:#e6db74">&amp;#34;\.in&lt;/span>$&lt;span style="color:#e6db74">&amp;#34;&lt;/span> &lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span> _script &lt;span style="color:#e6db74">${&lt;/span>_template&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> configure_file&lt;span style="color:#f92672">(&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_template&lt;span style="color:#e6db74">}&lt;/span> &lt;span style="color:#e6db74">${&lt;/span>_script&lt;span style="color:#e6db74">}&lt;/span> @ONLY&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> list&lt;span style="color:#f92672">(&lt;/span>APPEND _script_files &lt;span style="color:#e6db74">${&lt;/span>CMAKE_CURRENT_BINARY_DIR&lt;span style="color:#e6db74">}&lt;/span>/&lt;span style="color:#e6db74">${&lt;/span>_script&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> message&lt;span style="color:#f92672">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> STATUS &lt;span style="color:#e6db74">&amp;#34;Building script file &lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_script&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74"> from template file &lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_template&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> endforeach&lt;span style="color:#f92672">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span>&lt;span style="color:#f92672">(&lt;/span>APPLE&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>_link_flags &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_link_flags&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74"> -bundle_loader &lt;/span>&lt;span style="color:#e6db74">${&lt;/span>PG_BINARY&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> endif&lt;span style="color:#f92672">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> &lt;span style="color:#f92672">(&lt;/span>_ext_DEPENDS_LIB&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> target_link_libraries&lt;span style="color:#f92672">(&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>NAME&lt;span style="color:#e6db74">}&lt;/span> PRIVATE &lt;span style="color:#e6db74">${&lt;/span>_ext_DEPENDS_LIB&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> endif&lt;span style="color:#f92672">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set_target_properties&lt;span style="color:#f92672">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">${&lt;/span>NAME&lt;span style="color:#e6db74">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> PROPERTIES PREFIX &lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> LINK_FLAGS &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_link_flags&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> POSITION_INDEPENDENT_CODE ON
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> CXX_STANDARD &lt;span style="color:#ae81ff">23&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> CXX_EXTENSIONS OFF
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> XX_STANDARD_REQUIRED ON&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> target_include_directories&lt;span style="color:#f92672">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">${&lt;/span>NAME&lt;span style="color:#e6db74">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> PRIVATE &lt;span style="color:#e6db74">${&lt;/span>PostgreSQL_SERVER_INCLUDE_DIRS&lt;span style="color:#e6db74">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> PUBLIC &lt;span style="color:#e6db74">${&lt;/span>CMAKE_CURRENT_SOURCE_DIR&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> target_compile_options&lt;span style="color:#f92672">(&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>NAME&lt;span style="color:#e6db74">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> PRIVATE
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># &amp;#34;-Werror&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;-Wall&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;-fvisibility=hidden&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;-fvisibility-inlines-hidden&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;-Wpointer-arith&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;-Wendif-labels&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;-Wmissing-format-attribute&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;-Wimplicit-fallthrough=3&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;-Wcast-function-type&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;-Wshadow=compatible-local&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;-Wformat-security&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;-fno-strict-aliasing&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># Generate control file at build time (which is when GENERATE evaluate the&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># contents). We do not know the target file name until then.&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>_control_file &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>CMAKE_CURRENT_BINARY_DIR&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">/&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>NAME&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">.control&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> file&lt;span style="color:#f92672">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> GENERATE
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> OUTPUT &lt;span style="color:#e6db74">${&lt;/span>_control_file&lt;span style="color:#e6db74">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> CONTENT
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;# This file is generated content from add_postgresql_extension.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"># No point in modifying it, it will be overwritten anyway.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"># Default version, always set
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">default_version = &amp;#39;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_ext_VERSION&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#39;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"># Module pathname generated from target shared library name. Use
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"># MODULE_PATHNAME in script file.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">module_pathname = &amp;#39;&lt;/span>$libdir&lt;span style="color:#e6db74">/&lt;/span>$&lt;span style="color:#e6db74">&amp;lt;TARGET_FILE_NAME:&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>NAME&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;gt;&amp;#39;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"># Comment for extension. Set using COMMENT option. Can be set in
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"># script file as well.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">&lt;/span>$&lt;span style="color:#e6db74">&amp;lt;&lt;/span>$&lt;span style="color:#e6db74">&amp;lt;NOT:&lt;/span>$&lt;span style="color:#e6db74">&amp;lt;BOOL:&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_ext_COMMENT&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;gt;&amp;gt;:#&amp;gt;comment = &amp;#39;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_ext_COMMENT&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#39;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"># Encoding for script file. Set using ENCODING option.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">&lt;/span>$&lt;span style="color:#e6db74">&amp;lt;&lt;/span>$&lt;span style="color:#e6db74">&amp;lt;NOT:&lt;/span>$&lt;span style="color:#e6db74">&amp;lt;BOOL:&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_ext_ENCODING&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;gt;&amp;gt;:#&amp;gt;encoding = &amp;#39;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_ext_ENCODING&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#39;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"># Required extensions. Set using REQUIRES option (multi-valued).
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">&lt;/span>$&lt;span style="color:#e6db74">&amp;lt;&lt;/span>$&lt;span style="color:#e6db74">&amp;lt;NOT:&lt;/span>$&lt;span style="color:#e6db74">&amp;lt;BOOL:&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_ext_REQUIRES&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;gt;&amp;gt;:#&amp;gt;requires = &amp;#39;&lt;/span>$&lt;span style="color:#e6db74">&amp;lt;JOIN:&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_ext_REQUIRES&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">,&lt;/span>$&lt;span style="color:#e6db74">&amp;lt;COMMA&amp;gt;&amp;gt;&amp;#39;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> install&lt;span style="color:#f92672">(&lt;/span>TARGETS &lt;span style="color:#e6db74">${&lt;/span>NAME&lt;span style="color:#e6db74">}&lt;/span> LIBRARY DESTINATION &lt;span style="color:#e6db74">${&lt;/span>PostgreSQL_PACKAGE_LIBRARY_DIR&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> install&lt;span style="color:#f92672">(&lt;/span>FILES &lt;span style="color:#e6db74">${&lt;/span>_control_file&lt;span style="color:#e6db74">}&lt;/span> &lt;span style="color:#e6db74">${&lt;/span>_script_files&lt;span style="color:#e6db74">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> DESTINATION &lt;span style="color:#e6db74">${&lt;/span>PostgreSQL_EXTENSION_DIR&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span>&lt;span style="color:#f92672">(&lt;/span>_ext_REGRESS&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> foreach&lt;span style="color:#f92672">(&lt;/span>_test &lt;span style="color:#e6db74">${&lt;/span>_ext_REGRESS&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>_sql_file &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>CMAKE_CURRENT_SOURCE_DIR&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">/sql/&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_test&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">.sql&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> set&lt;span style="color:#f92672">(&lt;/span>_out_file &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>CMAKE_CURRENT_SOURCE_DIR&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">/expected/&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_test&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">.out&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span>&lt;span style="color:#f92672">(&lt;/span>NOT EXISTS &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_sql_file&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> message&lt;span style="color:#f92672">(&lt;/span>FATAL_ERROR &lt;span style="color:#e6db74">&amp;#34;Test file &amp;#39;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_sql_file&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#39; does not exist!&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> endif&lt;span style="color:#f92672">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span>&lt;span style="color:#f92672">(&lt;/span>NOT EXISTS &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_out_file&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> file&lt;span style="color:#f92672">(&lt;/span>WRITE &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_out_file&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span> &lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> message&lt;span style="color:#f92672">(&lt;/span>STATUS &lt;span style="color:#e6db74">&amp;#34;Created empty file &lt;/span>&lt;span style="color:#e6db74">${&lt;/span>_out_file&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> endif&lt;span style="color:#f92672">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> endforeach&lt;span style="color:#f92672">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span>&lt;span style="color:#f92672">(&lt;/span>PG_REGRESS&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> add_test&lt;span style="color:#f92672">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> NAME &lt;span style="color:#e6db74">${&lt;/span>NAME&lt;span style="color:#e6db74">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> COMMAND
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">${&lt;/span>PG_REGRESS&lt;span style="color:#e6db74">}&lt;/span> --temp-instance&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>CMAKE_BINARY_DIR&lt;span style="color:#e6db74">}&lt;/span>/tmp_check
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> --inputdir&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>CMAKE_CURRENT_SOURCE_DIR&lt;span style="color:#e6db74">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> --outputdir&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>CMAKE_CURRENT_BINARY_DIR&lt;span style="color:#e6db74">}&lt;/span> --load-extension&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>NAME&lt;span style="color:#e6db74">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">${&lt;/span>_ext_REGRESS&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> endif&lt;span style="color:#f92672">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> add_custom_target&lt;span style="color:#f92672">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">${&lt;/span>NAME&lt;span style="color:#e6db74">}&lt;/span>_update_results
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> COMMAND
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">${&lt;/span>CMAKE_COMMAND&lt;span style="color:#e6db74">}&lt;/span> -E copy_if_different
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">${&lt;/span>CMAKE_CURRENT_BINARY_DIR&lt;span style="color:#e6db74">}&lt;/span>/results/*.out
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">${&lt;/span>CMAKE_CURRENT_SOURCE_DIR&lt;span style="color:#e6db74">}&lt;/span>/expected&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> endif&lt;span style="color:#f92672">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>endfunction&lt;span style="color:#f92672">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">if&lt;/span>&lt;span style="color:#f92672">(&lt;/span>PG_REGRESS&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># We add a custom target to get output when there is a failure.&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> add_custom_target&lt;span style="color:#f92672">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> test_verbose COMMAND &lt;span style="color:#e6db74">${&lt;/span>CMAKE_CTEST_COMMAND&lt;span style="color:#e6db74">}&lt;/span> --force-new-ctest-process
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> --verbose --output-on-failure&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>endif&lt;span style="color:#f92672">()&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="添加资源到文件">添加资源到文件&lt;/h3>
+&lt;ul>
+&lt;li>
+&lt;p>类似 xxd -i 选项，把一些资源序列化到文件中，然后在程序中读取&lt;/p></description></item></channel></rss>

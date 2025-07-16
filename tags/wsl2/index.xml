@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Wsl2 on Askyx's Blog</title><link>https://askyx.github.io/tags/wsl2/</link><description>Recent content in Wsl2 on Askyx's Blog</description><generator>Hugo</generator><language>zh-Hans</language><lastBuildDate>Wed, 16 Jul 2025 23:38:40 +0800</lastBuildDate><atom:link href="https://askyx.github.io/tags/wsl2/index.xml" rel="self" type="application/rss+xml"/><item><title>Wsl 常见问题记录</title><link>https://askyx.github.io/posts/note/wsl/</link><pubDate>Tue, 03 Sep 2024 10:40:40 +0800</pubDate><guid>https://askyx.github.io/posts/note/wsl/</guid><description>&lt;h2 id="1-wsl-内核版本升级">1. WSL 内核版本升级&lt;/h2>
+&lt;p>&lt;a href="https://learn.microsoft.com/en-us/community/content/wsl-user-msft-kernel-v6" target="_blank">https://learn.microsoft.com/en-us/community/content/wsl-user-msft-kernel-v6&lt;/a>
+
+&lt;a href="https://blog.yurzi.net/posts/a-try-to-upgrade-wsl-kernel/#cite-3" target="_blank">https://blog.yurzi.net/posts/a-try-to-upgrade-wsl-kernel/#cite-3&lt;/a>
+
+&lt;a href="https://zhuanlan.zhihu.com/p/18715471543" target="_blank">https://zhuanlan.zhihu.com/p/18715471543&lt;/a>
+&lt;/p>
+&lt;p>这里可以直接升级内核，然后功能全开，perf 自然也可以直接使用，当然也可以针对当前版本，编译 perf 安装&lt;/p>
+&lt;ol>
+&lt;li>确定内核版本&lt;/li>
+&lt;/ol>
+&lt;pre tabindex="0">&lt;code>❯ uname -a
+Linux Esoye 5.15.153.1-microsoft-standard-WSL2 #1 SMP Fri Mar 29 23:14:13 UTC 2024 x86_64 x86_64 x86_64 GNU/Linux
+&lt;/code>&lt;/pre>&lt;ol start="2">
+&lt;li>下载对应内核源码，可以直接 clone，也可以直接下载源码包&lt;/li>
+&lt;/ol>
+&lt;pre tabindex="0">&lt;code>git clone https://github.com/microsoft/WSL2-Linux-Kernel.git --depth=1 -b linux-msft-wsl-6.6.y
+&lt;/code>&lt;/pre>&lt;ol start="3">
+&lt;li>安装依赖，否则编译的 perf 功能不全，也可以自己研究具体需要那些功能&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>sudo apt install &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span>binutils-dev debuginfod libbabeltrace-dev libcap-dev &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span>libdw-dev libdwarf-dev libelf-dev liblzma-dev libnuma-dev libperl-dev cpio dwarves &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span>libslang2-dev libssl-dev libtraceevent-dev libunwind-dev libzstd-dev libzstd1 python3-dev systemtap-sdt-dev zlib1g-dev
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>-- 可以按下面提示安装对应版本的依赖
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Makefile.config:423: No libelf found. Disables &lt;span style="color:#e6db74">&amp;#39;probe&amp;#39;&lt;/span> tool, jvmti and BPF support in &lt;span style="color:#e6db74">&amp;#39;perf record&amp;#39;&lt;/span>. Please install libelf-dev, libelf-devel or elfutils-libelf-devel
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Makefile.config:596: No sys/sdt.h found, no SDT events are defined, please install systemtap-sdt-devel or systemtap-sdt-dev
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Makefile.config:680: Disabling post unwind, no support found.
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Makefile.config:746: No libcrypto.h found, disables jitted code injection, please install openssl-devel or libssl-dev
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Makefile.config:762: slang not found, disables TUI support. Please install slang-devel, libslang-dev or libslang2-dev
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Makefile.config:809: Missing perl devel files. Disabling perl scripting support, please install perl-ExtUtils-Embed/libperl-dev
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Makefile.config:891: Old version of libbfd/binutils things like PE executable profiling will not be available
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Makefile.config:940: No liblzma found, disables xz kernel module decompression, please install xz-devel/liblzma-dev
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Makefile.config:953: No libzstd found, disables trace compression, please install libzstd-dev&lt;span style="color:#f92672">[&lt;/span>el&lt;span style="color:#f92672">]&lt;/span> and/or set LIBZSTD_DIR
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Makefile.config:964: No libcap found, disables capability support, please install libcap-devel/libcap-dev
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Makefile.config:977: No numa.h found, disables &lt;span style="color:#e6db74">&amp;#39;perf bench numa mem&amp;#39;&lt;/span> benchmark, please install numactl-devel/libnuma-devel/libnuma-dev
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Makefile.config:1036: No libbabeltrace found, disables &lt;span style="color:#e6db74">&amp;#39;perf data&amp;#39;&lt;/span> CTF format support, please install libbabeltrace-dev&lt;span style="color:#f92672">[&lt;/span>el&lt;span style="color:#f92672">]&lt;/span>/libbabeltrace-ctf-dev
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ol start="4">
+&lt;li>编译 perf&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>cd WSL2-Linux-Kernel-linux-msft-wsl-5.15.153.1/tools/perf
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>make
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>或者
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>make -j&lt;span style="color:#66d9ef">$(&lt;/span>nproc&lt;span style="color:#66d9ef">)&lt;/span> KCONFIG_CONFIG&lt;span style="color:#f92672">=&lt;/span>myconf
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ol start="5">
+&lt;li>如果是 perf &lt;code>sudo cp perf /usr/bin&lt;/code> 验证&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>❯ perf -v
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>perf version 5.15.153.1
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ol start="6">
+&lt;li>安装内核&lt;/li>
+&lt;/ol>
+&lt;pre tabindex="0">&lt;code>&lt;/code>&lt;/pre>&lt;h2 id="2-zsk-powerlevel10k">2. zsk powerlevel10k&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>sh -c &lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#66d9ef">$(&lt;/span>curl -fsSL https://gitee.com/shmhlsy/oh-my-zsh-install.sh/raw/master/install.sh&lt;span style="color:#66d9ef">)&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>git clone --depth&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">1&lt;/span> https://gitee.com/fkamrk/zsh-autosuggestions.git $ZSH_CUSTOM/plugins/zsh-autosuggestions
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>git clone --depth&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">1&lt;/span> https://gitee.com/romkatv/powerlevel10k.git &lt;span style="color:#e6db74">${&lt;/span>ZSH_CUSTOM&lt;span style="color:#66d9ef">:-&lt;/span>$HOME/.oh-my-zsh/custom&lt;span style="color:#e6db74">}&lt;/span>/themes/powerlevel10k
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>ZSH_THEME&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;powerlevel10k/powerlevel10k&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>p10k configure
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="3-docker">3. docker&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-shell" data-lang="shell">&lt;span style="display:flex;">&lt;span>sudo apt install docker.io
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Got permission denied &lt;span style="color:#66d9ef">while&lt;/span> trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get &lt;span style="color:#e6db74">&amp;#34;http://%2Fvar%2Frun%2Fdocker.sock/v1.39/containers/json&amp;#34;&lt;/span>: dial unix /var/run/docker.sock: connect: permission denied
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>sudo groupadd docker &lt;span style="color:#75715e">#添加docker用户组&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>sudo gpasswd -a $USER docker &lt;span style="color:#75715e">#将当前用户添加到docker用户组&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>newgrp docker &lt;span style="color:#75715e">#更新docker用户组&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>-- 可能可用的镜像，一个一个试
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull registry.docker-cn.com/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull hub-mirror.c.163.com/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull docker.mirrors.ustc.edu.cn/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull yxzrazem.mirror.aliyuncs.com/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull docker.kubesre.xyz/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull dc.j8.work/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull docker.registry.cyou/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull docker.hlyun.org/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull docker.chenby.cn/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull docker.jsdelivr.fyi/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull docker-mirrors.mjjman.com/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull huecker.io/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull dockerhub.timeweb.cloud/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull docker-cf.registry.cyou/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull dockercf.jsdelivr.fyi/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull dockertest.jsdelivr.fyi/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull dockerhub.azk8s.cn/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull mirror.ccs.tencentyun.com/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull registry.cn-hangzhou.aliyuncs.com/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull docker.m.daocloud.io/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker tag 8a3cdc4d1ad3 ubuntu:24.04
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker rmi docker.jsdelivr.fyi/library/ubuntu:24.04
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="wsl-磁盘空间释放">WSL 磁盘空间释放&lt;/h2>
+&lt;p>这是记录wsl运行中的异常文件&lt;/p></description></item></channel></rss>

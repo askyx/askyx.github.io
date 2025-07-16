@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>LOCK on Askyx's Blog</title><link>https://askyx.github.io/tags/lock/</link><description>Recent content in LOCK on Askyx's Blog</description><generator>Hugo</generator><language>zh-Hans</language><lastBuildDate>Wed, 16 Jul 2025 23:38:40 +0800</lastBuildDate><atom:link href="https://askyx.github.io/tags/lock/index.xml" rel="self" type="application/rss+xml"/><item><title>Locks</title><link>https://askyx.github.io/posts/postgres/locks/</link><pubDate>Wed, 28 Sep 2022 15:42:18 +0800</pubDate><guid>https://askyx.github.io/posts/postgres/locks/</guid><description>&lt;h2 id="spinlock">SpinLock&lt;/h2>
+&lt;p>使用tas实现的自旋锁。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-c++" data-lang="c++">&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">while&lt;/span> (TAS_SPIN(lock))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> perform_spin_delay(&lt;span style="color:#f92672">&amp;amp;&lt;/span>delayStatus);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>perform_spin_delay(SpinDelayStatus &lt;span style="color:#f92672">*&lt;/span>status)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">/* CPU-specific delay each time through the loop */&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> SPIN_DELAY();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">/* Block the process every spins_per_delay tries */&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> (&lt;span style="color:#f92672">++&lt;/span>(status&lt;span style="color:#f92672">-&amp;gt;&lt;/span>spins) &lt;span style="color:#f92672">&amp;gt;=&lt;/span> spins_per_delay)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> (&lt;span style="color:#f92672">++&lt;/span>(status&lt;span style="color:#f92672">-&amp;gt;&lt;/span>delays) &lt;span style="color:#f92672">&amp;gt;&lt;/span> NUM_DELAYS)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> s_lock_stuck(status&lt;span style="color:#f92672">-&amp;gt;&lt;/span>file, status&lt;span style="color:#f92672">-&amp;gt;&lt;/span>line, status&lt;span style="color:#f92672">-&amp;gt;&lt;/span>func);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> (status&lt;span style="color:#f92672">-&amp;gt;&lt;/span>cur_delay &lt;span style="color:#f92672">==&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>) &lt;span style="color:#75715e">/* first time to delay? */&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> status&lt;span style="color:#f92672">-&amp;gt;&lt;/span>cur_delay &lt;span style="color:#f92672">=&lt;/span> MIN_DELAY_USEC;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pg_usleep(status&lt;span style="color:#f92672">-&amp;gt;&lt;/span>cur_delay);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">/* increase delay by a random fraction between 1X and 2X */&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> status&lt;span style="color:#f92672">-&amp;gt;&lt;/span>cur_delay &lt;span style="color:#f92672">+=&lt;/span> (&lt;span style="color:#66d9ef">int&lt;/span>) (status&lt;span style="color:#f92672">-&amp;gt;&lt;/span>cur_delay &lt;span style="color:#f92672">*&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pg_prng_double(&lt;span style="color:#f92672">&amp;amp;&lt;/span>pg_global_prng_state) &lt;span style="color:#f92672">+&lt;/span> &lt;span style="color:#ae81ff">0.5&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">/* wrap back to minimum delay when max is exceeded */&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span> (status&lt;span style="color:#f92672">-&amp;gt;&lt;/span>cur_delay &lt;span style="color:#f92672">&amp;gt;&lt;/span> MAX_DELAY_USEC)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> status&lt;span style="color:#f92672">-&amp;gt;&lt;/span>cur_delay &lt;span style="color:#f92672">=&lt;/span> MIN_DELAY_USEC;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> status&lt;span style="color:#f92672">-&amp;gt;&lt;/span>spins &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>如果没有tas，则使用信号量实现，属于最底层的锁&lt;/p></description></item></channel></rss>

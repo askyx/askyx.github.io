@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>优化器 on Askyx's Blog</title><link>https://askyx.github.io/tags/%E4%BC%98%E5%8C%96%E5%99%A8/</link><description>Recent content in 优化器 on Askyx's Blog</description><generator>Hugo</generator><language>zh-Hans</language><lastBuildDate>Wed, 16 Jul 2025 23:38:40 +0800</lastBuildDate><atom:link href="https://askyx.github.io/tags/%E4%BC%98%E5%8C%96%E5%99%A8/index.xml" rel="self" type="application/rss+xml"/><item><title>Postgres Optimizer</title><link>https://askyx.github.io/posts/postgres/opt/</link><pubDate>Fri, 22 Jul 2022 09:24:24 +0800</pubDate><guid>https://askyx.github.io/posts/postgres/opt/</guid><description>&lt;!-- cover: "img/hello.jpg" -->
+&lt;h1 id="postgres-optimizer-extend">Postgres Optimizer Extend&lt;/h1>
+&lt;p>对文章的技术性验证&lt;/p>
+&lt;p>These directories take the Query structure returned by the parser, and
+generate a plan used by the executor. The /plan directory generates the
+actual output plan, the /path code generates all possible ways to join the
+tables, and /prep handles various preprocessing steps for special cases.
+/util is utility stuff. /geqo is the separate &amp;ldquo;genetic optimization&amp;rdquo; planner
+&amp;mdash; it does a semi-random search through the join tree space, rather than
+exhaustively considering all possible join trees. (But each join considered
+by /geqo is given to /path to create paths for, so we consider all possible
+implementation paths for each specific join pair even in GEQO mode.)&lt;/p></description></item></channel></rss>

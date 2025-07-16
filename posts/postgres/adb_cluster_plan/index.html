@@ -1,0 +1,506 @@
+<!doctype html><html lang=zh-Hans x-data :class=$store.darkMode.class() :data-theme=$store.darkMode.theme()><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>| Askyx's Blog</title><link rel=icon href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%2210 0 100 100%22><text y=%22.90em%22 font-size=%2290%22>🌱</text></svg>"></link>
+<link rel=canonical href=https://askyx.github.io/posts/postgres/adb_cluster_plan/><meta name=author content="Askyx"><meta name=description content="执行计划 set enable_mergejoin=off; set enable_nestloop=off; select s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment from part, supplier, partsupp, nation, region where p_partkey = ps_partkey and s_suppkey = ps_suppkey and p_size = 15 and p_type like '%BRASS' and s_nationkey = n_nationkey and n_regionkey = r_regionkey and r_name = 'EUROPE' and ps_supplycost = ( select min(ps_supplycost) from partsupp, supplier, nation, region where p_partkey = ps_partkey and s_suppkey = ps_suppkey and s_nationkey = n_nationkey and n_regionkey = r_regionkey and r_name = 'EUROPE' ) order by s_acctbal desc, n_name, s_name, p_partkey limit 100; QUERY PLAN ----------------------------------------------------------------------------------------------------------------------------------------------------------- Limit (cost=3351813.70..3351813.71 rows=5 width=0) -> Cluster Merge Gather (cost=3351813.70..3351813.71 rows=5 width=0) Sort Key: supplier.s_acctbal DESC, nation.n_name, supplier.s_name, part.p_partkey -> Limit (cost=3350813.60..3350813.61 rows=1 width=193) -> Sort (cost=3350813.60..3350813.61 rows=0 width=193) Sort Key: supplier.s_acctbal DESC, nation.n_name, supplier.s_name, part.p_partkey -> Hash Join (cost=745359.38..3350813.59 rows=0 width=193) Hash Cond: ((partsupp.ps_partkey = part.p_partkey) AND (partsupp.ps_supplycost = (SubPlan 1))) -> Hash Join (cost=35483.36..2640803.16 rows=25603 width=173) Hash Cond: (partsupp.ps_suppkey = supplier.s_suppkey) -> Seq Scan on partsupp (cost=0.00..2544033.48 rows=16001650 width=14) -> Hash (cost=35383.36..35383.36 rows=8000 width=167) -> Cluster Reduce (cost=3.36..35383.36 rows=8000 width=167) -> Hash Join (cost=2.36..33012.36 rows=1600 width=167) Hash Cond: (supplier.s_nationkey = nation.n_nationkey) -> Seq Scan on supplier (cost=0.00..32180.00 rows=200000 width=145) -> Hash (cost=2.35..2.35 rows=1 width=30) -> Hash Join (cost=1.07..2.35 rows=1 width=30) Hash Cond: (nation.n_regionkey = region.r_regionkey) -> Seq Scan on nation (cost=0.00..1.25 rows=5 width=34) -> Hash (cost=1.06..1.06 rows=1 width=4) -> Seq Scan on region (cost=0.00..1.06 rows=1 width=4) Filter: (r_name = 'EUROPE'::bpchar) -> Hash (cost=709609.29..709609.29 rows=17782 width=30) -> Seq Scan on part (cost=0.00..709609.29 rows=17782 width=30) Filter: (((p_type)::text ~~ '%BRASS'::text) AND (p_size = 15)) SubPlan 1 -> Materialize (cost=28851255.69..28851255.71 rows=1 width=32) -> Aggregate (cost=28851255.69..28851255.70 rows=1 width=32) -> Hash Join (cost=35610.36..28851255.69 rows=1 width=6) Hash Cond: (partsupp_1.ps_suppkey = supplier_1.s_suppkey) -> Reduce Scan (cost=1.00..28509214.73 rows=80008250 width=10) Filter: (part.p_partkey = ps_partkey) -> Cluster Reduce (cost=1.00..27718507.48 rows=80008250 width=14) -> Seq Scan on partsupp partsupp_1 (cost=0.00..2544033.48 rows=16001650 width=14) -> Hash (cost=35509.36..35509.36 rows=8000 width=4) -> Cluster Reduce (cost=3.36..35509.36 rows=8000 width=4) -> Hash Join (cost=2.36..33012.36 rows=1600 width=4) Hash Cond: (supplier_1.s_nationkey = nation_1.n_nationkey) -> Seq Scan on supplier supplier_1 (cost=0.00..32180.00 rows=200000 width=8) -> Hash (cost=2.35..2.35 rows=1 width=4) -> Hash Join (cost=1.07..2.35 rows=1 width=4) Hash Cond: (nation_1.n_regionkey = region_1.r_regionkey) -> Seq Scan on nation nation_1 (cost=0.00..1.25 rows=5 width=8) -> Hash (cost=1.06..1.06 rows=1 width=4) -> Seq Scan on region region_1 (cost=0.00..1.06 rows=1 width=4) Filter: (r_name = 'EUROPE'::bpchar) (47 rows) QUERY PLAN ----------------------------------------------------------------------------------------------------------------------------- Limit (cost=85.86..85.87 rows=1 width=716) -> Sort (cost=85.86..85.87 rows=1 width=716) Sort Key: supplier.s_acctbal DESC, nation.n_name, supplier.s_name, part.p_partkey -> Hash Join (cost=48.95..85.73 rows=1 width=716) Hash Cond: ((part.p_partkey = partsupp.ps_partkey) AND ((SubPlan 1) = partsupp.ps_supplycost)) -> Seq Scan on part (cost=0.00..12.40 rows=1 width=108) Filter: (((p_type)::text ~~ '%BRASS'::text) AND (p_size = 15)) -> Hash (cost=48.93..48.93 rows=1 width=630) -> Hash Join (cost=36.58..48.93 rows=1 width=630) Hash Cond: (partsupp.ps_suppkey = supplier.s_suppkey) -> Seq Scan on partsupp (cost=0.00..11.70 rows=170 width=26) -> Hash (cost=36.57..36.57 rows=1 width=612) -> Hash Join (cost=24.50..36.57 rows=1 width=612) Hash Cond: (supplier.s_nationkey = nation.n_nationkey) -> Seq Scan on supplier (cost=0.00..11.50 rows=150 width=512) -> Hash (cost=24.48..24.48 rows=1 width=108) -> Hash Join (cost=12.14..24.48 rows=1 width=108) Hash Cond: (nation.n_regionkey = region.r_regionkey) -> Seq Scan on nation (cost=0.00..11.70 rows=170 width=112) -> Hash (cost=12.12..12.12 rows=1 width=4) -> Seq Scan on region (cost=0.00..12.12 rows=1 width=4) Filter: (r_name = 'EUROPE'::bpchar) SubPlan 1 -> Aggregate (cost=48.72..48.73 rows=1 width=32) -> Hash Join (cost=36.36..48.72 rows=1 width=18) Hash Cond: (nation_1.n_regionkey = region_1.r_regionkey) -> Hash Join (cost=24.22..36.57 rows=1 width=22) Hash Cond: (nation_1.n_nationkey = supplier_1.s_nationkey) -> Seq Scan on nation nation_1 (cost=0.00..11.70 rows=170 width=8) -> Hash (cost=24.21..24.21 rows=1 width=22) -> Hash Join (cost=12.14..24.21 rows=1 width=22) Hash Cond: (supplier_1.s_suppkey = partsupp_1.ps_suppkey) -> Seq Scan on supplier supplier_1 (cost=0.00..11.50 rows=150 width=8) -> Hash (cost=12.12..12.12 rows=1 width=22) -> Seq Scan on partsupp partsupp_1 (cost=0.00..12.12 rows=1 width=22) Filter: (part.p_partkey = ps_partkey) -> Hash (cost=12.12..12.12 rows=1 width=4) -> Seq Scan on region region_1 (cost=0.00..12.12 rows=1 width=4) Filter: (r_name = 'EUROPE'::bpchar) (39 rows) pg单机执行计划和antdb分布式执行计划大致一样，和之前gp的结论有
+"><meta name=keywords content><meta name=generator content="Hugo 0.148.1"><meta property="og:url" content="https://askyx.github.io/posts/postgres/adb_cluster_plan/"><meta property="og:site_name" content="Askyx's Blog"><meta property="og:title" content="Askyx's Blog"><meta property="og:description" content="执行计划 set enable_mergejoin=off; set enable_nestloop=off; select s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment from part, supplier, partsupp, nation, region where p_partkey = ps_partkey and s_suppkey = ps_suppkey and p_size = 15 and p_type like '%BRASS' and s_nationkey = n_nationkey and n_regionkey = r_regionkey and r_name = 'EUROPE' and ps_supplycost = ( select min(ps_supplycost) from partsupp, supplier, nation, region where p_partkey = ps_partkey and s_suppkey = ps_suppkey and s_nationkey = n_nationkey and n_regionkey = r_regionkey and r_name = 'EUROPE' ) order by s_acctbal desc, n_name, s_name, p_partkey limit 100; QUERY PLAN ----------------------------------------------------------------------------------------------------------------------------------------------------------- Limit (cost=3351813.70..3351813.71 rows=5 width=0) -> Cluster Merge Gather (cost=3351813.70..3351813.71 rows=5 width=0) Sort Key: supplier.s_acctbal DESC, nation.n_name, supplier.s_name, part.p_partkey -> Limit (cost=3350813.60..3350813.61 rows=1 width=193) -> Sort (cost=3350813.60..3350813.61 rows=0 width=193) Sort Key: supplier.s_acctbal DESC, nation.n_name, supplier.s_name, part.p_partkey -> Hash Join (cost=745359.38..3350813.59 rows=0 width=193) Hash Cond: ((partsupp.ps_partkey = part.p_partkey) AND (partsupp.ps_supplycost = (SubPlan 1))) -> Hash Join (cost=35483.36..2640803.16 rows=25603 width=173) Hash Cond: (partsupp.ps_suppkey = supplier.s_suppkey) -> Seq Scan on partsupp (cost=0.00..2544033.48 rows=16001650 width=14) -> Hash (cost=35383.36..35383.36 rows=8000 width=167) -> Cluster Reduce (cost=3.36..35383.36 rows=8000 width=167) -> Hash Join (cost=2.36..33012.36 rows=1600 width=167) Hash Cond: (supplier.s_nationkey = nation.n_nationkey) -> Seq Scan on supplier (cost=0.00..32180.00 rows=200000 width=145) -> Hash (cost=2.35..2.35 rows=1 width=30) -> Hash Join (cost=1.07..2.35 rows=1 width=30) Hash Cond: (nation.n_regionkey = region.r_regionkey) -> Seq Scan on nation (cost=0.00..1.25 rows=5 width=34) -> Hash (cost=1.06..1.06 rows=1 width=4) -> Seq Scan on region (cost=0.00..1.06 rows=1 width=4) Filter: (r_name = 'EUROPE'::bpchar) -> Hash (cost=709609.29..709609.29 rows=17782 width=30) -> Seq Scan on part (cost=0.00..709609.29 rows=17782 width=30) Filter: (((p_type)::text ~~ '%BRASS'::text) AND (p_size = 15)) SubPlan 1 -> Materialize (cost=28851255.69..28851255.71 rows=1 width=32) -> Aggregate (cost=28851255.69..28851255.70 rows=1 width=32) -> Hash Join (cost=35610.36..28851255.69 rows=1 width=6) Hash Cond: (partsupp_1.ps_suppkey = supplier_1.s_suppkey) -> Reduce Scan (cost=1.00..28509214.73 rows=80008250 width=10) Filter: (part.p_partkey = ps_partkey) -> Cluster Reduce (cost=1.00..27718507.48 rows=80008250 width=14) -> Seq Scan on partsupp partsupp_1 (cost=0.00..2544033.48 rows=16001650 width=14) -> Hash (cost=35509.36..35509.36 rows=8000 width=4) -> Cluster Reduce (cost=3.36..35509.36 rows=8000 width=4) -> Hash Join (cost=2.36..33012.36 rows=1600 width=4) Hash Cond: (supplier_1.s_nationkey = nation_1.n_nationkey) -> Seq Scan on supplier supplier_1 (cost=0.00..32180.00 rows=200000 width=8) -> Hash (cost=2.35..2.35 rows=1 width=4) -> Hash Join (cost=1.07..2.35 rows=1 width=4) Hash Cond: (nation_1.n_regionkey = region_1.r_regionkey) -> Seq Scan on nation nation_1 (cost=0.00..1.25 rows=5 width=8) -> Hash (cost=1.06..1.06 rows=1 width=4) -> Seq Scan on region region_1 (cost=0.00..1.06 rows=1 width=4) Filter: (r_name = 'EUROPE'::bpchar) (47 rows) QUERY PLAN ----------------------------------------------------------------------------------------------------------------------------- Limit (cost=85.86..85.87 rows=1 width=716) -> Sort (cost=85.86..85.87 rows=1 width=716) Sort Key: supplier.s_acctbal DESC, nation.n_name, supplier.s_name, part.p_partkey -> Hash Join (cost=48.95..85.73 rows=1 width=716) Hash Cond: ((part.p_partkey = partsupp.ps_partkey) AND ((SubPlan 1) = partsupp.ps_supplycost)) -> Seq Scan on part (cost=0.00..12.40 rows=1 width=108) Filter: (((p_type)::text ~~ '%BRASS'::text) AND (p_size = 15)) -> Hash (cost=48.93..48.93 rows=1 width=630) -> Hash Join (cost=36.58..48.93 rows=1 width=630) Hash Cond: (partsupp.ps_suppkey = supplier.s_suppkey) -> Seq Scan on partsupp (cost=0.00..11.70 rows=170 width=26) -> Hash (cost=36.57..36.57 rows=1 width=612) -> Hash Join (cost=24.50..36.57 rows=1 width=612) Hash Cond: (supplier.s_nationkey = nation.n_nationkey) -> Seq Scan on supplier (cost=0.00..11.50 rows=150 width=512) -> Hash (cost=24.48..24.48 rows=1 width=108) -> Hash Join (cost=12.14..24.48 rows=1 width=108) Hash Cond: (nation.n_regionkey = region.r_regionkey) -> Seq Scan on nation (cost=0.00..11.70 rows=170 width=112) -> Hash (cost=12.12..12.12 rows=1 width=4) -> Seq Scan on region (cost=0.00..12.12 rows=1 width=4) Filter: (r_name = 'EUROPE'::bpchar) SubPlan 1 -> Aggregate (cost=48.72..48.73 rows=1 width=32) -> Hash Join (cost=36.36..48.72 rows=1 width=18) Hash Cond: (nation_1.n_regionkey = region_1.r_regionkey) -> Hash Join (cost=24.22..36.57 rows=1 width=22) Hash Cond: (nation_1.n_nationkey = supplier_1.s_nationkey) -> Seq Scan on nation nation_1 (cost=0.00..11.70 rows=170 width=8) -> Hash (cost=24.21..24.21 rows=1 width=22) -> Hash Join (cost=12.14..24.21 rows=1 width=22) Hash Cond: (supplier_1.s_suppkey = partsupp_1.ps_suppkey) -> Seq Scan on supplier supplier_1 (cost=0.00..11.50 rows=150 width=8) -> Hash (cost=12.12..12.12 rows=1 width=22) -> Seq Scan on partsupp partsupp_1 (cost=0.00..12.12 rows=1 width=22) Filter: (part.p_partkey = ps_partkey) -> Hash (cost=12.12..12.12 rows=1 width=4) -> Seq Scan on region region_1 (cost=0.00..12.12 rows=1 width=4) Filter: (r_name = 'EUROPE'::bpchar) (39 rows) pg单机执行计划和antdb分布式执行计划大致一样，和之前gp的结论有"><meta property="og:locale" content="zh_Hans"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:modified_time" content="2025-07-16T23:38:40+08:00"><meta property="og:image" content="https://askyx.github.io/img/global-background.jpg"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://askyx.github.io/img/global-background.jpg"><meta name=twitter:title content="Askyx's Blog"><meta name=twitter:description content="执行计划 set enable_mergejoin=off; set enable_nestloop=off; select s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment from part, supplier, partsupp, nation, region where p_partkey = ps_partkey and s_suppkey = ps_suppkey and p_size = 15 and p_type like '%BRASS' and s_nationkey = n_nationkey and n_regionkey = r_regionkey and r_name = 'EUROPE' and ps_supplycost = ( select min(ps_supplycost) from partsupp, supplier, nation, region where p_partkey = ps_partkey and s_suppkey = ps_suppkey and s_nationkey = n_nationkey and n_regionkey = r_regionkey and r_name = 'EUROPE' ) order by s_acctbal desc, n_name, s_name, p_partkey limit 100; QUERY PLAN ----------------------------------------------------------------------------------------------------------------------------------------------------------- Limit (cost=3351813.70..3351813.71 rows=5 width=0) -> Cluster Merge Gather (cost=3351813.70..3351813.71 rows=5 width=0) Sort Key: supplier.s_acctbal DESC, nation.n_name, supplier.s_name, part.p_partkey -> Limit (cost=3350813.60..3350813.61 rows=1 width=193) -> Sort (cost=3350813.60..3350813.61 rows=0 width=193) Sort Key: supplier.s_acctbal DESC, nation.n_name, supplier.s_name, part.p_partkey -> Hash Join (cost=745359.38..3350813.59 rows=0 width=193) Hash Cond: ((partsupp.ps_partkey = part.p_partkey) AND (partsupp.ps_supplycost = (SubPlan 1))) -> Hash Join (cost=35483.36..2640803.16 rows=25603 width=173) Hash Cond: (partsupp.ps_suppkey = supplier.s_suppkey) -> Seq Scan on partsupp (cost=0.00..2544033.48 rows=16001650 width=14) -> Hash (cost=35383.36..35383.36 rows=8000 width=167) -> Cluster Reduce (cost=3.36..35383.36 rows=8000 width=167) -> Hash Join (cost=2.36..33012.36 rows=1600 width=167) Hash Cond: (supplier.s_nationkey = nation.n_nationkey) -> Seq Scan on supplier (cost=0.00..32180.00 rows=200000 width=145) -> Hash (cost=2.35..2.35 rows=1 width=30) -> Hash Join (cost=1.07..2.35 rows=1 width=30) Hash Cond: (nation.n_regionkey = region.r_regionkey) -> Seq Scan on nation (cost=0.00..1.25 rows=5 width=34) -> Hash (cost=1.06..1.06 rows=1 width=4) -> Seq Scan on region (cost=0.00..1.06 rows=1 width=4) Filter: (r_name = 'EUROPE'::bpchar) -> Hash (cost=709609.29..709609.29 rows=17782 width=30) -> Seq Scan on part (cost=0.00..709609.29 rows=17782 width=30) Filter: (((p_type)::text ~~ '%BRASS'::text) AND (p_size = 15)) SubPlan 1 -> Materialize (cost=28851255.69..28851255.71 rows=1 width=32) -> Aggregate (cost=28851255.69..28851255.70 rows=1 width=32) -> Hash Join (cost=35610.36..28851255.69 rows=1 width=6) Hash Cond: (partsupp_1.ps_suppkey = supplier_1.s_suppkey) -> Reduce Scan (cost=1.00..28509214.73 rows=80008250 width=10) Filter: (part.p_partkey = ps_partkey) -> Cluster Reduce (cost=1.00..27718507.48 rows=80008250 width=14) -> Seq Scan on partsupp partsupp_1 (cost=0.00..2544033.48 rows=16001650 width=14) -> Hash (cost=35509.36..35509.36 rows=8000 width=4) -> Cluster Reduce (cost=3.36..35509.36 rows=8000 width=4) -> Hash Join (cost=2.36..33012.36 rows=1600 width=4) Hash Cond: (supplier_1.s_nationkey = nation_1.n_nationkey) -> Seq Scan on supplier supplier_1 (cost=0.00..32180.00 rows=200000 width=8) -> Hash (cost=2.35..2.35 rows=1 width=4) -> Hash Join (cost=1.07..2.35 rows=1 width=4) Hash Cond: (nation_1.n_regionkey = region_1.r_regionkey) -> Seq Scan on nation nation_1 (cost=0.00..1.25 rows=5 width=8) -> Hash (cost=1.06..1.06 rows=1 width=4) -> Seq Scan on region region_1 (cost=0.00..1.06 rows=1 width=4) Filter: (r_name = 'EUROPE'::bpchar) (47 rows) QUERY PLAN ----------------------------------------------------------------------------------------------------------------------------- Limit (cost=85.86..85.87 rows=1 width=716) -> Sort (cost=85.86..85.87 rows=1 width=716) Sort Key: supplier.s_acctbal DESC, nation.n_name, supplier.s_name, part.p_partkey -> Hash Join (cost=48.95..85.73 rows=1 width=716) Hash Cond: ((part.p_partkey = partsupp.ps_partkey) AND ((SubPlan 1) = partsupp.ps_supplycost)) -> Seq Scan on part (cost=0.00..12.40 rows=1 width=108) Filter: (((p_type)::text ~~ '%BRASS'::text) AND (p_size = 15)) -> Hash (cost=48.93..48.93 rows=1 width=630) -> Hash Join (cost=36.58..48.93 rows=1 width=630) Hash Cond: (partsupp.ps_suppkey = supplier.s_suppkey) -> Seq Scan on partsupp (cost=0.00..11.70 rows=170 width=26) -> Hash (cost=36.57..36.57 rows=1 width=612) -> Hash Join (cost=24.50..36.57 rows=1 width=612) Hash Cond: (supplier.s_nationkey = nation.n_nationkey) -> Seq Scan on supplier (cost=0.00..11.50 rows=150 width=512) -> Hash (cost=24.48..24.48 rows=1 width=108) -> Hash Join (cost=12.14..24.48 rows=1 width=108) Hash Cond: (nation.n_regionkey = region.r_regionkey) -> Seq Scan on nation (cost=0.00..11.70 rows=170 width=112) -> Hash (cost=12.12..12.12 rows=1 width=4) -> Seq Scan on region (cost=0.00..12.12 rows=1 width=4) Filter: (r_name = 'EUROPE'::bpchar) SubPlan 1 -> Aggregate (cost=48.72..48.73 rows=1 width=32) -> Hash Join (cost=36.36..48.72 rows=1 width=18) Hash Cond: (nation_1.n_regionkey = region_1.r_regionkey) -> Hash Join (cost=24.22..36.57 rows=1 width=22) Hash Cond: (nation_1.n_nationkey = supplier_1.s_nationkey) -> Seq Scan on nation nation_1 (cost=0.00..11.70 rows=170 width=8) -> Hash (cost=24.21..24.21 rows=1 width=22) -> Hash Join (cost=12.14..24.21 rows=1 width=22) Hash Cond: (supplier_1.s_suppkey = partsupp_1.ps_suppkey) -> Seq Scan on supplier supplier_1 (cost=0.00..11.50 rows=150 width=8) -> Hash (cost=12.12..12.12 rows=1 width=22) -> Seq Scan on partsupp partsupp_1 (cost=0.00..12.12 rows=1 width=22) Filter: (part.p_partkey = ps_partkey) -> Hash (cost=12.12..12.12 rows=1 width=4) -> Seq Scan on region region_1 (cost=0.00..12.12 rows=1 width=4) Filter: (r_name = 'EUROPE'::bpchar) (39 rows) pg单机执行计划和antdb分布式执行计划大致一样，和之前gp的结论有"><link rel=stylesheet href=/css/output.min.css><style>pre{padding:1em;overflow:auto}</style><link rel=stylesheet href=/css/custom.css><script defer src=https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js integrity="sha256-PtHu0lJIiSHfZeNj1nFd6wTX+Squ255SGZ/fc8seCtM=" crossorigin=anonymous></script></head><body x-data="{
+    flip: false,
+  }"><div id=dream-global-bg></div><nav x-data="{ isSticky: false }" x-init="window.addEventListener('scroll', () => { isSticky = window.scrollY > 30 })" class="sticky top-0 z-30 mt-4 lg:mt-8 py-4" :class="{ 'bg-base-100 shadow-lg dark:border-b dark:border-base-content/30': isSticky }"><div class="container flex justify-between px-4"><section class="flex items-center gap-4"><div class="avatar cursor-pointer hover:avatar-online" @click="flip = !flip" title="Flip it!"><div class="h-10 rounded-full"><img src=/img/personal/avatar.jpg alt="Askyx's Blog"></div></div><div><a href=https://askyx.github.io/ class="text-lg font-semibold cursor-pointer">Askyx's Blog</a><div class="text-base-content/60 text-sm">life is short, use Python</div></div></section><div class="dropdown dropdown-end sm:hidden"><div tabindex=0 role=button class="btn btn-ghost btn-square" aria-label="Select an option"><ion-icon name=menu class=text-2xl></ion-icon></div><ul tabindex=0 class="dropdown-content menu w-36 bg-base-100 rounded-box z-1 shadow-md"><li><div role=link tabindex=0 class="inline-flex items-center p-2 cursor-pointer" @click="flip = !flip" title=About><ion-icon name=information-circle></ion-icon>About</div></li><li><a class="group inline-flex items-center p-2 cursor-pointer" href=/search title=Search><ion-icon name=search></ion-icon>Search</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=https://github.com/askyx target=_blank title=GitHub><ion-icon name=logo-github></ion-icon>GitHub</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/posts title=Archives><ion-icon name=archive></ion-icon>Archives</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/tags title="All Tags"><ion-icon name=pricetags></ion-icon>All Tags</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/index.xml title=RSS><ion-icon name=logo-rss></ion-icon>RSS</a></li></ul></div><section class="hidden sm:flex sm:items-center sm:gap-2 md:gap-4"><div role=link tabindex=0 class="text-sm font-semibold cursor-pointer hover:underline" @click="flip = !flip" title=About>About</div><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href=/search title=Search><ion-icon class=group-hover:text-primary-content name=search></ion-icon></a><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href=https://github.com/askyx target=_blank title=GitHub><ion-icon class=group-hover:text-primary-content name=logo-github></ion-icon></a><div class="dropdown dropdown-end dropdown-hover"><div tabindex=0 role=button class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" aria-label="Select an option"><ion-icon class="group-hover:text-primary-content text-xl" name=menu></ion-icon></div><ul tabindex=0 class="dropdown-content menu w-36 bg-base-100 rounded-box z-1 shadow-xl"><li><a class="inline-flex items-center p-2 cursor-pointer" href=/posts title=Archives><ion-icon name=archive></ion-icon>Archives</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/tags title="All Tags"><ion-icon name=pricetags></ion-icon>All Tags</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/index.xml title=RSS><ion-icon name=logo-rss></ion-icon>RSS</a></li></ul></div></section></div></nav><div class=flip-container :class="{ 'flip-it': flip }"><div class=flipper><div class=front><div class=container><div class="lg:grid lg:grid-cols-4 gap-4 mt-4 px-4"><div class="hidden lg:block"></div><div class=lg:col-span-2><article class="mx-auto prose prose-quoteless dark:prose-invert" id=dream-single-post-main itemscope itemtype=http://schema.org/Article><meta itemprop=name content="Askyx's Blog"><meta itemprop=description content="执行计划 set enable_mergejoin=off; set enable_nestloop=off; select s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment from part, supplier, partsupp, nation, region where p_partkey = ps_partkey and s_suppkey = ps_suppkey and p_size = 15 and p_type like '%BRASS' and s_nationkey = n_nationkey and n_regionkey = r_regionkey and r_name = 'EUROPE' and ps_supplycost = ( select min(ps_supplycost) from partsupp, supplier, nation, region where p_partkey = ps_partkey and s_suppkey = ps_suppkey and s_nationkey = n_nationkey and n_regionkey = r_regionkey and r_name = 'EUROPE' ) order by s_acctbal desc, n_name, s_name, p_partkey limit 100; QUERY PLAN ----------------------------------------------------------------------------------------------------------------------------------------------------------- Limit (cost=3351813.70..3351813.71 rows=5 width=0) -> Cluster Merge Gather (cost=3351813.70..3351813.71 rows=5 width=0) Sort Key: supplier.s_acctbal DESC, nation.n_name, supplier.s_name, part.p_partkey -> Limit (cost=3350813.60..3350813.61 rows=1 width=193) -> Sort (cost=3350813.60..3350813.61 rows=0 width=193) Sort Key: supplier.s_acctbal DESC, nation.n_name, supplier.s_name, part.p_partkey -> Hash Join (cost=745359.38..3350813.59 rows=0 width=193) Hash Cond: ((partsupp.ps_partkey = part.p_partkey) AND (partsupp.ps_supplycost = (SubPlan 1))) -> Hash Join (cost=35483.36..2640803.16 rows=25603 width=173) Hash Cond: (partsupp.ps_suppkey = supplier.s_suppkey) -> Seq Scan on partsupp (cost=0.00..2544033.48 rows=16001650 width=14) -> Hash (cost=35383.36..35383.36 rows=8000 width=167) -> Cluster Reduce (cost=3.36..35383.36 rows=8000 width=167) -> Hash Join (cost=2.36..33012.36 rows=1600 width=167) Hash Cond: (supplier.s_nationkey = nation.n_nationkey) -> Seq Scan on supplier (cost=0.00..32180.00 rows=200000 width=145) -> Hash (cost=2.35..2.35 rows=1 width=30) -> Hash Join (cost=1.07..2.35 rows=1 width=30) Hash Cond: (nation.n_regionkey = region.r_regionkey) -> Seq Scan on nation (cost=0.00..1.25 rows=5 width=34) -> Hash (cost=1.06..1.06 rows=1 width=4) -> Seq Scan on region (cost=0.00..1.06 rows=1 width=4) Filter: (r_name = 'EUROPE'::bpchar) -> Hash (cost=709609.29..709609.29 rows=17782 width=30) -> Seq Scan on part (cost=0.00..709609.29 rows=17782 width=30) Filter: (((p_type)::text ~~ '%BRASS'::text) AND (p_size = 15)) SubPlan 1 -> Materialize (cost=28851255.69..28851255.71 rows=1 width=32) -> Aggregate (cost=28851255.69..28851255.70 rows=1 width=32) -> Hash Join (cost=35610.36..28851255.69 rows=1 width=6) Hash Cond: (partsupp_1.ps_suppkey = supplier_1.s_suppkey) -> Reduce Scan (cost=1.00..28509214.73 rows=80008250 width=10) Filter: (part.p_partkey = ps_partkey) -> Cluster Reduce (cost=1.00..27718507.48 rows=80008250 width=14) -> Seq Scan on partsupp partsupp_1 (cost=0.00..2544033.48 rows=16001650 width=14) -> Hash (cost=35509.36..35509.36 rows=8000 width=4) -> Cluster Reduce (cost=3.36..35509.36 rows=8000 width=4) -> Hash Join (cost=2.36..33012.36 rows=1600 width=4) Hash Cond: (supplier_1.s_nationkey = nation_1.n_nationkey) -> Seq Scan on supplier supplier_1 (cost=0.00..32180.00 rows=200000 width=8) -> Hash (cost=2.35..2.35 rows=1 width=4) -> Hash Join (cost=1.07..2.35 rows=1 width=4) Hash Cond: (nation_1.n_regionkey = region_1.r_regionkey) -> Seq Scan on nation nation_1 (cost=0.00..1.25 rows=5 width=8) -> Hash (cost=1.06..1.06 rows=1 width=4) -> Seq Scan on region region_1 (cost=0.00..1.06 rows=1 width=4) Filter: (r_name = 'EUROPE'::bpchar) (47 rows) QUERY PLAN ----------------------------------------------------------------------------------------------------------------------------- Limit (cost=85.86..85.87 rows=1 width=716) -> Sort (cost=85.86..85.87 rows=1 width=716) Sort Key: supplier.s_acctbal DESC, nation.n_name, supplier.s_name, part.p_partkey -> Hash Join (cost=48.95..85.73 rows=1 width=716) Hash Cond: ((part.p_partkey = partsupp.ps_partkey) AND ((SubPlan 1) = partsupp.ps_supplycost)) -> Seq Scan on part (cost=0.00..12.40 rows=1 width=108) Filter: (((p_type)::text ~~ '%BRASS'::text) AND (p_size = 15)) -> Hash (cost=48.93..48.93 rows=1 width=630) -> Hash Join (cost=36.58..48.93 rows=1 width=630) Hash Cond: (partsupp.ps_suppkey = supplier.s_suppkey) -> Seq Scan on partsupp (cost=0.00..11.70 rows=170 width=26) -> Hash (cost=36.57..36.57 rows=1 width=612) -> Hash Join (cost=24.50..36.57 rows=1 width=612) Hash Cond: (supplier.s_nationkey = nation.n_nationkey) -> Seq Scan on supplier (cost=0.00..11.50 rows=150 width=512) -> Hash (cost=24.48..24.48 rows=1 width=108) -> Hash Join (cost=12.14..24.48 rows=1 width=108) Hash Cond: (nation.n_regionkey = region.r_regionkey) -> Seq Scan on nation (cost=0.00..11.70 rows=170 width=112) -> Hash (cost=12.12..12.12 rows=1 width=4) -> Seq Scan on region (cost=0.00..12.12 rows=1 width=4) Filter: (r_name = 'EUROPE'::bpchar) SubPlan 1 -> Aggregate (cost=48.72..48.73 rows=1 width=32) -> Hash Join (cost=36.36..48.72 rows=1 width=18) Hash Cond: (nation_1.n_regionkey = region_1.r_regionkey) -> Hash Join (cost=24.22..36.57 rows=1 width=22) Hash Cond: (nation_1.n_nationkey = supplier_1.s_nationkey) -> Seq Scan on nation nation_1 (cost=0.00..11.70 rows=170 width=8) -> Hash (cost=24.21..24.21 rows=1 width=22) -> Hash Join (cost=12.14..24.21 rows=1 width=22) Hash Cond: (supplier_1.s_suppkey = partsupp_1.ps_suppkey) -> Seq Scan on supplier supplier_1 (cost=0.00..11.50 rows=150 width=8) -> Hash (cost=12.12..12.12 rows=1 width=22) -> Seq Scan on partsupp partsupp_1 (cost=0.00..12.12 rows=1 width=22) Filter: (part.p_partkey = ps_partkey) -> Hash (cost=12.12..12.12 rows=1 width=4) -> Seq Scan on region region_1 (cost=0.00..12.12 rows=1 width=4) Filter: (r_name = 'EUROPE'::bpchar) (39 rows) pg单机执行计划和antdb分布式执行计划大致一样，和之前gp的结论有"><meta itemprop=dateModified content="2025-07-16T23:38:40+08:00"><meta itemprop=wordCount content="7171"><meta itemprop=image content="https://askyx.github.io/img/global-background.jpg"><header><h1 itemprop=headline></h1><p class=text-sm><span data-format=luxon>0001-01-01T00:00:00Z</span>
+| <span>15 minute read</span>
+| <span>Updated at
+<span data-format=luxon>2025-07-16T23:38:40+08:00</span></span></p></header><section id=dream-single-post-content itemprop=articleBody><h1 id=执行计划>执行计划</h1><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>set</span> enable_mergejoin<span style=color:#f92672>=</span><span style=color:#66d9ef>off</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>set</span> enable_nestloop<span style=color:#f92672>=</span><span style=color:#66d9ef>off</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>select</span>
+</span></span><span style=display:flex><span>  s_acctbal,
+</span></span><span style=display:flex><span>  s_name,
+</span></span><span style=display:flex><span>  n_name,
+</span></span><span style=display:flex><span>  p_partkey,
+</span></span><span style=display:flex><span>  p_mfgr,
+</span></span><span style=display:flex><span>  s_address,
+</span></span><span style=display:flex><span>  s_phone,
+</span></span><span style=display:flex><span>  s_comment
+</span></span><span style=display:flex><span><span style=color:#66d9ef>from</span>
+</span></span><span style=display:flex><span>  part,
+</span></span><span style=display:flex><span>  supplier,
+</span></span><span style=display:flex><span>  partsupp,
+</span></span><span style=display:flex><span>  nation,
+</span></span><span style=display:flex><span>  region
+</span></span><span style=display:flex><span><span style=color:#66d9ef>where</span>
+</span></span><span style=display:flex><span>  p_partkey <span style=color:#f92672>=</span> ps_partkey
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>and</span> s_suppkey <span style=color:#f92672>=</span> ps_suppkey
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>and</span> p_size <span style=color:#f92672>=</span> <span style=color:#ae81ff>15</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>and</span> p_type <span style=color:#66d9ef>like</span> <span style=color:#e6db74>&#39;%BRASS&#39;</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>and</span> s_nationkey <span style=color:#f92672>=</span> n_nationkey
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>and</span> n_regionkey <span style=color:#f92672>=</span> r_regionkey
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>and</span> r_name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;EUROPE&#39;</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>and</span> ps_supplycost <span style=color:#f92672>=</span> (
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>select</span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>min</span>(ps_supplycost)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>from</span>
+</span></span><span style=display:flex><span>      partsupp,
+</span></span><span style=display:flex><span>      supplier,
+</span></span><span style=display:flex><span>      nation,
+</span></span><span style=display:flex><span>      region
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>where</span>
+</span></span><span style=display:flex><span>      p_partkey <span style=color:#f92672>=</span> ps_partkey
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>and</span> s_suppkey <span style=color:#f92672>=</span> ps_suppkey
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>and</span> s_nationkey <span style=color:#f92672>=</span> n_nationkey
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>and</span> n_regionkey <span style=color:#f92672>=</span> r_regionkey
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>and</span> r_name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;EUROPE&#39;</span>
+</span></span><span style=display:flex><span>  )
+</span></span><span style=display:flex><span><span style=color:#66d9ef>order</span> <span style=color:#66d9ef>by</span>
+</span></span><span style=display:flex><span>  s_acctbal <span style=color:#66d9ef>desc</span>,
+</span></span><span style=display:flex><span>  n_name,
+</span></span><span style=display:flex><span>  s_name,
+</span></span><span style=display:flex><span>  p_partkey <span style=color:#66d9ef>limit</span> <span style=color:#ae81ff>100</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                                                                        QUERY PLAN                                                                         
+</span></span><span style=display:flex><span><span style=color:#75715e>-----------------------------------------------------------------------------------------------------------------------------------------------------------
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span> <span style=color:#66d9ef>Limit</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>3351813</span>.<span style=color:#ae81ff>70</span>..<span style=color:#ae81ff>3351813</span>.<span style=color:#ae81ff>71</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>5</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>   <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Cluster</span> Merge Gather  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>3351813</span>.<span style=color:#ae81ff>70</span>..<span style=color:#ae81ff>3351813</span>.<span style=color:#ae81ff>71</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>5</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>         Sort <span style=color:#66d9ef>Key</span>: supplier.s_acctbal <span style=color:#66d9ef>DESC</span>, nation.n_name, supplier.s_name, part.p_partkey
+</span></span><span style=display:flex><span>         <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Limit</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>3350813</span>.<span style=color:#ae81ff>60</span>..<span style=color:#ae81ff>3350813</span>.<span style=color:#ae81ff>61</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>193</span>)
+</span></span><span style=display:flex><span>               <span style=color:#f92672>-&gt;</span>  Sort  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>3350813</span>.<span style=color:#ae81ff>60</span>..<span style=color:#ae81ff>3350813</span>.<span style=color:#ae81ff>61</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>193</span>)
+</span></span><span style=display:flex><span>                     Sort <span style=color:#66d9ef>Key</span>: supplier.s_acctbal <span style=color:#66d9ef>DESC</span>, nation.n_name, supplier.s_name, part.p_partkey
+</span></span><span style=display:flex><span>                     <span style=color:#f92672>-&gt;</span>  Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>745359</span>.<span style=color:#ae81ff>38</span>..<span style=color:#ae81ff>3350813</span>.<span style=color:#ae81ff>59</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>0</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>193</span>)
+</span></span><span style=display:flex><span>                           Hash Cond: ((partsupp.ps_partkey <span style=color:#f92672>=</span> part.p_partkey) <span style=color:#66d9ef>AND</span> (partsupp.ps_supplycost <span style=color:#f92672>=</span> (SubPlan <span style=color:#ae81ff>1</span>)))
+</span></span><span style=display:flex><span>                           <span style=color:#f92672>-&gt;</span>  Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>35483</span>.<span style=color:#ae81ff>36</span>..<span style=color:#ae81ff>2640803</span>.<span style=color:#ae81ff>16</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>25603</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>173</span>)
+</span></span><span style=display:flex><span>                                 Hash Cond: (partsupp.ps_suppkey <span style=color:#f92672>=</span> supplier.s_suppkey)
+</span></span><span style=display:flex><span>                                 <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> partsupp  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>2544033</span>.<span style=color:#ae81ff>48</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>16001650</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>14</span>)
+</span></span><span style=display:flex><span>                                 <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>35383</span>.<span style=color:#ae81ff>36</span>..<span style=color:#ae81ff>35383</span>.<span style=color:#ae81ff>36</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>8000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>167</span>)
+</span></span><span style=display:flex><span>                                       <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Cluster</span> Reduce  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>3</span>.<span style=color:#ae81ff>36</span>..<span style=color:#ae81ff>35383</span>.<span style=color:#ae81ff>36</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>8000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>167</span>)
+</span></span><span style=display:flex><span>                                             <span style=color:#f92672>-&gt;</span>  Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>36</span>..<span style=color:#ae81ff>33012</span>.<span style=color:#ae81ff>36</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1600</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>167</span>)
+</span></span><span style=display:flex><span>                                                   Hash Cond: (supplier.s_nationkey <span style=color:#f92672>=</span> nation.n_nationkey)
+</span></span><span style=display:flex><span>                                                   <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> supplier  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>32180</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>200000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>145</span>)
+</span></span><span style=display:flex><span>                                                   <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>35</span>..<span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>35</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>30</span>)
+</span></span><span style=display:flex><span>                                                         <span style=color:#f92672>-&gt;</span>  Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>07</span>..<span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>35</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>30</span>)
+</span></span><span style=display:flex><span>                                                               Hash Cond: (nation.n_regionkey <span style=color:#f92672>=</span> region.r_regionkey)
+</span></span><span style=display:flex><span>                                                               <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> nation  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>25</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>5</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>34</span>)
+</span></span><span style=display:flex><span>                                                               <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>06</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>06</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>                                                                     <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> region  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>06</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>                                                                           Filter: (r_name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;EUROPE&#39;</span>::bpchar)
+</span></span><span style=display:flex><span>                           <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>709609</span>.<span style=color:#ae81ff>29</span>..<span style=color:#ae81ff>709609</span>.<span style=color:#ae81ff>29</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>17782</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>30</span>)
+</span></span><span style=display:flex><span>                                 <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> part  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>709609</span>.<span style=color:#ae81ff>29</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>17782</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>30</span>)
+</span></span><span style=display:flex><span>                                       Filter: (((p_type)::text <span style=color:#f92672>~~</span> <span style=color:#e6db74>&#39;%BRASS&#39;</span>::text) <span style=color:#66d9ef>AND</span> (p_size <span style=color:#f92672>=</span> <span style=color:#ae81ff>15</span>))
+</span></span><span style=display:flex><span>                                 SubPlan <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>                                   <span style=color:#f92672>-&gt;</span>  Materialize  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>28851255</span>.<span style=color:#ae81ff>69</span>..<span style=color:#ae81ff>28851255</span>.<span style=color:#ae81ff>71</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>32</span>)
+</span></span><span style=display:flex><span>                                         <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Aggregate</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>28851255</span>.<span style=color:#ae81ff>69</span>..<span style=color:#ae81ff>28851255</span>.<span style=color:#ae81ff>70</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>32</span>)
+</span></span><span style=display:flex><span>                                               <span style=color:#f92672>-&gt;</span>  Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>35610</span>.<span style=color:#ae81ff>36</span>..<span style=color:#ae81ff>28851255</span>.<span style=color:#ae81ff>69</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>6</span>)
+</span></span><span style=display:flex><span>                                                     Hash Cond: (partsupp_1.ps_suppkey <span style=color:#f92672>=</span> supplier_1.s_suppkey)
+</span></span><span style=display:flex><span>                                                     <span style=color:#f92672>-&gt;</span>  Reduce Scan  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>28509214</span>.<span style=color:#ae81ff>73</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>80008250</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>10</span>)
+</span></span><span style=display:flex><span>                                                           Filter: (part.p_partkey <span style=color:#f92672>=</span> ps_partkey)
+</span></span><span style=display:flex><span>                                                           <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Cluster</span> Reduce  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>27718507</span>.<span style=color:#ae81ff>48</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>80008250</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>14</span>)
+</span></span><span style=display:flex><span>                                                                 <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> partsupp partsupp_1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>2544033</span>.<span style=color:#ae81ff>48</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>16001650</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>14</span>)
+</span></span><span style=display:flex><span>                                                     <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>35509</span>.<span style=color:#ae81ff>36</span>..<span style=color:#ae81ff>35509</span>.<span style=color:#ae81ff>36</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>8000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>                                                           <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Cluster</span> Reduce  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>3</span>.<span style=color:#ae81ff>36</span>..<span style=color:#ae81ff>35509</span>.<span style=color:#ae81ff>36</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>8000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>                                                                 <span style=color:#f92672>-&gt;</span>  Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>36</span>..<span style=color:#ae81ff>33012</span>.<span style=color:#ae81ff>36</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1600</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>                                                                       Hash Cond: (supplier_1.s_nationkey <span style=color:#f92672>=</span> nation_1.n_nationkey)
+</span></span><span style=display:flex><span>                                                                       <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> supplier supplier_1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>32180</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>200000</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
+</span></span><span style=display:flex><span>                                                                       <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>35</span>..<span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>35</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>                                                                             <span style=color:#f92672>-&gt;</span>  Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>07</span>..<span style=color:#ae81ff>2</span>.<span style=color:#ae81ff>35</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>                                                                                   Hash Cond: (nation_1.n_regionkey <span style=color:#f92672>=</span> region_1.r_regionkey)
+</span></span><span style=display:flex><span>                                                                                   <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> nation nation_1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>25</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>5</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
+</span></span><span style=display:flex><span>                                                                                   <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>06</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>06</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>                                                                                         <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> region region_1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>1</span>.<span style=color:#ae81ff>06</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>                                                                                               Filter: (r_name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;EUROPE&#39;</span>::bpchar)
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>47</span> <span style=color:#66d9ef>rows</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                                                         QUERY PLAN
+</span></span><span style=display:flex><span><span style=color:#75715e>-----------------------------------------------------------------------------------------------------------------------------
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span> <span style=color:#66d9ef>Limit</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>85</span>.<span style=color:#ae81ff>86</span>..<span style=color:#ae81ff>85</span>.<span style=color:#ae81ff>87</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>716</span>)
+</span></span><span style=display:flex><span>   <span style=color:#f92672>-&gt;</span>  Sort  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>85</span>.<span style=color:#ae81ff>86</span>..<span style=color:#ae81ff>85</span>.<span style=color:#ae81ff>87</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>716</span>)
+</span></span><span style=display:flex><span>         Sort <span style=color:#66d9ef>Key</span>: supplier.s_acctbal <span style=color:#66d9ef>DESC</span>, nation.n_name, supplier.s_name, part.p_partkey
+</span></span><span style=display:flex><span>         <span style=color:#f92672>-&gt;</span>  Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>48</span>.<span style=color:#ae81ff>95</span>..<span style=color:#ae81ff>85</span>.<span style=color:#ae81ff>73</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>716</span>)
+</span></span><span style=display:flex><span>               Hash Cond: ((part.p_partkey <span style=color:#f92672>=</span> partsupp.ps_partkey) <span style=color:#66d9ef>AND</span> ((SubPlan <span style=color:#ae81ff>1</span>) <span style=color:#f92672>=</span> partsupp.ps_supplycost))
+</span></span><span style=display:flex><span>               <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> part  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>12</span>.<span style=color:#ae81ff>40</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>108</span>)
+</span></span><span style=display:flex><span>                     Filter: (((p_type)::text <span style=color:#f92672>~~</span> <span style=color:#e6db74>&#39;%BRASS&#39;</span>::text) <span style=color:#66d9ef>AND</span> (p_size <span style=color:#f92672>=</span> <span style=color:#ae81ff>15</span>))
+</span></span><span style=display:flex><span>               <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>48</span>.<span style=color:#ae81ff>93</span>..<span style=color:#ae81ff>48</span>.<span style=color:#ae81ff>93</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>630</span>)
+</span></span><span style=display:flex><span>                     <span style=color:#f92672>-&gt;</span>  Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>36</span>.<span style=color:#ae81ff>58</span>..<span style=color:#ae81ff>48</span>.<span style=color:#ae81ff>93</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>630</span>)
+</span></span><span style=display:flex><span>                           Hash Cond: (partsupp.ps_suppkey <span style=color:#f92672>=</span> supplier.s_suppkey)
+</span></span><span style=display:flex><span>                           <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> partsupp  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>11</span>.<span style=color:#ae81ff>70</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>170</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>26</span>)
+</span></span><span style=display:flex><span>                           <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>36</span>.<span style=color:#ae81ff>57</span>..<span style=color:#ae81ff>36</span>.<span style=color:#ae81ff>57</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>612</span>)
+</span></span><span style=display:flex><span>                                 <span style=color:#f92672>-&gt;</span>  Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>24</span>.<span style=color:#ae81ff>50</span>..<span style=color:#ae81ff>36</span>.<span style=color:#ae81ff>57</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>612</span>)
+</span></span><span style=display:flex><span>                                       Hash Cond: (supplier.s_nationkey <span style=color:#f92672>=</span> nation.n_nationkey)
+</span></span><span style=display:flex><span>                                       <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> supplier  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>11</span>.<span style=color:#ae81ff>50</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>150</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>512</span>)
+</span></span><span style=display:flex><span>                                       <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>24</span>.<span style=color:#ae81ff>48</span>..<span style=color:#ae81ff>24</span>.<span style=color:#ae81ff>48</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>108</span>)
+</span></span><span style=display:flex><span>                                             <span style=color:#f92672>-&gt;</span>  Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>.<span style=color:#ae81ff>14</span>..<span style=color:#ae81ff>24</span>.<span style=color:#ae81ff>48</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>108</span>)
+</span></span><span style=display:flex><span>                                                   Hash Cond: (nation.n_regionkey <span style=color:#f92672>=</span> region.r_regionkey)
+</span></span><span style=display:flex><span>                                                   <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> nation  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>11</span>.<span style=color:#ae81ff>70</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>170</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>112</span>)
+</span></span><span style=display:flex><span>                                                   <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>.<span style=color:#ae81ff>12</span>..<span style=color:#ae81ff>12</span>.<span style=color:#ae81ff>12</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>                                                         <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> region  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>12</span>.<span style=color:#ae81ff>12</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>                                                               Filter: (r_name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;EUROPE&#39;</span>::bpchar)
+</span></span><span style=display:flex><span>               SubPlan <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>                 <span style=color:#f92672>-&gt;</span>  <span style=color:#66d9ef>Aggregate</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>48</span>.<span style=color:#ae81ff>72</span>..<span style=color:#ae81ff>48</span>.<span style=color:#ae81ff>73</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>32</span>)
+</span></span><span style=display:flex><span>                       <span style=color:#f92672>-&gt;</span>  Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>36</span>.<span style=color:#ae81ff>36</span>..<span style=color:#ae81ff>48</span>.<span style=color:#ae81ff>72</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>18</span>)
+</span></span><span style=display:flex><span>                             Hash Cond: (nation_1.n_regionkey <span style=color:#f92672>=</span> region_1.r_regionkey)
+</span></span><span style=display:flex><span>                             <span style=color:#f92672>-&gt;</span>  Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>24</span>.<span style=color:#ae81ff>22</span>..<span style=color:#ae81ff>36</span>.<span style=color:#ae81ff>57</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>22</span>)
+</span></span><span style=display:flex><span>                                   Hash Cond: (nation_1.n_nationkey <span style=color:#f92672>=</span> supplier_1.s_nationkey)
+</span></span><span style=display:flex><span>                                   <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> nation nation_1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>11</span>.<span style=color:#ae81ff>70</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>170</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
+</span></span><span style=display:flex><span>                                   <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>24</span>.<span style=color:#ae81ff>21</span>..<span style=color:#ae81ff>24</span>.<span style=color:#ae81ff>21</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>22</span>)
+</span></span><span style=display:flex><span>                                         <span style=color:#f92672>-&gt;</span>  Hash <span style=color:#66d9ef>Join</span>  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>.<span style=color:#ae81ff>14</span>..<span style=color:#ae81ff>24</span>.<span style=color:#ae81ff>21</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>22</span>)
+</span></span><span style=display:flex><span>                                               Hash Cond: (supplier_1.s_suppkey <span style=color:#f92672>=</span> partsupp_1.ps_suppkey)
+</span></span><span style=display:flex><span>                                               <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> supplier supplier_1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>11</span>.<span style=color:#ae81ff>50</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>150</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>8</span>)
+</span></span><span style=display:flex><span>                                               <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>.<span style=color:#ae81ff>12</span>..<span style=color:#ae81ff>12</span>.<span style=color:#ae81ff>12</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>22</span>)
+</span></span><span style=display:flex><span>                                                     <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> partsupp partsupp_1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>12</span>.<span style=color:#ae81ff>12</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>22</span>)
+</span></span><span style=display:flex><span>                                                           Filter: (part.p_partkey <span style=color:#f92672>=</span> ps_partkey)
+</span></span><span style=display:flex><span>                             <span style=color:#f92672>-&gt;</span>  Hash  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>12</span>.<span style=color:#ae81ff>12</span>..<span style=color:#ae81ff>12</span>.<span style=color:#ae81ff>12</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>                                   <span style=color:#f92672>-&gt;</span>  Seq Scan <span style=color:#66d9ef>on</span> region region_1  (cost<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>.<span style=color:#ae81ff>00</span>..<span style=color:#ae81ff>12</span>.<span style=color:#ae81ff>12</span> <span style=color:#66d9ef>rows</span><span style=color:#f92672>=</span><span style=color:#ae81ff>1</span> width<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span>)
+</span></span><span style=display:flex><span>                                         Filter: (r_name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;EUROPE&#39;</span>::bpchar)
+</span></span><span style=display:flex><span>(<span style=color:#ae81ff>39</span> <span style=color:#66d9ef>rows</span>)
+</span></span></code></pre></div><p>pg单机执行计划和antdb分布式执行计划大致一样，和之前gp的结论有</p><ul><li>join两边的字段都是分布键，没有数据重分布操作<ol><li>如果使用条件，则对表达式进行hash计算执行节点，如果能计算到一个执行节点，则限定一个节点执行</li></ol></li><li>大表join大表<ol><li>其中一个join字段是分布键，另一个不是，此时非分布键的表会被重分布。</li><li>都不是分区键，两表都需要重分布</li><li>如果join字段使用条件，则对表达式进行hash计算执行节点，如果能计算到一个执行节点，则限定一个节点执行，重分布的motion还是继续在多个节点执行</li></ol></li><li>小表join大表<ol><li>小表用了分布键，小表广播</li><li>大表用了分布键，小表重分布</li><li>都不是分布键，小表广播</li><li>如果join字段使用条件，则对表达式进行hash计算执行节点，如果能计算到一个执行节点，则限定一个节点执行，重分布的motion还是继续在多个节点执行，这里需要考虑大表。</li></ol></li></ul><p>对于antdb的数据重分布，分为下面几种</p><ol><li>重分布</li><li>聚集</li></ol><p>对于重分布，主要是使用 <code>Cluster Reduce</code> 算子，按功能可以细分为</p><ol><li>广播
+执行计划中算子表现为 <code>Reduce: unnest('[0:1]={16386,16387}'::oid[])</code></li><li>hash重分布
+执行计划中算子表现为 <code>Reduce: ('[0:1]={16386,16387}'::oid[])[COALESCE(hash_combin_mod(2, hashint4(t2.c2)), 0)]</code></li></ol><p>对于聚集，主要使用 <code>Cluster Gather</code> 算子，可以细分为</p><ol><li>非排序聚集
+执行计划中算子表现为 <code>Cluster Gather</code> ，主要是数据向cn聚集</li><li>排序聚集
+执行计划中算子表现为 <code>Cluster Merge Gather</code>，主要是数据向cn聚集，但是聚集的数据要求有序，输出的数据也是有序的</li></ol><p>还有一种独立于上面两种的算子 <code>Reduce Scan</code>，具备重分布和聚集操作</p><h2 id=执行计划的实现>执行计划的实现</h2><p>相比于单机，分布式就是需要把数据按照语句的语义进行数据重分布</p><h1 id=执行器>执行器</h1><p>pg_plan_query 执行计划入口</p><p>planner 实际执行计划调用
+这里提供一个planner_hook，以供自定义执行计划使用</p><p>standard_planner 默认planner hook
+入口处，判断SQL是否是可以并行查询的
+判断条件
+(cursorOptions & CURSOR_OPT_PARALLEL_OK) != 0 && 当前游标允许并行查询
+IsUnderPostmaster && 当前是直接调用的用户进程（postmaster的子进程），
+parse->commandType == CMD_SELECT && 当前是select
+!parse->hasModifyingCTE && 当前CTE是不可变集合
+max_parallel_workers_per_gather > 0 && parallel worker 设置大于0
+!IsParallelWorker() 当前不是worker的执行进程</p><pre><code>之后判定 glob-&gt;parallelModeNeeded = glob-&gt;parallelModeOK &amp;&amp;
+(force_parallel_mode != FORCE_PARALLEL_OFF);
+如果启用了force_parallel_mode，但查询不支持并行查询，则依然不使用并行查询
+如果使用了CURSOR_OPT_FAST_PLAN
+  处理 tuple_fraction
+  如果tuple_fraction&gt;= 1 则设置为0
+  如果tuple_fraction &lt;=0 设置为 1e-10;
+否则 tuple_fraction=0
+
+之后执行subquery_planner 获取执行计划
+
+fetch_upper_rel 获取上层releation
+get_cheapest_fractional_path  选取最佳执行路径
+create_plan 创建执行计划
+
+对于CURSOR_OPT_SCROLL
+  如果不支持后台执行ExecSupportsBackwardScan
+  则附加一个物化查询计划 materialize_finished_plan
+
+对于可以并行的查询，这里处理gather进行可行性测试（不实际执行，但需要验证gather可以创建）
+  创建gather
+    执行列表
+    worker数量
+    并行执行计划
+    gather-&gt;plan.startup_cost = top_plan-&gt;startup_cost + parallel_setup_cost;
+    gather-&gt;plan.total_cost = top_plan-&gt;total_cost + parallel_setup_cost + parallel_tuple_cost * top_plan-&gt;plan_rows;
+    执行代价计算
+最后执行一系列赋值，完成plan
+</code></pre><p>subquery_planner
+子查询计划，所有查询都是子查询迭代，这个函数处理实际的plan</p><pre><code>如果存在cte定义，则设置入SS_process_ctes
+如果没有from定义，使用replace_empty_jointree设置一个空值
+对于ANY以及 EXISTS ，执行pull_up_sublinks，也就是执行查询而非下推到子查询
+对于可以预先处理的函数，执行inline_set_returning_functions 设置为inline状态
+检查并合并所有可以合并的子查询pull_up_subqueries
+对于union all，执行flatten_simple_union_all合并到append rel。
+
+处理join的情况，逐个表进行迭代，根据rtekind进行判断
+  RTE_RELATION
+    如果设置了inh，检查是否为有子查询的项目，如果没有，清理inh标记
+  RTE_JOIN
+    如果是外查询，则设置外查询标记
+  RTE_RESULT
+    如果是结果，设置hasResultRTEs为true，这是执行计划全局设置
+  如果设了lateral，则hasLateralRTEs为true
+  
+  最后设置安全查询级别
+
+执行RowMark的前置任务 preprocess_rowmarks
+
+如果设置了having 设置hasHavingQual标记
+
+清理hasPseudoConstantQuals标记，
+  
+处理preprocess_expression表达式
+
+对于hasTargetSRFs默认为true(函数会返回一组返回值的情况），通过expression_returns_set计算得到其实际是否存在
+
+对于使用了WITH CHECK OPTION的情况，使用WithCheckOption处理所有表达式的qual到withCheckOptions
+
+计算returningList的返回情况，确定其返回单值还是list
+
+preprocess_qual_conditions逐个计算所有子查询的qual（约束）
+
+preprocess_expression计算当前查询的havingQual
+
+对于所有的windows调用
+  设置windows起点
+  设置window终点
+
+设置limit的offset和count
+
+对于设置了onConflict的情况
+  处理设定的可能冲突的参数，冲突where条件，set操作，以及set关联的where条件
+
+初始化append_rel_list（根据当前append_rel_list预计算计算表达式）
+
+处理所有子表的RTE表达式
+  RTE_RELATION 对象是表 设置为简单表查询
+  RTE_SUBQUERY 对象是子查询 处理子查询的别名问题
+  RTE_FUNCTION 对象是函数 直接调用preprocess_expression处理
+  RTE_TABLEFUNC 对象是表函数（列的列表）直接调用preprocess_expression处理
+  RTE_VALUES 对象是values列表，使用preprocess_expression处理
+  
+  最后处理安全设置rte-&gt;securityQuals
+
+对于存在hasJoinRTEs的情况，清理掉所有joinaliasvars（前面已经通过表达式预处理处理掉了别名的情况）
+
+尝试处理having操作到where条件里面
+  对于
+    包含子查询
+    存在group set
+    存在函数计算
+    存在统计计算
+  的条件，不处理
+  对于没有group set的情况，处理having条件到where 
+  其他条件having和where都复制一份
+
+去掉不必要的grouping列 remove_useless_groupby_columns
+
+reduce_outer_joins尝试去掉外查询，变成内联查询
+remove_useless_result_rtes 尝试删除没有被用到的结果表达式
+
+对于继承表执行inheritance_planner
+默认执行grouping_planner
+
+SS_identify_outer_params找到所需要外层传入的参数
+
+SS_charge_for_initplans 修改init计划
+  重新计算initplan_cost： 每个子查询的initsubplan-&gt;startup_cost + initsubplan-&gt;per_call_cost;
+  当前path-&gt;startup_cost，path-&gt;total_cost都会加上initplan_cost
+set_cheapest 最终确认当前是最优执行计划
+  逐个检查所有执行路径，比较选择出来最小代价path
+</code></pre><p>grouping_planner 实际执行planner的内部
+设置limit和offset，对于offset没有设置的话，默认为0
+对于UNION/INTERSECT/EXCEPT
+对于sortClause 存在sort的情况，设置tuple_fraction=0.0</p><pre><code>  plan_set_operations
+    使用最左（第一个）查询的列作为顺序
+    对于递归union
+      生成递归路径 generate_recursion_path ？ 
+    默认执行 recurse_set_operations？
+  检查是否可以并行is_parallel_safe(root, (Node *) final_target-&gt;exprs);
+  这里再次检查不允许使用for update，for share关键字（语法层已经检查，这里再检查一遍）
+  最后设置排序的顺序make_pathkeys_for_sortclauses
+对于grouping设置了sets的情况
+  执行preprocess_grouping_sets预先处理
+否则正常处理group语法 preprocess_groupclause
+
+设置查询目标列表，方便上层使用 preprocess_targetlist
+
+处理执行代价
+  get_agg_clause_costs
+
+对于windows函数
+  find_window_functions找到所有函数，之后select_active_windows设置到activeWindows
+
+对于max，min计算，执行preprocess_minmax_aggregates （这里代码与query_planner重复，如果需要变更min、max逻辑，则需要两边一起改）
+
+确认是否有写死的limit_tuples以及非例外，如果有，采用写死的limit_tuples（例外为这些： group，group set，distinct，aggregation（聚合操作），windows函数，having条件，函数调用     设置root-&gt;limit_tuples = -1.0）
+
+设置windows回调activeWindows以及group回调groupClause，包括rollups
+
+执行query_planner standard_qp_callback 处理执行路径，并处理sort，distinct的情况
+
+转换processed_tlist到final_target create_pathtarget
+
+对于order by判断是否可以跳过排序阶段 make_sort_input_target
+  比如distinct，union的情况
+对于windows函数，判断是否可以跳过group聚合操作 make_window_input_target
+  如果已经有预先的处理
+对于having group（包括having，group，聚合函数，group set的情况）
+  规划是否需要计算
+对于返回集合的函数 SRF set-returning functions
+  切割出来stfs split_pathtarget_at_srfs
+    final_target
+    sort_input_target
+    grouping_target
+    scanjoin_target
+apply_scanjoin_target_to_paths 处理所有scan，join 表，并遍历其子代生成最终的扫描目标
+
+保存对象信息
+  root-&gt;upper_targets[UPPERREL_FINAL] = final_target;
+  root-&gt;upper_targets[UPPERREL_ORDERED] = final_target;
+  root-&gt;upper_targets[UPPERREL_DISTINCT] = sort_input_target;
+  root-&gt;upper_targets[UPPERREL_WINDOW] = sort_input_target;
+  root-&gt;upper_targets[UPPERREL_GROUP_AGG] = grouping_target;
+
+create_grouping_paths创建grouping路径，对于SRF单独处理adjust_paths_for_srfs
+
+create_window_paths创建windows执行路径，对于SRF单独处理adjust_paths_for_srfs
+
+create_distinct_paths创建distinct执行路径，对于srf单独处理adjust_paths_for_srfs
+
+create_ordered_paths创建order by执行路径，对于srf单独处理adjust_paths_for_srfs
+
+获取上层rel fetch_upper_rel
+  如果上层允许并行，则此处允许并行
+  final_rel-&gt;consider_parallel = true;
+开始处理最终查询 遍历当前所有path
+  对于for update，share 创建create_lockrows_path
+  设置limit create_limit_path
+  对于非select（insert，update，delete）新增ModifyTable节点 parse-&gt;commandType != CMD_SELECT &amp;&amp; !inheritance_update
+    使用索引
+    检查check option withCheckOptionLists
+    返回列表 returningLists
+    行标记（加锁） rowMarks
+    对于分区表单独标记 rootRelation
+
+    创建create_modifytable_path 新增ModifyTable节点
+
+    新增到执行path
+处理partial add_partial_path
+  对于并行查询认为并不安全，单独处理
+
+记录额外信息
+  extra.limit_needed = limit_needed(parse);
+  extra.limit_tuples = limit_tuples;
+  extra.count_est = count_est;
+  extra.offset_est = offset_est;
+
+对于fdw
+  GetForeignUpperPaths 新增fdw执行路径
+
+create_upper_paths_hook
+  最后执行其他hook
+</code></pre><p>is_parallel_safe 并行是否安全
+对于参数来源为本查询，或者上层查询的情况，认为可以并行查询
+max_parallel_hazard_walker
+调用函数是自己节点上的，安全
+对于max min来说，并行查询是安全的
+proparallel
+PROPARALLEL_SAFE：false
+PROPARALLEL_RESTRICTED 返回 context->max_interesting == proparallel
+PROPARALLEL_UNSAFE false context->max_hazard = proparallel;
+CoerceToDomain允许并行 domain类型不建议使用不可并行化的函数
+对于获取序列下一个号的情况，认为不安全
+windows函数认为是安全的
+SubLink（any之类）安全 //目前应该不会有这个执行路径
+对于子查询，只有安全的子查询才会被标记为可并行
+参数来自本查询，认为安全，如果是不可控，认为不安全
+for update、share 认为不安全
+如果以上情况都未命中，迭代检查子查询，以及参数</p><p>apply_scanjoin_target_to_paths
+处理所有scan，join 表，并遍历其子代生成最终的扫描目标
+对于分区表，重新生成扫描对象
+对于不可以并行的查询，关闭并行查询
+逐个处理不涉及SRF的扫描
+对于tlist_same_exprs（表达式应用于当前对象）
+仅增加sort group 避免额外的执行计划创建代价
+否则 create_projection_path
+创建一个预测执行path，
+对于partial进行同样处理
+对于srf，逐个处理adjust_paths_for_srfs
+设置当前对象为最终的scan/join目标（即便是SRF）</p><pre><code>对于分区表
+  生成Append scan、join发生在append下而非其上，最终聚合到单独的result处理
+  逐个分区遍历
+    把每个分区的扫描路径设置为分区路径而非表路径
+      PathTarget *target = lfirst_node(PathTarget, lc);
+      target = copy_pathtarget(target);
+    附加扫描点到child_scanjoin_targets
+    apply_scanjoin_target_to_paths替换原先的执行路径
+    add_paths_to_append_rel新增执行路径
+    apply_scanjoin_target_to_paths此处向内迭代
+    live_children 仅处理实际存在的子分区（有可能是dummy对象）
+对于可以并行的查询（对象不是外查询对象）
+  generate_gather_paths生成并行查询计划
+    create_gather_path生成simple_gather_path
+    对于每个path内的列表
+      生成create_gather_merge_path
+最后重新选取代价最低的执行计划
+  set_cheapest
+</code></pre><p>query_planner
+处理执行路径
+create_pathtarget
+创建执行路径
+get_agg_clause_costs 计算聚合代价
+create_projection_path 创建执行预测path
+make_sort_input_target 判断是否可以跳过sort
+make_window_input_target 判断是否可以跳过grouping操作</p><p>新建节点和已有节点，其中一方启动成本和总成本都更优，且其pathkeys也更优，那么删除另外一个</p><p>新建节点和所有已有节点的启动成本和总成本两方面的对比不一致（如总成本高但启动成本较低，或反过来），且新建节点总成本较低，则会全部保留并添加到RelOptInfo->pathlist中。</p><p>新节点和已有节点，其中一方启动成和总成本都更优，但其pathkeys不够，则两者都保留，由上层Path节点来判断</p><p>当新建节点和已有节点成本相同时，则对比两者的pathkeys，选择保留更优pathkeys的节点</p><p>pathkeys：
+排序属性，语句中，如果查询需要有序，则在大多数时候，查询key是否有序也是需要考虑的维度之一
+<a href=https://www.bookstack.cn/read/aliyun-rds-core/4db84d3c10fdb1b8.md target=_blank>https://www.bookstack.cn/read/aliyun-rds-core/4db84d3c10fdb1b8.md</a></p><p><a href=https://www.bookstack.cn/read/aliyun-rds-core/c3e73d0a666188d4.md target=_blank>https://www.bookstack.cn/read/aliyun-rds-core/c3e73d0a666188d4.md</a>
+无锁算法是利用CPU的原子操作实现的数据结构和算法来解决原来只能用锁才能解决的并发控制问题</p><ul><li>CAS</li><li>Fetch-and-add</li><li>Test-and-set</li></ul><p>内存屏障</p><p>内存屏障相关函数，包括 compiler barrier 和 read/write barrier
+语义上的布尔值（PG代码里叫flag，具体实现上可能映射到一个字节，或一个整数）的原子操作，包括：
+pg_atomic_init_flag，初始化一个flag
+pg_atomic_test_set_flag, Test-And-Set，这也是flag的唯一支持的原子 操作函数
+pg_atomic_unlocked_test_flag，检查flag是否没有被设置
+pg_atomic_clear_flag，清除已设置的flag
+32位无符号整数的原子操作，包括：
+pg_atomic_init_u32, pg_atomic_read_u32, pg_atomic_write_u32，初始化、读、写操作
+pg_atomic_exchange_u32，给原子变量赋值并返回原值
+pg_atomic_compare_exchange_u32, 32位无符号整数的CAS操作，比较原子变量和另一个变量的值， 如果相等就赋一个新值到原子变量里，返回一个布尔值标识是否进行了赋值操作
+pg_atomic_fetch_add_u32, pg_atomic_fetch_sub_u32, pg_atomic_fetch_and_u32, pg_atomic_fetch_or_u32 对某个原子变量进行加、减、与、或操作，并返回变量改变之前的值
+pg_atomic_add_fetch_u32, pg_atomic_sub_fetch_u32 对某个原子变量进行加、减操作，并返回变量改变之后的值
+64位无符号整数的原子操作，与32位的实现的操作函数相似，只是实现的是64位版本，这里需要注意的是， 64位版本并不保证所有平台的都支持，目前在PostgreSQL的源代码中还没有被使用。</p><p>实际案例：
+pg中事务在结束之后，需要设置 PGPROC 中的事务id，此时会使用 ProcArrayLock 尝试对 ProcArray 加排他锁，此时锁竞争严重，后来对此进行优化，使用无锁编程技术，批量进行xid的重置，具体函数为 ProcArrayEndTransaction ProcArrayGroupClearXid
+大意为:
+如果竞争锁失败，则把 xid 加入一个数组中，有 leader 进行此数组的 xid 的重置工作，此过程没有加锁</p><p><a href=https://blog.csdn.net/jackgo73/article/details/121628739 target=_blank>PGPROC数据结构</a></p><p><a href=https://github.com/xitu/gold-miner/blob/master/TODO/postgres-atomicity.md target=_blank>https://github.com/xitu/gold-miner/blob/master/TODO/postgres-atomicity.md</a></p><pre tabindex=0><code>(gdb) p * arrayP
+$35 = {
+  numProcs = 3,
+  maxProcs = 122,
+  maxKnownAssignedXids = 7930,
+  numKnownAssignedXids = 0,
+  tailKnownAssignedXids = 0,
+  headKnownAssignedXids = 0,
+  known_assigned_xids_lck = 0 &#39;\000&#39;,
+  lastOverflowedXid = 0,
+  replication_slot_xmin = 0,
+  replication_slot_catalog_xmin = 0,
+  pgprocnos = 0x7fe4b541c928
+}
+(gdb) p  arrayP-&gt;pgprocnos[0]
+$36 = 99
+(gdb) p  arrayP-&gt;pgprocnos[1]
+$37 = 103
+(gdb) p  arrayP-&gt;pgprocnos[2]
+$38 = 111
+(gdb) p allProcs[99]
+$40 = {
+  links = {
+    prev = 0x0,
+    next = 0x0
+  },
+  procgloballist = 0x7fe4b5400fa8,
+  sem = 0x7fe4ac86d1b8,
+  waitStatus = PROC_WAIT_STATUS_OK,
+  procLatch = {
+    is_set = 0,
+    maybe_sleeping = 0,
+    is_shared = true,
+    owner_pid = 6629
+  },
+  xid = 0,
+  xmin = 0,
+  lxid = 92,
+  pid = 6629,
+  pgxactoff = 0,
+  pgprocno = 99,
+  backendId = 3,
+  databaseId = 16384,
+  roleId = 10,
+  tempNamespaceId = 0,
+  isBackgroundWorker = false,
+  recoveryConflictPending = false,
+  lwWaiting = false,
+  lwWaitMode = 0 &#39;\000&#39;,
+</code></pre><p><a href=https://www.modb.pro/db/91753 target=_blank>https://www.modb.pro/db/91753</a></p><ol><li>源码编译安装</li><li>apt yum 等直接安装</li><li>dep rpm 等安装</li><li>opengause 和 pg 官网 使用源码安装，没有找到已经编译好的包</li><li>mysql 使用安装包安装</li></ol></section><div class=divider></div><div class="flex flex-col md:flex-row justify-between gap-4 py-4"><a role=button class="btn btn-outline h-12" href=/posts/personal/%E7%AE%80%E5%8E%86/ title><ion-icon name=chevron-back></ion-icon><div class="inline-flex flex-col items-start"><span class="text-base-content/60 text-xs font-normal">Previous page</span>
+<span class="max-w-48 truncate"></span></div></a><a role=button class="btn btn-outline h-12" href=/posts/postgres/sublink/ title><div class="inline-flex flex-col items-end"><span class="text-base-content/60 text-xs font-normal">Next page</span>
+<span class="max-w-48 truncate"></span></div><ion-icon name=chevron-forward></ion-icon></a></div></article></div><div x-data=tocHighlighter() @scroll.window=debouncedScroll class="hidden lg:flex lg:flex-col lg:items-end lg:self-start"><nav id=TableOfContents><ul><li><a href=#执行计划的实现>执行计划的实现</a></li></ul></nav></div></div><footer class="flex justify-between items-center gap-2 px-4 py-12"><div><p>© 2016 - 2025 Askyx's Blog</p><p class=text-sm>🌱
+<span class=text-base-content/60>Powered by <a class=hover:underline href=https://gohugo.io/ target=_blank>Hugo</a> with theme
+<a class=hover:underline href=https://github.com/g1eny0ung/hugo-theme-dream target=_blank>Dream</a>.</span></p></div><div x-data="{ icons: [
+    { name: 'sunny', status: 'n' },
+    { name: 'moon', status: 'y' },
+    { name: 'desktop', status: 'auto' }
+  ] }" class="flex items-center gap-2 h-[32px] px-2 bg-base-100 border border-base-content/30 rounded-full"><template x-for="icon in icons"><div role=button tabindex=0 :aria-label="'Select ' + icon.name + ' mode'" class="group inline-flex justify-center items-center p-1 rounded-full cursor-pointer hover:bg-primary" :class="$store.darkMode.icon() === icon.name && 'bg-primary'" @click=$store.darkMode.toggle(icon.status)><ion-icon :name="`${icon.name}-outline`" class=group-hover:text-primary-content :class="$store.darkMode.icon() === icon.name && 'text-primary-content'"></ion-icon></div></template></div></footer></div></div><div class=back><div class=container><div class="dream-grid dream-grid-about"><div class="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-4 dream-column"><article class="card bg-base-100 hover:bg-base-content/10 shadow-xl dark:border dark:border-base-content/30"><div class=card-body><div class=card-title>About Me</div><div class="prose dark:prose-invert"><p>Hi, my name is Yue Yang.</p><p>This is my blog.</p><h2 id=ヾωo>ヾ(•ω•`)o</h2><p>比较胆小，出门都得贴墙走</p></div></div></article></div></div><footer class="flex justify-between items-center gap-2 px-4 py-12"><div><p>© 2016 - 2025 Askyx's Blog</p><p class=text-sm>🌱
+<span class=text-base-content/60>Powered by <a class=hover:underline href=https://gohugo.io/ target=_blank>Hugo</a> with theme
+<a class=hover:underline href=https://github.com/g1eny0ung/hugo-theme-dream target=_blank>Dream</a>.</span></p></div><div x-data="{ icons: [
+    { name: 'sunny', status: 'n' },
+    { name: 'moon', status: 'y' },
+    { name: 'desktop', status: 'auto' }
+  ] }" class="flex items-center gap-2 h-[32px] px-2 bg-base-100 border border-base-content/30 rounded-full"><template x-for="icon in icons"><div role=button tabindex=0 :aria-label="'Select ' + icon.name + ' mode'" class="group inline-flex justify-center items-center p-1 rounded-full cursor-pointer hover:bg-primary" :class="$store.darkMode.icon() === icon.name && 'bg-primary'" @click=$store.darkMode.toggle(icon.status)><ion-icon :name="`${icon.name}-outline`" class=group-hover:text-primary-content :class="$store.darkMode.icon() === icon.name && 'text-primary-content'"></ion-icon></div></template></div></footer></div></div></div></div><script>window.lightTheme="emerald",window.darkTheme="forest"</script><script src=https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js integrity="sha256-htrLFfZJ6v5udOG+3kNLINIKh2gvoKqwEhHYfTTMICc=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin=anonymous></script><script src=/js/grid.min.js></script><script src=/js/main.min.js></script><script src=https://cdn.jsdelivr.net/npm/luxon@1.26.0 integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin=anonymous></script><script>format();function format(){document.querySelectorAll('span[data-format="luxon"]').forEach(e=>{const t=e.textContent;e.textContent=luxon.DateTime.fromISO(t,{locale:"en"}).toFormat("yyyy年MM月dd日")})}</script><script src=/js/toc.min.js></script><script type=module>
+      import mediumZoom from 'https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/+esm';
+      mediumZoom('#dream-single-post-content img', {
+        background: 'oklch(var(--b1))',
+        margin: 24,
+      })
+    </script><script type=module src=https://cdn.jsdelivr.net/npm/ionicons@7.4.0/dist/ionicons/ionicons.esm.js integrity="sha256-/IFmi82bIhdYWctu0UddSlJqpnzWm7Vh2C4CM32wF/k=" crossorigin=anonymous></script><script nomodule src=https://cdn.jsdelivr.net/npm/ionicons@7.4.0/dist/ionicons/ionicons.js integrity="sha256-mr7eJMX3VC3F7G32mk4oWp1C6a2tlMYxUdptfT7uKI8=" crossorigin=anonymous></script></body></html>

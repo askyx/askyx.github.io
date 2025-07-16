@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>RocksDB on Askyx's Blog</title><link>https://askyx.github.io/tags/rocksdb/</link><description>Recent content in RocksDB on Askyx's Blog</description><generator>Hugo</generator><language>zh-Hans</language><lastBuildDate>Wed, 16 Jul 2025 23:38:40 +0800</lastBuildDate><atom:link href="https://askyx.github.io/tags/rocksdb/index.xml" rel="self" type="application/rss+xml"/><item><title>RocksDB源码分析</title><link>https://askyx.github.io/posts/readcode/rocksdb/</link><pubDate>Fri, 21 Oct 2022 16:38:26 +0800</pubDate><guid>https://askyx.github.io/posts/readcode/rocksdb/</guid><description>&lt;p>&lt;a href="http://alexstocks.github.io/html/rocksdb.html" target="_blank">note1&lt;/a>
+&lt;/p>
+&lt;h2 id="slice">slice&lt;/h2>
+&lt;p>和levelDB类似，无太大变化&lt;/p>
+&lt;h2 id="pinnableslice">PinnableSlice&lt;/h2>
+&lt;p>&lt;a href="http://kernelmaker.github.io/Rocksdb_pinnableslice" target="_blank">http://kernelmaker.github.io/Rocksdb_pinnableslice&lt;/a>
+&lt;br>
+主要作用是延长数据生命周期，减少数据拷贝。PinnableSlice中记录数据的指针，使用的时候通过指针进行解引用。不需要从最底层进行数据的copy，数据的生命周期使用&lt;code>Reset&lt;/code>和其析构函数确定，此时调用cleanup注册的cleanup函数对数据进行处理，&lt;/p></description></item></channel></rss>

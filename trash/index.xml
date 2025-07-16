@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Askyx's Blog</title><link>https://askyx.github.io/trash/</link><description>Recent content on Askyx's Blog</description><generator>Hugo</generator><language>zh-Hans</language><atom:link href="https://askyx.github.io/trash/index.xml" rel="self" type="application/rss+xml"/><item><title>Postgres_xc 源码编译及环境搭建</title><link>https://askyx.github.io/trash/postgres_xc_build/</link><pubDate>Wed, 27 Jul 2022 16:44:08 +0800</pubDate><guid>https://askyx.github.io/trash/postgres_xc_build/</guid><description>&lt;h2 id="源码编译">源码编译&lt;/h2>
+&lt;p>下载&lt;a href="https://master.dl.sourceforge.net/project/postgres-xc/Version_1.2/pgxc-v1.2.1.tar.gz?viasf=1" target="_blank">源码&lt;/a>
+，解压，这里尝试使用&lt;code>-g&lt;/code>编译源码，目的是为了可以调试源码&lt;/p>
+&lt;p>编译中有flex的一个问题，提示版本不正确，且即使使用&lt;code>export&lt;/code>指定&lt;code>FLEX&lt;/code>，编译的时候还是会用yylex的一个重定义的错误，从postgres主线上找到解决的patch，这里网上没有太多有用的资料，所以有尝试的建议先直接编译，如果遇到相同的问题再使用下面的解决方法。&lt;/p></description></item><item><title>Docs</title><link>https://askyx.github.io/trash/docs/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://askyx.github.io/trash/docs/</guid><description>&lt;!-- &lt;style type="text/css">
+ p:first-letter {
+ float: left;
+ font-size: 3em;
+ color: #333;
+ text-indent: 0;
+ padding: 2px;
+ line-height: .5em;
+ }
+
+&lt;/style> -->
+&lt;p>这里相当于阅读笔记，但是会从源码进行更细节的分析，原文没有提到的，这里会进行适当的扩展&lt;/p>
+
+
+
+ &lt;blockquote>
+ &lt;p>PostgreSQL is a well-designed open-source multi-purpose relational database system which is widely used throughout the world. It is one huge system with the integrated subsystems, each of which has a particular complex feature and works with each other cooperatively. Although understanding of the internal mechanism is crucial for both administration and integration using PostgreSQL, its hugeness and complexity prevent it. The main purposes of this document are to explain how each subsystem works, and to provide the whole picture of PostgreSQL.&lt;/p></description></item></channel></rss>

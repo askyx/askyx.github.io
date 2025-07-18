@@ -19,7 +19,64 @@
     { name: 'sunny', status: 'n' },
     { name: 'moon', status: 'y' },
     { name: 'desktop', status: 'auto' }
-  ] }" class="flex items-center gap-2 h-[32px] px-2 bg-base-100 border border-base-content/30 rounded-full"><template x-for="icon in icons"><div role=button tabindex=0 :aria-label="'Select ' + icon.name + ' mode'" class="group inline-flex justify-center items-center p-1 rounded-full cursor-pointer hover:bg-primary" :class="$store.darkMode.icon() === icon.name && 'bg-primary'" @click=$store.darkMode.toggle(icon.status)><ion-icon :name="`${icon.name}-outline`" class=group-hover:text-primary-content :class="$store.darkMode.icon() === icon.name && 'text-primary-content'"></ion-icon></div></template></div></footer></div></div></div></div><script>window.lightTheme="emerald",window.darkTheme="forest"</script><script src=https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js integrity="sha256-htrLFfZJ6v5udOG+3kNLINIKh2gvoKqwEhHYfTTMICc=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin=anonymous></script><script src=/js/grid.min.js></script><script src=/js/main.min.js></script><script src=https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js integrity="sha256-42IbU8t3tOwwbexB7ZVRHm3YDRf65aBPPjRtIUufj5I=" crossorigin=anonymous></script><script>var fuseData=[{author:null,avatar:null,categories:null,description:"wsl 使用种简单的问题记录",readingTime:2,tags:["wsl2","Ubuntu24.04","perf"],title:"Wsl 常见问题记录",url:"/posts/note/wsl/"},{author:null,avatar:null,categories:null,description:"docker GreenPlum 源码编译",readingTime:2,tags:["数据库","Postgres","GreenPlum","源码编译"],title:"orca 简记",url:"/posts/database/gp/orca/"},{author:null,avatar:null,categories:null,description:"Postgre hash join 总结",readingTime:4,tags:null,title:"Postgres Hash Join",url:"/posts/postgres/hashjoin/"},{author:null,avatar:null,categories:null,description:"docker OpenTenBase 源码编译",readingTime:3,tags:["数据库","Postgres","OpenTenBase","源码编译"],title:"源码编译 OpenTenBase 速通版",url:"/posts/database/tbase/build/"},{author:null,avatar:null,categories:null,description:"cmake 速查模板，自用",readingTime:4,tags:["C/C++","cmake","模板库"],title:"cmake 速查模板",url:"/posts/others/cmake/"},{author:null,avatar:null,categories:null,description:"gdb 中的一些常用方法，一些常用的命令，记忆 gdb 的 python 扩展的使用方法",readingTime:11,tags:null,title:"gdb 要点简记",url:"/posts/others/gdb/"},{author:null,avatar:null,categories:null,description:"深度优化探索文章的读书笔记",readingTime:1,tags:null,title:"Postgres 技术内幕，Optimizer过程分析",url:"/posts/postgres/optimizer/"},{author:null,avatar:null,categories:null,description:"宏模板，自用",readingTime:1,tags:["C/C++","宏","日志"],title:"宏使用模板速查",url:"/posts/postgres/defineinc/"},{author:null,avatar:null,categories:null,description:"pg中各个算子的代价计算",readingTime:13,tags:null,title:"执行计划代价计算规则梳理",url:"/posts/postgres/cost/"},{author:null,avatar:null,categories:null,description:"事务分析记录，源码分析，关键技术点简记，唬人专用",readingTime:11,tags:null,title:"事务知识简记",url:"/posts/postgres/tx/"},{author:null,avatar:null,categories:null,description:"bison 文档重点记录",readingTime:1,tags:null,title:"Bison Note",url:"/posts/course/15441/note/"},{author:null,avatar:null,categories:null,description:`<p>语句</p>
+  ] }" class="flex items-center gap-2 h-[32px] px-2 bg-base-100 border border-base-content/30 rounded-full"><template x-for="icon in icons"><div role=button tabindex=0 :aria-label="'Select ' + icon.name + ' mode'" class="group inline-flex justify-center items-center p-1 rounded-full cursor-pointer hover:bg-primary" :class="$store.darkMode.icon() === icon.name && 'bg-primary'" @click=$store.darkMode.toggle(icon.status)><ion-icon :name="`${icon.name}-outline`" class=group-hover:text-primary-content :class="$store.darkMode.icon() === icon.name && 'text-primary-content'"></ion-icon></div></template></div></footer></div></div></div></div><script>window.lightTheme="emerald",window.darkTheme="forest"</script><script src=https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js integrity="sha256-htrLFfZJ6v5udOG+3kNLINIKh2gvoKqwEhHYfTTMICc=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin=anonymous></script><script src=/js/grid.min.js></script><script src=/js/main.min.js></script><script src=https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js integrity="sha256-42IbU8t3tOwwbexB7ZVRHm3YDRf65aBPPjRtIUufj5I=" crossorigin=anonymous></script><script>var fuseData=[{author:null,avatar:null,categories:null,description:`<h2 id="wsl-内核版本升级">WSL 内核版本升级</h2>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/community/content/wsl-user-msft-kernel-v6" target="_blank">How to use the Microsoft Linux kernel v6 on Windows Subsystem for Linux version 2 (WSL2)</a>
+</li>
+<li><a href="https://blog.yurzi.net/posts/a-try-to-upgrade-wsl-kernel/#cite-3" target="_blank">记录一次升级WSL2内核的经历</a>
+</li>
+</ul>
+<h2 id="wsl-磁盘空间释放">WSL 磁盘空间释放</h2>
+<p>这是记录wsl运行中的异常文件</p>
+<pre tabindex="0"><code>rm -rf /mnt/c/Users/wlky/AppData/Local/Temp/wsl-crashes/*
+</code></pre><h2 id="2-zsk-powerlevel10k">2. zsk powerlevel10k</h2>
+<pre tabindex="0"><code>sh -c &#34;$(curl -fsSL https://gitee.com/shmhlsy/oh-my-zsh-install.sh/raw/master/install.sh)&#34;
+
+git clone --depth=1 https://gitee.com/fkamrk/zsh-autosuggestions.git $ZSH_CUSTOM/plugins/zsh-autosuggestions
+
+git clone --depth=1 https://gitee.com/romkatv/powerlevel10k.git \${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+
+ZSH_THEME=&#34;powerlevel10k/powerlevel10k&#34;
+
+p10k configure
+</code></pre><h2 id="3-docker">3. docker</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>sudo apt install docker.io
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Got permission denied <span style="color:#66d9ef">while</span> trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get <span style="color:#e6db74">&#34;http://%2Fvar%2Frun%2Fdocker.sock/v1.39/containers/json&#34;</span>: dial unix /var/run/docker.sock: connect: permission denied
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>sudo groupadd docker         <span style="color:#75715e">#添加docker用户组</span>
+</span></span><span style="display:flex;"><span>sudo gpasswd -a $USER docker <span style="color:#75715e">#将当前用户添加到docker用户组</span>
+</span></span><span style="display:flex;"><span>newgrp docker                <span style="color:#75715e">#更新docker用户组</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>-- 可能可用的镜像，一个一个试
+</span></span><span style="display:flex;"><span>docker pull  registry.docker-cn.com/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker pull  hub-mirror.c.163.com/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker pull  docker.mirrors.ustc.edu.cn/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker pull  yxzrazem.mirror.aliyuncs.com/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker pull  docker.kubesre.xyz/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker pull  dc.j8.work/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker pull  docker.registry.cyou/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker pull  docker.hlyun.org/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker pull  docker.chenby.cn/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker pull  docker.jsdelivr.fyi/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker pull  docker-mirrors.mjjman.com/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker pull  huecker.io/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker pull  dockerhub.timeweb.cloud/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker pull  docker-cf.registry.cyou/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker pull  dockercf.jsdelivr.fyi/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker pull  dockertest.jsdelivr.fyi/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>docker pull dockerhub.azk8s.cn/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker pull mirror.ccs.tencentyun.com/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker pull registry.cn-hangzhou.aliyuncs.com/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker pull docker.m.daocloud.io/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>docker tag 8a3cdc4d1ad3 ubuntu:24.04
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>docker rmi docker.jsdelivr.fyi/library/ubuntu:24.04
+</span></span></code></pre></div>`,readingTime:1,tags:["wsl2","Ubuntu24.04","perf"],title:"wsl 问题记录，研发环境初始化",url:"/posts/note/wsl/"},{author:null,avatar:null,categories:null,description:"Postgre hash join 总结",readingTime:4,tags:null,title:"Postgres Hash Join",url:"/posts/postgres/hashjoin/"},{author:null,avatar:null,categories:null,description:"docker OpenTenBase 源码编译",readingTime:3,tags:["数据库","Postgres","OpenTenBase","源码编译"],title:"源码编译 OpenTenBase 速通版",url:"/posts/database/tbase/build/"},{author:null,avatar:null,categories:null,description:"cmake 速查模板，自用",readingTime:4,tags:["C/C++","cmake","模板库"],title:"cmake 速查模板",url:"/posts/others/cmake/"},{author:null,avatar:null,categories:null,description:"gdb 中的一些常用方法，一些常用的命令，记忆 gdb 的 python 扩展的使用方法",readingTime:11,tags:null,title:"gdb 要点简记",url:"/posts/others/gdb/"},{author:null,avatar:null,categories:null,description:"深度优化探索文章的读书笔记",readingTime:1,tags:null,title:"Postgres 技术内幕，Optimizer过程分析",url:"/posts/postgres/optimizer/"},{author:null,avatar:null,categories:null,description:"宏模板，自用",readingTime:1,tags:["C/C++","宏","日志"],title:"宏使用模板速查",url:"/posts/postgres/defineinc/"},{author:null,avatar:null,categories:null,description:"pg中各个算子的代价计算",readingTime:13,tags:null,title:"执行计划代价计算规则梳理",url:"/posts/postgres/cost/"},{author:null,avatar:null,categories:null,description:"事务分析记录，源码分析，关键技术点简记，唬人专用",readingTime:11,tags:null,title:"事务知识简记",url:"/posts/postgres/tx/"},{author:null,avatar:null,categories:null,description:"bison 文档重点记录",readingTime:1,tags:null,title:"Bison Note",url:"/posts/course/15441/note/"},{author:null,avatar:null,categories:null,description:`<p>语句</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">prepare</span> s3(int, int) <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">select</span> no_o_id <span style="color:#66d9ef">from</span> bmsql_new_order <span style="color:#66d9ef">where</span> no_w_id <span style="color:#f92672">=</span> <span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">and</span> no_d_id <span style="color:#f92672">=</span> <span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">2</span> <span style="color:#66d9ef">order</span> <span style="color:#66d9ef">by</span> no_o_id <span style="color:#66d9ef">asc</span>;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>                                            QUERY PLAN                                             
@@ -63,7 +120,7 @@
 <li>更多的是因为频繁的malloc会导致内存碎片，且由于malloc需要额外的空间记录head和foot的位置，所以还存在的问题就是空间的浪费，另外最大的问题是内存泄漏问题，使用指针在方法间传递不容易管理</li>
 <li>大概类似c++的内存管理方法，把</li>
 </ul>
-<h2></h2>`,readingTime:1,tags:null,title:"内存管理",url:"/posts/postgres/memctx/"},{author:null,avatar:null,categories:null,description:"RocksDB 源码总结分析",readingTime:2,tags:["源码阅读","RocksDB","存储引擎"],title:"RocksDB源码分析",url:"/posts/readcode/rocksdb/"},{author:null,avatar:null,categories:null,description:"Postgres parser 模块解析，目的是为了学习parser实现机制。编译原理以及bison和flex的使用",readingTime:1,tags:["数据库","Postgres","Parser","编译原理"],title:"postgres Parser",url:"/posts/postgres/parser/"},{author:null,avatar:null,categories:null,description:"PG 中锁的分析",readingTime:2,tags:["数据库","Postgres","LOCK"],title:"Locks",url:"/posts/postgres/locks/"},{author:null,avatar:null,categories:null,description:"本文从源码级别进行优化器的分析，对Postgres优化器代码调研，具体包括他的数据结构，以及具体的代码架构实现以及核心算法等",readingTime:38,tags:["数据库","Postgres","优化器"],title:"Postgres Optimizer",url:"/posts/postgres/opt/"},{author:null,avatar:null,categories:null,description:`<h2 id="存储">存储</h2>
+<h2></h2>`,readingTime:1,tags:null,title:"内存管理",url:"/posts/postgres/memctx/"},{author:null,avatar:null,categories:null,description:"RocksDB 源码总结分析",readingTime:2,tags:["源码阅读","RocksDB","存储引擎"],title:"RocksDB源码分析",url:"/posts/readcode/rocksdb/"},{author:null,avatar:null,categories:null,description:"Postgres parser 模块解析，目的是为了学习parser实现机制。编译原理以及bison和flex的使用",readingTime:1,tags:["数据库","Postgres","Parser","编译原理"],title:"postgres Parser",url:"/posts/postgres/parser/"},{author:null,avatar:null,categories:null,description:"PG 中锁的分析",readingTime:2,tags:["数据库","Postgres","LOCK"],title:"Locks",url:"/posts/postgres/locks/"},{author:null,avatar:null,categories:null,description:"Postgres_xc 源码编译，集群环境搭建",readingTime:9,tags:null,title:"Postgres_xc 源码编译及环境搭建",url:"/posts/database/gp/postgres_xc_build/"},{author:null,avatar:null,categories:null,description:"本文从源码级别进行优化器的分析，对Postgres优化器代码调研，具体包括他的数据结构，以及具体的代码架构实现以及核心算法等",readingTime:38,tags:["数据库","Postgres","优化器"],title:"Postgres Optimizer",url:"/posts/postgres/opt/"},{author:null,avatar:null,categories:null,description:`<h2 id="存储">存储</h2>
 <h3 id="内存">内存</h3>
 <ul>
 <li>

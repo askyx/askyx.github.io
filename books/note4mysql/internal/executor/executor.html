@@ -177,27 +177,38 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="executor"><a class="header" href="#executor">executor</a></h1>
-<p><a href="https://bbkv6krkep.feishu.cn/docx/YBkudpgiSoUQL1x8W38cKkDInob">2025年安可测评研发侧任务</a></p>
-<p>http://zbox.greatdb.com/zentao/task-view-22442.html</p>
-<p><a href="./exec">相关文档</a></p>
+<!-- [2025年安可测评研发侧任务](https://bbkv6krkep.feishu.cn/docx/YBkudpgiSoUQL1x8W38cKkDInob)
+
+http://zbox.greatdb.com/zentao/task-view-22442.html
+ -->
+<p><a href="./exec.txt">相关文档</a></p>
 <h2 id="todo"><a class="header" href="#todo">TODO</a></h2>
 <ol>
 <li>统一案例，保证每个迭代器都有一个可执行可调式的案例</li>
-<li>补充一些迭代器的实现细节</li>
 <li>调查分析迭代器的优化方向，当前迭代器实现复杂度过高</li>
+<li>补充一些迭代器的实现细节</li>
 </ol>
-<h2 id="before-you-read"><a class="header" href="#before-you-read">Before you read</a></h2>
-<p>😹 只介绍执行器的一些细节，不会介绍具体执行计划怎么来的<br />
-😻 没有细致介绍每个算子的实现细节，只是系统性的做了一些总结，后续可能会补充？</p>
 <h2 id="概述"><a class="header" href="#概述">概述</a></h2>
 <p>MySQL执行器的架构体现了现代数据库系统的设计理念，通过<strong>迭代器模式</strong><sup class="footnote-reference" id="fr-Iteator-1"><a href="#footnote-Iteator">1</a></sup>实现了执行操作的标准化和模块化。这种设计不仅提高了代码的可维护性，
 还为性能优化和功能扩展提供了良好的基础。整个执行器与查询优化器、存储引擎紧密配合，形成了MySQL查询处理的完整流水线。</p>
 <p>迭代模型/火山模型（Iterator Model）作为业界常见的执行模型，其核心思想是将每一种操作抽象为一个 Operator，
 整个 SQL 查询被构建成一个 Operator 树。查询执行时，树自顶向下调用 next() 接口，数据则自底向上被拉取处理，
 因此这种处理方式也被称为拉取执行模型（Pull Based）。火山模型因其具有很高灵活性高、可扩展性好、易于实现和优化等特性，被广泛应用于数据库查询优化和执行中。</p>
-<p><img src="https://youke1.picui.cn/s1/2025/07/18/6879fd883518b.png" alt="Iteator" /></p>
+<p><img src="./images/Iteator.png" alt="Iteator" /></p>
+<pre><code class="language-c++">
+while (true) {
+    slot = root-&gt;next();
+    if (slot == NULL) {
+        break;
+    }
+    // addtional processing
+    if (filter(slot))
+        yield slot;
+}
+
+</code></pre>
 <blockquote>
-<p>一般实现显式指定算子的返回数据，但是 MySQL 隐藏这个过程，执行器中的数据流动实际是依赖于表或者其他算子的内存管理</p>
+<p>一般实现显式指定算子的返回数据，但是 MySQL 隐藏这个过程，执行器中的数据流动实际是依赖于表以及field或者有算子自行维护，更类似于保存在执行中的上下文</p>
 </blockquote>
 <h2 id="handler"><a class="header" href="#handler">handler</a></h2>
 <p>存储引擎层采用可动态加载的插件形式，为方便支持多种存储引擎，将存储引擎接口进行抽象化，server 层通过统一的接口访问存储引擎，
@@ -259,16 +270,21 @@ enum legacy_db_type {
 </tbody></table>
 </div>
 <h2 id="表达式"><a class="header" href="#表达式">表达式</a></h2>
-<!-- 表达式从是否需要保存运行状态可以分为无状态表达式和有状态表达式，无状态表达式一般是一些简单表达式，数据输入再输出之后生命周期就结束了，和下次运行无关，例如表达式运算；有状态的表达式需要再一定时间段内保存运行信息，例如聚合表达式 sum，需要进行累加操作。
-也可以从是否稳定来去区分， -->
 <p>SQL 语句中的表达式运算使用的是 Item 的 val_xx 接口，在执行中直接调用对应的接口获取值，例如
 filter 预期得到的结果是 bool，直接调用 <code>m_condition-&gt;val_int()</code> 获得条件的值。</p>
 <ol>
 <li>
-<p>条件运算</p>
+<p>普通表达式</p>
 <ul>
 <li>如果是常量，直接 Item 本身就保存有具体的值，直接调用 val_xx 接口获取值</li>
 <li>如果是 Field，需要确保 Field 的数据已经被填充，即关联的表已经读取对应的值</li>
+</ul>
+</li>
+<li>
+<p>聚合表达式</p>
+<ul>
+<li>聚合表达式只有在聚合迭代器运算完成之后，才能进行输出，在运行过程中，都是在进行一种累计操作</li>
+<li>最终输出也是调用的 val_xx 接口获取值</li>
 </ul>
 </li>
 <li>
@@ -277,7 +293,12 @@ filter 预期得到的结果是 bool，直接调用 <code>m_condition-&gt;val_in
 <li>
 <p>子查询需要区分相关子查询和非相关子查询，</p>
 <ul>
-<li>对于非相关子查询，MySQL 允许非相关子查询在优化阶段直接物化，此时执行计划显示 <code>Rows fetched before execution</code></li>
+<li>对于非相关子查询，MySQL 允许非相关子查询在优化阶段直接物化，此时执行计划显示 <code>Rows fetched before execution</code>，它在优化阶段就已经填充临时表</li>
+</ul>
+<blockquote>
+<p>如果 MySQL 需要支持执行计划缓存，则这是一个阻碍</p>
+</blockquote>
+<ul>
 <li>对于相关子查询，在表达式中使用 Item_subselect 表示，表达式计算的时候最终调用 <code>Item_subselect::exec</code> 获取子查询的值</li>
 </ul>
 <pre><code class="language-c++">// 非相关子查询使用 optimize_derived 直接物化子查询
@@ -319,14 +340,11 @@ filter 预期得到的结果是 bool，直接调用 <code>m_condition-&gt;val_in
 </ol>
 <h2 id="临时数据"><a class="header" href="#临时数据">临时数据</a></h2>
 <p>在运行过程中，有的迭代器不是立刻就能输出数据，需要对数据进行一定处理之后，才能进行输出，此时可能有一些临时数据在，需要进行保存，
-当前MySQL 中，主要有两种方式，一是使用临时表，而是自己使用 buffer 进行管理。</p>
+当前MySQL 中，主要有两种方式，一是使用临时表，二是自己使用 buffer 进行管理。</p>
 <ol>
 <li>
 <p>使用临时表保存数据<br />
 使用临时表的迭代器有个特点是在初始化的时候直接读取下层迭代器，填充临时表，而在 read 的时候直接从临时表读取数据</p>
-<blockquote>
-<p>TODO: 子查询存在上层引用？</p>
-</blockquote>
 <ul>
 <li><code>MaterializeIterator</code></li>
 <li><code>StreamingIterator</code></li>
@@ -340,9 +358,6 @@ filter 预期得到的结果是 bool，直接调用 <code>m_condition-&gt;val_in
 <li>
 <p>使用 buffer
 自己使用 buffer 管理，当前有下面几个迭代器有类似的机制</p>
-<blockquote>
-<p>PS: 当前没有统一的实现，都是专人专用</p>
-</blockquote>
 <ul>
 <li><code>SortingIterator</code></li>
 <li><code>HashIterator</code></li>
@@ -353,7 +368,6 @@ filter 预期得到的结果是 bool，直接调用 <code>m_condition-&gt;val_in
 <blockquote>
 <p>使用临时表保存临时数据的优点是实现简单，但是缺点是运行中还需要进行表的管理，耦合度太高</p>
 </blockquote>
-<h2 id="执行计划"><a class="header" href="#执行计划">执行计划</a></h2>
 <h2 id="数据流动问题"><a class="header" href="#数据流动问题">数据流动问题</a></h2>
 <h3 id="重新认识-table"><a class="header" href="#重新认识-table">重新认识 TABLE</a></h3>
 <p>struct TABLE 是 MySQL 中最核心的数据结构之一，它表示在查询执行期间内存中的一个表实例。该结构体定义在 sql/table.h 文件中，</p>
@@ -370,32 +384,33 @@ filter 预期得到的结果是 bool，直接调用 <code>m_condition-&gt;val_in
 <li>而 Item_field 用于管理 Field，用于参与表达式运算</li>
 </ul>
 <h3 id="query_result"><a class="header" href="#query_result">Query_result</a></h3>
-<p>处理迭代器的输出的数据，有不同的子类实现，用于处理迭代器的输出，或者一些中间数据，一般传递数据到客户端使用的是 Query_result_send</p>
+<p>处理迭代器的输出的数据，有不同的子类实现，用于处理迭代器的输出，例如输出数据到客户端，或者进行数据的转发，如 select into，一般传递数据到客户端使用的是 Query_result_send</p>
 <p>当前的继承关系</p>
-<pre><code class="language-shell">Query_result_send		                    // 发送数据到客户端
-    Query_result_explain		            // 具体的Query_result的包装类，用于实现explain
-        Query_result_explain_into_var		// 用于把explain的结果输出到指定变量
-    Query_fetch_protocol_binary		        // 使用二进制协议发送游标行的结果
-Query_result_do		                        // DO stmt 使用
-Query_result_interceptor		            // 运行中数据转发，由于不需要发送到客户端，所以不需要设置元数据信息
-    Query_result_null		                // 不输出数据，用于explain analyze
-    Query_result_to_file		            // 输出结果到文件
-        Query_result_export		            // 输出结果到文件，只输出数据
-        Query_result_dump		            // 输出结果到文件，以语句的形式
-    Query_dumpvar		                    // 导出变量
-    Query_result_subquery		            // 处理子查询的基类
-        Query_result_scalar_subquery		// 标量和行子查询的查询结果
-        Query_result_max_min_subquery		// 用于独立的 ALL/ANY 查询
-        Query_result_exists_subquery		// 处理 exists 语句，只判断是否有结果
-    Query_fetch_into_spvars		            // 用于处理sp中的游标的值
-    Query_result_delete		                // 用于处理delete语句，是一个空操作
-    Query_result_insert		                // 用于处理 insert into select 语句中， 查询语句的结果，转发到目标表中
-        Query_result_create		            // 类似 Query_result_insert，但是是create as select 语句
-    Query_result_union		                // 用于 union 语句
-        Query_result_materialize		    // 用于处理游标，保存游标的数据
-        Query_result_union_direct		    // 已废弃
-    Query_result_update		                // 用于更新语句
+<pre><code class="language-shell">Query_result_send                               // 发送数据到客户端
+    Query_result_explain                        // 具体的Query_result的包装类，用于实现explain
+        Query_result_explain_into_var           // 用于把explain的结果输出到指定变量
+    Query_fetch_protocol_binary                 // 使用二进制协议发送游标行的结果
+Query_result_do                                 // DO stmt 使用
+Query_result_interceptor                        // 运行中数据转发，由于不需要发送到客户端，所以不需要设置元数据信息
+    Query_result_null                           // 不输出数据，用于explain analyze
+    Query_result_to_file                        // 输出结果到文件
+        Query_result_export                     // 输出结果到文件，只输出数据
+        Query_result_dump                       // 输出结果到文件，以语句的形式
+    Query_dumpvar                               // 导出变量
+    Query_result_subquery                       // 处理子查询的基类
+        Query_result_scalar_subquery            // 标量和行子查询的查询结果
+        Query_result_max_min_subquery           // 用于独立的 ALL/ANY 查询
+        Query_result_exists_subquery            // 处理 exists 语句，只判断是否有结果
+    Query_fetch_into_spvars                     // 用于处理sp中的游标的值
+    Query_result_delete                         // 用于处理delete语句，是一个空操作
+    Query_result_insert                         // 用于处理 insert into select 语句中， 查询语句的结果，转发到目标表中
+        Query_result_create                     // 类似 Query_result_insert，但是是create as select 语句
+    Query_result_union                          // 用于 union 语句
+        Query_result_materialize                // 用于处理游标，保存游标的数据
+        Query_result_union_direct               // 已废弃
+    Query_result_update                         // 用于更新语句
 </code></pre>
+<p>执行过程中，数据从存储引擎传递到表的 record 中，此时由于 Field 也指向 record，所以 Field 也相当于有数据，此时后续对 Field 的操作就可以直接操作数据。</p>
 <p>当执行 <code>select * from t1</code> 的时候，调用堆栈如下</p>
 <pre><code class="language-c++">#0  Protocol_text::store_long (this=0x705581119a30, from=5, zerofill=0) at sql/protocol_classic.cc:3402
 #1  0x00005c1a439ecdc2 in Field_long::send_to_protocol (this=0x7055817fc8f0, protocol=0x705581119a30) at sql/field.cc:4427
@@ -412,6 +427,10 @@ Query_result_interceptor		            // 运行中数据转发，由于不需要
 <li>Item 有定义 send 函数，用于将数据发送到协议层</li>
 <li>Field 有定义 send_to_protocol 函数，用于将数据发送到协议层</li>
 <li>Field 中有指向 TABLE::record 的指针，用于保存具体的数据，所以最终的数据是来自 TABLE</li>
+</ol>
+<p>其中存在几个潜藏的问题：</p>
+<ol>
+<li>数据和表相关联，</li>
 </ol>
 <h2 id="iteator"><a class="header" href="#iteator">Iteator</a></h2>
 <p>当前(MySQL8.4.4) 中共有 55 种迭代器</p>
@@ -442,7 +461,7 @@ Query_result_interceptor		            // 运行中数据转发，由于不需要
 <tr><td><a href="#sort">SortBufferIndirectIterator</a></td><td>RowIterator</td><td>从缓冲区读取行ID然后从表中读取对应的行，由SortingIterator和某些形式的unique操作使用</td></tr>
 <tr><td><a href="#sort">SortFileIterator</a></td><td>RowIterator</td><td>和 SortBufferIterator 类似，但是使用磁盘进行merge sort</td></tr>
 <tr><td><a href="#sort">SortFileIndirectIterator</a></td><td>RowIterator</td><td>和 SortFileIterator 类似，但是使用的是 rowid 排序，后续会进行回表操作</td></tr>
-<tr><td><a href="#fakesinglerowiterator">FakeSingleRowIterator</a></td><td>RowIterator</td><td>返回单行，然后结束。 仅在某些使用const表情况下才使用</td></tr>
+<tr><td>FakeSingleRowIterator</td><td>RowIterator</td><td>返回单行，然后结束。 仅在某些使用const表情况下才使用</td></tr>
 <tr><td><a href="#unqualifiedcountiterator">UnqualifiedCountIterator</a></td><td>RowIterator</td><td>简单 count(*) 语句优化，使用 innodb 并行加速查询</td></tr>
 <tr><td><a href="#zerorowsiterator">ZeroRowsIterator</a></td><td>RowIterator</td><td>优化器确定当前算子无输出，则直接生成该算子，例如条件为假</td></tr>
 <tr><td>ZeroRowsAggregatedIterator</td><td>RowIterator</td><td>和 ZeroRowsIterator 类似，但是用于聚合操作，普通语句无输出，但是聚合操作按语义输出null或者0</td></tr>
@@ -493,9 +512,6 @@ Query_result_interceptor		            // 运行中数据转发，由于不需要
 <p>由 AccessPath::TABLE_SCAN 创建，执行计划显式的是 <code>Table scan on xx</code></p>
 </li>
 </ul>
-<blockquote>
-<p>最基础的操作，但是这里有部分 set 的操作逻辑，违背了单一功能原则</p>
-</blockquote>
 <pre><code class="language-c++">    while ((tmp = table()-&gt;file-&gt;ha_rnd_next(m_record))) {
       /*
        ha_rnd_next can return RECORD_DELETED for MyISAM when one thread is
@@ -532,13 +548,11 @@ explain format = tree select avg(a) from t2 group by b;
 <p>从 AccessPath::INDEX_SCAN 创建，执行计划显式的是 <code>[Covering] Index scan using xx on xx</code></p>
 </li>
 <li>
-<p>他的核心目的是为了替换 full table scan，例如 index only scan，</p>
+<p>他的核心目的是为了替换 full table scan，例如 index only scan，因为在 MySQL 中，</p>
 </li>
 </ul>
 <blockquote>
-<p>TODO: 调研回表的细节<br />
-TODO: 调研数据在算子之间怎么流动<br />
-TODO: filter index 和 index(filter) 的区别是什么</p>
+<p>表和index的存储都是使用的 btree, 表的scan有随机 IO 和 顺序 IO 的区别吗，表的数据是连续分布的吗，</p>
 </blockquote>
 <pre><code class="language-sql">
 explain format=tree SELECT  1 FROM t1 ;
@@ -560,7 +574,7 @@ explain format=tree SELECT c1, MIN(c4) FROM t1 where c1 &lt; 10 group by c1;
 
 </code></pre>
 <h3 id="groupindexskipscaniterator"><a class="header" href="#groupindexskipscaniterator">GroupIndexSkipScanIterator</a></h3>
-<p><a href="https://mp.weixin.qq.com/s/-V8jP75P4nMi8jFR_Y5oSQ">text</a></p>
+<p><a href="https://mp.weixin.qq.com/s/-V8jP75P4nMi8jFR_Y5oSQ">【GreatSQL优化器-18】GROUP_INDEX_SKIP_SCAN</a></p>
 <ul>
 <li>
 <p>针对于min/max 和 distinct 的特殊优化，利用的是 index 自身自带 sorted group 的特性，直接定位到具体的min max 值，无需进行额外得聚合操作</p>
@@ -582,7 +596,7 @@ explain format=tree SELECT distinct c1,c2 from t1;
 
 </code></pre>
 <h3 id="indexskipscaniterator"><a class="header" href="#indexskipscaniterator">IndexSkipScanIterator</a></h3>
-<p><a href="https://blog.csdn.net/GreatSQL2021/article/details/146198439"></a></p>
+<p><a href="https://blog.csdn.net/GreatSQL2021/article/details/146198439">【GreatSQL优化器-16】INDEX_SKIP_SCAN</a></p>
 <ul>
 <li>
 <p>针对查询条件不满足 index 的前导列，但是满足部分后续列的语句，虽然 index 前导列不满足条件，但是 index 中其他列在索引中是有顺序的，可以通过跳跃式扫描来减少扫描的无效行数。</p>
@@ -615,20 +629,21 @@ explain format=tree SELECT distinct c1,c2 from t1;
 <ul>
 <li>和 IndexRangeScanIterator 类似，但是是反向扫描，虽然功能类似，但是没有使用同一个类实现</li>
 </ul>
-<blockquote>
-<p>TODO: 调查这两个 迭代器的区别</p>
-</blockquote>
 <pre><code class="language-sql">EXPLAIN format=tree SELECT c1, c2 FROM t1 WHERE c1 &gt; 1 and c1 &lt; 10 order by c1 desc;
 | -&gt; Filter: ((t1.c1 &gt; 1) and (t1.c1 &lt; 10))  (cost=16.3 rows=80)
     -&gt; Covering index range scan on t1 using i1_t1 over (1 &lt; c1 &lt; 10) (reverse)  (cost=16.3 rows=80)
 </code></pre>
 <h3 id="dynamicrangeiterator"><a class="header" href="#dynamicrangeiterator">DynamicRangeIterator</a></h3>
+<p><a href="https://mp.weixin.qq.com/s/jurezPSDePrY9siYFPChvw">【GreatSQL优化器-17】DYNAMIC RANGE</a></p>
 <ul>
 <li>表上存在多个可用index，但是无法确定具体选择那个的时候，把选择延迟到具体执行的时候</li>
 <li>执行的时候，在 Init 中，每次根据具体的值判断选择那个 index，或者执行 full scan，换言之，他实际执行的scan方式是动态选择的</li>
 <li>每次 init ，表示这个迭代器只能出现在限定的地方，例如 nestloop join 的 outer，或者 subquery</li>
 </ul>
-<pre><code class="language-sql">create table t5(a int, b int, c int, d int, key(a),key(b),key(c));
+<pre><code class="language-sql">create table t5(a int, b int, c int, d int);
+create index idx_t5_1 on t5(a);
+create index idx_t5_2 on t5(b);
+create index idx_t5_3 on t5(c);
 create table t6(a int, b int, c int, d int);
 insert into t5 values(1,2,3,4);
 
@@ -638,8 +653,12 @@ explain format=tree  select * from t6 join t5 on true where t5.a = t6.a or t5.b 
     -&gt; Filter: ((t5.a = t6.a) or (t5.b = t6.b) or (t5.c = t6.c))  (cost=0.509 rows=2.59)
         -&gt; Index range scan on t5 (re-planned for each iteration)  (cost=0.509 rows=7)
 </code></pre>
+<blockquote>
+<p>TODO: 1. 优化器什么时候生成这个 Path<br />
+TODO: 2. 动态选择的具体过程</p>
+</blockquote>
 <h3 id="sort"><a class="header" href="#sort">sort</a></h3>
-<p><a href="https://blog.csdn.net/zxz1580977728/article/details/109394496">text</a></p>
+<p>Sort 在 SortingIterator::Init 的时候会读取下层迭代器，然后进行排序</p>
 <ul>
 <li>
 <p>SortBufferIterator</p>
@@ -670,9 +689,8 @@ explain format=tree  select * from t6 join t5 on true where t5.a = t6.a or t5.b 
 <blockquote>
 <p>TODO: 调查 sort 的具体实现，以及排序方式的具体选择方法</p>
 </blockquote>
-<h3 id="fakesinglerowiterator"><a class="header" href="#fakesinglerowiterator">FakeSingleRowIterator</a></h3>
 <h3 id="unqualifiedcountiterator"><a class="header" href="#unqualifiedcountiterator">UnqualifiedCountIterator</a></h3>
-<p><a href="https://www.cnblogs.com/huaweiyun/p/18322194">text</a></p>
+<p><a href="https://www.cnblogs.com/huaweiyun/p/18322194">MySQL的COUNT查询并行优化策略</a></p>
 <ul>
 <li>
 <p>innodb 使用并行实现一个 count 操作，但是由于具体实现实在 innodb 内部，所以针对这种场景进行特殊优化</p>
@@ -727,7 +745,7 @@ explain format=tree  select * from t6 join t5 on true where t5.a = t6.a or t5.b 
 <p>上位替代是 hash join</p>
 </li>
 <li>
-<p>从 <code>AccessPath::BKA_JOIN</code> 构建而来， 执行计划显式 <code>Batched key access </code>.</p>
+<p>从 <code>AccessPath::BKA_JOIN</code> 构建而来， 执行计划显式 <code>Batched key access </code>。当前它的inner侧限定为 mrr，这个迭代器无法独立存在</p>
 </li>
 </ul>
 <pre><code class="language-sql">explain format=tree select /*+ bka(t1)*/ * from t1 join t2 on t1.c1 = t2.a;
@@ -737,6 +755,10 @@ explain format=tree  select * from t6 join t5 on true where t5.a = t6.a or t5.b 
             -&gt; Table scan on t2  (cost=0.45 rows=2)
     -&gt; Multi-range index lookup on t1 using i1_t1 (c1=t2.a)  (cost=4.75 rows=80)
 </code></pre>
+<blockquote>
+<p>类似的另一种执行方式为 BNL，BNL 和 BKA 的区别是 BNL 是在 inner 没有index的时候使用的，批量化的访问inner,以减少交互次数，之前是因为 MySQL 没有实现 hashjoin，所以 BNL 还有点作用，但是有了
+hashjoin 之后，BNL 就变得鸡肋了，所以现在删除了 BNL，使用 hashjoin替代，具体可以看 UseHashJoin</p>
+</blockquote>
 <h3 id="multirangerowiterator"><a class="header" href="#multirangerowiterator">MultiRangeRowIterator</a></h3>
 <ul>
 <li>和 BKAIterator 绑定的迭代器，接受一个 outer 传递的 buffer，然后从 index 读取数据，获得对应的 rowid 之后，按照 pk 排序，把回表的随机 IO 转换为 顺序 IO</li>
@@ -747,12 +769,17 @@ explain format=tree  select * from t6 join t5 on true where t5.a = t6.a or t5.b 
 <p>RemoveDuplicatesIterator 通过维护缓存的分组字段值来检测重复行。当读取新行时，它会将当前行的分组字段值与之前缓存的值进行比较。如果值相同，则认为是重复行并跳过；如果不同，则更新缓存并返回该行。</p>
 </li>
 <li>
-<p>要求输入是已排序或者group的</p>
+<p>要求输入是已排序或者group的，所以 child 只能是 index 或者 groupagg</p>
 </li>
 <li>
 <p>由 <code>AccessPath::REMOVE_DUPLICATES</code> 构建而来，执行计划显式 <code>Remove duplicates from input grouped on</code></p>
 </li>
 </ul>
+<pre><code class="language-sql">EXPLAIN FORMAT=TREE SELECT DISTINCT a,a FROM t1 ORDER BY a;
+EXPLAIN
+-&gt; Remove duplicates from input grouped on t1.a  (rows=11)
+    -&gt; Covering index scan on t1 using PRIMARY  (rows=11)
+</code></pre>
 <h3 id="removeduplicatesonindexiterator"><a class="header" href="#removeduplicatesonindexiterator">RemoveDuplicatesOnIndexIterator</a></h3>
 <ul>
 <li>
@@ -782,19 +809,41 @@ EXPLAIN format=tree SELECT * FROM t1 WHERE t1.i IN (SELECT t2.i FROM t2);
 <h3 id="nestedloopsemijoinwithduplicateremovaliterator"><a class="header" href="#nestedloopsemijoinwithduplicateremovaliterator">NestedLoopSemiJoinWithDuplicateRemovalIterator</a></h3>
 <ul>
 <li>
-<p>JOIN_SEMI 的语义是返回满足条件的 outer 侧数据，即使 inner 有多条数据满足条件</p>
+<p>JOIN_SEMI 的语义是返回满足条件的 outer 侧数据，即使 inner 有多条数据满足条件，所以在执行中，在匹配一行之后，可以立刻终止 inner 侧的扫描，继续匹配下一个 outer</p>
 </li>
 <li>
-<p>在语义上等价于一个 semijoin NestedLoopIterator 紧接着一个 RemoveDuplicatesOnIndexIterator 的组合，主要用于处理包含多个表的半连接查询</p>
+<p>如果能确定 inner 是unique输出的，则可以把 semi join 优化为 inner join</p>
 </li>
 <li>
 <p>主要解决了一个性能优化问题：在传统的查询执行树中，去重操作需要放在半连接之上，因为第一个外表行不一定匹配内表的任何行。然而，这种方式是低效的，因为一旦找到匹配的外表/内表行对，应该停止扫描内表，直到有新的外表行。</p>
+<pre><code>-&gt; Nested loop join
+   -&gt; Table scan on t1
+   -&gt; Remove duplicates on t2_idx
+      -&gt; Nested loop semijoin
+         -&gt; Index scan on t2 using t2_idx
+         -&gt; Filter (e.g. t3.a = t2.a)
+            -&gt; Table scan on t3
+</code></pre>
 </li>
 <li>
 <p>使用这个迭代器，可以消除 semi join，转换为 inner join，例如下面例子中，t1 join (t3, t4) 原本逻辑上应该是 semi join，但是内部使用 NestedLoopSemiJoinWithDuplicateRemovalIterator 之后，没有重复行，所以无需使用 semi join</p>
 </li>
 </ul>
-<pre><code class="language-sql">EXPLAIN FORMAT=TREE SELECT * FROM t1 JOIN t2 ON t1.a = t2.b WHERE t2.b IN ( SELECT t3.b FROM t3 JOIN t4 ON t3.pk = t4.pk );
+<pre><code class="language-sql">
+DROP TABLE t1, t2, t3,t4;
+
+CREATE TABLE t1 (a INTEGER NOT NULL);
+INSERT INTO t1 VALUES (2),(2);
+CREATE TABLE t2 (b INTEGER);
+INSERT INTO t2 VALUES (2),(11),(11);
+CREATE TABLE t3 (b INTEGER,pk INTEGER);
+create index idx_t3_k on t3(b);
+INSERT INTO t3 VALUES (2,5);
+CREATE TABLE t4 (pk INTEGER NOT NULL);
+INSERT INTO t4 VALUES (5),(7);
+ANALYZE TABLE t1,t2,t3,t4;
+
+EXPLAIN FORMAT=TREE SELECT * FROM t1 JOIN t2 ON t1.a = t2.b WHERE t2.b IN ( SELECT t3.b FROM t3 JOIN t4 ON t3.pk = t4.pk );
 | -&gt; Inner hash join (t2.b = t1.a)  (cost=2 rows=2)
     -&gt; Table scan on t2  (cost=0.175 rows=3)
     -&gt; Hash
@@ -808,7 +857,7 @@ EXPLAIN format=tree SELECT * FROM t1 WHERE t1.i IN (SELECT t2.i FROM t2);
 <h3 id="weedoutiterator"><a class="header" href="#weedoutiterator">WeedoutIterator</a></h3>
 <ul>
 <li>
-<p>主要作用是避免 semijoin 使用物化操作，这里也需要物化，但是只是为了消除重复行，所以只需要记录 rowid 即可，无需保存完整数据</p>
+<p>主要作用是避免 semijoin 使用物化操作，这里也需要物化，但是只是为了消除重复行，所以只需要记录 rowid 即可，无需保存完整数据，使用流式操作的方式去重</p>
 </li>
 <li>
 <p>NestedLoopSemiJoinWithDuplicateRemovalIterator 无法使用得情况下，才使用这个操作</p>
@@ -981,56 +1030,51 @@ EXPLAIN FORMAT=tree delete  from t1;
 </code></pre>
 <h2 id="the-end"><a class="header" href="#the-end">The end</a></h2>
 <p>对于SQL而言，逻辑算子是确定的，一条语句基本可以唯一对应棵逻辑树；但是具体到执行阶段，一个逻辑算子可能对应多种物理实现，
-例如对于 table 来说，除了最基础的 seqscan 之外，我们还可以使用 index 加速查询。对于 join 来说，主流的物理算子有 nestloop join，
+例如对于 table 来说，除了最基础的 seqscan 之外，我们还可以使用 index 加速查询。对于 join 来说，主要的物理算子有 nestloop join，
 merge join，hash join 等</p>
-<p>MySQL 当前共有 55 中迭代器，但是部分迭代器是相互绑定的，无法独立使用，例如 CacheInvalidatorIterator 必须依赖于 MaterializeIterator，还有的是为了
-实现某些特定的优化，例如 Count(*)，有专用的 UnqualifiedCountIterator；另外就是功能上较为分散，迭代器功能实现不单一，有的迭代器实现中还关联一些其他迭代器的实现</p>
-<p>总之不熟悉的人无法就执行计划具体看出语句的实际执行情况。总结下来存在几个问题</p>
+<p>MySQL 当前共有 55 中迭代器，但是部分迭代器是相互绑定的，无法独立使用，例如 CacheInvalidatorIterator 必须依赖于 MaterializeIterator，MultiRangeRowIterator 无法独立于BKAIterator而存在；还有的是为了
+实现某些特定的优化，例如 Count(*)，有专用的 UnqualifiedCountIterator；再有就是有的迭代器只是为了限定某种SQL pattern，例如 NestedLoopSemiJoinWithDuplicateRemovalIterator；</p>
+<p>总结下来，还是存在一些问题：</p>
 <ol>
-<li>功能设计过于分散，没有统一的标准，导致理解困难</li>
-<li>迭代器之间的依赖关系复杂，有的迭代器需要依赖其他迭代器，无法独立存在</li>
-<li>存在一些特殊优化，导致部分迭代器没有通用性，只能限定在部分场景下使用</li>
+<li>功能设计过于分散，导致理解过于困难，例如没有显式指定每个迭代器的返回的数据，而是依赖于当前迭代器所处的 TABLE 的上下文中。</li>
+<li>迭代器之间的依赖关系复杂，有的迭代器需要依赖其他迭代器，或者迭代器执行的不是explain显式的，或者功能相近的使用不同的迭代器实现，某个特殊优化，使用单独的迭代器实现。</li>
 <li>表达式运算架构复杂，且运算中无关操作太多，导致表达式运算有较大的性能问题，无法用于 AP 场景
 <ul>
-<li>MySQL 的表达式实现被<a href="https://zhuanlan.zhihu.com/p/376227899">公开批斗</a>，TPCH Q1 是典型的AP场景，表达式的实际计算占比不足10%</li>
-<li>MySQL TPCH Q1 在总的TPCH语句中占比为 13.77%，而 pg 的占比只有 2.16%，这说明 MySQL 的表达式实现还有优化空间
-<ul>
-<li>相比之下，pg 的子查询还需要进行优化，</li>
-</ul>
-</li>
+<li>MySQL 的表达式实现被<a href="https://zhuanlan.zhihu.com/p/376227899">公开批斗</a>，TPCH Q1 是典型的AP场景，表达式的实际计算在Q1中占比不足10%</li>
+<li>MySQL TPCH Q1 在总的TPCH语句中占比为 13.77%，而 pg 的占比只有 2.16%，这说明 MySQL 的表达式实现还有优化空间</li>
 </ul>
 </li>
 </ol>
-<p><img src="https://youke1.picui.cn/s1/2025/07/18/6879fd88356bb.png" alt="alt text" /></p>
+<p><img src="./images/itemofmysql.png" alt="alt text" /></p>
 <pre><code>
 https://github.com/digoal/blog/blob/307dbe4a3fb2a9f800a09a5402f9782bff1172f1/202405/20240525_01.md
 
 https://bbkv6krkep.feishu.cn/wiki/ClpKwq4nMiqU91kfWUbccvCXn9b
 
-    MySQL 8032 sf=100      pg 14.2 sf = 20
-Q1  1082.89    |    20  |	162.633          Time: 60317.546 ms (01:00.318)  
-Q2  161.951    |    13 |	894.933          Time: 88929.610 ms (01:28.930)  
-Q3  334.043    |    17|	43.552          Time: 32596.940 ms (00:32.597)  
-Q4  101.223    |    16 |	14.084          Time: 48620.736 ms (00:48.621)  
-Q5  198.459    |    10 |	46.459          Time: 55727.432 ms (00:55.727)  
-Q6  200.663    |    2 |	28.383          Time: 207391.359 ms (03:27.391)  
-Q7  169.708    |    21  |	86.762          Time: 27132.845 ms (00:27.133)  
-Q8  460.922    |    11  |	68.929          Time: 117553.008 ms (01:57.553)  
-Q9  1044.799   |    37  |	72.851          Time: 829795.748 ms (13:49.796)  
-Q10 708.707    |    15  |	158.35          Time: 45392.179 ms (00:45.392)  
-Q11 41.389     |    12 |	21.465          Time: 32471.915 ms (00:32.472)  
-Q12 276.111    |    20 |	42.711          Time: 25439.356 ms (00:25.439)  
-Q13 507.158    |    17 |	56.275          Time: 22745.637 ms (00:22.746)  
-Q14 240.353    |    5 |	115.228          Time: 153935.888 ms (02:33.936)  
-Q15 702.478    |    4 |	45.295          Time: 124949.464 ms (02:04.949)  
-Q16 41.016     |    21 |	42.947          Time: 12197.386 ms (00:12.197)  
-Q17 31.761     |    15 |	10.935          Time: 14841.749 ms (00:14.842)  
-Q18 271.464    |    19  |	375.221          Time: 42511.465 ms (00:42.511)  
-Q19 24.347     |    11 |	10.685          Time: 38056.589 ms (00:38.057)  
-Q20 147.665    |    17  |	11.367          Time: 505946.346 ms (08:25.946)  
-Q21 1093.338   |    35  |	44.189          Time: 302506.388 ms (05:02.506)  
-Q22 19.613     |    11  |	15.214          Time: 1880.400 ms (00:01.880)  
-    7860.058                                 2790939.986
+    MySQL 8032 sf=100                          pg 14.2 sf = 20
+Q1  1082.89    |    20  |    162.633            Time: 60317.546 ms (01:00.318)  
+Q2  161.951    |    13  |    894.933            Time: 88929.610 ms (01:28.930)  
+Q3  334.043    |    17  |    43.552             Time: 32596.940 ms (00:32.597)  
+Q4  101.223    |    16  |    14.084             Time: 48620.736 ms (00:48.621)  
+Q5  198.459    |    10  |    46.459             Time: 55727.432 ms (00:55.727)  
+Q6  200.663    |    2   |    28.383             Time: 207391.359 ms (03:27.391)  
+Q7  169.708    |    21  |    86.762             Time: 27132.845 ms (00:27.133)  
+Q8  460.922    |    11  |    68.929             Time: 117553.008 ms (01:57.553)  
+Q9  1044.799   |    37  |    72.851             Time: 829795.748 ms (13:49.796)  
+Q10 708.707    |    15  |    158.35             Time: 45392.179 ms (00:45.392)  
+Q11 41.389     |    12  |    21.465             Time: 32471.915 ms (00:32.472)  
+Q12 276.111    |    20  |    42.711             Time: 25439.356 ms (00:25.439)  
+Q13 507.158    |    17  |    56.275             Time: 22745.637 ms (00:22.746)  
+Q14 240.353    |    5   |    115.228            Time: 153935.888 ms (02:33.936)  
+Q15 702.478    |    4   |    45.295             Time: 124949.464 ms (02:04.949)  
+Q16 41.016     |    21  |    42.947             Time: 12197.386 ms (00:12.197)  
+Q17 31.761     |    15  |    10.935             Time: 14841.749 ms (00:14.842)  
+Q18 271.464    |    19  |    375.221            Time: 42511.465 ms (00:42.511)  
+Q19 24.347     |    11  |    10.685             Time: 38056.589 ms (00:38.057)  
+Q20 147.665    |    17  |    11.367             Time: 505946.346 ms (08:25.946)  
+Q21 1093.338   |    35  |    44.189             Time: 302506.388 ms (05:02.506)  
+Q22 19.613     |    11  |    15.214             Time: 1880.400 ms (00:01.880)  
+    7860.058                                    2790939.986
 </code></pre>
 <hr>
 <ol class="footnote-definition"><li id="footnote-Iteator">

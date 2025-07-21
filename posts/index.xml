@@ -1539,4 +1539,4 @@ args = List with 2 elements = {
 0 = [varno: 1, varattno: 1, vartype: 23, vartypmod: -1, varcollid: 0, varlevelsup: 0, varnosyn: 1, varattnosyn: 1],
 1 = [varno: 1, varattno: 1, vartype: 23, vartypmod: -1, varcollid: 0, varlevelsup: 1, varnosyn: 1, varattnosyn: 1]
 }
-}&lt;/p></description></item><item><title/><link>https://askyx.github.io/posts/static/mysql/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://askyx.github.io/posts/static/mysql/</guid><description/></item></channel></rss>
+}&lt;/p></description></item></channel></rss>

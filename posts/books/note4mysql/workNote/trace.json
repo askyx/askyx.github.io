@@ -1,0 +1,308 @@
+trace: {
+  "steps": [
+    {
+      "join_preparation": {
+        "select#": 1,
+        "steps": [
+          {
+            "join_preparation": {
+              "select#": 2,
+              "steps": [
+                {
+                  "IN_uses_bisection": true
+                },
+                {
+                  "expanded_query": "/* select#2 */ select `t1`.`a` AS `a` from `t1` where (`t1`.`a` in (146,150,151))"
+                }
+              ]
+            }
+          },
+          {
+            "derived": {
+              "table": " `t1`",
+              "select#": 2,
+              "materialized": true
+            }
+          },
+          {
+            "expanded_query": "/* select#1 */ select `t1`.`a` AS `a`,`t2`.`a` AS `a` from ((/* select#2 */ select `t1`.`a` AS `a` from `t1` where (`t1`.`a` in (146,150,151))) `t1` full join `t2` on((`t1`.`a` = `t2`.`a`))) where (`t1`.`a` is not null)"
+          },
+          {
+            "transformations_to_nested_joins": {
+              "transformations": [
+                "parenthesis_removal"
+              ],
+              "expanded_query": "/* select#1 */ select `t1`.`a` AS `a`,`t2`.`a` AS `a` from (/* select#2 */ select `t1`.`a` AS `a` from `t1` where (`t1`.`a` in (146,150,151))) `t1` full join `t2` on((`t1`.`a` = `t2`.`a`)) where (`t1`.`a` is not null)"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "join_optimization": {
+        "select#": 1,
+        "steps": [
+          {
+            "join_optimization": {
+              "select#": 2,
+              "steps": [
+                {
+                  "condition_processing": {
+                    "condition": "WHERE",
+                    "original_condition": "(`t1`.`a` in (146,150,151))",
+                    "steps": [
+                      {
+                        "transformation": "equality_propagation",
+                        "resulting_condition": "(`t1`.`a` in (146,150,151))"
+                      },
+                      {
+                        "transformation": "constant_propagation",
+                        "resulting_condition": "(`t1`.`a` in (146,150,151))"
+                      },
+                      {
+                        "transformation": "trivial_condition_removal",
+                        "resulting_condition": "(`t1`.`a` in (146,150,151))"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "substitute_generated_columns": {
+                  }
+                },
+                {
+                  "table_dependencies": [
+                    {
+                      "table": "`t1`",
+                      "row_may_be_null": false,
+                      "map_bit": 0,
+                      "depends_on_map_bits": [
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "ref_optimizer_key_uses": [
+                  ]
+                },
+                {
+                  "rows_estimation": [
+                    {
+                      "table": "`t1`",
+                      "table_scan": {
+                        "rows": 1,
+                        "cost": 0.25
+                      }
+                    }
+                  ]
+                },
+                {
+                  "considered_execution_plans": [
+                    {
+                      "plan_prefix": [
+                      ],
+                      "table": "`t1`",
+                      "best_access_path": {
+                        "considered_access_paths": [
+                          {
+                            "rows_to_scan": 1,
+                            "filtering_effect": [
+                            ],
+                            "final_filtering_effect": 1,
+                            "access_type": "scan",
+                            "resulting_rows": 1,
+                            "cost": 0.35,
+                            "chosen": true
+                          }
+                        ]
+                      },
+                      "condition_filtering_pct": 100,
+                      "rows_for_plan": 1,
+                      "cost_for_plan": 0.35,
+                      "chosen": true
+                    }
+                  ]
+                },
+                {
+                  "attaching_conditions_to_tables": {
+                    "original_condition": "(`t1`.`a` in (146,150,151))",
+                    "attached_conditions_computation": [
+                    ],
+                    "attached_conditions_summary": [
+                      {
+                        "table": "`t1`",
+                        "attached": "(`t1`.`a` in (146,150,151))"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "finalizing_table_conditions": [
+                    {
+                      "table": "`t1`",
+                      "original_table_condition": "(`t1`.`a` in (146,150,151))",
+                      "final_table_condition   ": "(`t1`.`a` in (146,150,151))"
+                    }
+                  ]
+                },
+                {
+                  "refine_plan": [
+                    {
+                      "table": "`t1`"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "condition_processing": {
+              "condition": "WHERE",
+              "original_condition": "(`t1`.`a` is not null)",
+              "steps": [
+                {
+                  "transformation": "constant_propagation",
+                  "resulting_condition": "(`t1`.`a` is not null)"
+                }
+              ]
+            }
+          },
+          {
+            "substitute_generated_columns": {
+            }
+          },
+          {
+            "table_dependencies": [
+              {
+                "table": " `t1`",
+                "row_may_be_null": true,
+                "map_bit": 0,
+                "depends_on_map_bits": [
+                ]
+              },
+              {
+                "table": "`t2`",
+                "row_may_be_null": true,
+                "map_bit": 1,
+                "depends_on_map_bits": [
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "ref_optimizer_key_uses": [
+            ]
+          },
+          {
+            "rows_estimation": [
+              {
+                "table": " `t1`",
+                "table_scan": {
+                  "rows": 2,
+                  "cost": 2.525
+                }
+              },
+              {
+                "table": "`t2`",
+                "table_scan": {
+                  "rows": 1,
+                  "cost": 0.25
+                }
+              }
+            ]
+          },
+          {
+            "considered_execution_plans": [
+              {
+                "plan_prefix": [
+                ],
+                "table": " `t1`",
+                "best_access_path": {
+                  "considered_access_paths": [
+                    {
+                      "rows_to_scan": 2,
+                      "filtering_effect": [
+                      ],
+                      "final_filtering_effect": 0.5,
+                      "access_type": "scan",
+                      "resulting_rows": 1,
+                      "cost": 2.725,
+                      "chosen": true
+                    }
+                  ]
+                },
+                "condition_filtering_pct": 100,
+                "rows_for_plan": 1,
+                "cost_for_plan": 2.725
+              },
+              {
+                "plan_prefix": [
+                  " `t1`"
+                ],
+                "table": "`t2`",
+                "best_access_path": {
+                  "considered_access_paths": [
+                    {
+                      "rows_to_scan": 1,
+                      "access_type": "scan",
+                      "using_join_cache": true,
+                      "buffers_needed": 1,
+                      "resulting_rows": 1,
+                      "cost": 0.350006,
+                      "chosen": true
+                    }
+                  ]
+                },
+                "condition_filtering_pct": 100,
+                "rows_for_plan": 1,
+                "cost_for_plan": 3.07501
+              }
+            ]
+          },
+          {
+            "attaching_conditions_to_tables": {
+              "original_condition": "(`t1`.`a` is not null)",
+              "attached_conditions_computation": [
+              ],
+              "attached_conditions_summary": [
+                {
+                  "table": " `t1`",
+                  "attached": "(`t1`.`a` is not null)"
+                },
+                {
+                  "table": "`t2`",
+                  "attached": "<if>(is_not_null_compl(t2), (`t1`.`a` = `t2`.`a`), true)"
+                }
+              ]
+            }
+          },
+          {
+            "finalizing_table_conditions": [
+              {
+                "table": " `t1`",
+                "original_table_condition": "(`t1`.`a` is not null)",
+                "final_table_condition   ": "(`t1`.`a` is not null)"
+              },
+              {
+                "table": "`t2`",
+                "original_table_condition": "<if>(is_not_null_compl(t2), (`t1`.`a` = `t2`.`a`), true)",
+                "final_table_condition   ": "<if>(is_not_null_compl(t2), (`t1`.`a` = `t2`.`a`), true)"
+              }
+            ]
+          },
+          {
+            "refine_plan": [
+              {
+                "table": " `t1`"
+              },
+              {
+                "table": "`t2`"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

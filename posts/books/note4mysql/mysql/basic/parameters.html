@@ -1,0 +1,401 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>MySQL参数实现 - mysql_internal</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">mysql_internal</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h2 id="mysql参数"><a class="header" href="#mysql参数">MySQL参数</a></h2>
+<ul>
+<li>
+<p>ref https://dev.mysql.com/doc/refman/8.4/en/server-system-variables.html</p>
+</li>
+<li>
+<p>变量</p>
+<ul>
+<li>分为不同作用域
+<ul>
+<li>编译时设置</li>
+<li>初始化时设置</li>
+<li>需要重启</li>
+<li>需要</li>
+</ul>
+</li>
+<li>分为 global和local
+<ul>
+<li>当前 session 的值是创建链接时从全局变量设置的，运行时使用的session变量</li>
+<li>session 变量</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>部分参数定义类似 pg，这部分 MySQL 称之为 VARIABLES，可以使用 'select @@[global|session].variable_name' 查询参数</p>
+</li>
+<li>
+<p>MySQL还存在一些反应系统状态的参数，MySQL 称之为 STATUS</p>
+<ul>
+<li>都可以使用语句 <code>show [global|local] [variables|status] [like 'pattern']</code> 来查询</li>
+</ul>
+</li>
+<li>
+<p>参数存在全局和local的区别，local参数只对当前会话有效，全局参数对所有会话有效</p>
+</li>
+</ul>
+<p>show variables like '%optimizer_switch%';
+show global variables like '%optimizer_switch%';</p>
+<ul>
+<li>实际是一条select 语句，读取的 pfs 中</li>
+</ul>
+<p>QS:</p>
+<ul>
+<li>变量的内部管理机制
+<ul>
+<li>每一个参数都是静态变量，使用下面两个 hash 表管理
+<ul>
+<li>dynamic_system_variable_hash
+<ul>
+<li>动态参数，插件内部定义的值，使用这个 map 管理，对外不区分使用方法</li>
+</ul>
+</li>
+<li>static_system_variable_hash
+<ul>
+<li>MySQL 内部参数，例如优化器参数</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>intern_find_sys_var 的使用，使用 name 去找具体的参数</li>
+<li>没有直接使用这两个hash表保存具体的参数，而是使用 System_variables 保存具体的参数
+<ul>
+<li>global_system_variables 是全局变量，保存的是全局参数</li>
+<li>thd-&gt;variables 是 session 变量，保存的是当前会话参数</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>新链接的时候，session 变量的初始化过程
+<ul>
+<li>在 THD 初始化的时候，在函数 plugin_thdvar_init 中，把 global_system_variables 复制给 thd-&gt;variables，然后再微调部分参数</li>
+</ul>
+</li>
+<li>设置值的时候，具体的操作步骤
+<ul>
+<li>使用 find_static_system_variable 和 find_static_system_variable 按名字查找 var</li>
+<li>每一个参数是 继承自 sys_var 的子类
+<ul>
+<li>修改 global 的时候，调用的是 global_update， 修改的是 global_system_variables</li>
+<li>修改 session 的时候，调用的是 session_update， 修改的是 thd-&gt;variables</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>使用的时候，使用的值
+<ul>
+<li>无论什么时候，都是使用 thd-&gt;variables 的值，所以在修改参数的时候，如果修改的是 global 的值，已经启动的会话是不受影响的，除非重启会话</li>
+</ul>
+</li>
+</ul>
+<p>set global optimizer_switch='index_merge=off';</p>
+<p>optimizer相关参数</p>
+<pre><code class="language-shell">index_merge=on,
+index_merge_union=on,
+index_merge_sort_union=on,
+index_merge_intersection=on,
+engine_condition_pushdown=on,
+index_condition_pushdown=on,
+mrr=on,
+mrr_cost_based=on,
+block_nested_loop=on,
+batched_key_access=off,
+materialization=on,
+semijoin=on,
+loosescan=on,
+firstmatch=on,
+duplicateweedout=on,
+subquery_materialization_cost_based=on,
+use_index_extensions=on,
+condition_fanout_filter=on,
+derived_merge=on,
+use_invisible_indexes=on,
+skip_scan=on,
+hash_join=on,
+subquery_to_derived=off,
+prefer_ordering_index=on,
+hypergraph_optimizer=off,
+derived_condition_pushdown=on,
+favor_range_scan=off,
+remove_useless_outerjoin=off
+
+</code></pre>
+<pre><code class="language-c++">#define PLUGIN_VAR_UNSIGNED 0x0080  /**&lt; The variable is unsigned */
+#define PLUGIN_VAR_THDLOCAL 0x0100  /**&lt; Variable is per-connection */
+#define PLUGIN_VAR_READONLY 0x0200  /**&lt; Server variable is read only */
+#define PLUGIN_VAR_NOSYSVAR 0x0400  /**&lt; Not a server variable */
+#define PLUGIN_VAR_NOCMDOPT 0x0800  /**&lt; Not a command line option */
+#define PLUGIN_VAR_NOCMDARG 0x1000  /**&lt; No argument for cmd line */
+#define PLUGIN_VAR_RQCMDARG 0x0000  /**&lt; Argument required for cmd line */
+#define PLUGIN_VAR_OPCMDARG 0x2000  /**&lt; Argument optional for cmd line */
+#define PLUGIN_VAR_NODEFAULT 0x4000 /**&lt; SET DEFAULT is prohibited */
+#define PLUGIN_VAR_MEMALLOC 0x8000  /**&lt; String needs memory allocated */
+#define PLUGIN_VAR_NOPERSIST \
+  0x10000 /**&lt; SET PERSIST_ONLY is prohibited for read only variables */
+#define PLUGIN_VAR_PERSIST_AS_READ_ONLY 0x20000
+#define PLUGIN_VAR_INVISIBLE 0x40000 /**&lt; Variable should not be shown */
+#define PLUGIN_VAR_SENSITIVE 0x80000 /**&lt; Sensitive variable */
+/**
+  This flag enables variables to be recognized by SET_VAR() HINT. Should
+  be used only THDVAR() variables, ie variables which have session scope.
+ */
+#define PLUGIN_VAR_HINTUPDATEABLE 0x100000
+</code></pre>
+<pre><code class="language-shell">19 个结果 - 2 文件
+
+sql/sql_plugin_var.h:
+  211: class sys_var_pluginvar : public sys_var 
+
+sql/sys_vars.h:
+   198: class Sys_var_integer : public sys_var 
+   358: class Sys_var_alias : public sys_var 
+   577: class Sys_var_typelib : public sys_var 
+   772: class Sys_var_multi_enum : public sys_var 
+  1049: class Sys_var_charptr : public sys_var 
+  1192: class Sys_var_proxy_user : public sys_var 
+  1331: class Sys_var_dbug : public sys_var 
+  1515: class Sys_var_double : public sys_var 
+  1864: class Sys_var_plugin : public sys_var 
+  1979: class Sys_var_debug_sync : public sys_var 
+  2250: class Sys_var_have : public sys_var 
+  2350: class Sys_var_struct : public sys_var 
+  2431: class Sys_var_tz : public sys_var 
+  2567: class Sys_var_gtid_next : public sys_var 
+  2632: class Sys_var_gtid_set : public sys_var 
+  2713: class Sys_var_charptr_func : public sys_var 
+  2814: class Sys_var_gtid_purged : public sys_var 
+  3004: class Sys_var_errors_set : public sys_var 
+
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../mysql/basic/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../internal/optimizer/all.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../mysql/basic/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../internal/optimizer/all.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

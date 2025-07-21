@@ -1,0 +1,475 @@
+trace: {
+  "steps": [
+    {
+      "join_preparation": {
+        "select#": 1,
+        "steps": [
+          {
+            "join_preparation": {
+              "select#": 2,
+              "steps": [
+                {
+                  "join_preparation": {
+                    "select#": 4,
+                    "steps": [
+                      {
+                        "expanded_query": "/* select#4 */ select `t1`.`a` AS `a` from `t1`"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "derived": {
+                    "table": "`` `x`",
+                    "select#": 4,
+                    "merged": true
+                  }
+                },
+                {
+                  "join_preparation": {
+                    "select#": 3,
+                    "steps": [
+                      {
+                        "expanded_query": "/* select#3 */ select sum(`t1`.`b`) from `t1`"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "expanded_query": "/* select#2 */ select count(`t1`.`a`) AS `x1`,(/* select#3 */ select sum(`t1`.`b`) from `t1`) AS `x2` from (`t1`)"
+                },
+                {
+                  "join_preparation": {
+                    "select#": 5,
+                    "steps": [
+                      {
+                        "expanded_query": "/* select#5 */ select count(`t1`.`a`) AS `x1` from (`t1`)"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "derived": {
+                    "table": " `derived_2_5`",
+                    "select#": 5,
+                    "materialized": true
+                  }
+                },
+                {
+                  "transformation": {
+                    "select#": 2,
+                    "from": "grouped subquery",
+                    "to": "subquery over grouped derived table",
+                    "expanded_query": "/* select#2 */ select `derived_2_5`.`x1` AS `x1`,(/* select#6 */ select sum(`t1`.`b`) from `t1`) AS `x2` from (/* select#5 */ select count(`t1`.`a`) AS `x1` from (`t1`)) `derived_2_5`"
+                  }
+                },
+                {
+                  "derived": {
+                    "table": " `derived_2_6`",
+                    "select#": 6,
+                    "materialized": true
+                  }
+                },
+                {
+                  "transformation": {
+                    "select#": 6,
+                    "from": "scalar subquery",
+                    "to": "derived table",
+                    "expanded_query": "/* select#2 */ select `derived_2_5`.`x1` AS `x1`,`derived_2_6`.`sum(b)` AS `x2` from ((/* select#5 */ select count(`t1`.`a`) AS `x1` from (`t1`)) `derived_2_5` left join (/* select#6 */ select sum(`t1`.`b`) AS `sum(b)` from `t1`) `derived_2_6` on(true))"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "derived": {
+              "table": "`` `alias_temp_101431754417504260`",
+              "select#": 2,
+              "merged": true
+            }
+          },
+          {
+            "expanded_query": "/* select#1 */ select 1 AS `1` from (((/* select#5 */ select count(`t1`.`a`) AS `x1` from (`t1`)) `derived_2_5` left join (/* select#6 */ select sum(`t1`.`b`) AS `sum(b)` from `t1`) `derived_2_6` on(true)))"
+          },
+          {
+            "transformations_to_nested_joins": {
+              "transformations": [
+                "parenthesis_removal"
+              ],
+              "expanded_query": "/* select#5 */ select count(`t1`.`a`) AS `x1` from `t1`"
+            }
+          },
+          {
+            "transformations_to_nested_joins": {
+              "transformations": [
+                "parenthesis_removal"
+              ],
+              "expanded_query": "/* select#1 */ select 1 AS `1` from (/* select#5 */ select count(`t1`.`a`) AS `x1` from `t1`) `derived_2_5` left join (/* select#6 */ select sum(`t1`.`b`) AS `sum(b)` from `t1`) `derived_2_6` on(true)"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "join_optimization": {
+        "select#": 1,
+        "steps": [
+          {
+            "join_optimization": {
+              "select#": 5,
+              "steps": [
+                {
+                  "table_dependencies": [
+                    {
+                      "table": "`t1`",
+                      "row_may_be_null": false,
+                      "map_bit": 0,
+                      "depends_on_map_bits": [
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "rows_estimation": [
+                    {
+                      "table": "`t1`",
+                      "table_scan": {
+                        "rows": 1,
+                        "cost": 0.25
+                      }
+                    }
+                  ]
+                },
+                {
+                  "considered_execution_plans": [
+                    {
+                      "plan_prefix": [
+                      ],
+                      "table": "`t1`",
+                      "best_access_path": {
+                        "considered_access_paths": [
+                          {
+                            "rows_to_scan": 1,
+                            "access_type": "scan",
+                            "resulting_rows": 1,
+                            "cost": 0.35,
+                            "chosen": true
+                          }
+                        ]
+                      },
+                      "condition_filtering_pct": 100,
+                      "rows_for_plan": 1,
+                      "cost_for_plan": 0.35,
+                      "chosen": true
+                    }
+                  ]
+                },
+                {
+                  "attaching_conditions_to_tables": {
+                    "original_condition": null,
+                    "attached_conditions_computation": [
+                    ],
+                    "attached_conditions_summary": [
+                      {
+                        "table": "`t1`",
+                        "attached": null
+                      }
+                    ]
+                  }
+                },
+                {
+                  "optimizing_distinct_group_by_order_by": {
+                  }
+                },
+                {
+                  "finalizing_table_conditions": [
+                  ]
+                },
+                {
+                  "refine_plan": [
+                    {
+                      "table": "`t1`"
+                    }
+                  ]
+                },
+                {
+                  "considering_tmp_tables": [
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "creating_tmp_table": {
+              "tmp_table_info": {
+                "table": "derived_2_5",
+                "columns": 1,
+                "row_length": 9,
+                "key_length": 0,
+                "unique_constraint": false,
+                "makes_grouped_rows": false,
+                "cannot_insert_duplicates": false,
+                "location": "TempTable"
+              }
+            }
+          },
+          {
+            "join_execution": {
+              "select#": 5,
+              "steps": [
+              ]
+            }
+          },
+          {
+            "join_optimization": {
+              "select#": 6,
+              "steps": [
+                {
+                  "table_dependencies": [
+                    {
+                      "table": "`t1`",
+                      "row_may_be_null": false,
+                      "map_bit": 0,
+                      "depends_on_map_bits": [
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "rows_estimation": [
+                    {
+                      "table": "`t1`",
+                      "table_scan": {
+                        "rows": 1,
+                        "cost": 0.25
+                      }
+                    }
+                  ]
+                },
+                {
+                  "considered_execution_plans": [
+                    {
+                      "plan_prefix": [
+                      ],
+                      "table": "`t1`",
+                      "best_access_path": {
+                        "considered_access_paths": [
+                          {
+                            "rows_to_scan": 1,
+                            "access_type": "scan",
+                            "resulting_rows": 1,
+                            "cost": 0.35,
+                            "chosen": true
+                          }
+                        ]
+                      },
+                      "condition_filtering_pct": 100,
+                      "rows_for_plan": 1,
+                      "cost_for_plan": 0.35,
+                      "chosen": true
+                    }
+                  ]
+                },
+                {
+                  "attaching_conditions_to_tables": {
+                    "original_condition": null,
+                    "attached_conditions_computation": [
+                    ],
+                    "attached_conditions_summary": [
+                      {
+                        "table": "`t1`",
+                        "attached": null
+                      }
+                    ]
+                  }
+                },
+                {
+                  "optimizing_distinct_group_by_order_by": {
+                  }
+                },
+                {
+                  "finalizing_table_conditions": [
+                  ]
+                },
+                {
+                  "refine_plan": [
+                    {
+                      "table": "`t1`"
+                    }
+                  ]
+                },
+                {
+                  "considering_tmp_tables": [
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "creating_tmp_table": {
+              "tmp_table_info": {
+                "table": "derived_2_6",
+                "columns": 1,
+                "row_length": 16,
+                "key_length": 0,
+                "unique_constraint": false,
+                "makes_grouped_rows": false,
+                "cannot_insert_duplicates": false,
+                "location": "TempTable"
+              }
+            }
+          },
+          {
+            "join_execution": {
+              "select#": 6,
+              "steps": [
+              ]
+            }
+          },
+          {
+            "condition_processing": {
+              "condition": "WHERE",
+              "original_condition": null,
+              "steps": [
+                {
+                  "transformation": "equality_propagation",
+                  "resulting_condition": null
+                }
+              ]
+            }
+          },
+          {
+            "table_dependencies": [
+              {
+                "table": " `derived_2_5`",
+                "row_may_be_null": false,
+                "map_bit": 0,
+                "depends_on_map_bits": [
+                ]
+              },
+              {
+                "table": " `derived_2_6`",
+                "row_may_be_null": true,
+                "map_bit": 1,
+                "depends_on_map_bits": [
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "ref_optimizer_key_uses": [
+            ]
+          },
+          {
+            "rows_estimation": [
+              {
+                "table": " `derived_2_5`",
+                "table_scan": {
+                  "rows": 1,
+                  "cost": 2.5125
+                }
+              },
+              {
+                "table": " `derived_2_6`",
+                "table_scan": {
+                  "rows": 1,
+                  "cost": 2.5125
+                }
+              }
+            ]
+          },
+          {
+            "considered_execution_plans": [
+              {
+                "plan_prefix": [
+                ],
+                "table": " `derived_2_5`",
+                "best_access_path": {
+                  "considered_access_paths": [
+                    {
+                      "rows_to_scan": 1,
+                      "access_type": "scan",
+                      "resulting_rows": 1,
+                      "cost": 2.6125,
+                      "chosen": true
+                    }
+                  ]
+                },
+                "condition_filtering_pct": 100,
+                "rows_for_plan": 1,
+                "cost_for_plan": 2.6125,
+                "rest_of_plan": [
+                  {
+                    "plan_prefix": [
+                      " `derived_2_5`"
+                    ],
+                    "table": " `derived_2_6`",
+                    "best_access_path": {
+                      "considered_access_paths": [
+                        {
+                          "rows_to_scan": 1,
+                          "access_type": "scan",
+                          "using_join_cache": true,
+                          "buffers_needed": 1,
+                          "resulting_rows": 1,
+                          "cost": 2.61258,
+                          "chosen": true
+                        }
+                      ]
+                    },
+                    "condition_filtering_pct": 100,
+                    "rows_for_plan": 1,
+                    "cost_for_plan": 5.22508,
+                    "chosen": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "condition_on_constant_tables": "true",
+            "condition_value": true
+          },
+          {
+            "attaching_conditions_to_tables": {
+              "original_condition": "true",
+              "attached_conditions_computation": [
+              ],
+              "attached_conditions_summary": [
+                {
+                  "table": " `derived_2_5`",
+                  "attached": null
+                },
+                {
+                  "table": " `derived_2_6`",
+                  "attached": "<if>(is_not_null_compl(derived_2_6), true, true)"
+                }
+              ]
+            }
+          },
+          {
+            "finalizing_table_conditions": [
+              {
+                "table": " `derived_2_6`",
+                "original_table_condition": "<if>(is_not_null_compl(derived_2_6), true, true)",
+                "final_table_condition   ": "<if>(is_not_null_compl(derived_2_6), true, true)"
+              }
+            ]
+          },
+          {
+            "refine_plan": [
+              {
+                "table": " `derived_2_5`"
+              },
+              {
+                "table": " `derived_2_6`"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
+1 row in set (1.47 sec)

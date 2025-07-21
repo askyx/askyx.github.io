@@ -1,0 +1,390 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>parser - mysql_internal</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">mysql_internal</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="parser"><a class="header" href="#parser">parser</a></h1>
+<ol>
+<li>解析SQL语句，生成 PT_xx AST 树</li>
+<li>紧接着使用 do_contextualize 转换为 Query_block tree</li>
+<li>之后生成 Sql_cmd，这是最终运行时的一个包装类，主要包含一个 Query_result</li>
+</ol>
+<ul>
+<li>怎么理解，和 pg 的portal有啥联系</li>
+</ul>
+<h2 id="怎么理解-query_expression-和-query_block-组合的逻辑树"><a class="header" href="#怎么理解-query_expression-和-query_block-组合的逻辑树">怎么理解 Query_expression 和 Query_block 组合的逻辑树？</a></h2>
+<p>以下面的 SQL 为例</p>
+<pre><code class="language-sql">
+drop table if exists table1, table2, table3, table1_1_1, table1_1_2, table2_1_1_1_1, table2_1_1;
+
+create table table1(id int, field int);
+create table table2(f2 int, field int);
+create table table3(id int, field int);
+create table table1_1_1(id int);
+create table table1_1_2(id int);
+create table table2_1_1_1_1(id int, f1 int, f2 int);
+create table table2_1_1(id int, f1 int, f2 int, f3 int);
+
+
+   select *
+     from table1
+     where table1.field IN (select * from table1_1_1 union
+                            select * from table1_1_2)
+     union
+   select *
+     from table2
+     where table2.field=(select (select f1 from table2_1_1_1_1
+                                   where table2_1_1_1_1.f2=table2_1_1.f3)
+                           from table2_1_1
+                           where table2_1_1.f1=table2.f2)
+     union
+   select * from table3;
+
+parse_sql: ast:
+
+Query_term_union: 0x712e58b76b30 parent: (nil)
+qb: 0x712e58b76fc0 join: (nil)
+first distinct index: 1  last distinct index: 2
+
+  Query_block: 0x712e58a771c8 parent: 0x712e58b76b30  with subqueries  qb: 0x712e58a771c8 join: (nil)
+
+    Query_term_union: 0x712e58b9ab90 parent: (nil)
+    qb: 0x712e58b9b020 join: (nil)
+    first distinct index: 1  last distinct index: 1
+
+      Query_block: 0x712e58b67850 parent: 0x712e58b9ab90       qb: 0x712e58b67850 join: (nil)
+
+      Query_block: 0x712e58b693a0 parent: 0x712e58b9ab90       qb: 0x712e58b693a0 join: (nil)
+
+  Query_block: 0x712e58b9c930 parent: 0x712e58b76b30  with subqueries  qb: 0x712e58b9c930 join: (nil)
+
+    Query_block: 0x712e58b9dee8 parent: (nil)  with subqueries    qb: 0x712e58b9dee8 join: (nil)
+
+      Query_block: 0x712e58b9e870 parent: (nil)       qb: 0x712e58b9e870 join: (nil)
+
+  Query_block: 0x712e58b753f0 parent: 0x712e58b76b30   qb: 0x712e58b753f0 join: (nil)
+
+
+</code></pre>
+<pre><code class="language-shell">Query_term_union: 0x742dd804a400 parent: 0x0 qb: 0x742dd804a890
+  Query_block: 0x742dd808ade8 parent: 0x742dd804a400 tables: 'table1'
+    Query_term_union: 0x742dd8075240 parent: 0x0 qb: 0x742dd80756d0
+      Query_block: 0x742dd8063650 parent: 0x742dd8075240 tables: 'table1_1_1'
+      Query_block: 0x742dd80651a0 parent: 0x742dd8075240 tables: 'table1_1_2'
+  Query_block: 0x742dd8076fe0 parent: 0x742dd804a400 tables: 'table2'
+    Query_block: 0x742dd8078598 parent: 0x0 tables: 'table2_1_1'
+      Query_block: 0x742dd8078f20 parent: 0x0 tables: 'table2_1_1_1_1'
+  Query_block: 0x742dd8048cc0 parent: 0x742dd804a400 tables: 'table3'
+
+
+
+
+
+(gdb) my qtree pc.select-&gt;master-&gt;m_query_term
+Query_term_union: 0x742dd804a400 parent: 0x0 qb: 0x742dd804a890
+  Query_block: 0x742dd808ade8 parent: 0x742dd804a400 tables: 'table1'
+    Query_term_union: 0x742dd8075240 parent: 0x0 qb: 0x742dd80756d0
+      Query_block: 0x742dd8063650 parent: 0x742dd8075240 tables: 'table1_1_1'
+      Query_block: 0x742dd80651a0 parent: 0x742dd8075240 tables: 'table1_1_2'
+  Query_block: 0x742dd8076fe0 parent: 0x742dd804a400 tables: 'table2'
+    Query_block: 0x742dd8078598 parent: 0x0 tables: 'table2_1_1'
+      Query_block: 0x742dd8078f20 parent: 0x0 tables: 'table2_1_1_1_1'
+  Query_block: 0x742dd8048cc0 parent: 0x742dd804a400 tables: 'table3'
+
+(gdb) my qtree pc.select
+Query_block: 0x742dd8048cc0 parent: 0x742dd804a400 tables: 'table3'
+(gdb) my qtree  pc.select-&gt;link_next
+Query_block: 0x742dd8078f20 parent: 0x0 tables: 'table2_1_1_1_1'
+(gdb) my qtree  pc.select-&gt;link_next-&gt;link_next
+Query_block: 0x742dd8078598 parent: 0x0 tables: 'table2_1_1'
+  Query_block: 0x742dd8078f20 parent: 0x0 tables: 'table2_1_1_1_1'
+(gdb) my qtree  pc.select-&gt;link_next-&gt;link_next-&gt;link_next
+Query_block: 0x742dd8076fe0 parent: 0x742dd804a400 tables: 'table2'
+  Query_block: 0x742dd8078598 parent: 0x0 tables: 'table2_1_1'
+    Query_block: 0x742dd8078f20 parent: 0x0 tables: 'table2_1_1_1_1'
+(gdb) my qtree  pc.select-&gt;link_next-&gt;link_next-&gt;link_next-&gt;link_next
+Query_block: 0x742dd80651a0 parent: 0x742dd8075240 tables: 'table1_1_2'
+(gdb) my qtree  pc.select-&gt;link_next-&gt;link_next-&gt;link_next-&gt;link_next-&gt;link_next
+Query_block: 0x742dd8063650 parent: 0x742dd8075240 tables: 'table1_1_1'
+(gdb) my qtree  pc.select-&gt;link_next-&gt;link_next-&gt;link_next-&gt;link_next-&gt;link_next-&gt;link_next
+Query_block: 0x742dd808ade8 parent: 0x742dd804a400 tables: 'table1'
+  Query_term_union: 0x742dd8075240 parent: 0x0 qb: 0x742dd80756d0
+    Query_block: 0x742dd8063650 parent: 0x742dd8075240 tables: 'table1_1_1'
+    Query_block: 0x742dd80651a0 parent: 0x742dd8075240 tables: 'table1_1_2'
+(gdb) my qtree  *pc.select-&gt;link_next-&gt;link_next-&gt;link_next-&gt;link_next-&gt;link_next-&gt;link_next-&gt;link_prev
+Query_block: 0x742dd808ade8 parent: 0x742dd804a400 tables: 'table1'
+  Query_term_union: 0x742dd8075240 parent: 0x0 qb: 0x742dd80756d0
+    Query_block: 0x742dd8063650 parent: 0x742dd8075240 tables: 'table1_1_1'
+    Query_block: 0x742dd80651a0 parent: 0x742dd8075240 tables: 'table1_1_2'
+(gdb) my qtree  *pc.select-&gt;link_next-&gt;link_next-&gt;link_next-&gt;link_next-&gt;link_next-&gt;link_prev
+Query_block: 0x742dd8063650 parent: 0x742dd8075240 tables: 'table1_1_1'
+(gdb) my qtree  *pc.select-&gt;link_next-&gt;link_next-&gt;link_next-&gt;link_next-&gt;link_prev
+Query_block: 0x742dd80651a0 parent: 0x742dd8075240 tables: 'table1_1_2'
+(gdb) my qtree  *pc.select-&gt;link_next-&gt;link_next-&gt;link_next-&gt;link_prev
+Query_block: 0x742dd8076fe0 parent: 0x742dd804a400 tables: 'table2'
+  Query_block: 0x742dd8078598 parent: 0x0 tables: 'table2_1_1'
+    Query_block: 0x742dd8078f20 parent: 0x0 tables: 'table2_1_1_1_1'
+(gdb) my qtree  *pc.select-&gt;link_next-&gt;link_next-&gt;link_prev
+Query_block: 0x742dd8078598 parent: 0x0 tables: 'table2_1_1'
+  Query_block: 0x742dd8078f20 parent: 0x0 tables: 'table2_1_1_1_1'
+(gdb) my qtree  *pc.select-&gt;link_next-&gt;link_prev
+Query_block: 0x742dd8078f20 parent: 0x0 tables: 'table2_1_1_1_1'
+(gdb) my qtree  *pc.select-&gt;link_prev
+Query_block: 0x742dd8048cc0 parent: 0x742dd804a400 tables: 'table3'
+
+Query_block
+  * master 指向的是包含当前的 Query_block 的 Query_expression
+  * slave 指向的是当前 Query_block 的子查询的 Query_expression，可能是 union，也可能是子查询
+  * next 指向的是同属于同一个 Query_block 的链表
+  * link_next，link_prev 是维护所有当前语句中的 Query_block 的双向链表
+
+Query_expression
+  * m_query_term 当前 expression 的主要内容，可能是一个 union，或者就是一个 Query_block
+  * 这个结构体只是为了维护同属于一个查询的 Query_block 的关系，暂时不了解其他作用，完全可以由 block 自己维护
+</code></pre>
+<h2 id="总结"><a class="header" href="#总结">总结</a></h2>
+<ul>
+<li>lex-&gt;unit 指向的是当前整个完整的 SQL 语句的 Query_expression</li>
+<li>Query_block
+<ul>
+<li>master 指向的是包含当前的 Query_block 的 Query_expression</li>
+<li>slave 指向的是当前 Query_block 的子查询的 Query_expression，可能是 union，也可能是子查询</li>
+<li>next 指向的是同属于同一个 Query_expression 的 block 链表</li>
+<li>link_next，link_prev 是维护所有当前语句中的 Query_block 的双向链表</li>
+</ul>
+</li>
+<li>Query_expression
+<ul>
+<li>m_query_term 当前 expression 的主要内容，可能是一个 union，或者就是一个 Query_block</li>
+<li>这个结构体只是为了维护同属于一个查询的 Query_block 的关系，暂时不了解其他作用，完全可以由 block 自己维护</li>
+<li>slave 指向当前所属的第一个 Query_block</li>
+<li>master 指向包含当前 Query_expression 的 Query_block</li>
+</ul>
+</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../internal/optimizer/all.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../internal/binder/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../internal/optimizer/all.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../internal/binder/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

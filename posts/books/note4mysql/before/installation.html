@@ -1,0 +1,500 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>安装 - mysql_internal</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">mysql_internal</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="安装"><a class="header" href="#安装">安装</a></h1>
+<ul>
+<li>MySQL gcc13 编译成功</li>
+<li>GreateDB 当前最高只支持 gcc11
+<ul>
+<li>后续使用高版本gcc编译，测试性能，当前已经是gcc15</li>
+<li>需要解决一些编码错误</li>
+<li>在编译 release 的时候，需要把 CPPFLAGS 去掉</li>
+</ul>
+</li>
+</ul>
+<h2 id="mysql配置文件"><a class="header" href="#mysql配置文件">mysql配置文件</a></h2>
+<p>有些配置只能在初始化的时候配置，一旦配置完成之后，就不能再修改了，所以需要预先确定自己的参数配置</p>
+<p>名字为 my.cnf ，可以存在在多个位置，按照优先级读取，按照sever和client进行分组设置，分组的名字是启动的程序名字，例如 mysqld, mysqladmin, mysqldump 等。
+此外还有两个独立的分组 server 和 clint 单独表述服务端和客户端</p>
+<ul>
+<li>
+<p>server 的启动文件是 mysqld，所有直接或间接调用 mysqld 的程序都会调用其配置文件</p>
+</li>
+<li>
+<p>client 的启动文件是 mysql，mysqladmin, mysqldump 等，这些程序会读取 client 配置文件</p>
+</li>
+<li>
+<p>具体的程序和实现有关，有些程序是脚本，而有的是单独的程序</p>
+</li>
+<li>
+<p>相同的配置项以出现在最后的选项为主</p>
+</li>
+</ul>
+<pre><code class="language-shell">
+# /etc/my.cnf
+[mysqld]
+lower_case_table_names=1
+#performance_schema=off
+log-error=/tmp/logerror.log
+general_log=on
+general_log_file=/tmp/mysqllog.log
+slow_query_log = on
+log-queries-not-using-indexes=on
+slow-query-log-file=/tmp/mysqlslow.log
+long_query_time=20
+
+</code></pre>
+<h2 id="编译安装"><a class="header" href="#编译安装">编译安装</a></h2>
+<h2 id="docker-安装"><a class="header" href="#docker-安装">docker 安装</a></h2>
+<pre><code>docker run  -itd  --name mdev --hostname vscode --cap-add=SYS_PTRACE --privileged=true \
+--mount type=bind,source=/home/asky/.mdep/boost_1_77_0,target=/home/vscode/.mdep/boost_1_77_0 \
+ --shm-size 32G dev  bash
+
+
+docker exec -it -u vscode mdev bash
+
+docker cp /home/asky/percona_8032  mdev:/home/vscode
+sudo chown -R vscode:vscode percona_8032
+
+
+alias dev_msql='docker exec -it -u vscode mdev zsh'
+alias stop_msql='docker stop mdev'
+alias start_msql='docker start mdev' 
+
+
+sudo apt install g++-11 gcc-11 gdb cmake git vim clangd
+sudo apt-get install -y ninja-build libnuma-dev libcurl4-openssl-dev
+sudo apt-get install -y libncurses5-dev pkg-config libreadline-dev
+sudo apt install libtirpc-dev libpam-dev bison flex zsh
+
+sudo apt update
+sudo apt-get -y install git vim gcc-15 g++-15 
+sudo apt-get -y install ninja-build
+sudo apt-get install libedit-dev
+sudo apt-get install liblz4-dev
+sudo apt-get install libicu-dev
+sudo apt-get install libprotobuf-dev
+sudo apt-get install protobuf-compiler
+sudo apt-get install libprotobuf-dev
+sudo apt-get install protobuf-compiler
+sudo apt-get install protobuf-c-compiler
+sudo apt-get install libprotobuf-c-dev
+sudo apt-get install libprotoc-dev
+sudo apt-get install libtirpc-dev
+sudo apt-get install zsh
+sudo apt-get install curl flex bison g++ gcc gdb make libzstd-dev libxml2-dev libcurl4-openssl-dev vim libbz2-dev \
+libperl-dev software-properties-common      pkg-config libreadline-dev python3-dev libldap-dev zlib1g-dev \
+openssh-server iputils-ping libxslt-dev libpam-dev libssl-dev libreadline6-dev libssh2-1-dev cmake ninja-build sudo locales
+
+# sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 110
+
+# sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 110
+
+
+cmake -DCMAKE_BUILD_TYPE:STRING=Debug \
+  -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE \
+  -DWITH_TURBO_MTR_TEST=OFF \
+  -DWITH_TURBO=ON \
+  -DWITH_QUERY_PLAN_PLUGIN=ON \
+  -DFEATURE_SET=community \
+  -DWITH_PAM=ON \
+  -DWITH_ROCKSDB=OFF \
+  -DWITH_TOKUDB=OFF \
+  -DGROUP_REPLICATION_WITH_ROCKSDB=OFF \
+  -DWITH_KEYRING_VAULT=OFF \
+  -DWITH_INNODB_MEMCACHED=ON \
+  -DWITH_ZLIB=bundled \
+  -DWITH_NUMA=ON \
+  -DWITH_LIBEVENT=bundled \
+  -DWITH_SSL=system \
+  -DWITH_AUTHENTICATION_LDAP=OFF \
+  -DDOWNLOAD_BOOST=0 \
+  -DWITH_BOOST=/home/vscode/.mdep/boost_1_77_0 \
+  -DWITH_LICENSE=ON \
+  -DWITH_DBLINK=0 \
+  -DCMAKE_C_COMPILER=/usr/bin/gcc-11 \
+  -DCMAKE_CXX_COMPILER=/usr/bin/g++-11 \
+  -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+  -DINSTALL_MYSQLTESTDIR=0 \
+  -DCMAKE_INSTALL_PREFIX=/home/vscode/.grdb \
+  --no-warn-unused-cli \
+  -S/home/vscode/percona \
+  -B/home/vscode/percona/build/debug \
+  -G Ninja
+
+
+export PATH=/home/vscode/.percona/bin:$PATH
+export LD_LIBRARY_PATH=/home/vscode/.percona/lib:$LD_LIBRARY_PATH
+alias imysql='mysql -u root'
+alias mstart='/home/vscode/.percona/support-files/mysql.server start --skip-grant-tables'
+alias mstop='/home/vscode/.percona/support-files/mysql.server stop'
+
+
+</code></pre>
+<ul>
+<li>MySQL 使用 cmake 管理项目</li>
+<li>MySQL 源码中 test 占据非常大的一部分，在build和安装中，会有多分拷贝
+<ul>
+<li>INSTALL_MYSQLTESTDIR 不安转 test。开发中，test 可以直接在 build 目录下测试</li>
+</ul>
+</li>
+</ul>
+<ol>
+<li>下载boost依赖</li>
+</ol>
+<pre><code>git clone http://gitlab.greatopensource.com/deps/boost_1_77_0.git
+</code></pre>
+<ol>
+<li>拉取依赖</li>
+</ol>
+<pre><code>   git submodule
+   git submodule sync --recursive
+   git submodule update --init --recursive
+</code></pre>
+<ol start="3">
+<li>编译安装及环境配置
+这里使用的是 vscode 开发，所以一些vscode配置如下，包括安装位置，clangd配置，项目文件夹可见性配置</li>
+</ol>
+<pre><code class="language-json">{
+  "clangd.arguments": [
+    "--compile-commands-dir=build/debug",
+    "--all-scopes-completion",
+    "--completion-style=bundled",
+    "--cross-file-rename",
+    "--header-insertion=iwyu",
+    "--header-insertion-decorators",
+    //"--background-index",
+    "--clang-tidy",
+    "--clang-tidy-checks=cppcoreguidelines-*,performance-*,bugprone-*,portability-*,modernize-*,google-*",
+    "-j=6",
+    "--pch-storage=disk",
+    "--function-arg-placeholders=false",
+  ],
+  //  cmake -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DWITH_TURBO_MTR_TEST=OFF -DWITH_TURBO=ON -DWITH_QUERY_PLAN_PLUGIN=ON -DCMAKE_INSTALL_PREFIX=/home/asky/.grdb -DFEATURE_SET=community -DWITH_PAM=ON -DWITH_ROCKSDB=OFF -DWITH_TOKUDB=OFF -DGROUP_REPLICATION_WITH_ROCKSDB=OFF -DWITH_KEYRING_VAULT=OFF -DWITH_INNODB_MEMCACHED=ON -DWITH_ZLIB=bundled -DWITH_NUMA=ON -DWITH_LIBEVENT=bundled -DWITH_SSL=system -DWITH_AUTHENTICATION_LDAP=OFF -DDOWNLOAD_BOOST=0 -DWITH_BOOST=/home/asky/.mdep/boost_1_77_0 -DWITH_LICENSE=ON -DWITH_DBLINK=0 -DCMAKE_EXPORT_COMPILE_COMMANDS=True -DCMAKE_C_COMPILER=/usr/bin/gcc-11 -DCMAKE_CXX_COMPILER=/usr/bin/g++-11 -DCMAKE_POLICY_VERSION_MINIMUM=3.5 --no-warn-unused-cli -S/home/asky/percona-server -B/home/asky/percona-server/build/debug -G Ninja
+  "cmake.configureArgs": [
+    // "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
+    // "-DBUILD_CONFIG=mysql_release",
+    "-DWITH_TURBO_MTR_TEST=OFF",
+    "-DWITH_TURBO=ON",
+    "-DWITH_QUERY_PLAN_PLUGIN=ON",
+    "-DCMAKE_INSTALL_PREFIX=/home/asky/.grdb",
+    "-DFEATURE_SET=community",
+    "-DWITH_PAM=ON",
+    "-DWITH_ROCKSDB=OFF",
+    "-DWITH_TOKUDB=OFF",
+    "-DGROUP_REPLICATION_WITH_ROCKSDB=OFF",
+    "-DWITH_KEYRING_VAULT=OFF",
+    "-DWITH_INNODB_MEMCACHED=ON",
+    "-DWITH_ZLIB=bundled",
+    "-DWITH_NUMA=ON",
+    "-DWITH_LIBEVENT=bundled",
+    "-DWITH_SSL=system",
+    "-DWITH_AUTHENTICATION_LDAP=OFF",
+    "-DDOWNLOAD_BOOST=0",
+    "-DWITH_BOOST=/home/asky/.mdep/boost_1_77_0",
+    "-DWITH_LICENSE=ON",
+    "-DWITH_DBLINK=0",
+    "-DCMAKE_EXPORT_COMPILE_COMMANDS=True",
+    "-DCMAKE_C_COMPILER=/usr/bin/gcc-11",
+    "-DCMAKE_CXX_COMPILER=/usr/bin/g++-11",
+    "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+  ],
+  "cmake.buildDirectory": "${workspaceFolder}/build/debug",
+  "files.exclude": {
+    "**/extra": true,
+    "boost_1_77_0": true
+  },
+  "files.watcherExclude": {
+    "**/extra": true,
+    "boost_1_77_0": true
+  },
+  "explorer.autoRevealExclude": {
+    "**/extra": true,
+    "boost_1_77_0": true
+  },
+  "search.exclude": {
+    "**/extra": true,
+    "boost_1_77_0": true
+  },
+  "cmake.automaticReconfigure": false,
+  "cmake.autoSelectActiveFolder": false,
+  "cmake.configureOnEdit": false,
+  "cmake.configureOnOpen": false,
+}
+
+</code></pre>
+<ol start="4">
+<li>配置环境变量</li>
+</ol>
+<pre><code>export PATH=/home/asky/.percona/bin:$PATH
+export LD_LIBRARY_PATH=/home/asky/.percona/lib:$LD_LIBRARY_PATH
+alias imysql='mysql -u root'
+alias mstart='/home/asky/.percona/support-files/mysql.server start --skip-grant-tables'
+alias mstop='/home/asky/.percona/support-files/mysql.server stop'
+</code></pre>
+<ol start="5">
+<li>测试</li>
+</ol>
+<pre><code> // test
+ cd mysql-test
+ ./mtr --force \
+        --max-save-core=0 \
+        --max-save-datadir=0 \
+        --max-test-fail=0 \
+        --verbose-restart \
+        --retry=0 \
+        --big-test \
+        --testcase-timeout=120 \
+        --suite-timeout=6000 \
+        --mysqld=--synonym-translation-enabled=on \
+        --debug-server \
+        --parallel=50 \
+        --suite=main,sys_vars,ora_compat,awr,innodb,mac,system_role \
+        --skip-test-list=skip_err_test_list_for_mtrdebug
+        
+</code></pre>
+<ol start="6">
+<li>启动mysql</li>
+</ol>
+<pre><code>mysqld --initialize
+mstart
+imysql
+mstop
+
+
+// 如果需要修改密码，
+    alter user 'root'@'localhost' identified by  '123456';
+mysqld &amp;
+mysql -u root -p
+
+
+
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../brainstorm.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../before/commands.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../brainstorm.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../before/commands.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

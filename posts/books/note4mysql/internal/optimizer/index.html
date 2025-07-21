@@ -1,0 +1,399 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>optimizer - mysql_internal</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">mysql_internal</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="optimizer"><a class="header" href="#optimizer">optimizer</a></h1>
+<pre><code class="language-shell">JOIN::optimize()
+    -# Logical transformations:
+      - Outer to inner joins transformation.
+      - Equality/constant propagation.
+      - Partition pruning.
+      - COUNT(*), MIN(), MAX() constant substitution in case of implicit grouping.
+      - ORDER BY optimization.
+    -# Perform cost-based optimization of table order and access path
+       selection. See JOIN::make_join_plan()
+    -# Post-join order optimization:
+       - Create optimal table conditions from the where clause and the join conditions.
+       - Inject outer-join guarding conditions.
+       - Adjust data access methods after determining table condition (several times.)
+       - Optimize ORDER BY/DISTINCT.
+    -# Code generation
+       - Set data access functions.
+       - Try to optimize away sorting/distinct.
+       - Setup temporary table usage for grouping and/or sorting.
+</code></pre>
+<pre><code class="language-shell">JOIN::make_join_plan()
+  - Initialize JOIN data structures and setup basic dependencies between tables.
+  - Update dependencies based on join information.
+  - Make key descriptions (update_ref_and_keys()).
+  - Pull out semi-join tables based on table dependencies.
+  - Extract tables with zero or one rows as const tables.
+  - Read contents of const tables, substitute columns from these tables with actual data. Also keep track of empty tables vs. one-row tables.
+  - After const table extraction based on row count, more tables may have become functionally dependent. Extract these as const tables.
+  - Add new sargable predicates based on retrieved const values.
+  - Calculate number of rows to be retrieved from each table.
+  - Calculate cost of potential semi-join materializations.
+  - Calculate best possible join order based on available statistics.
+  - Fill in remaining information for the generated join order.
+</code></pre>
+<ul>
+<li>
+<p>CreateIteratorFromAccessPath</p>
+<ul>
+<li>先是优化为 QEP，此时已经可以作为完整的执行计划了，上古时期的 MySQL 直接使用这个结构体执行</li>
+<li>然后由 access_path 接口创建 AccessPath tree</li>
+<li>之后一对一的使用 CreateIteratorFromAccessPath 得到 RowIterator
+<ul>
+<li>RowIterator 是一个抽象类，对于不同的 node，实现了不同的 RowIterator，类似 pg 中的 Nodexxx</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>AccessPath
+? 怎么和代价进行关联的，怎么由代价选择具体的 path
+? path 可以外部控制吗，可以控制代价吗</p>
+<ul>
+<li>hint</li>
+<li>optimizer_switch</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-sql">SELECT                                                 
+    c_custkey,                                         
+    c_name,                                            
+    sum(l_extendedprice * (1 - l_discount)) AS revenue,
+    c_acctbal,                                         
+    n_name,                                            
+    c_address,                                         
+    c_phone,                                           
+    c_comment                                          
+FROM                                                   
+    customer,                                          
+    orders,                                            
+    lineitem,                                          
+    nation                                             
+WHERE                                                  
+    c_custkey = o_custkey                              
+    AND l_orderkey = o_orderkey                        
+    AND o_orderdate &gt;= CAST('1993-10-01' AS date)      
+    AND o_orderdate &lt; CAST('1994-01-01' AS date)       
+    AND l_returnflag = 'R'                             
+    AND c_nationkey = n_nationkey                      
+GROUP BY                                               
+    c_custkey,                                         
+    c_name,                                            
+    c_acctbal,                                         
+    c_phone,                                           
+    n_name,                                            
+    c_address,                                         
+    c_comment                                          
+ORDER BY                                               
+    revenue DESC                                       
+LIMIT 20;                                              
+
+
+| -&gt; Limit: 20 row(s)  (actual time=40847.467..40847.477 rows=20 loops=1)
+    -&gt; Sort: revenue DESC, limit input to 20 row(s) per chunk  (actual time=40847.466..40847.474 rows=20 loops=1)
+        -&gt; Table scan on &lt;temporary&gt;  (actual time=40546.895..40794.485 rows=37967 loops=1)
+            -&gt; Aggregate using temporary table  (actual time=40546.838..40546.838 rows=37966 loops=1)
+                -&gt; Nested loop inner join  (cost=272639.29 rows=44407) (actual time=597.806..23338.038 rows=114705 loops=1)
+                    -&gt; Nested loop inner join  (cost=257096.69 rows=44407) (actual time=597.784..21907.947 rows=114705 loops=1)
+                        -&gt; Nested loop inner join  (cost=241460.31 rows=44407) (actual time=597.752..19513.204 rows=114705 loops=1)
+                            -&gt; Index range scan on orders using idx_orders_orderdate over ('1993-10-01' &lt;= O_ORDERDATE &lt; '1994-01-01'), with index condition: ((orders.O_ORDERDATE &gt;= &lt;cache&gt;(cast('1993-10-01' as date))) and (orders.O_ORDERDATE &lt; &lt;cache&gt;(cast('1994-01-01' as date))))  (cost=86921.70 rows=110656) (actual time=597.438..6692.232 rows=57069 loops=1)
+                            -&gt; Filter: (lineitem.L_RETURNFLAG = 'R')  (cost=1.00 rows=0.4) (actual time=0.187..0.223 rows=2 loops=57069)
+                                -&gt; Index lookup on lineitem using PRIMARY (L_ORDERKEY=orders.O_ORDERKEY)  (cost=1.00 rows=4) (actual time=0.179..0.218 rows=4 loops=57069)
+                        -&gt; Single-row index lookup on customer using PRIMARY (C_CUSTKEY=orders.O_CUSTKEY)  (cost=0.25 rows=1) (actual time=0.020..0.020 rows=1 loops=114705)
+                    -&gt; Single-row index lookup on nation using PRIMARY (N_NATIONKEY=customer.C_NATIONKEY)  (cost=0.25 rows=1) (actual time=0.012..0.012 rows=1 loops=114705)
+ |
+1 row in set (40.86 sec)
+
+
+ Limit  (cost=10000614760.13..10000614760.18 rows=20 width=202) (actual time=802.229..802.235 rows=20 loops=1)
+   -&gt;  Sort  (cost=10000614760.13..10000614899.95 rows=55930 width=202) (actual time=802.228..802.232 rows=20 loops=1)
+         Sort Key: (sum((lineitem.l_extendedprice * ('1'::numeric - lineitem.l_discount)))) DESC
+         Sort Method: top-N heapsort  Memory: 33kB
+         -&gt;  HashAggregate  (cost=609732.53..613271.85 rows=55930 width=202) (actual time=742.837..794.145 rows=37967 loops=1)
+               Group Key: customer.c_custkey, nation.n_name
+               Planned Partitions: 4  Batches: 5  Memory Usage: 8369kB  Disk Usage: 15544kB
+               -&gt;  Nested Loop  (cost=785.95..596554.02 rows=55930 width=182) (actual time=6.142..654.102 rows=114705 loops=1)
+                     -&gt;  Nested Loop  (cost=785.81..587914.98 rows=55930 width=160) (actual time=6.136..558.353 rows=114705 loops=1)
+                           -&gt;  Nested Loop  (cost=785.39..547601.88 rows=55930 width=16) (actual time=6.127..332.094 rows=114705 loops=1)
+                                 -&gt;  Bitmap Heap Scan on orders  (cost=784.96..27767.51 rows=56637 width=8) (actual time=6.100..77.419 rows=57069 loops=1)
+                                       Recheck Cond: ((o_orderdate &gt;= '1993-10-01'::date) AND (o_orderdate &lt; '1994-01-01'::date))
+                                       Heap Blocks: exact=23309
+                                       -&gt;  Bitmap Index Scan on idx_orders_orderdate  (cost=0.00..770.80 rows=56637 width=0) (actual time=2.888..2.889 rows=57069 loops=1)
+                                             Index Cond: ((o_orderdate &gt;= '1993-10-01'::date) AND (o_orderdate &lt; '1994-01-01'::date))
+                                 -&gt;  Index Scan using idx_lineitem_orderkey on lineitem  (cost=0.43..9.14 rows=4 width=16) (actual time=0.003..0.004 rows=2 loops=57069)
+                                       Index Cond: (l_orderkey = orders.o_orderkey)
+                                       Filter: (l_returnflag = 'R'::bpchar)
+                                       Rows Removed by Filter: 2
+                           -&gt;  Index Scan using customer_pkey on customer  (cost=0.42..0.72 rows=1 width=148) (actual time=0.002..0.002 rows=1 loops=114705)
+                                 Index Cond: (c_custkey = orders.o_custkey)
+                     -&gt;  Index Scan using nation_pkey on nation  (cost=0.14..0.16 rows=1 width=30) (actual time=0.001..0.001 rows=1 loops=114705)
+                           Index Cond: (n_nationkey = customer.c_nationkey)
+ Planning Time: 0.670 ms
+ Execution Time: 825.239 ms
+(25 rows)
+
+
+</code></pre>
+<ul>
+<li>tpch q10 为例，调整两边执行计划类似，其中MySQL为默认执行计划，没有调整任何参数，pg 关闭某些参数</li>
+<li>pg 执行时间不足 1s，MySQL 40s</li>
+<li>对于 order 表</li>
+</ul>
+<pre><code class="language-sql">explain analyze select * from orders where o_orderdate &gt;= CAST('1993-10-01' AS date) AND o_orderdate &lt; CAST('1994-01-01' AS date)  ;
+-&gt; Index range scan on orders using idx_orders_orderdate over ('1993-10-01' &lt;= O_ORDERDATE &lt; '1994-01-01'), with index condition: ((orders.O_ORDERDATE &gt;= &lt;cache&gt;(cast('1993-10-01' as date))) and (orders.O_ORDERDATE &lt; &lt;cache&gt;(cast('1994-01-01' as date))))  (cost=86053.16 rows=110656) (actual time=556.981..6773.528 rows=57069 loops=1)
+1 row in set (6.99 sec)
+
+ Bitmap Heap Scan on orders  (cost=784.96..27767.51 rows=56637 width=107) (actual time=6.582..76.055 rows=57069 loops=1)
+   Recheck Cond: ((o_orderdate &gt;= '1993-10-01'::date) AND (o_orderdate &lt; '1994-01-01'::date))
+   Heap Blocks: exact=23309
+   -&gt;  Bitmap Index Scan on idx_orders_orderdate  (cost=0.00..770.80 rows=56637 width=0) (actual time=3.200..3.200 rows=57069 loops=1)
+         Index Cond: ((o_orderdate &gt;= '1993-10-01'::date) AND (o_orderdate &lt; '1994-01-01'::date))
+ Planning Time: 0.066 ms
+ Execution Time: 77.943 ms
+
+ Index Scan using idx_orders_orderdate on orders  (cost=0.43..105869.17 rows=56637 width=107) (actual time=0.057..77.665 rows=57069 loops=1)
+   Index Cond: ((o_orderdate &gt;= '1993-10-01'::date) AND (o_orderdate &lt; '1994-01-01'::date))
+ Planning Time: 0.059 ms
+ Execution Time: 80.035 ms
+
+ Seq Scan on orders  (cost=0.00..48633.00 rows=56637 width=107) (actual time=0.055..390.637 rows=57069 loops=1)
+   Filter: ((o_orderdate &gt;= '1993-10-01'::date) AND (o_orderdate &lt; '1994-01-01'::date))
+   Rows Removed by Filter: 1442931
+ Planning Time: 0.080 ms
+ Execution Time: 392.246 ms
+
+</code></pre>
+<ul>
+<li>pg 无论是bitmap还是seq scan还是 index scan，时间不到1s，MySQL 耗时 7s</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../internal/binder/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../internal/optimizer/cost.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../internal/binder/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../internal/optimizer/cost.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,361 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>debug - mysql_internal</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">mysql_internal</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="debug"><a class="header" href="#debug">debug</a></h1>
+<h2 id="mysql-debug"><a class="header" href="#mysql-debug">MySQL debug</a></h2>
+<pre><code class="language-sql">
+-- d	开启DBUG_XXX
+-- f	只跟踪指定的函数
+-- F	跟踪指定的源码文件
+-- i	跟踪指定的线程
+-- L	跟踪指定的源码行数
+-- n	打印函数调用层次序号
+-- N	输出日志从0开始打印行号
+-- o	指定输出到某个文件
+-- O	类似o,每次写文件都会flush，reopen
+-- P	匹配DBUG_PROCESS
+-- p	打印process name
+-- t	打印函数调用和退出
+
+set session debug='d:t:o,/tmp/mysqld.trace';
+
+set session debug='d:t:L:F:o,/tmp/mysqld.trace';
+
+set session debug='d:t:L:F:n:O,/tmp/mysqld.trace';
+
+</code></pre>
+<ol>
+<li>在 debug 的时候，可以详细的显示函数的调用路径</li>
+<li>或者提供一个额外的参数，供外部调用，以模拟或者实现某些特殊的功能，例如 skip_dd_table_access_check
+<ul>
+<li>主要由 DBUG_EVALUATE_IF 实现的</li>
+</ul>
+</li>
+</ol>
+<ul>
+<li>最早代码可以追溯到 87 年</li>
+</ul>
+<pre><code>&lt;do_command
+&gt;do_command
+| &gt;THD::clear_error
+| &lt;THD::clear_error
+| &gt;Diagnostics_area::reset_diagnostics_area
+| &lt;Diagnostics_area::reset_diagnostics_area
+| &gt;my_net_set_read_timeout
+| | enter: timeout: 28800
+| | &gt;vio_socket_timeout
+| | &lt;vio_socket_timeout
+| &lt;my_net_set_read_timeout
+| &gt;vio_is_blocking
+| &lt;vio_is_blocking
+| &gt;net_read_raw_loop
+| | &gt;vio_read
+| | | &gt;vio_is_blocking
+| | | &lt;vio_is_blocking
+| | | &gt;vio_io_wait
+| | | &lt;vio_io_wait
+| | &lt;vio_read
+| &lt;net_read_raw_loop
+| THD::enter_stage: 'starting' /home/asky/imysql/sql/conn_handler/init_net_server_extension.cc:104
+| &gt;PROFILING::status_change
+| &lt;PROFILING::status_change
+| packet_header: Memory: 0x7f5af8007660  Bytes: (4)
+38 00 00 00
+| &gt;net_read_raw_loop
+| | &gt;vio_read
+| | &lt;vio_read
+| &lt;net_read_raw_loop
+</code></pre>
+<h3 id="实现原理"><a class="header" href="#实现原理">实现原理</a></h3>
+<p>使用宏以及 c++ 对象自动析构的特点，实现函数调用栈的跟踪。并且加上输出的控制机制，可以指定输出位置，输出格式等</p>
+<p>详细格式如下</p>
+<pre><code class="language-c++">  op_list_to_buf('d', cs-&gt;stack-&gt;keywords, DEBUGGING);
+  op_int_to_buf('D', cs-&gt;stack-&gt;delay, 0);
+  op_list_to_buf('f', cs-&gt;stack-&gt;functions, cs-&gt;stack-&gt;functions);
+  op_bool_to_buf('F', cs-&gt;stack-&gt;flags &amp; FILE_ON);
+  op_bool_to_buf('i', cs-&gt;stack-&gt;flags &amp; PID_ON);
+  op_list_to_buf('g', cs-&gt;stack-&gt;p_functions, PROFILING);
+  op_bool_to_buf('L', cs-&gt;stack-&gt;flags &amp; LINE_ON);
+  op_bool_to_buf('n', cs-&gt;stack-&gt;flags &amp; DEPTH_ON);
+  op_bool_to_buf('N', cs-&gt;stack-&gt;flags &amp; NUMBER_ON);
+  op_str_to_buf(((cs-&gt;stack-&gt;flags &amp; FLUSH_ON_WRITE ? 0 : 32) |
+                 (cs-&gt;stack-&gt;flags &amp; OPEN_APPEND ? 'A' : 'O')),
+                cs-&gt;stack-&gt;name, cs-&gt;stack-&gt;out_file != stderr);
+  op_list_to_buf('p', cs-&gt;stack-&gt;processes, cs-&gt;stack-&gt;processes);
+  op_bool_to_buf('P', cs-&gt;stack-&gt;flags &amp; PROCESS_ON);
+  op_bool_to_buf('r', cs-&gt;stack-&gt;sub_level != 0);
+  op_intf_to_buf('t', cs-&gt;stack-&gt;maxdepth, MAXDEPTH, TRACING);
+  op_bool_to_buf('T', cs-&gt;stack-&gt;flags &amp; TIMESTAMP_ON);
+</code></pre>
+<h3 id="主要宏操作"><a class="header" href="#主要宏操作">主要宏操作</a></h3>
+<ul>
+<li>
+<p>DBUG_EVALUATE_IF(flag, a, b)</p>
+<ul>
+<li>满足 d 设置的标记的时候， 结果是 a ，否则是 b，类似运行时 ? :</li>
+</ul>
+</li>
+<li>
+<p>DBUG_EXECUTE(flag, expr)</p>
+<ul>
+<li>满足条件的时候， 执行 expr ，expr 是表达式，可以是函数调用，也可以是语句块</li>
+</ul>
+</li>
+<li>
+<p>DBUG_PRINT(flag, (format, args...))</p>
+<ul>
+<li>满足条件的时候，输出指定格式，这里是直接把参数传递 func，宏里面类似 <em>db_doprnt</em>(format, args...)</li>
+</ul>
+</li>
+<li>
+<p>DBUG_EXECUTE_IF(flag, expr)</p>
+<ul>
+<li>同上，但是只在 flag 条件下执行，和 DBUG_EXECUTE 类似，但是区别是 DBUG_EXECUTE_IF 只有设置对应得 falg 才会触发，而 DBUG_EXECUTE 则是列表为null或者设置flag得时候触发</li>
+</ul>
+</li>
+</ul>
+<h2 id="对比其他"><a class="header" href="#对比其他">对比其他</a></h2>
+<p>实现起来不难，但是没有见过其他数据库有类似的实现</p>
+<ul>
+<li>首先这是 debug 期间使用的，对于非研发来讲，没有太大的作用</li>
+<li>其次，如果是结构合理，模块清晰，调用堆栈其实没有太大的作用
+<ul>
+<li>MySQL 代码结构不合理， 所以这个还是有点用。。</li>
+<li>但是太多的 debug 宏的使用，会导致代码可读性和结构混乱，不利于维护和扩展，分不清哪些是逻辑代码，那些是debug代码</li>
+</ul>
+</li>
+<li>个人觉得这个只能适合那些
+<ol>
+<li>不是内核研发，但是只是想看看mysql的运行原理</li>
+<li>或者是刚接触MySQL内核的研发人员，毕竟MySQL内核结构不是那么清晰，</li>
+</ol>
+</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../before/trace.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../before/readbook.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../before/trace.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../before/readbook.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

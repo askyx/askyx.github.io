@@ -1,12 +1,10 @@
 <!DOCTYPE HTML>
 <html lang="en" class="light sidebar-visible" dir="ltr">
     <head>
-        <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
         <title>Changelog - mysql_internal</title>
 
 
-        <!-- Custom HTML head -->
 
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,27 +17,22 @@
         <link rel="stylesheet" href="css/chrome.css">
         <link rel="stylesheet" href="css/print.css" media="print">
 
-        <!-- Fonts -->
         <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
         <link rel="stylesheet" href="fonts/fonts.css">
 
-        <!-- Highlight.js Stylesheets -->
         <link rel="stylesheet" id="highlight-css" href="highlight.css">
         <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
         <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
 
-        <!-- Custom theme stylesheets -->
         <link rel="stylesheet" href="custom.css">
 
 
-        <!-- Provide site root and default themes to javascript -->
         <script>
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
             window.path_to_searchindex_js = "searchindex.js";
         </script>
-        <!-- Start loading toc.js asap -->
         <script src="toc.js"></script>
     </head>
     <body>
@@ -55,7 +48,6 @@
         </div>
     </div>
     <div id="body-container">
-        <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
                 let theme = localStorage.getItem('mdbook-theme');
@@ -71,7 +63,6 @@
             } catch (e) { }
         </script>
 
-        <!-- Set the theme before any content is loaded, prevents flash -->
         <script>
             const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
             let theme;
@@ -85,7 +76,6 @@
 
         <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
 
-        <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
             const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
@@ -104,7 +94,6 @@
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
@@ -165,7 +154,6 @@
                     </div>
                 </div>
 
-                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
                     document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
                     document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
@@ -181,7 +169,6 @@
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
-                        <!-- Mobile navigation buttons -->
                             <a rel="prev" href="faq.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
@@ -223,7 +210,6 @@
         <script src="highlight.js"></script>
         <script src="book.js"></script>
 
-        <!-- Custom JS scripts -->
 
 
 

@@ -1,15 +1,15 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Ubuntu24.04 on Askyx's Blog</title><link>https://askyx.github.io/tags/ubuntu24.04/</link><description>Recent content in Ubuntu24.04 on Askyx's Blog</description><generator>Hugo</generator><language>zh-Hans</language><lastBuildDate>Mon, 21 Jul 2025 18:42:10 +0800</lastBuildDate><atom:link href="https://askyx.github.io/tags/ubuntu24.04/index.xml" rel="self" type="application/rss+xml"/><item><title>wsl 问题记录，研发环境初始化</title><link>https://askyx.github.io/posts/note/wsl/</link><pubDate>Tue, 03 Sep 2024 10:40:40 +0800</pubDate><guid>https://askyx.github.io/posts/note/wsl/</guid><description>&lt;h2 id="wsl-内核版本升级">WSL 内核版本升级&lt;/h2>
-&lt;ul>
-&lt;li>&lt;a href="https://learn.microsoft.com/en-us/community/content/wsl-user-msft-kernel-v6" target="_blank">How to use the Microsoft Linux kernel v6 on Windows Subsystem for Linux version 2 (WSL2)&lt;/a>
-&lt;/li>
-&lt;li>&lt;a href="https://blog.yurzi.net/posts/a-try-to-upgrade-wsl-kernel/#cite-3" target="_blank">记录一次升级WSL2内核的经历&lt;/a>
-&lt;/li>
-&lt;/ul>
-&lt;h2 id="wsl-磁盘空间释放">WSL 磁盘空间释放&lt;/h2>
-&lt;p>这是记录wsl运行中的异常文件&lt;/p>
-&lt;pre tabindex="0">&lt;code>rm -rf /mnt/c/Users/wlky/AppData/Local/Temp/wsl-crashes/*
-&lt;/code>&lt;/pre>&lt;h2 id="2-zsk-powerlevel10k">2. zsk powerlevel10k&lt;/h2>
-&lt;pre tabindex="0">&lt;code>sh -c &amp;#34;$(curl -fsSL https://gitee.com/shmhlsy/oh-my-zsh-install.sh/raw/master/install.sh)&amp;#34;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Ubuntu24.04 on Askyx's Blog</title><link>https://askyx.github.io/tags/ubuntu24.04/</link><description>Recent content in Ubuntu24.04 on Askyx's Blog</description><generator>Hugo</generator><language>zh-Hans</language><lastBuildDate>Thu, 06 Nov 2025 15:45:31 +0800</lastBuildDate><atom:link href="https://askyx.github.io/tags/ubuntu24.04/index.xml" rel="self" type="application/rss+xml"/><item><title>wsl 问题记录，研发环境初始化</title><link>https://askyx.github.io/posts/note/wsl/</link><pubDate>Tue, 03 Sep 2024 10:40:40 +0800</pubDate><guid>https://askyx.github.io/posts/note/wsl/</guid><description>&lt;h2 id="wsl-内核版本升级"&gt;WSL 内核版本升级&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://learn.microsoft.com/en-us/community/content/wsl-user-msft-kernel-v6" target="_blank"&gt;How to use the Microsoft Linux kernel v6 on Windows Subsystem for Linux version 2 (WSL2)&lt;/a&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://blog.yurzi.net/posts/a-try-to-upgrade-wsl-kernel/#cite-3" target="_blank"&gt;记录一次升级WSL2内核的经历&lt;/a&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="wsl-磁盘空间释放"&gt;WSL 磁盘空间释放&lt;/h2&gt;
+&lt;p&gt;这是记录wsl运行中的异常文件&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;rm -rf /mnt/c/Users/wlky/AppData/Local/Temp/wsl-crashes/*
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id="2-zsk-powerlevel10k"&gt;2. zsk powerlevel10k&lt;/h2&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;sh -c &amp;#34;$(curl -fsSL https://gitee.com/shmhlsy/oh-my-zsh-install.sh/raw/master/install.sh)&amp;#34;
 
 git clone --depth=1 https://gitee.com/fkamrk/zsh-autosuggestions.git $ZSH_CUSTOM/plugins/zsh-autosuggestions
 
@@ -18,41 +18,61 @@ git clone --depth=1 https://gitee.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$H
 ZSH_THEME=&amp;#34;powerlevel10k/powerlevel10k&amp;#34;
 
 p10k configure
-&lt;/code>&lt;/pre>&lt;h2 id="3-docker">3. docker&lt;/h2>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-shell" data-lang="shell">&lt;span style="display:flex;">&lt;span>sudo apt install docker.io
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Got permission denied &lt;span style="color:#66d9ef">while&lt;/span> trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get &lt;span style="color:#e6db74">&amp;#34;http://%2Fvar%2Frun%2Fdocker.sock/v1.39/containers/json&amp;#34;&lt;/span>: dial unix /var/run/docker.sock: connect: permission denied
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>sudo groupadd docker &lt;span style="color:#75715e">#添加docker用户组&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>sudo gpasswd -a $USER docker &lt;span style="color:#75715e">#将当前用户添加到docker用户组&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>newgrp docker &lt;span style="color:#75715e">#更新docker用户组&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>-- 可能可用的镜像，一个一个试
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull registry.docker-cn.com/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull hub-mirror.c.163.com/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull docker.mirrors.ustc.edu.cn/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull yxzrazem.mirror.aliyuncs.com/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull docker.kubesre.xyz/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull dc.j8.work/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull docker.registry.cyou/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull docker.hlyun.org/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull docker.chenby.cn/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull docker.jsdelivr.fyi/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull docker-mirrors.mjjman.com/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull huecker.io/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull dockerhub.timeweb.cloud/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull docker-cf.registry.cyou/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull dockercf.jsdelivr.fyi/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull dockertest.jsdelivr.fyi/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull dockerhub.azk8s.cn/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull mirror.ccs.tencentyun.com/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull registry.cn-hangzhou.aliyuncs.com/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull docker.m.daocloud.io/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker tag 8a3cdc4d1ad3 ubuntu:24.04
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker rmi docker.jsdelivr.fyi/library/ubuntu:24.04
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item></channel></rss>
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id="3-docker"&gt;3. docker&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;sudo apt install docker.io
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;Got permission denied &lt;span style="color:#66d9ef"&gt;while&lt;/span&gt; trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get &lt;span style="color:#e6db74"&gt;&amp;#34;http://%2Fvar%2Frun%2Fdocker.sock/v1.39/containers/json&amp;#34;&lt;/span&gt;: dial unix /var/run/docker.sock: connect: permission denied
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;sudo groupadd docker &lt;span style="color:#75715e"&gt;#添加docker用户组&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;sudo gpasswd -a $USER docker &lt;span style="color:#75715e"&gt;#将当前用户添加到docker用户组&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;newgrp docker &lt;span style="color:#75715e"&gt;#更新docker用户组&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;-- 可能可用的镜像，一个一个试
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker pull registry.docker-cn.com/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker pull hub-mirror.c.163.com/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker pull docker.mirrors.ustc.edu.cn/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker pull yxzrazem.mirror.aliyuncs.com/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker pull docker.kubesre.xyz/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker pull dc.j8.work/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker pull docker.registry.cyou/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker pull docker.hlyun.org/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker pull docker.chenby.cn/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker pull docker.jsdelivr.fyi/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker pull docker-mirrors.mjjman.com/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker pull huecker.io/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker pull dockerhub.timeweb.cloud/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker pull docker-cf.registry.cyou/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker pull dockercf.jsdelivr.fyi/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker pull dockertest.jsdelivr.fyi/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker pull dockerhub.azk8s.cn/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker pull mirror.ccs.tencentyun.com/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker pull registry.cn-hangzhou.aliyuncs.com/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker pull docker.m.daocloud.io/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker tag 47b9904d4474 ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker rmi docker.jsdelivr.fyi/library/ubuntu:25.10
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;wsl_update_x64
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;WSL内核更新
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;https://www.catalog.update.microsoft.com/Search.aspx?q&lt;span style="color:#f92672"&gt;=&lt;/span&gt;wsl
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;下载内核文件，然后解压出wsl_update_x64
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;使用wsl --shutdown 关闭wsl，运行文件升级
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;打开wsl
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;uname -a 
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;WSL磁盘空间回收
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;https://zhuanlan.zhihu.com/p/521747491
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;wsl --shutdown
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;diskpart
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;select&lt;/span&gt; vdisk file&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#34;C:\Users\Esoye\AppData\Local\Packages\CanonicalGroupLimited.Ubuntu20.04onWindows_79rhkp1fndgsc\LocalState\ext4.vhdx&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;select&lt;/span&gt; vdisk file&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#34;C:\Users\Esoye\AppData\Local\Packages\CanonicalGroupLimited.Ubuntu22.04LTS_79rhkp1fndgsc\LocalState\ext4.vhdx&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;compact vdisk
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;detach vdisk
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description></item></channel></rss>

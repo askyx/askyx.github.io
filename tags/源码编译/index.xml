@@ -1,261 +1,261 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>源码编译 on Askyx's Blog</title><link>https://askyx.github.io/tags/%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/</link><description>Recent content in 源码编译 on Askyx's Blog</description><generator>Hugo</generator><language>zh-Hans</language><lastBuildDate>Mon, 21 Jul 2025 18:42:10 +0800</lastBuildDate><atom:link href="https://askyx.github.io/tags/%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/index.xml" rel="self" type="application/rss+xml"/><item><title>源码编译 OpenTenBase 速通版</title><link>https://askyx.github.io/posts/database/tbase/build/</link><pubDate>Fri, 05 Jan 2024 11:07:23 +0800</pubDate><guid>https://askyx.github.io/posts/database/tbase/build/</guid><description>&lt;h2 id="shell">shell&lt;/h2>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>git clone --depth&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">1&lt;/span> https://hub.fgit.cf/OpenTenBase/OpenTenBase.git
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker run -itd --name tbase --cap-add&lt;span style="color:#f92672">=&lt;/span>SYS_PTRACE --privileged&lt;span style="color:#f92672">=&lt;/span>true --hostname vscode --mount type&lt;span style="color:#f92672">=&lt;/span>bind,source&lt;span style="color:#f92672">=&lt;/span>/home/wen/OpenTenBase,target&lt;span style="color:#f92672">=&lt;/span>/workspaces/OpenTenBase runner bash
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker exec -it -u vscode tbase bash
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>sudo service ssh start
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>ssh-keygen
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>cat ~/.ssh/id_rsa.pub &amp;gt;&amp;gt; ~/.ssh/authorized_keys
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>chmod &lt;span style="color:#ae81ff">700&lt;/span> ~/.ssh
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>chmod &lt;span style="color:#ae81ff">644&lt;/span> ~/.ssh/authorized_keys
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>sudo chown vscode:vscode -R /workspaces/OpenTenBase
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>mkdir -p .build/making
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>mkdir .data
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>cd .build/making
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>/workspaces/OpenTenBase/configure --prefix&lt;span style="color:#f92672">=&lt;/span>/home/vscode/.build --enable-user-switch --with-openssl --with-ossp-uuid --enable-alltype-distri CFLAGS&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;-fgnu89-inline -g -O0&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>make -j64 &lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span> make install &lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span> cd contrib &lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span> make -j64 &lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span> make install 
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>cd ~
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>mkdir pgxc_ctl
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># 写入下面的模板&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>touch pgxc_ctl/pg.conf
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># ssh localhost&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>pgxc_ctl -c pg.conf init all
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>createdb -p &lt;span style="color:#ae81ff">6011&lt;/span> vscode
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># .bashrc 文件 此外，/home/vscode/.build/bin 需要写入到 /etc/environment&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>cat &amp;gt; /home/vscode/.bashrc &lt;span style="color:#e6db74">&amp;lt;&amp;lt;EOF
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">export PATH=&amp;#34;$PATH:/home/vscode/.build/bin&amp;#34;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">export LD_LIBRARY_PATH=&amp;#34;$LD_LIBRARY_PATH:/home/vscode/.build/lib&amp;#34;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">export LC_ALL=C
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">alias psql=&amp;#39;psql -p 6011&amp;#39;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">alias pstart=&amp;#39;pgxc_ctl -c pg.conf start all&amp;#39;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">alias pstop=&amp;#39;pgxc_ctl -c pg.conf stop all&amp;#39;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">alias sqps=&amp;#34;echo &amp;#39;USER PID PPID VSZ CMD&amp;#39; ; ps -eo user,pid,ppid,vsize,cmd | grep -E &amp;#39;postgres&amp;#39; &amp;#34;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">EOF&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="conf-file-pgconf">conf file (pg.conf)&lt;/h2>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-shell" data-lang="shell">&lt;span style="display:flex;">&lt;span>pgxcInstallDir&lt;span style="color:#f92672">=&lt;/span>/home/vscode/.build
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>pgxcOwner&lt;span style="color:#f92672">=&lt;/span>vscode
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>pgxcUser&lt;span style="color:#f92672">=&lt;/span>$pgxcOwner
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>defaultDatabase&lt;span style="color:#f92672">=&lt;/span>postgres
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>tmpDir&lt;span style="color:#f92672">=&lt;/span>/tmp
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>localTmpDir&lt;span style="color:#f92672">=&lt;/span>$tmpDir
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#------------------------ GTM ---------------------&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>gtmName&lt;span style="color:#f92672">=&lt;/span>gtm
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>gtmMasterServer&lt;span style="color:#f92672">=&lt;/span>vscode
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>gtmMasterPort&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">6006&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>gtmMasterDir&lt;span style="color:#f92672">=&lt;/span>/home/vscode/.data/gtm_master
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>gtmExtraConfig&lt;span style="color:#f92672">=&lt;/span>none
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>gtmMasterSpecificExtraConfig&lt;span style="color:#f92672">=&lt;/span>none
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>gtmSlave&lt;span style="color:#f92672">=&lt;/span>n
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#------------------------ Coordinators ---------------------&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>coordNames&lt;span style="color:#f92672">=(&lt;/span>cn001 cn002&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>coordMasterCluster&lt;span style="color:#f92672">=(&lt;/span>vscode_cluster vscode_cluster&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>coordPorts&lt;span style="color:#f92672">=(&lt;/span>&lt;span style="color:#ae81ff">6011&lt;/span> 6012&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>poolerPorts&lt;span style="color:#f92672">=(&lt;/span>&lt;span style="color:#ae81ff">6111&lt;/span> 6112&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>coordPgHbaEntries&lt;span style="color:#f92672">=(&lt;/span>0.0.0.0/0&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>coordMasterServers&lt;span style="color:#f92672">=(&lt;/span>vscode vscode&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>coordMasterDirs&lt;span style="color:#f92672">=(&lt;/span>/home/vscode/.data/cn001 /home/vscode/.data/cn002&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>coordMaxWALSenders&lt;span style="color:#f92672">=(&lt;/span>&lt;span style="color:#ae81ff">10&lt;/span> 10&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>coordSlave&lt;span style="color:#f92672">=&lt;/span>n
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>coordSlaveSync&lt;span style="color:#f92672">=&lt;/span>n
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>coordArchLogDirs&lt;span style="color:#f92672">=(&lt;/span>/home/vscode/.data/archlog/cn001 /home/vscode/.data/archlog/cn002&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>coordExtraConfig&lt;span style="color:#f92672">=&lt;/span>coordExtraConfig
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>cat &amp;gt; $coordExtraConfig &lt;span style="color:#e6db74">&amp;lt;&amp;lt;EOF
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">#================================================
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"># Added to all the coordinator postgresql.conf
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"># Original: $coordExtraConfig
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">include_if_exists = &amp;#39;/home/vscode/.data/global/global_vscode.conf&amp;#39;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">wal_level = replica
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">wal_keep_segments = 256
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">max_wal_senders = 4
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">archive_mode = on
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">archive_timeout = 1800
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">archive_command = &amp;#39;echo 0&amp;#39;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">log_truncate_on_rotation = on
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">log_filename = &amp;#39;postgresql-%M.log&amp;#39;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">log_rotation_age = 4h
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">log_rotation_size = 100MB
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">hot_standby = on
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">wal_sender_timeout = 30min
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">wal_receiver_timeout = 30min
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">shared_buffers = 16384MB
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">max_pool_size = 2000
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">log_statement = &amp;#39;ddl&amp;#39;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">log_destination = &amp;#39;csvlog&amp;#39;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">logging_collector = on
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">log_directory = &amp;#39;pg_log&amp;#39;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">listen_addresses = &amp;#39;*&amp;#39;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">max_connections = 2000
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">EOF&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>coordSpecificExtraConfig&lt;span style="color:#f92672">=(&lt;/span>none none&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>coordExtraPgHba&lt;span style="color:#f92672">=&lt;/span>coordExtraPgHba
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>cat &amp;gt; $coordExtraPgHba &lt;span style="color:#e6db74">&amp;lt;&amp;lt;EOF
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">local all all trust
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">host all all 0.0.0.0/0 trust
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">host replication all 0.0.0.0/0 trust
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">host all all ::1/128 trust
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">host replication all ::1/128 trust
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">EOF&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>coordSpecificExtraPgHba&lt;span style="color:#f92672">=(&lt;/span>none none&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>coordAdditionalSlaves&lt;span style="color:#f92672">=&lt;/span>n
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>cad1_Sync&lt;span style="color:#f92672">=&lt;/span>n
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#------------------------ Datanodes ---------------------&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>primaryDatanode&lt;span style="color:#f92672">=&lt;/span>dn001
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>datanodeNames&lt;span style="color:#f92672">=(&lt;/span>dn001 dn002 dn003&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>datanodePorts&lt;span style="color:#f92672">=(&lt;/span>&lt;span style="color:#ae81ff">6021&lt;/span> &lt;span style="color:#ae81ff">6022&lt;/span> 6023&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>datanodePoolerPorts&lt;span style="color:#f92672">=(&lt;/span>&lt;span style="color:#ae81ff">6121&lt;/span> &lt;span style="color:#ae81ff">6122&lt;/span> 6123&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>datanodeMasterCluster&lt;span style="color:#f92672">=(&lt;/span>vscode_cluster vscode_cluster vscode_cluster&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>datanodePgHbaEntries&lt;span style="color:#f92672">=(&lt;/span>0.0.0.0/0&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>datanodeMasterServers&lt;span style="color:#f92672">=(&lt;/span>vscode vscode vscode&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>datanodeMasterDirs&lt;span style="color:#f92672">=(&lt;/span>/home/vscode/.data/dn001 /home/vscode/.data/dn002 /home/vscode/.data/dn003&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>datanodeMaxWALSenders&lt;span style="color:#f92672">=(&lt;/span>&lt;span style="color:#ae81ff">10&lt;/span> &lt;span style="color:#ae81ff">10&lt;/span> 10&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>datanodeArchLogDirs&lt;span style="color:#f92672">=(&lt;/span>/home/vscode/.data/archlog/dn001 /home/vscode/.data/archlog/dn002 /home/vscode/.data/archlog/dn003&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>datanodeSlave&lt;span style="color:#f92672">=&lt;/span>n
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>datanodeExtraConfig&lt;span style="color:#f92672">=&lt;/span>datanodeExtraConfig
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>cat &amp;gt; $datanodeExtraConfig &lt;span style="color:#e6db74">&amp;lt;&amp;lt;EOF
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">#================================================
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"># Added to all the coordinator postgresql.conf
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"># Original: $datanodeExtraConfig
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">include_if_exists = &amp;#39;/home/vscode/.data/global/global_vscode.conf&amp;#39;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">listen_addresses = &amp;#39;*&amp;#39;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">wal_level = replica
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">wal_keep_segments = 256
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">max_wal_senders = 4
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">archive_mode = on
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">archive_timeout = 1800
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">archive_command = &amp;#39;echo 0&amp;#39;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">log_directory = &amp;#39;pg_log&amp;#39;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">logging_collector = on
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">log_truncate_on_rotation = on
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">log_filename = &amp;#39;postgresql-%M.log&amp;#39;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">log_rotation_age = 4h
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">log_rotation_size = 100MB
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">hot_standby = on
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">wal_sender_timeout = 30min
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">wal_receiver_timeout = 30min
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">shared_buffers = 16384MB
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">max_connections = 4000
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">max_pool_size = 4000
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">log_statement = &amp;#39;ddl&amp;#39;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">log_destination = &amp;#39;csvlog&amp;#39;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">wal_buffers = 1GB
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">EOF&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>datanodeSpecificExtraConfig&lt;span style="color:#f92672">=(&lt;/span>none none&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>datanodeExtraPgHba&lt;span style="color:#f92672">=&lt;/span>datanodeExtraPgHba
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>cat &amp;gt; $datanodeExtraPgHba &lt;span style="color:#e6db74">&amp;lt;&amp;lt;EOF
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">local all all trust
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">host all all 0.0.0.0/0 trust
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">host replication all 0.0.0.0/0 trust
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">host all all ::1/128 trust
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">host replication all ::1/128 trust
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">EOF&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>datanodeSpecificExtraPgHba&lt;span style="color:#f92672">=(&lt;/span>none none&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>datanodeAdditionalSlaves&lt;span style="color:#f92672">=&lt;/span>n
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>walArchive&lt;span style="color:#f92672">=&lt;/span>n
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="demo-sql">demo sql&lt;/h2>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sql" data-lang="sql">&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">select&lt;/span> &lt;span style="color:#e6db74">&amp;#39;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">drop table if exists t0;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">drop table if exists t0_2357_hash; drop table if exists t1_2357_hash; drop table if exists t2_2357_hash;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">drop table if exists t0_2357_mod; drop table if exists t1_2357_mod; drop table if exists t2_2357_mod;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">drop table if exists t0_2357_repl; drop table if exists t1_2357_repl; drop table if exists t2_2357_repl;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">drop table if exists t0_2357_round; drop table if exists t1_2357_round; drop table if exists t2_2357_round;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">drop table if exists t0_2357_random; drop table if exists t1_2357_random; drop table if exists t2_2357_random;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">&amp;#39;&lt;/span> droptable &lt;span style="color:#960050;background-color:#1e0010">\&lt;/span>gset
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">select&lt;/span> &lt;span style="color:#e6db74">&amp;#39;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">create table t0(a int, b int, c char(10), d timestamp);
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">insert into t0 values
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">(1, 1, &amp;#39;&amp;#39;1&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2021-12-29 20:10:01&amp;#39;&amp;#39;),(2, 2, &amp;#39;&amp;#39;2&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2022-12-29 20:10:01&amp;#39;&amp;#39;),(3, 3, &amp;#39;&amp;#39;3&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2023-12-29 20:10:01&amp;#39;&amp;#39;),(4, 4, &amp;#39;&amp;#39;4&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2024-12-29 20:10:01&amp;#39;&amp;#39;),
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">(5, 5, &amp;#39;&amp;#39;5&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2025-12-29 20:10:01&amp;#39;&amp;#39;),(6, 6, &amp;#39;&amp;#39;6&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2026-12-29 20:10:01&amp;#39;&amp;#39;),(7, 7, &amp;#39;&amp;#39;7&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2027-12-29 20:10:01&amp;#39;&amp;#39;),(8, 8, &amp;#39;&amp;#39;8&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2028-12-29 20:10:01&amp;#39;&amp;#39;),
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">(9, 9, &amp;#39;&amp;#39;9&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2029-12-29 20:10:01&amp;#39;&amp;#39;),(10, 10, &amp;#39;&amp;#39;10&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2010-12-29 20:10:01&amp;#39;&amp;#39;),(11, 11, &amp;#39;&amp;#39;11&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2011-12-29 20:10:01&amp;#39;&amp;#39;),(12, 12, &amp;#39;&amp;#39;12&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2012-12-29 20:10:01&amp;#39;&amp;#39;),
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">(13, 13, &amp;#39;&amp;#39;13&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2013-12-29 20:10:01&amp;#39;&amp;#39;),(14, 14, &amp;#39;&amp;#39;14&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2014-12-29 20:10:01&amp;#39;&amp;#39;),(15, 15, &amp;#39;&amp;#39;15&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2015-12-29 20:10:01&amp;#39;&amp;#39;),(16, 16, &amp;#39;&amp;#39;16&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2016-12-29 20:10:01&amp;#39;&amp;#39;),
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">(17, 17, &amp;#39;&amp;#39;17&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2017-12-29 20:10:01&amp;#39;&amp;#39;),(18, 18, &amp;#39;&amp;#39;18&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2018-12-29 20:10:01&amp;#39;&amp;#39;),(19, 19, &amp;#39;&amp;#39;19&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2019-12-29 20:10:01&amp;#39;&amp;#39;),(20, 20, &amp;#39;&amp;#39;20&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2020-12-29 20:10:01&amp;#39;&amp;#39;);
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">create table t0_2357_hash (a int, b int, c char(10), d timestamp) DISTRIBUTE by hash (a);
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">create table t0_2357_mod (a int, b int, c char(10), d timestamp) DISTRIBUTE by modulo(a);
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">create table t0_2357_repl (a int, b int, c char(10), d timestamp) DISTRIBUTE by REPLICATION;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">create table t0_2357_round (a int, b int, c char(10), d timestamp) DISTRIBUTE by roundrobin;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">create table t0_2357_random (a int, b int, c char(10), d timestamp) DISTRIBUTED RANDOMLY;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">create table t1_2357_hash (a int, b int, c char(10), d timestamp) DISTRIBUTE by hash (a);
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">create table t1_2357_mod (a int, b int, c char(10), d timestamp) DISTRIBUTE by modulo(a);
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">create table t1_2357_repl (a int, b int, c char(10), d timestamp) DISTRIBUTE by REPLICATION;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">create table t1_2357_round (a int, b int, c char(10), d timestamp) DISTRIBUTE by roundrobin;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">create table t1_2357_random (a int, b int, c char(10), d timestamp) DISTRIBUTED RANDOMLY;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">create table t2_2357_hash (a int, b int, c char(10), d timestamp) DISTRIBUTE by hash (a);
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">create table t2_2357_mod (a int, b int, c char(10), d timestamp) DISTRIBUTE by modulo(a);
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">create table t2_2357_repl (a int, b int, c char(10), d timestamp) DISTRIBUTE by REPLICATION;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">create table t2_2357_round (a int, b int, c char(10), d timestamp) DISTRIBUTE by roundrobin;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">create table t2_2357_random (a int, b int, c char(10), d timestamp) DISTRIBUTED RANDOMLY;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">insert into t0_2357_hash select * from t0;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">insert into t0_2357_mod select * from t0;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">insert into t0_2357_repl select * from t0;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">insert into t0_2357_round select * from t0;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">insert into t0_2357_random select * from t0;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">insert into t1_2357_hash select * from t0;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">insert into t1_2357_mod select * from t0;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">insert into t1_2357_repl select * from t0;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">insert into t1_2357_round select * from t0;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">insert into t1_2357_random select * from t0;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">insert into t2_2357_hash select * from t0;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">insert into t2_2357_mod select * from t0;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">insert into t2_2357_repl select * from t0;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">insert into t2_2357_round select * from t0;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">insert into t2_2357_random select * from t0;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">vacuum analyze t0_2357_hash; vacuum analyze t1_2357_hash; vacuum analyze t2_2357_hash;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">vacuum analyze t0_2357_mod; vacuum analyze t1_2357_mod; vacuum analyze t2_2357_mod;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">vacuum analyze t0_2357_repl; vacuum analyze t1_2357_repl; vacuum analyze t2_2357_repl;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">vacuum analyze t0_2357_round; vacuum analyze t1_2357_round; vacuum analyze t2_2357_round;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">vacuum analyze t0_2357_random; vacuum analyze t1_2357_random; vacuum analyze t2_2357_random;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">&amp;#39;&lt;/span> createtable &lt;span style="color:#960050;background-color:#1e0010">\&lt;/span>gset
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>源码编译 on Askyx's Blog</title><link>https://askyx.github.io/tags/%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/</link><description>Recent content in 源码编译 on Askyx's Blog</description><generator>Hugo</generator><language>zh-Hans</language><lastBuildDate>Thu, 06 Nov 2025 15:45:31 +0800</lastBuildDate><atom:link href="https://askyx.github.io/tags/%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/index.xml" rel="self" type="application/rss+xml"/><item><title>源码编译 OpenTenBase 速通版</title><link>https://askyx.github.io/posts/database/tbase/build/</link><pubDate>Fri, 05 Jan 2024 11:07:23 +0800</pubDate><guid>https://askyx.github.io/posts/database/tbase/build/</guid><description>&lt;h2 id="shell"&gt;shell&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;git clone --depth&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#ae81ff"&gt;1&lt;/span&gt; https://hub.fgit.cf/OpenTenBase/OpenTenBase.git
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker run -itd --name tbase --cap-add&lt;span style="color:#f92672"&gt;=&lt;/span&gt;SYS_PTRACE --privileged&lt;span style="color:#f92672"&gt;=&lt;/span&gt;true --hostname vscode --mount type&lt;span style="color:#f92672"&gt;=&lt;/span&gt;bind,source&lt;span style="color:#f92672"&gt;=&lt;/span&gt;/home/wen/OpenTenBase,target&lt;span style="color:#f92672"&gt;=&lt;/span&gt;/workspaces/OpenTenBase runner bash
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;docker exec -it -u vscode tbase bash
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;sudo service ssh start
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;ssh-keygen
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;cat ~/.ssh/id_rsa.pub &amp;gt;&amp;gt; ~/.ssh/authorized_keys
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;chmod &lt;span style="color:#ae81ff"&gt;700&lt;/span&gt; ~/.ssh
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;chmod &lt;span style="color:#ae81ff"&gt;644&lt;/span&gt; ~/.ssh/authorized_keys
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;sudo chown vscode:vscode -R /workspaces/OpenTenBase
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;mkdir -p .build/making
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;mkdir .data
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;cd .build/making
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;/workspaces/OpenTenBase/configure --prefix&lt;span style="color:#f92672"&gt;=&lt;/span&gt;/home/vscode/.build --enable-user-switch --with-openssl --with-ossp-uuid --enable-alltype-distri CFLAGS&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#34;-fgnu89-inline -g -O0&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;make -j64 &lt;span style="color:#f92672"&gt;&amp;amp;&amp;amp;&lt;/span&gt; make install &lt;span style="color:#f92672"&gt;&amp;amp;&amp;amp;&lt;/span&gt; cd contrib &lt;span style="color:#f92672"&gt;&amp;amp;&amp;amp;&lt;/span&gt; make -j64 &lt;span style="color:#f92672"&gt;&amp;amp;&amp;amp;&lt;/span&gt; make install 
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;cd ~
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;mkdir pgxc_ctl
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# 写入下面的模板&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;touch pgxc_ctl/pg.conf
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# ssh localhost&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;pgxc_ctl -c pg.conf init all
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;createdb -p &lt;span style="color:#ae81ff"&gt;6011&lt;/span&gt; vscode
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# .bashrc 文件 此外，/home/vscode/.build/bin 需要写入到 /etc/environment&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;cat &amp;gt; /home/vscode/.bashrc &lt;span style="color:#e6db74"&gt;&amp;lt;&amp;lt;EOF
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;export PATH=&amp;#34;$PATH:/home/vscode/.build/bin&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;export LD_LIBRARY_PATH=&amp;#34;$LD_LIBRARY_PATH:/home/vscode/.build/lib&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;export LC_ALL=C
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;alias psql=&amp;#39;psql -p 6011&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;alias pstart=&amp;#39;pgxc_ctl -c pg.conf start all&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;alias pstop=&amp;#39;pgxc_ctl -c pg.conf stop all&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;alias sqps=&amp;#34;echo &amp;#39;USER PID PPID VSZ CMD&amp;#39; ; ps -eo user,pid,ppid,vsize,cmd | grep -E &amp;#39;postgres&amp;#39; &amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;EOF&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id="conf-file-pgconf"&gt;conf file (pg.conf)&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;pgxcInstallDir&lt;span style="color:#f92672"&gt;=&lt;/span&gt;/home/vscode/.build
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;pgxcOwner&lt;span style="color:#f92672"&gt;=&lt;/span&gt;vscode
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;pgxcUser&lt;span style="color:#f92672"&gt;=&lt;/span&gt;$pgxcOwner
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;defaultDatabase&lt;span style="color:#f92672"&gt;=&lt;/span&gt;postgres
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;tmpDir&lt;span style="color:#f92672"&gt;=&lt;/span&gt;/tmp
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;localTmpDir&lt;span style="color:#f92672"&gt;=&lt;/span&gt;$tmpDir
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;#------------------------ GTM ---------------------&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;gtmName&lt;span style="color:#f92672"&gt;=&lt;/span&gt;gtm
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;gtmMasterServer&lt;span style="color:#f92672"&gt;=&lt;/span&gt;vscode
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;gtmMasterPort&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#ae81ff"&gt;6006&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;gtmMasterDir&lt;span style="color:#f92672"&gt;=&lt;/span&gt;/home/vscode/.data/gtm_master
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;gtmExtraConfig&lt;span style="color:#f92672"&gt;=&lt;/span&gt;none
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;gtmMasterSpecificExtraConfig&lt;span style="color:#f92672"&gt;=&lt;/span&gt;none
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;gtmSlave&lt;span style="color:#f92672"&gt;=&lt;/span&gt;n
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;#------------------------ Coordinators ---------------------&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;coordNames&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;cn001 cn002&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;coordMasterCluster&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;vscode_cluster vscode_cluster&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;coordPorts&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;&lt;span style="color:#ae81ff"&gt;6011&lt;/span&gt; 6012&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;poolerPorts&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;&lt;span style="color:#ae81ff"&gt;6111&lt;/span&gt; 6112&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;coordPgHbaEntries&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;0.0.0.0/0&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;coordMasterServers&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;vscode vscode&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;coordMasterDirs&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;/home/vscode/.data/cn001 /home/vscode/.data/cn002&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;coordMaxWALSenders&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;&lt;span style="color:#ae81ff"&gt;10&lt;/span&gt; 10&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;coordSlave&lt;span style="color:#f92672"&gt;=&lt;/span&gt;n
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;coordSlaveSync&lt;span style="color:#f92672"&gt;=&lt;/span&gt;n
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;coordArchLogDirs&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;/home/vscode/.data/archlog/cn001 /home/vscode/.data/archlog/cn002&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;coordExtraConfig&lt;span style="color:#f92672"&gt;=&lt;/span&gt;coordExtraConfig
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;cat &amp;gt; $coordExtraConfig &lt;span style="color:#e6db74"&gt;&amp;lt;&amp;lt;EOF
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;#================================================
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;# Added to all the coordinator postgresql.conf
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;# Original: $coordExtraConfig
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;include_if_exists = &amp;#39;/home/vscode/.data/global/global_vscode.conf&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;wal_level = replica
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;wal_keep_segments = 256
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;max_wal_senders = 4
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;archive_mode = on
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;archive_timeout = 1800
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;archive_command = &amp;#39;echo 0&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;log_truncate_on_rotation = on
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;log_filename = &amp;#39;postgresql-%M.log&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;log_rotation_age = 4h
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;log_rotation_size = 100MB
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;hot_standby = on
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;wal_sender_timeout = 30min
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;wal_receiver_timeout = 30min
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;shared_buffers = 16384MB
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;max_pool_size = 2000
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;log_statement = &amp;#39;ddl&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;log_destination = &amp;#39;csvlog&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;logging_collector = on
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;log_directory = &amp;#39;pg_log&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;listen_addresses = &amp;#39;*&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;max_connections = 2000
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;EOF&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;coordSpecificExtraConfig&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;none none&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;coordExtraPgHba&lt;span style="color:#f92672"&gt;=&lt;/span&gt;coordExtraPgHba
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;cat &amp;gt; $coordExtraPgHba &lt;span style="color:#e6db74"&gt;&amp;lt;&amp;lt;EOF
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;local all all trust
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;host all all 0.0.0.0/0 trust
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;host replication all 0.0.0.0/0 trust
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;host all all ::1/128 trust
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;host replication all ::1/128 trust
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;EOF&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;coordSpecificExtraPgHba&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;none none&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;coordAdditionalSlaves&lt;span style="color:#f92672"&gt;=&lt;/span&gt;n
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;cad1_Sync&lt;span style="color:#f92672"&gt;=&lt;/span&gt;n
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;#------------------------ Datanodes ---------------------&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;primaryDatanode&lt;span style="color:#f92672"&gt;=&lt;/span&gt;dn001
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;datanodeNames&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;dn001 dn002 dn003&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;datanodePorts&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;&lt;span style="color:#ae81ff"&gt;6021&lt;/span&gt; &lt;span style="color:#ae81ff"&gt;6022&lt;/span&gt; 6023&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;datanodePoolerPorts&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;&lt;span style="color:#ae81ff"&gt;6121&lt;/span&gt; &lt;span style="color:#ae81ff"&gt;6122&lt;/span&gt; 6123&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;datanodeMasterCluster&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;vscode_cluster vscode_cluster vscode_cluster&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;datanodePgHbaEntries&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;0.0.0.0/0&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;datanodeMasterServers&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;vscode vscode vscode&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;datanodeMasterDirs&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;/home/vscode/.data/dn001 /home/vscode/.data/dn002 /home/vscode/.data/dn003&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;datanodeMaxWALSenders&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;&lt;span style="color:#ae81ff"&gt;10&lt;/span&gt; &lt;span style="color:#ae81ff"&gt;10&lt;/span&gt; 10&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;datanodeArchLogDirs&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;/home/vscode/.data/archlog/dn001 /home/vscode/.data/archlog/dn002 /home/vscode/.data/archlog/dn003&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;datanodeSlave&lt;span style="color:#f92672"&gt;=&lt;/span&gt;n
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;datanodeExtraConfig&lt;span style="color:#f92672"&gt;=&lt;/span&gt;datanodeExtraConfig
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;cat &amp;gt; $datanodeExtraConfig &lt;span style="color:#e6db74"&gt;&amp;lt;&amp;lt;EOF
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;#================================================
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;# Added to all the coordinator postgresql.conf
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;# Original: $datanodeExtraConfig
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;include_if_exists = &amp;#39;/home/vscode/.data/global/global_vscode.conf&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;listen_addresses = &amp;#39;*&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;wal_level = replica
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;wal_keep_segments = 256
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;max_wal_senders = 4
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;archive_mode = on
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;archive_timeout = 1800
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;archive_command = &amp;#39;echo 0&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;log_directory = &amp;#39;pg_log&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;logging_collector = on
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;log_truncate_on_rotation = on
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;log_filename = &amp;#39;postgresql-%M.log&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;log_rotation_age = 4h
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;log_rotation_size = 100MB
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;hot_standby = on
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;wal_sender_timeout = 30min
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;wal_receiver_timeout = 30min
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;shared_buffers = 16384MB
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;max_connections = 4000
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;max_pool_size = 4000
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;log_statement = &amp;#39;ddl&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;log_destination = &amp;#39;csvlog&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;wal_buffers = 1GB
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;EOF&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;datanodeSpecificExtraConfig&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;none none&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;datanodeExtraPgHba&lt;span style="color:#f92672"&gt;=&lt;/span&gt;datanodeExtraPgHba
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;cat &amp;gt; $datanodeExtraPgHba &lt;span style="color:#e6db74"&gt;&amp;lt;&amp;lt;EOF
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;local all all trust
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;host all all 0.0.0.0/0 trust
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;host replication all 0.0.0.0/0 trust
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;host all all ::1/128 trust
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;host replication all ::1/128 trust
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;EOF&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;datanodeSpecificExtraPgHba&lt;span style="color:#f92672"&gt;=(&lt;/span&gt;none none&lt;span style="color:#f92672"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;datanodeAdditionalSlaves&lt;span style="color:#f92672"&gt;=&lt;/span&gt;n
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;walArchive&lt;span style="color:#f92672"&gt;=&lt;/span&gt;n
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id="demo-sql"&gt;demo sql&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;select&lt;/span&gt; &lt;span style="color:#e6db74"&gt;&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;drop table if exists t0;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;drop table if exists t0_2357_hash; drop table if exists t1_2357_hash; drop table if exists t2_2357_hash;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;drop table if exists t0_2357_mod; drop table if exists t1_2357_mod; drop table if exists t2_2357_mod;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;drop table if exists t0_2357_repl; drop table if exists t1_2357_repl; drop table if exists t2_2357_repl;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;drop table if exists t0_2357_round; drop table if exists t1_2357_round; drop table if exists t2_2357_round;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;drop table if exists t0_2357_random; drop table if exists t1_2357_random; drop table if exists t2_2357_random;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;&amp;#39;&lt;/span&gt; droptable &lt;span style="color:#960050;background-color:#1e0010"&gt;\&lt;/span&gt;gset
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;select&lt;/span&gt; &lt;span style="color:#e6db74"&gt;&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;create table t0(a int, b int, c char(10), d timestamp);
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;insert into t0 values
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;(1, 1, &amp;#39;&amp;#39;1&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2021-12-29 20:10:01&amp;#39;&amp;#39;),(2, 2, &amp;#39;&amp;#39;2&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2022-12-29 20:10:01&amp;#39;&amp;#39;),(3, 3, &amp;#39;&amp;#39;3&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2023-12-29 20:10:01&amp;#39;&amp;#39;),(4, 4, &amp;#39;&amp;#39;4&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2024-12-29 20:10:01&amp;#39;&amp;#39;),
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;(5, 5, &amp;#39;&amp;#39;5&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2025-12-29 20:10:01&amp;#39;&amp;#39;),(6, 6, &amp;#39;&amp;#39;6&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2026-12-29 20:10:01&amp;#39;&amp;#39;),(7, 7, &amp;#39;&amp;#39;7&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2027-12-29 20:10:01&amp;#39;&amp;#39;),(8, 8, &amp;#39;&amp;#39;8&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2028-12-29 20:10:01&amp;#39;&amp;#39;),
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;(9, 9, &amp;#39;&amp;#39;9&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2029-12-29 20:10:01&amp;#39;&amp;#39;),(10, 10, &amp;#39;&amp;#39;10&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2010-12-29 20:10:01&amp;#39;&amp;#39;),(11, 11, &amp;#39;&amp;#39;11&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2011-12-29 20:10:01&amp;#39;&amp;#39;),(12, 12, &amp;#39;&amp;#39;12&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2012-12-29 20:10:01&amp;#39;&amp;#39;),
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;(13, 13, &amp;#39;&amp;#39;13&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2013-12-29 20:10:01&amp;#39;&amp;#39;),(14, 14, &amp;#39;&amp;#39;14&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2014-12-29 20:10:01&amp;#39;&amp;#39;),(15, 15, &amp;#39;&amp;#39;15&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2015-12-29 20:10:01&amp;#39;&amp;#39;),(16, 16, &amp;#39;&amp;#39;16&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2016-12-29 20:10:01&amp;#39;&amp;#39;),
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;(17, 17, &amp;#39;&amp;#39;17&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2017-12-29 20:10:01&amp;#39;&amp;#39;),(18, 18, &amp;#39;&amp;#39;18&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2018-12-29 20:10:01&amp;#39;&amp;#39;),(19, 19, &amp;#39;&amp;#39;19&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2019-12-29 20:10:01&amp;#39;&amp;#39;),(20, 20, &amp;#39;&amp;#39;20&amp;#39;&amp;#39;, &amp;#39;&amp;#39;2020-12-29 20:10:01&amp;#39;&amp;#39;);
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;create table t0_2357_hash (a int, b int, c char(10), d timestamp) DISTRIBUTE by hash (a);
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;create table t0_2357_mod (a int, b int, c char(10), d timestamp) DISTRIBUTE by modulo(a);
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;create table t0_2357_repl (a int, b int, c char(10), d timestamp) DISTRIBUTE by REPLICATION;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;create table t0_2357_round (a int, b int, c char(10), d timestamp) DISTRIBUTE by roundrobin;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;create table t0_2357_random (a int, b int, c char(10), d timestamp) DISTRIBUTED RANDOMLY;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;create table t1_2357_hash (a int, b int, c char(10), d timestamp) DISTRIBUTE by hash (a);
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;create table t1_2357_mod (a int, b int, c char(10), d timestamp) DISTRIBUTE by modulo(a);
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;create table t1_2357_repl (a int, b int, c char(10), d timestamp) DISTRIBUTE by REPLICATION;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;create table t1_2357_round (a int, b int, c char(10), d timestamp) DISTRIBUTE by roundrobin;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;create table t1_2357_random (a int, b int, c char(10), d timestamp) DISTRIBUTED RANDOMLY;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;create table t2_2357_hash (a int, b int, c char(10), d timestamp) DISTRIBUTE by hash (a);
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;create table t2_2357_mod (a int, b int, c char(10), d timestamp) DISTRIBUTE by modulo(a);
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;create table t2_2357_repl (a int, b int, c char(10), d timestamp) DISTRIBUTE by REPLICATION;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;create table t2_2357_round (a int, b int, c char(10), d timestamp) DISTRIBUTE by roundrobin;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;create table t2_2357_random (a int, b int, c char(10), d timestamp) DISTRIBUTED RANDOMLY;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;insert into t0_2357_hash select * from t0;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;insert into t0_2357_mod select * from t0;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;insert into t0_2357_repl select * from t0;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;insert into t0_2357_round select * from t0;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;insert into t0_2357_random select * from t0;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;insert into t1_2357_hash select * from t0;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;insert into t1_2357_mod select * from t0;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;insert into t1_2357_repl select * from t0;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;insert into t1_2357_round select * from t0;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;insert into t1_2357_random select * from t0;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;insert into t2_2357_hash select * from t0;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;insert into t2_2357_mod select * from t0;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;insert into t2_2357_repl select * from t0;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;insert into t2_2357_round select * from t0;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;insert into t2_2357_random select * from t0;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;vacuum analyze t0_2357_hash; vacuum analyze t1_2357_hash; vacuum analyze t2_2357_hash;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;vacuum analyze t0_2357_mod; vacuum analyze t1_2357_mod; vacuum analyze t2_2357_mod;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;vacuum analyze t0_2357_repl; vacuum analyze t1_2357_repl; vacuum analyze t2_2357_repl;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;vacuum analyze t0_2357_round; vacuum analyze t1_2357_round; vacuum analyze t2_2357_round;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;vacuum analyze t0_2357_random; vacuum analyze t1_2357_random; vacuum analyze t2_2357_random;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e6db74"&gt;&amp;#39;&lt;/span&gt; createtable &lt;span style="color:#960050;background-color:#1e0010"&gt;\&lt;/span&gt;gset
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description></item></channel></rss>

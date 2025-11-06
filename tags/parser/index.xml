@@ -1,14 +1,14 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Parser on Askyx's Blog</title><link>https://askyx.github.io/tags/parser/</link><description>Recent content in Parser on Askyx's Blog</description><generator>Hugo</generator><language>zh-Hans</language><lastBuildDate>Mon, 21 Jul 2025 18:42:10 +0800</lastBuildDate><atom:link href="https://askyx.github.io/tags/parser/index.xml" rel="self" type="application/rss+xml"/><item><title>postgres Parser</title><link>https://askyx.github.io/posts/postgres/parser/</link><pubDate>Mon, 10 Oct 2022 12:03:18 +0800</pubDate><guid>https://askyx.github.io/posts/postgres/parser/</guid><description>&lt;h2 id="bison">BISON&lt;/h2>
-&lt;p>1.2 From Formal Rules to Bison Input&lt;/p>
-&lt;ul>
-&lt;li>Terminal&lt;/li>
-&lt;li>Nonterminal&lt;/li>
-&lt;/ul>
-&lt;p>1.3 Semantic Values
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Parser on Askyx's Blog</title><link>https://askyx.github.io/tags/parser/</link><description>Recent content in Parser on Askyx's Blog</description><generator>Hugo</generator><language>zh-Hans</language><lastBuildDate>Thu, 06 Nov 2025 15:45:31 +0800</lastBuildDate><atom:link href="https://askyx.github.io/tags/parser/index.xml" rel="self" type="application/rss+xml"/><item><title>postgres Parser</title><link>https://askyx.github.io/posts/postgres/parser/</link><pubDate>Mon, 10 Oct 2022 12:03:18 +0800</pubDate><guid>https://askyx.github.io/posts/postgres/parser/</guid><description>&lt;h2 id="bison"&gt;BISON&lt;/h2&gt;
+&lt;p&gt;1.2 From Formal Rules to Bison Input&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Terminal&lt;/li&gt;
+&lt;li&gt;Nonterminal&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;1.3 Semantic Values
 A formal grammar selects tokens only by their classifications
 each token in a Bison grammar has both a token kind and a semantic value
-强类型，有类型和值的区别&lt;/p>
-&lt;p>1.4 Semantic Actions
-The action says how to produce the semantic value&lt;/p>
-&lt;p>1.5 Writing GLR Parsers
-略，默认是LR文法，但是有RR和SR冲突，所以为了不那么严格限制语法，在一定程度上允许冲突。这里不做了解&lt;/p></description></item></channel></rss>
+强类型，有类型和值的区别&lt;/p&gt;
+&lt;p&gt;1.4 Semantic Actions
+The action says how to produce the semantic value&lt;/p&gt;
+&lt;p&gt;1.5 Writing GLR Parsers
+略，默认是LR文法，但是有RR和SR冲突，所以为了不那么严格限制语法，在一定程度上允许冲突。这里不做了解&lt;/p&gt;</description></item></channel></rss>

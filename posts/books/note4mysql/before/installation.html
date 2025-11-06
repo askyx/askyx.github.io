@@ -209,43 +209,43 @@ long_query_time=20
 </code></pre>
 <h2 id="编译安装"><a class="header" href="#编译安装">编译安装</a></h2>
 <h2 id="docker-安装"><a class="header" href="#docker-安装">docker 安装</a></h2>
-<pre><code>docker run  -itd  --name mdev --hostname vscode --cap-add=SYS_PTRACE --privileged=true \
+<pre><code>docker run  -itd  --name 8032_cluster --hostname vscode --cap-add=SYS_PTRACE --privileged=true \
 --mount type=bind,source=/home/asky/.mdep/boost_1_77_0,target=/home/vscode/.mdep/boost_1_77_0 \
  --shm-size 32G dev  bash
 
 
-docker exec -it -u vscode mdev bash
+docker exec -it -u vscode mariadb bash
 
 docker cp /home/asky/percona_8032  mdev:/home/vscode
 sudo chown -R vscode:vscode percona_8032
 
 
-alias dev_msql='docker exec -it -u vscode mdev zsh'
-alias stop_msql='docker stop mdev'
-alias start_msql='docker start mdev' 
-
-
-sudo apt install g++-11 gcc-11 gdb cmake git vim clangd
-sudo apt-get install -y ninja-build libnuma-dev libcurl4-openssl-dev
-sudo apt-get install -y libncurses5-dev pkg-config libreadline-dev
-sudo apt install libtirpc-dev libpam-dev bison flex zsh
+alias dev_mariadb='docker exec -it -u vscode mariadb zsh'
+alias stop_mariadb='docker stop mariadb'
+alias start_mariadb='docker start mariadb' 
 
 sudo apt update
-sudo apt-get -y install git vim gcc-15 g++-15 
-sudo apt-get -y install ninja-build
-sudo apt-get install libedit-dev
-sudo apt-get install liblz4-dev
-sudo apt-get install libicu-dev
-sudo apt-get install libprotobuf-dev
-sudo apt-get install protobuf-compiler
-sudo apt-get install libprotobuf-dev
-sudo apt-get install protobuf-compiler
-sudo apt-get install protobuf-c-compiler
-sudo apt-get install libprotobuf-c-dev
-sudo apt-get install libprotoc-dev
-sudo apt-get install libtirpc-dev
-sudo apt-get install zsh
-sudo apt-get install curl flex bison g++ gcc gdb make libzstd-dev libxml2-dev libcurl4-openssl-dev vim libbz2-dev \
+
+sudo apt-get install -y g++-11 gcc-11 gdb cmake git vim clangd
+sudo apt-get install -y ninja-build libnuma-dev libcurl4-openssl-dev
+sudo apt-get install -y libncurses5-dev pkg-config libreadline-dev
+sudo apt-get install -y libtirpc-dev libpam-dev bison flex zsh
+
+sudo apt-get -y install git vim
+sudo apt-get -y install ninja-build uuid-dev
+sudo apt-get -y install libedit-dev
+sudo apt-get -y install liblz4-dev
+sudo apt-get -y install libicu-dev
+sudo apt-get -y install libprotobuf-dev
+sudo apt-get -y install protobuf-compiler
+sudo apt-get -y install libprotobuf-dev
+sudo apt-get -y install protobuf-compiler
+sudo apt-get -y install protobuf-c-compiler
+sudo apt-get -y install libprotobuf-c-dev
+sudo apt-get -y install libprotoc-dev
+sudo apt-get -y install libtirpc-dev
+sudo apt-get -y install zsh
+sudo apt-get -y install curl flex bison g++ gcc gdb make libzstd-dev libxml2-dev libcurl4-openssl-dev vim libbz2-dev \
 libperl-dev software-properties-common      pkg-config libreadline-dev python3-dev libldap-dev zlib1g-dev \
 openssh-server iputils-ping libxslt-dev libpam-dev libssl-dev libreadline6-dev libssh2-1-dev cmake ninja-build sudo locales
 
@@ -286,11 +286,11 @@ cmake -DCMAKE_BUILD_TYPE:STRING=Debug \
   -G Ninja
 
 
-export PATH=/home/vscode/.percona/bin:$PATH
-export LD_LIBRARY_PATH=/home/vscode/.percona/lib:$LD_LIBRARY_PATH
+export PATH=/home/vscode/.mariadb/bin:$PATH
+export LD_LIBRARY_PATH=/home/vscode/.mariadb/lib:$LD_LIBRARY_PATH
 alias imysql='mysql -u root'
-alias mstart='/home/vscode/.percona/support-files/mysql.server start --skip-grant-tables'
-alias mstop='/home/vscode/.percona/support-files/mysql.server stop'
+alias mstart='/home/vscode/.mariadb/support-files/mysql.server start --skip-grant-tables'
+alias mstop='/home/vscode/.mariadb/support-files/mysql.server stop'
 
 
 </code></pre>

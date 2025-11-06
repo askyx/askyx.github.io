@@ -1,5 +1,5 @@
 <!doctype html><html lang=zh-Hans x-data :class=$store.darkMode.class() :data-theme=$store.darkMode.theme()><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Search | Askyx's Blog</title><link rel=icon href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%2210 0 100 100%22><text y=%22.90em%22 font-size=%2290%22>🌱</text></svg>"></link>
-<link rel=canonical href=https://askyx.github.io/search/><meta name=author content="Askyx"><meta name=description content="My personal blog"><meta name=generator content="Hugo 0.148.1"><meta property="og:url" content="https://askyx.github.io/search/"><meta property="og:site_name" content="Askyx's Blog"><meta property="og:title" content="Askyx's Blog"><meta property="og:description" content="My personal blog"><meta property="og:locale" content="zh_Hans"><meta property="og:type" content="website"><meta property="og:image" content="https://askyx.github.io/img/global-background.jpg"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://askyx.github.io/img/global-background.jpg"><meta name=twitter:title content="Askyx's Blog"><meta name=twitter:description content="My personal blog"><link rel=stylesheet href=/css/output.min.css><link rel=stylesheet href=/css/custom.css><script defer src=https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js integrity="sha256-PtHu0lJIiSHfZeNj1nFd6wTX+Squ255SGZ/fc8seCtM=" crossorigin=anonymous></script></head><body x-data="{
+<link rel=canonical href=https://askyx.github.io/search/><meta name=author content="Askyx"><meta name=description content="My personal blog"><meta name=generator content="Hugo 0.152.2"><meta property="og:url" content="https://askyx.github.io/search/"><meta property="og:site_name" content="Askyx's Blog"><meta property="og:title" content="Askyx's Blog"><meta property="og:description" content="My personal blog"><meta property="og:locale" content="zh_Hans"><meta property="og:type" content="website"><meta property="og:image" content="https://askyx.github.io/img/global-background.jpg"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://askyx.github.io/img/global-background.jpg"><meta name=twitter:title content="Askyx's Blog"><meta name=twitter:description content="My personal blog"><link rel=stylesheet href=/css/output.min.css><link rel=stylesheet href=/css/custom.css><script defer src=https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js integrity="sha256-PtHu0lJIiSHfZeNj1nFd6wTX+Squ255SGZ/fc8seCtM=" crossorigin=anonymous></script></head><body x-data="{
     flip: false,
   }"><div id=dream-global-bg></div><nav x-data="{ isSticky: false }" x-init="window.addEventListener('scroll', () => { isSticky = window.scrollY > 30 })" class="sticky top-0 z-30 mt-4 lg:mt-8 py-4" :class="{ 'bg-base-100 shadow-lg dark:border-b dark:border-base-content/30': isSticky }"><div class="container flex justify-between px-4"><section class="flex items-center gap-4"><div class="avatar cursor-pointer hover:avatar-online" @click="flip = !flip" title="Flip it!"><div class="h-10 rounded-full"><img src=/img/personal/avatar.jpg alt="Askyx's Blog"></div></div><div><a href=https://askyx.github.io/ class="text-lg font-semibold cursor-pointer">Askyx's Blog</a><div class="text-base-content/60 text-sm">life is short, use Python</div></div></section><div class="dropdown dropdown-end sm:hidden"><div tabindex=0 role=button class="btn btn-ghost btn-square" aria-label="Select an option"><ion-icon name=menu class=text-2xl></ion-icon></div><ul tabindex=0 class="dropdown-content menu w-36 bg-base-100 rounded-box z-1 shadow-md"><li><div role=link tabindex=0 class="inline-flex items-center p-2 cursor-pointer" @click="flip = !flip" title=About><ion-icon name=information-circle></ion-icon>About</div></li><li><a class="group inline-flex items-center p-2 cursor-pointer" href=/search title=Search><ion-icon name=search></ion-icon>Search</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=https://github.com/askyx target=_blank title=GitHub><ion-icon name=logo-github></ion-icon>GitHub</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/posts title=Archives><ion-icon name=archive></ion-icon>Archives</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/tags title="All Tags"><ion-icon name=pricetags></ion-icon>All Tags</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/index.xml title=RSS><ion-icon name=logo-rss></ion-icon>RSS</a></li></ul></div><section class="hidden sm:flex sm:items-center sm:gap-2 md:gap-4"><div role=link tabindex=0 class="text-sm font-semibold cursor-pointer hover:underline" @click="flip = !flip" title=About>About</div><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href=/search title=Search><ion-icon class=group-hover:text-primary-content name=search></ion-icon></a><a class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" href=https://github.com/askyx target=_blank title=GitHub><ion-icon class=group-hover:text-primary-content name=logo-github></ion-icon></a><div class="dropdown dropdown-end dropdown-hover"><div tabindex=0 role=button class="group inline-flex items-center p-2 rounded-full cursor-pointer hover:bg-primary" aria-label="Select an option"><ion-icon class="group-hover:text-primary-content text-xl" name=menu></ion-icon></div><ul tabindex=0 class="dropdown-content menu w-36 bg-base-100 rounded-box z-1 shadow-xl"><li><a class="inline-flex items-center p-2 cursor-pointer" href=/posts title=Archives><ion-icon name=archive></ion-icon>Archives</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/tags title="All Tags"><ion-icon name=pricetags></ion-icon>All Tags</a></li><li><a class="inline-flex items-center p-2 cursor-pointer" href=/index.xml title=RSS><ion-icon name=logo-rss></ion-icon>RSS</a></li></ul></div></section></div></nav><div class=flip-container :class="{ 'flip-it': flip }"><div class=flipper><div class=front><div class=container><div class="mt-8 lg:mt-12 px-4" x-data="{
   search: '',
@@ -13,7 +13,7 @@
     { name: 'sunny', status: 'n' },
     { name: 'moon', status: 'y' },
     { name: 'desktop', status: 'auto' }
-  ] }" class="flex items-center gap-2 h-[32px] px-2 bg-base-100 border border-base-content/30 rounded-full"><template x-for="icon in icons"><div role=button tabindex=0 :aria-label="'Select ' + icon.name + ' mode'" class="group inline-flex justify-center items-center p-1 rounded-full cursor-pointer hover:bg-primary" :class="$store.darkMode.icon() === icon.name && 'bg-primary'" @click=$store.darkMode.toggle(icon.status)><ion-icon :name="`${icon.name}-outline`" class=group-hover:text-primary-content :class="$store.darkMode.icon() === icon.name && 'text-primary-content'"></ion-icon></div></template></div></footer></div></div><div class=back><div class=container><div class="dream-grid dream-grid-about"><div class="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-4 dream-column"><article class="card bg-base-100 hover:bg-base-content/10 shadow-xl dark:border dark:border-base-content/30"><div class=card-body><div class=card-title>About Me</div><div class="prose dark:prose-invert"><p>Hi, my name is Yue Yang.</p><p>This is my blog.</p><h2 id=ヾωo>ヾ(•ω•`)o</h2><p>比较胆小，出门都得贴墙走</p></div></div></article></div></div><footer class="flex justify-between items-center gap-2 px-4 py-12"><div><p>© 2016 - 2025 Askyx's Blog</p><p class=text-sm>🌱
+  ] }" class="flex items-center gap-2 h-[32px] px-2 bg-base-100 border border-base-content/30 rounded-full"><template x-for="icon in icons"><div role=button tabindex=0 :aria-label="'Select ' + icon.name + ' mode'" class="group inline-flex justify-center items-center p-1 rounded-full cursor-pointer hover:bg-primary" :class="$store.darkMode.icon() === icon.name && 'bg-primary'" @click=$store.darkMode.toggle(icon.status)><ion-icon :name="`${icon.name}-outline`" class=group-hover:text-primary-content :class="$store.darkMode.icon() === icon.name && 'text-primary-content'"></ion-icon></div></template></div></footer></div></div><div class=back><div class=container><div class="dream-grid dream-grid-about"><div class="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-4 dream-column"><article class="card bg-base-100 hover:bg-base-content/10 shadow-xl dark:border dark:border-base-content/30"><div class=card-body><div class=card-title>About Me</div><div class="prose dark:prose-invert"><p>This is my blog.</p><h2 id=ヾωo>ヾ(•ω•`)o</h2><p>比较胆小，出门都得贴墙走</p></div></div></article></div></div><footer class="flex justify-between items-center gap-2 px-4 py-12"><div><p>© 2016 - 2025 Askyx's Blog</p><p class=text-sm>🌱
 <span class=text-base-content/60>Powered by <a class=hover:underline href=https://gohugo.io/ target=_blank>Hugo</a> with theme
 <a class=hover:underline href=https://github.com/g1eny0ung/hugo-theme-dream target=_blank>Dream</a>.</span></p></div><div x-data="{ icons: [
     { name: 'sunny', status: 'n' },
@@ -49,34 +49,54 @@ p10k configure
 </span></span><span style="display:flex;"><span>newgrp docker                <span style="color:#75715e">#更新docker用户组</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>-- 可能可用的镜像，一个一个试
-</span></span><span style="display:flex;"><span>docker pull  registry.docker-cn.com/library/ubuntu:24.04
-</span></span><span style="display:flex;"><span>docker pull  hub-mirror.c.163.com/library/ubuntu:24.04
-</span></span><span style="display:flex;"><span>docker pull  docker.mirrors.ustc.edu.cn/library/ubuntu:24.04
-</span></span><span style="display:flex;"><span>docker pull  yxzrazem.mirror.aliyuncs.com/library/ubuntu:24.04
-</span></span><span style="display:flex;"><span>docker pull  docker.kubesre.xyz/library/ubuntu:24.04
-</span></span><span style="display:flex;"><span>docker pull  dc.j8.work/library/ubuntu:24.04
-</span></span><span style="display:flex;"><span>docker pull  docker.registry.cyou/library/ubuntu:24.04
-</span></span><span style="display:flex;"><span>docker pull  docker.hlyun.org/library/ubuntu:24.04
-</span></span><span style="display:flex;"><span>docker pull  docker.chenby.cn/library/ubuntu:24.04
-</span></span><span style="display:flex;"><span>docker pull  docker.jsdelivr.fyi/library/ubuntu:24.04
-</span></span><span style="display:flex;"><span>docker pull  docker-mirrors.mjjman.com/library/ubuntu:24.04
-</span></span><span style="display:flex;"><span>docker pull  huecker.io/library/ubuntu:24.04
-</span></span><span style="display:flex;"><span>docker pull  dockerhub.timeweb.cloud/library/ubuntu:24.04
-</span></span><span style="display:flex;"><span>docker pull  docker-cf.registry.cyou/library/ubuntu:24.04
-</span></span><span style="display:flex;"><span>docker pull  dockercf.jsdelivr.fyi/library/ubuntu:24.04
-</span></span><span style="display:flex;"><span>docker pull  dockertest.jsdelivr.fyi/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker pull  registry.docker-cn.com/library/ubuntu:25.10
+</span></span><span style="display:flex;"><span>docker pull  hub-mirror.c.163.com/library/ubuntu:25.10
+</span></span><span style="display:flex;"><span>docker pull  docker.mirrors.ustc.edu.cn/library/ubuntu:25.10
+</span></span><span style="display:flex;"><span>docker pull  yxzrazem.mirror.aliyuncs.com/library/ubuntu:25.10
+</span></span><span style="display:flex;"><span>docker pull  docker.kubesre.xyz/library/ubuntu:25.10
+</span></span><span style="display:flex;"><span>docker pull  dc.j8.work/library/ubuntu:25.10
+</span></span><span style="display:flex;"><span>docker pull  docker.registry.cyou/library/ubuntu:25.10
+</span></span><span style="display:flex;"><span>docker pull  docker.hlyun.org/library/ubuntu:25.10
+</span></span><span style="display:flex;"><span>docker pull  docker.chenby.cn/library/ubuntu:25.10
+</span></span><span style="display:flex;"><span>docker pull  docker.jsdelivr.fyi/library/ubuntu:25.10
+</span></span><span style="display:flex;"><span>docker pull  docker-mirrors.mjjman.com/library/ubuntu:25.10
+</span></span><span style="display:flex;"><span>docker pull  huecker.io/library/ubuntu:25.10
+</span></span><span style="display:flex;"><span>docker pull  dockerhub.timeweb.cloud/library/ubuntu:25.10
+</span></span><span style="display:flex;"><span>docker pull  docker-cf.registry.cyou/library/ubuntu:25.10
+</span></span><span style="display:flex;"><span>docker pull  dockercf.jsdelivr.fyi/library/ubuntu:25.10
+</span></span><span style="display:flex;"><span>docker pull  dockertest.jsdelivr.fyi/library/ubuntu:25.10
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>docker pull dockerhub.azk8s.cn/library/ubuntu:24.04
-</span></span><span style="display:flex;"><span>docker pull mirror.ccs.tencentyun.com/library/ubuntu:24.04
-</span></span><span style="display:flex;"><span>docker pull registry.cn-hangzhou.aliyuncs.com/library/ubuntu:24.04
-</span></span><span style="display:flex;"><span>docker pull docker.m.daocloud.io/library/ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker pull dockerhub.azk8s.cn/library/ubuntu:25.10
+</span></span><span style="display:flex;"><span>docker pull mirror.ccs.tencentyun.com/library/ubuntu:25.10
+</span></span><span style="display:flex;"><span>docker pull registry.cn-hangzhou.aliyuncs.com/library/ubuntu:25.10
+</span></span><span style="display:flex;"><span>docker pull docker.m.daocloud.io/library/ubuntu:25.10
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>docker tag 8a3cdc4d1ad3 ubuntu:24.04
+</span></span><span style="display:flex;"><span>docker tag 47b9904d4474 ubuntu:25.10
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>docker rmi docker.jsdelivr.fyi/library/ubuntu:24.04
-</span></span></code></pre></div>`,readingTime:1,tags:["wsl2","Ubuntu24.04","perf"],title:"wsl 问题记录，研发环境初始化",url:"/posts/note/wsl/"},{author:null,avatar:null,categories:null,description:"Postgre hash join 总结",readingTime:4,tags:null,title:"Postgres Hash Join",url:"/posts/postgres/hashjoin/"},{author:null,avatar:null,categories:null,description:"docker OpenTenBase 源码编译",readingTime:3,tags:["数据库","Postgres","OpenTenBase","源码编译"],title:"源码编译 OpenTenBase 速通版",url:"/posts/database/tbase/build/"},{author:null,avatar:null,categories:null,description:"cmake 速查模板，自用",readingTime:4,tags:["C/C++","cmake","模板库"],title:"cmake 速查模板",url:"/posts/others/cmake/"},{author:null,avatar:null,categories:null,description:"gdb 中的一些常用方法，一些常用的命令，记忆 gdb 的 python 扩展的使用方法",readingTime:11,tags:null,title:"gdb 要点简记",url:"/posts/others/gdb/"},{author:null,avatar:null,categories:null,description:"深度优化探索文章的读书笔记",readingTime:1,tags:null,title:"Postgres 技术内幕，Optimizer过程分析",url:"/posts/postgres/optimizer/"},{author:null,avatar:null,categories:null,description:"宏模板，自用",readingTime:1,tags:["C/C++","宏","日志"],title:"宏使用模板速查",url:"/posts/postgres/defineinc/"},{author:null,avatar:null,categories:null,description:"pg中各个算子的代价计算",readingTime:13,tags:null,title:"执行计划代价计算规则梳理",url:"/posts/postgres/cost/"},{author:null,avatar:null,categories:null,description:"事务分析记录，源码分析，关键技术点简记，唬人专用",readingTime:11,tags:null,title:"事务知识简记",url:"/posts/postgres/tx/"},{author:null,avatar:null,categories:null,description:"bison 文档重点记录",readingTime:1,tags:null,title:"Bison Note",url:"/posts/course/15441/note/"},{author:null,avatar:null,categories:null,description:`<p>语句</p>
+</span></span><span style="display:flex;"><span>docker rmi docker.jsdelivr.fyi/library/ubuntu:25.10
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>wsl_update_x64
+</span></span><span style="display:flex;"><span>WSL内核更新
+</span></span><span style="display:flex;"><span>https://www.catalog.update.microsoft.com/Search.aspx?q<span style="color:#f92672">=</span>wsl
+</span></span><span style="display:flex;"><span>下载内核文件，然后解压出wsl_update_x64
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>使用wsl --shutdown 关闭wsl，运行文件升级
+</span></span><span style="display:flex;"><span>打开wsl
+</span></span><span style="display:flex;"><span>uname -a 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>WSL磁盘空间回收
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>https://zhuanlan.zhihu.com/p/521747491
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>wsl --shutdown
+</span></span><span style="display:flex;"><span>diskpart
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">select</span> vdisk file<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;C:\\Users\\Esoye\\AppData\\Local\\Packages\\CanonicalGroupLimited.Ubuntu20.04onWindows_79rhkp1fndgsc\\LocalState\\ext4.vhdx&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">select</span> vdisk file<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;C:\\Users\\Esoye\\AppData\\Local\\Packages\\CanonicalGroupLimited.Ubuntu22.04LTS_79rhkp1fndgsc\\LocalState\\ext4.vhdx&#34;</span>
+</span></span><span style="display:flex;"><span>compact vdisk
+</span></span><span style="display:flex;"><span>detach vdisk
+</span></span></code></pre></div>`,readingTime:1,tags:["wsl2","perf","Ubuntu24.04"],title:"wsl 问题记录，研发环境初始化",url:"/posts/note/wsl/"},{author:null,avatar:null,categories:null,description:"Postgre hash join 总结",readingTime:4,tags:null,title:"Postgres Hash Join",url:"/posts/postgres/hashjoin/"},{author:null,avatar:null,categories:null,description:"docker OpenTenBase 源码编译",readingTime:3,tags:["数据库","Postgres","OpenTenBase","源码编译"],title:"源码编译 OpenTenBase 速通版",url:"/posts/database/tbase/build/"},{author:null,avatar:null,categories:null,description:"cmake 速查模板，自用",readingTime:4,tags:["C/C++","cmake","模板库"],title:"cmake 速查模板",url:"/posts/others/cmake/"},{author:null,avatar:null,categories:null,description:"gdb 中的一些常用方法，一些常用的命令，记忆 gdb 的 python 扩展的使用方法",readingTime:11,tags:null,title:"gdb 要点简记",url:"/posts/others/gdb/"},{author:null,avatar:null,categories:null,description:"深度优化探索文章的读书笔记",readingTime:1,tags:null,title:"Postgres 技术内幕，Optimizer过程分析",url:"/posts/postgres/optimizer/"},{author:null,avatar:null,categories:null,description:"宏模板，自用",readingTime:1,tags:["C/C++","宏","日志"],title:"宏使用模板速查",url:"/posts/postgres/defineinc/"},{author:null,avatar:null,categories:null,description:"pg中各个算子的代价计算",readingTime:13,tags:null,title:"执行计划代价计算规则梳理",url:"/posts/postgres/cost/"},{author:null,avatar:null,categories:null,description:"事务分析记录，源码分析，关键技术点简记，唬人专用",readingTime:11,tags:null,title:"事务知识简记",url:"/posts/postgres/tx/"},{author:null,avatar:null,categories:null,description:"bison 文档重点记录",readingTime:1,tags:null,title:"Bison Note",url:"/posts/course/15441/note/"},{author:null,avatar:null,categories:null,description:`<p>语句</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">prepare</span> s3(int, int) <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">select</span> no_o_id <span style="color:#66d9ef">from</span> bmsql_new_order <span style="color:#66d9ef">where</span> no_w_id <span style="color:#f92672">=</span> <span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">and</span> no_d_id <span style="color:#f92672">=</span> <span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">2</span> <span style="color:#66d9ef">order</span> <span style="color:#66d9ef">by</span> no_o_id <span style="color:#66d9ef">asc</span>;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>                                            QUERY PLAN                                             
@@ -103,7 +123,7 @@ p10k configure
 </span></span><span style="display:flex;"><span>(<span style="color:#ae81ff">4</span> <span style="color:#66d9ef">rows</span>)
 </span></span></code></pre></div><p>最直接原因是优化器代码变动，antdb使用的内核代码比xc的新，antdb在添加remote query 功能的时候由于代码变动，有部分函数由于代码变动，可能没有覆盖到，
 以上面的例子为例
-在pgxc中，grouping_planner中对sort的处理逻辑如下，直接使用创建sort的path之后使用create_remotesort_plan，在处理后的执行计划中有一个<code>__REMOTE_SORT_QUERY__</code>的rte，这里抓取了pgxc和antdb关键节点的执行计划，可以直接对比<code>grouping_planner</code>前后的执行计划的变化</p>`,readingTime:16,tags:null,title:"xx",url:"/posts/others/log/"},{author:null,avatar:null,categories:null,description:"libpqxx分析",readingTime:3,tags:null,title:"Libpqxx",url:"/posts/readcode/libpqxx/"},{author:null,avatar:null,categories:null,description:`<h2 id="内存上下文">内存上下文</h2>
+在pgxc中，grouping_planner中对sort的处理逻辑如下，直接使用创建sort的path之后使用create_remotesort_plan，在处理后的执行计划中有一个<code>__REMOTE_SORT_QUERY__</code>的rte，这里抓取了pgxc和antdb关键节点的执行计划，可以直接对比<code>grouping_planner</code>前后的执行计划的变化</p>`,readingTime:16,tags:null,title:"xx",url:"/posts/others/log/"},{author:null,avatar:null,categories:null,description:`<h2 id="内存上下文">内存上下文</h2>
 <ul>
 <li><a href="https://smartkeyerror.com/PostgreSQL-MemoryContext" target="_blank">https://smartkeyerror.com/PostgreSQL-MemoryContext</a>
 </li>
@@ -120,7 +140,7 @@ p10k configure
 <li>更多的是因为频繁的malloc会导致内存碎片，且由于malloc需要额外的空间记录head和foot的位置，所以还存在的问题就是空间的浪费，另外最大的问题是内存泄漏问题，使用指针在方法间传递不容易管理</li>
 <li>大概类似c++的内存管理方法，把</li>
 </ul>
-<h2></h2>`,readingTime:1,tags:null,title:"内存管理",url:"/posts/postgres/memctx/"},{author:null,avatar:null,categories:null,description:"RocksDB 源码总结分析",readingTime:2,tags:["源码阅读","RocksDB","存储引擎"],title:"RocksDB源码分析",url:"/posts/readcode/rocksdb/"},{author:null,avatar:null,categories:null,description:"Postgres parser 模块解析，目的是为了学习parser实现机制。编译原理以及bison和flex的使用",readingTime:1,tags:["数据库","Postgres","Parser","编译原理"],title:"postgres Parser",url:"/posts/postgres/parser/"},{author:null,avatar:null,categories:null,description:"PG 中锁的分析",readingTime:2,tags:["数据库","Postgres","LOCK"],title:"Locks",url:"/posts/postgres/locks/"},{author:null,avatar:null,categories:null,description:"Postgres_xc 源码编译，集群环境搭建",readingTime:9,tags:null,title:"Postgres_xc 源码编译及环境搭建",url:"/posts/database/gp/postgres_xc_build/"},{author:null,avatar:null,categories:null,description:"本文从源码级别进行优化器的分析，对Postgres优化器代码调研，具体包括他的数据结构，以及具体的代码架构实现以及核心算法等",readingTime:38,tags:["数据库","Postgres","优化器"],title:"Postgres Optimizer",url:"/posts/postgres/opt/"},{author:null,avatar:null,categories:null,description:`<h2 id="存储">存储</h2>
+<h2></h2>`,readingTime:1,tags:null,title:"内存管理",url:"/posts/postgres/memctx/"},{author:null,avatar:null,categories:null,description:"Postgres parser 模块解析，目的是为了学习parser实现机制。编译原理以及bison和flex的使用",readingTime:1,tags:["数据库","Postgres","Parser","编译原理"],title:"postgres Parser",url:"/posts/postgres/parser/"},{author:null,avatar:null,categories:null,description:"PG 中锁的分析",readingTime:2,tags:["数据库","Postgres","LOCK"],title:"Locks",url:"/posts/postgres/locks/"},{author:null,avatar:null,categories:null,description:"Postgres_xc 源码编译，集群环境搭建",readingTime:9,tags:null,title:"Postgres_xc 源码编译及环境搭建",url:"/posts/database/gp/postgres_xc_build/"},{author:null,avatar:null,categories:null,description:"本文从源码级别进行优化器的分析，对Postgres优化器代码调研，具体包括他的数据结构，以及具体的代码架构实现以及核心算法等",readingTime:38,tags:["数据库","Postgres","优化器"],title:"Postgres Optimizer",url:"/posts/postgres/opt/"},{author:null,avatar:null,categories:null,description:`<h2 id="存储">存储</h2>
 <h3 id="内存">内存</h3>
 <ul>
 <li>
@@ -239,6 +259,7 @@ buffer pool中的page可以用于上层的数据运算</p>`,readingTime:6,tags:[
 <li><a href="https://hardcore.feishu.cn/docs/doccnMRVFcMWn1zsEYBrbsDf8De#" target="_blank">有用的飞书文档</a>
 </li>
 </ul>
+
   </blockquote>
 
 <ul>
@@ -265,6 +286,7 @@ buffer pool中的page可以用于上层的数据运算</p>`,readingTime:6,tags:[
 <br>
 <a href="https://pdos.csail.mit.edu/6.824/papers/gfs-faq.txt" target="_blank">6.824 Q&amp;A</a>
 </p>
+
   </blockquote>
 
 <ul>
@@ -323,27 +345,7 @@ Lab 4: scalable database performance via sharding</p>`,readingTime:2,tags:null,t
 </ul>
 </li>
 <li>
-<p>一个框架，优化器生成器，可以由“optimizer implementor”自行实现关键函数，整个优化器框架的输入是AST，输出是一个执行计划，算子的集合</p>`,readingTime:6,tags:null,title:"VolcanoOptimizer",url:"/posts/readbooks/volcanooptimizer/"},{author:null,avatar:null,categories:null,description:`<h1 id="start">start</h1>
-<p>EFFICIENCY IN THE COLUMBIA DATABASE QUERY OPTIMIZER</p>
-<h2 id="优化器发展版本">优化器发展版本</h2>
-<ul>
-<li>
-<p>第一代</p>
-<ul>
-<li>模块化的，分层的，可扩展的，基于规则的优化器</li>
-<li>扩展的复杂性，搜索性能</li>
-</ul>
-</li>
-<li>
-<p>第二代</p>
-<ul>
-<li>类似Volcano，更加优秀的优化规则，且使用物理属性参与优化，使用新的搜索方式</li>
-<li>更加灵活，但是还是难与扩展</li>
-</ul>
-</li>
-<li>
-<p>第三代</p>`,readingTime:1,tags:null,title:"Columbia Optimizer",url:"/posts/readbooks/columbia-optimizer/"},{author:null,avatar:null,categories:null,description:`<h2 id="读者序">读者序</h2>
-<p>之前没有好好的阅读过一本任何技术书籍，一般都是打开前几张，然后慢慢的失去耐心，所有造成的问题是一些书籍上的知识，只会对前面的章节有记忆，而大多数的书籍前面的章节也只是他书籍的入门介绍而已，所以我是个半吊子程序员，工作两年半之后，这个问题越来越困扰着我，有时候看见别人的面帖，感觉那些问题其实都因该是知道答案的，但是当我想要在脑海中把答案整理出来的时候却无从说起，简单的来说就是有的东西我是知道的，但是无法表示出来，不成体系，这给我一个错觉就是我感觉我能力可以，但是落到实地的时候却啥也做不了，脱离了谷歌百度或者其他我之前的资料，我啥都不行。</p>`,readingTime:4,tags:["读书笔记","C++"],title:"现代C++白皮书",url:"/posts/readbooks/%E7%8E%B0%E4%BB%A3c++%E7%99%BD%E7%9A%AE%E4%B9%A6/"},{author:null,avatar:null,categories:null,description:`<h2 id="hugo">hugo</h2>
+<p>一个框架，优化器生成器，可以由“optimizer implementor”自行实现关键函数，整个优化器框架的输入是AST，输出是一个执行计划，算子的集合</p>`,readingTime:6,tags:null,title:"VolcanoOptimizer",url:"/posts/readbooks/volcanooptimizer/"},{author:null,avatar:null,categories:null,description:`<h2 id="hugo">hugo</h2>
 <p>wget <a href="https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb" target="_blank">https://github.com/gohugoio/hugo/releases/download/v0.92.1/hugo_0.92.1_Linux-64bit.deb</a>
 
 <a href="https://github.91chi.fun/https://github.com//gohugoio/hugo/releases/download/v0.92.2/hugo_extended_0.92.2_Linux-64bit.deb" target="_blank">https://github.91chi.fun/https://github.com//gohugoio/hugo/releases/download/v0.92.2/hugo_extended_0.92.2_Linux-64bit.deb</a>
@@ -361,9 +363,7 @@ aria2c -s 5 <a href="https://github.com/gohugoio/hugo/releases/download/v0.92.1/
 <p><a href="https://www.jianshu.com/p/a76a93e8c662" target="_blank">https://www.jianshu.com/p/a76a93e8c662</a>
 </p>
 <h2 id="unix">Unix</h2>
-<p>分区问题，集群上多块磁盘分区挂载到指定目录</p>`,readingTime:2,tags:null,title:"Envs",url:"/posts/others/envs/"},{author:null,avatar:null,categories:null,description:"docker 常用命令速查，私用",readingTime:3,tags:["Docker"],title:"Docker",url:"/posts/others/docker/"},{author:null,avatar:null,categories:null,description:`<p>predicate_refuted_by 和 make_new_qual_list的运行逻辑以及PARAM 无法选出一个节点的原因</p>
-<p>make_new_qual_list需要使用表达式和分区信息构造新的表达式，但是PARAM不是常量，所以无法构造，
-所以predicate_refuted_by判定变大时和约束的时候无法正确的选择节点，动态语句只要使用到分区键都不行</p>`,readingTime:3,tags:null,title:"",url:"/posts/others/%E5%87%BD%E6%95%B0%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91/"},{author:null,avatar:null,categories:null,description:`<h1 id="文磊">文磊</h1>
+<p>分区问题，集群上多块磁盘分区挂载到指定目录</p>`,readingTime:2,tags:null,title:"Envs",url:"/posts/others/envs/"},{author:null,avatar:null,categories:null,description:"docker 常用命令速查，私用",readingTime:3,tags:["Docker"],title:"Docker",url:"/posts/others/docker/"},{author:null,avatar:null,categories:null,description:"",readingTime:0,tags:null,title:"",url:"/posts/database_monthly/"},{author:null,avatar:null,categories:null,description:`<h1 id="文磊">文磊</h1>
 <h2 id="个人信息">个人信息</h2>
 <p>性 别：男      																									年 龄：29
 手 机：18705169510  																					邮 箱：404061090@qq.com</p>

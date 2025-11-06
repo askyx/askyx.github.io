@@ -1,52 +1,54 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>6.824 on Askyx's Blog</title><link>https://askyx.github.io/tags/6.824/</link><description>Recent content in 6.824 on Askyx's Blog</description><generator>Hugo</generator><language>zh-Hans</language><lastBuildDate>Mon, 21 Jul 2025 18:42:10 +0800</lastBuildDate><atom:link href="https://askyx.github.io/tags/6.824/index.xml" rel="self" type="application/rss+xml"/><item><title>Raft</title><link>https://askyx.github.io/posts/course/6.824/raft/</link><pubDate>Mon, 30 May 2022 18:51:02 +0800</pubDate><guid>https://askyx.github.io/posts/course/6.824/raft/</guid><description>&lt;blockquote>
- &lt;ul>
-&lt;li>&lt;a href="https://college.blog.csdn.net/article/details/53671783?spm=1001.2101.3001.6650.4&amp;amp;utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-4-53671783-blog-42742105.pc_relevant_paycolumn_v3&amp;amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-4-53671783-blog-42742105.pc_relevant_paycolumn_v3&amp;amp;utm_relevant_index=8" target="_blank">译文&lt;/a>
-&lt;/li>
-&lt;li>&lt;a href="https://pdos.csail.mit.edu/6.824/papers/raft-extended.pdf" target="_blank">原文&lt;/a>
-&lt;/li>
-&lt;li>&lt;a href="https://hardcore.feishu.cn/docs/doccnMRVFcMWn1zsEYBrbsDf8De#" target="_blank">有用的飞书文档&lt;/a>
-&lt;/li>
-&lt;/ul>
- &lt;/blockquote>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>6.824 on Askyx's Blog</title><link>https://askyx.github.io/tags/6.824/</link><description>Recent content in 6.824 on Askyx's Blog</description><generator>Hugo</generator><language>zh-Hans</language><lastBuildDate>Thu, 06 Nov 2025 15:45:31 +0800</lastBuildDate><atom:link href="https://askyx.github.io/tags/6.824/index.xml" rel="self" type="application/rss+xml"/><item><title>Raft</title><link>https://askyx.github.io/posts/course/6.824/raft/</link><pubDate>Mon, 30 May 2022 18:51:02 +0800</pubDate><guid>https://askyx.github.io/posts/course/6.824/raft/</guid><description>&lt;blockquote&gt;
+ &lt;ul&gt;
+&lt;li&gt;&lt;a href="https://college.blog.csdn.net/article/details/53671783?spm=1001.2101.3001.6650.4&amp;amp;utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-4-53671783-blog-42742105.pc_relevant_paycolumn_v3&amp;amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-4-53671783-blog-42742105.pc_relevant_paycolumn_v3&amp;amp;utm_relevant_index=8" target="_blank"&gt;译文&lt;/a&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://pdos.csail.mit.edu/6.824/papers/raft-extended.pdf" target="_blank"&gt;原文&lt;/a&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://hardcore.feishu.cn/docs/doccnMRVFcMWn1zsEYBrbsDf8De#" target="_blank"&gt;有用的飞书文档&lt;/a&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
 
-&lt;ul>
-&lt;li>和其他的算法相比
-&lt;ol>
-&lt;li>Strong leader&lt;br>
-日志只能从领导者发送到其他节点&lt;/li>
-&lt;li>Leader election&lt;br>
-随机计时器选举领导，在心跳机制上加上一些额外的工作&lt;/li>
-&lt;li>Membership changes&lt;br>
-角色变换&lt;/li>
-&lt;/ol>
-&lt;/li>
-&lt;/ul>
-&lt;h2 id="replicated-state-machines">Replicated state machines&lt;/h2>
-&lt;p>复制状态机一般基于日志实现，通俗的理解只要所有的机器按照相同的顺序执行指令，那么每个节点的状态都是确定的，所以需要把指令日志复制到其他节点上去，这就是一致性算法的工作&lt;/p></description></item><item><title>GFS</title><link>https://askyx.github.io/posts/course/6.824/gfs/</link><pubDate>Mon, 30 May 2022 16:36:40 +0800</pubDate><guid>https://askyx.github.io/posts/course/6.824/gfs/</guid><description>&lt;p>GFS是一个大规模可扩展的可容错的分布式文件系统。Google三大篇论文之一&lt;/p>
+ &lt;/blockquote&gt;
+
+&lt;ul&gt;
+&lt;li&gt;和其他的算法相比
+&lt;ol&gt;
+&lt;li&gt;Strong leader&lt;br&gt;
+日志只能从领导者发送到其他节点&lt;/li&gt;
+&lt;li&gt;Leader election&lt;br&gt;
+随机计时器选举领导，在心跳机制上加上一些额外的工作&lt;/li&gt;
+&lt;li&gt;Membership changes&lt;br&gt;
+角色变换&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="replicated-state-machines"&gt;Replicated state machines&lt;/h2&gt;
+&lt;p&gt;复制状态机一般基于日志实现，通俗的理解只要所有的机器按照相同的顺序执行指令，那么每个节点的状态都是确定的，所以需要把指令日志复制到其他节点上去，这就是一致性算法的工作&lt;/p&gt;</description></item><item><title>GFS</title><link>https://askyx.github.io/posts/course/6.824/gfs/</link><pubDate>Mon, 30 May 2022 16:36:40 +0800</pubDate><guid>https://askyx.github.io/posts/course/6.824/gfs/</guid><description>&lt;p&gt;GFS是一个大规模可扩展的可容错的分布式文件系统。Google三大篇论文之一&lt;/p&gt;
 
 
 
- &lt;blockquote>
- &lt;p>翻译文章在&lt;a href="https://nxwz51a5wp.feishu.cn/docs/doccnNYeo3oXj6cWohseo6yB4id#Tar9b7" target="_blank">这里&lt;/a>
-&lt;br>
-论文在&lt;a href="https://pdos.csail.mit.edu/6.824/papers/gfs.pdf" target="_blank">这里&lt;/a>
-&lt;br>
-&lt;a href="https://pdos.csail.mit.edu/6.824/papers/gfs-faq.txt" target="_blank">6.824 Q&amp;amp;A&lt;/a>
-&lt;/p>
- &lt;/blockquote>
+ &lt;blockquote&gt;
+ &lt;p&gt;翻译文章在&lt;a href="https://nxwz51a5wp.feishu.cn/docs/doccnNYeo3oXj6cWohseo6yB4id#Tar9b7" target="_blank"&gt;这里&lt;/a&gt;
+&lt;br&gt;
+论文在&lt;a href="https://pdos.csail.mit.edu/6.824/papers/gfs.pdf" target="_blank"&gt;这里&lt;/a&gt;
+&lt;br&gt;
+&lt;a href="https://pdos.csail.mit.edu/6.824/papers/gfs-faq.txt" target="_blank"&gt;6.824 Q&amp;amp;A&lt;/a&gt;
+&lt;/p&gt;
 
-&lt;ul>
-&lt;li>GFS的特点
-&lt;ol>
-&lt;li>运行在廉价的机器上，节约成本&lt;/li>
-&lt;li>灵活性强，可随意扩展，容错性强&lt;/li>
-&lt;li>文件尾部追加数据，不会有太多的数据变动&lt;/li>
-&lt;/ol>
-&lt;/li>
-&lt;/ul>
-&lt;h2 id="架构">架构&lt;/h2>
-&lt;p>一个单独的master节点和多个datachunk节点，maste管理元数据信息，包括chunkhandle信息，文件和chunk的映射信息，以及chunkserver的变动信息等。master使用心跳定时和chunkserver同步关键信息。使用单个master的目的是为了简化设计，同时为了避免单点故障，master节点每次操作都和backup master同步数据，master存储的3种关键元数据为&lt;/p></description></item><item><title>Mapreduce</title><link>https://askyx.github.io/posts/course/6.824/mapreduce/</link><pubDate>Sun, 29 May 2022 21:05:46 +0800</pubDate><guid>https://askyx.github.io/posts/course/6.824/mapreduce/</guid><description>&lt;p>利用普通机器组成的大规模计算集群进行并行的,高容错,高性能的数据处理函数框架&lt;/p>
-&lt;p>原始论文点&lt;a href="https://pdos.csail.mit.edu/6.824/papers/mapreduce.pdf" target="_blank">这里&lt;/a>
-,论文翻译点&lt;a href="https://hardcore.feishu.cn/docs/doccn1XcAYOjDLG7PtY3DIh0q4d#kv8eLv" target="_blank">这里&lt;/a>
-，有时间的话，自行对比翻译和原文&lt;/p>
-&lt;p>最终实现的目标是&amp;ndash;实现一个分布式系统，对程序员隐藏底层分布式细节，程序员只需要定义map和reduce 函数即可。&lt;/p></description></item></channel></rss>
+ &lt;/blockquote&gt;
+
+&lt;ul&gt;
+&lt;li&gt;GFS的特点
+&lt;ol&gt;
+&lt;li&gt;运行在廉价的机器上，节约成本&lt;/li&gt;
+&lt;li&gt;灵活性强，可随意扩展，容错性强&lt;/li&gt;
+&lt;li&gt;文件尾部追加数据，不会有太多的数据变动&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="架构"&gt;架构&lt;/h2&gt;
+&lt;p&gt;一个单独的master节点和多个datachunk节点，maste管理元数据信息，包括chunkhandle信息，文件和chunk的映射信息，以及chunkserver的变动信息等。master使用心跳定时和chunkserver同步关键信息。使用单个master的目的是为了简化设计，同时为了避免单点故障，master节点每次操作都和backup master同步数据，master存储的3种关键元数据为&lt;/p&gt;</description></item><item><title>Mapreduce</title><link>https://askyx.github.io/posts/course/6.824/mapreduce/</link><pubDate>Sun, 29 May 2022 21:05:46 +0800</pubDate><guid>https://askyx.github.io/posts/course/6.824/mapreduce/</guid><description>&lt;p&gt;利用普通机器组成的大规模计算集群进行并行的,高容错,高性能的数据处理函数框架&lt;/p&gt;
+&lt;p&gt;原始论文点&lt;a href="https://pdos.csail.mit.edu/6.824/papers/mapreduce.pdf" target="_blank"&gt;这里&lt;/a&gt;
+,论文翻译点&lt;a href="https://hardcore.feishu.cn/docs/doccn1XcAYOjDLG7PtY3DIh0q4d#kv8eLv" target="_blank"&gt;这里&lt;/a&gt;
+，有时间的话，自行对比翻译和原文&lt;/p&gt;
+&lt;p&gt;最终实现的目标是&amp;ndash;实现一个分布式系统，对程序员隐藏底层分布式细节，程序员只需要定义map和reduce 函数即可。&lt;/p&gt;</description></item></channel></rss>
